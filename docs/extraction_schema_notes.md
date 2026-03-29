@@ -4,22 +4,22 @@ This document explains each field in `extraction_schema.json` — what it means,
 
 ## Field Definitions
 
-**patient_name**
+**patient_name:**
 The patient's full name, usually found in the header or cover page of the discharge document.
 
-**discharge_date**
+**discharge_date:**
 The date the patient was discharged from the facility, returned as an ISO 8601 date string (e.g. `"2024-03-15"`); typically labeled "Discharge Date" near the top of the document.
 
-**primary_diagnosis**
+**primary_diagnosis:**
 The main condition the patient was treated for, often labeled "Principal Diagnosis" or "Discharge Diagnosis" in the clinical summary section.
 
-**secondary_diagnoses**
+**secondary_diagnoses:**
 A list of additional diagnoses documented alongside the primary condition, sometimes labeled "Secondary Diagnoses" or "Comorbidities."
 
-**procedures_performed**
+**procedures_performed:**
 A list of medical procedures or surgeries carried out during the hospital stay, typically found in a "Procedures" or "Operative Report" section.
 
-**medications**
+**medications:**
 A list of medications at discharge, each with the following sub-fields:
 - `name`: The medication name (brand or generic).
 - `dose`: The prescribed dose (e.g. `"10mg"`).
@@ -27,26 +27,26 @@ A list of medications at discharge, each with the following sub-fields:
 - `duration`: How long it should be taken (e.g. `"7 days"`).
 - `status`: A list of medications at discharge including name, dose, frequency, duration, and whether the medication is new, changed, continued, or discontinued.
 
-**follow_up_appointments**
+**follow_up_appointments:**
 A list of scheduled or recommended follow-up visits, each with:
 - `provider`: The name of the doctor or clinic.
 - `specialty`: The medical specialty (e.g. `"Cardiology"`).
 - `date`: The appointment date, if specified.
 - `reason`: The stated purpose of the visit.
 
-**activity_restrictions**
+**activity_restrictions:**
 A list of physical activity limitations given to the patient at discharge (e.g. `"No lifting over 10 lbs for 4 weeks"`).
 
-**dietary_restrictions**
+**dietary_restrictions:**
 A list of dietary instructions given at discharge (e.g. `"Low sodium diet"`, `"No alcohol"`).
 
-**red_flag_symptoms**
+**red_flag_symptoms:**
 A list of warning symptoms the patient is told to watch for and act on (e.g. `"Return to ER if fever exceeds 101°F"`), often found in a "When to Seek Emergency Care" section.
 
-**discharge_condition**
+**discharge_condition:**
 A description or rating of the patient's condition at the time of discharge (e.g. `"Stable"`, `"Good"`, `"Fair"`).
 
-**extraction_warnings**
+**extraction_warnings:**
 A list of any fields Agent 1 could not confidently extract. This gets passed downstream so other agents know what data may be missing or uncertain. If everything was extracted cleanly, this should be an empty list `[]`.
 
 ## Null Rule (Required Reading)
