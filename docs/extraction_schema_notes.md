@@ -27,7 +27,7 @@ A list of medications at discharge, each with the following sub-fields:
 - `dose`: The prescribed dose (e.g. `"10mg"`).
 - `frequency`: How often it is taken (e.g. `"twice daily"`).
 - `duration`: How long it should be taken (e.g. `"7 days"`).
-- `status`: One of `new`, `changed`, `continued`, or `discontinued` — reflecting whether this medication is new at discharge, modified, carried over from before admission, or stopped.
+- `status`: A list of medications at discharge including name, dose, frequency, duration, and whether the medication is new, changed, continued, or discontinued.
 
 **follow_up_appointments**
 A list of scheduled or recommended follow-up visits, each with:
