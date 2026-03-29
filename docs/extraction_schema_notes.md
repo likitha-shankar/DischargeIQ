@@ -2,8 +2,6 @@
 
 This document explains each field in `extraction_schema.json` — what it means, where to find it in a typical hospital discharge document, and how Agent 1 should handle it.
 
----
-
 ## Field Definitions
 
 **patient_name**
@@ -51,8 +49,6 @@ A description or rating of the patient's condition at the time of discharge (e.g
 **extraction_warnings**
 A list of any fields Agent 1 could not confidently extract. This gets passed downstream so other agents know what data may be missing or uncertain. If everything was extracted cleanly, this should be an empty list `[]`.
 
----
-
 ## Null Rule (Required Reading)
 
 Agent 1 must follow this rule strictly for every field:
@@ -63,8 +59,6 @@ Agent 1 must follow this rule strictly for every field:
 - For **list fields** (e.g. `medications`, `red_flag_symptoms`, `secondary_diagnoses`), return an empty list `[]` if nothing was found — not `null`.
 
 Any field that could not be extracted with confidence should also be recorded in `extraction_warnings` with a brief note explaining what was missing or ambiguous.
-
----
 
 ## Sign-Off
 
