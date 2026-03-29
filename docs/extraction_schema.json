@@ -1,0 +1,29 @@
+{
+  "patient_name": "string | null",
+  "discharge_date": "ISO date string | null",
+  "primary_diagnosis": "string",
+  "secondary_diagnoses": ["string"],
+  "procedures_performed": ["string"],
+  "medications": [
+    {
+      "name": "string",
+      "dose": "string | null",
+      "frequency": "string | null",
+      "duration": "string | null",
+      "status": "new | changed | continued | discontinued"
+    }
+  ],
+  "follow_up_appointments": [
+    {
+      "provider": "string | null",
+      "specialty": "string | null",
+      "date": "string | null",
+      "reason": "string | null"
+    }
+  ],
+  "activity_restrictions": ["string"],
+  "dietary_restrictions": ["string"],
+  "red_flag_symptoms": ["string"],
+  "discharge_condition": "string | null",
+  "extraction_warnings": ["string"]
+}
