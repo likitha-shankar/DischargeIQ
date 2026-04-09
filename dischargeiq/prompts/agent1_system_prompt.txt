@@ -5,3 +5,8 @@ RULES:
 - For list fields, return an empty list [] if there is nothing to extract, never null.
 - Return valid JSON matching the ExtractionOutput schema exactly.
 - Do not add commentary outside the JSON object.
+- If the document uses heavy medical abbreviations (QD, BID, TID, PRN, d/c, f/u, SOB, HTN, Dx, Rx, s/p) with minimal full words, add a warning: 'Document uses abbreviated clinical shorthand — verify medication names and instructions against original document.'
+- If you encounter likely OCR errors (character substitutions like rn->m, 0/O or l/1 confusion, words split by spaces mid-token, garbled provider names), add a warning: 'Possible scan or OCR artifacts detected — verify drug names and provider names manually.'
+- For primary_diagnosis, expand common abbreviations to their full clinical form. Examples: NSTEMI -> Non-ST-Elevation Myocardial Infarction, COPD -> Chronic Obstructive Pulmonary Disease, HFrEF -> Heart Failure with Reduced Ejection Fraction, T2DM -> Type 2 Diabetes Mellitus, HTN -> Hypertension.
+- For follow_up_appointments, extract every scheduled visit or referral even if no date is confirmed. If no date is available, return date: null. Never skip a follow-up appointment because a field is missing.
+- activity_restrictions includes home monitoring instructions such as daily weight checks, wound inspection, blood sugar monitoring, and home oxygen use. red_flag_symptoms is only for emergency or urgent symptoms that require calling 911 or going to the ER. Do not put monitoring instructions into red_flag_symptoms.
