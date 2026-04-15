@@ -6,17 +6,15 @@ with agent1_system_prompt.txt to produce JSON matching ExtractionOutput.
 Validates the response with Pydantic; never fabricates field values —
 missing data is returned as null or [] per the locked schema contract.
 
-Depends on: google-generativeai, pdfplumber, pydantic v2,
+Depends on: anthropic, pdfplumber, pydantic v2,
             dischargeiq.models.extraction, prompts/agent1_system_prompt.txt.
 """
 
 import json
 import logging
-import os
-import time
 from pathlib import Path
 
-import google.generativeai as genai
+import anthropic
 import pdfplumber
 from pydantic import ValidationError
 
@@ -107,90 +105,39 @@ def _build_user_message(pdf_text: str) -> str:
     )
 
 
-def _is_per_minute_quota_error(exc: Exception) -> bool:
+def _call_claude(system_prompt: str, pdf_text: str) -> str:
     """
-    Return True only for per-minute quota errors that resolve within ~60s.
+    Send the extraction request to Claude Sonnet and return the raw text response.
 
-    Distinguishes per-minute rate limits (retryable after one minute) from
-    daily quota exhaustion (not retryable until UTC midnight). Gemini raises
-    both as ResourceExhausted (HTTP 429); the quota_id string in the body
-    tells them apart. We inspect str(exc) to stay decoupled from gRPC internals.
-
-    Per-minute: quota_id contains "PerMinute"  → retry after 65s
-    Daily:      quota_id contains "PerDay"      → fail fast, wait until tomorrow
-
-    Args:
-        exc: The caught exception.
-
-    Returns:
-        bool: True if this is a per-minute limit worth retrying.
-    """
-    error_text = str(exc)
-    is_quota = "quota" in error_text.lower() or "429" in error_text or "ResourceExhausted" in error_text
-    is_daily = "PerDay" in error_text or "per_day" in error_text.lower()
-    return is_quota and not is_daily
-
-
-def _call_gemini(system_prompt: str, pdf_text: str) -> str:
-    """
-    Send the extraction request to Gemini and return the raw text response.
-
-    Configures the API key from the environment, initialises the model with
-    the system instruction, and sends the user message.
-
-    Retries once on per-minute quota errors (HTTP 429) after waiting
-    _QUOTA_RETRY_WAIT_SECONDS. Does not retry on daily quota exhaustion —
-    the caller will receive the exception in that case.
-
-    Set GEMINI_MODEL in the environment to override the model name
-    (default: gemini-2.0-flash). Use gemini-1.5-flash if the daily
-    quota for gemini-2.0-flash is exhausted on the free tier.
+    Reads ANTHROPIC_API_KEY from the environment (via python-dotenv).
+    Uses claude-sonnet-4-20250514 as specified in CLAUDE.md.
 
     Args:
         system_prompt: System instruction string loaded from the prompt file.
         pdf_text: Raw discharge document text to be extracted.
 
     Returns:
-        str: Raw text response from Gemini, stripped of leading/trailing whitespace.
+        str: Raw text response from Claude, stripped of leading/trailing whitespace.
 
     Raises:
-        Exception: Re-raises any API error (including quota errors after retries)
-                   after logging.
+        anthropic.APIError: On any API-level error (auth, rate limit, server error).
+        anthropic.APIConnectionError: If the network request fails.
     """
-    # TODO DIS-5: Using Google Gemini (gemini-2.0-flash) for local
-    # development due to API credit constraints. Switch to
-    # claude-sonnet-4-20250514 via Anthropic SDK before Sprint 2
-    # Week 5 evaluation run. See CLAUDE.md for the correct pattern.
-    genai.configure(api_key=os.environ["GOOGLE_STUDIO_API_KEY"])
+    client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
 
-    # Allow model override via env var so the team can switch to
-    # gemini-1.5-flash without code changes if 2.0-flash quota is exhausted.
-    model_name = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
-    model = genai.GenerativeModel(model_name, system_instruction=system_prompt)
     user_message = _build_user_message(pdf_text)
 
-    # Single retry on per-minute quota reset (free tier = 15 RPM).
-    # 65 seconds gives the one-minute window time to fully clear.
-    _quota_retry_wait_seconds = 65
-    _max_retries = 1
-
-    for attempt in range(_max_retries + 1):
-        try:
-            response = model.generate_content(user_message)
-            return response.text.strip()
-        except Exception as exc:
-            # Only retry per-minute limits — daily quota cannot be resolved by
-            # waiting 65 seconds, so fail immediately with a clear message.
-            if _is_per_minute_quota_error(exc) and attempt < _max_retries:
-                logger.warning(
-                    "Per-minute quota hit (attempt %d) — waiting %ds before retry.",
-                    attempt + 1,
-                    _quota_retry_wait_seconds,
-                )
-                time.sleep(_quota_retry_wait_seconds)
-            else:
-                logger.error("Gemini API call failed: %s", exc)
-                raise
+    try:
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=2000,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_message}],
+        )
+        return response.content[0].text.strip()
+    except anthropic.APIError as exc:
+        logger.error("Claude API call failed: %s", exc)
+        raise
 
 
 def _strip_markdown_fences(raw: str) -> str:
@@ -281,9 +228,9 @@ def _parse_and_validate(raw_response: str) -> ExtractionOutput:
     try:
         data = json.loads(cleaned)
     except json.JSONDecodeError as first_exc:
-        # Gemini occasionally inserts stray tokens mid-JSON on
+        # Claude occasionally inserts stray tokens mid-JSON on
         # table-heavy documents. This cleanup step removes non-JSON
-        # lines before parsing. Remove when switching to Claude API.
+        # lines before parsing.
         logger.warning(
             "Initial JSON parse failed (%s). Attempting stray-token cleanup.",
             first_exc.msg,
@@ -376,5 +323,5 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
         Exception: Re-raises any unexpected LLM API error after logging.
     """
     system_prompt = _load_system_prompt()
-    raw_response = _call_gemini(system_prompt, pdf_text)
+    raw_response = _call_claude(system_prompt, pdf_text)
     return _parse_and_validate(raw_response)
