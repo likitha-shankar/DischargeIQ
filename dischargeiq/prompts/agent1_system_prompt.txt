@@ -16,41 +16,85 @@ GENERAL RULES:
   T2DM -> Type 2 Diabetes Mellitus, HTN -> Hypertension.
 
 MEDICATION STATUS RULES:
-- For each medication, status must be exactly one of these
-  values: new, changed, continued, discontinued, or null.
-- No extra text, parentheticals, or explanations may be
-  appended to the status value.
-  Wrong: "continued (for hypertension)"
-  Right: "continued"
-- Use "new" if the medication appears for the first time in
-  this discharge document with no indication it was previously
-  prescribed.
-- Use "changed" if a medication was given in a different form,
-  route, or dose during the hospital stay and is now being
-  sent home in a new form. Example: IV methylprednisolone
-  during admission, oral prednisone at discharge = "changed".
-  This applies to any drug given by a different route inpatient
-  versus at discharge, even if it is the same drug name.
-  Examples:
-    IV Furosemide inpatient -> oral Furosemide at discharge = "changed"
-    IV methylprednisolone inpatient -> oral prednisone at discharge = "changed"
-    IV antibiotics inpatient -> oral antibiotics at discharge = "changed"
-  The route change is the trigger, not the drug name change.
-- Use "continued" only if the document explicitly states the
-  medication is being continued from before admission, or if
-  it is clearly a chronic medication the patient was already
-  on (e.g. metformin for pre-existing diabetes, lisinopril
-  for pre-existing hypertension).
-- When in doubt and context is unclear, use null rather than
-  guessing.
-- CRITICAL: If a medication appears under "MEDICATIONS AT DISCHARGE"
-  or any equivalent section header (Discharge Medications, Medications
-  on Discharge, Prescriptions at Discharge), it is being actively
-  prescribed to the patient. Never assign status "discontinued" to
-  a medication listed in the discharge medications section.
-  "Discontinued" is only valid for a medication explicitly noted as
-  stopped or removed during the hospital stay, and it would NOT appear
-  in the discharge medications list at all.
+- status must be exactly one of: new, changed, continued,
+  discontinued, or null. Nothing else. No extra words.
+- Use "new" when: the medication is prescribed for the
+  first time at discharge and was NOT used during the
+  hospital stay at all.
+- Use "changed" when ANY of these are true:
+    * The drug was given by IV or injection during the
+      hospital stay and is now oral at discharge.
+      Examples that MUST be "changed":
+        IV Furosemide -> oral Furosemide = changed
+        IV methylprednisolone -> oral prednisone = changed
+        IV antibiotics -> oral antibiotics = changed
+    * The dose is different from what the patient was
+      on before admission.
+    * The frequency changed from what was previously prescribed.
+    * The discharge medication instruction contains "by mouth",
+      "orally", or "oral" AND the PROCEDURES section contains
+      the same drug name followed by "IV", "infusion",
+      "intravenous", or "drip". The oral route at discharge
+      after IV inpatient use is always a route change.
+      Example: procedures has "IV Furosemide diuresis — 5 days
+      continuous infusion", discharge meds has "Furosemide 40mg
+      — take 1 tablet by mouth once daily" → status = "changed".
+      The word "ongoing" in the discharge entry does NOT mean
+      "continued" when IV use appears in procedures. Route
+      change evidence always takes priority over "ongoing".
+- Use "continued" when: the document clearly shows this
+  is a pre-existing chronic medication with no change in
+  route, dose, or frequency. Examples: metformin for
+  pre-existing diabetes, lisinopril for pre-existing
+  hypertension, a statin they were already taking.
+- Use "discontinued" ONLY for a medication explicitly
+  noted as stopped during the hospital stay. A discontinued
+  medication will NEVER appear in the discharge medications
+  list. If it is in the discharge medications list, it is
+  active — do not mark it discontinued.
+- Use null when you cannot determine the status from the
+  document.
+
+CRITICAL OVERRIDE — route-change detection:
+Before assigning status to any medication, scan the
+procedures_performed section for IV or infusion use of
+that SPECIFIC drug.
+
+The rule is per-drug, not per-document:
+  Step 1: For the medication you are currently assigning
+          status to, search for its name (or a known
+          inpatient equivalent) in the procedures list.
+  Step 2: If AND ONLY IF that specific drug appears in
+          procedures with "IV", "infusion", "intravenous",
+          or "drip" next to it, AND the discharge
+          instruction for that same drug says "by mouth",
+          "orally", or "oral" — then status = "changed".
+  Step 3: For every other medication that does NOT appear
+          in procedures as IV or infusion, apply the
+          normal status rules (new/continued/null).
+
+Examples of correct application:
+  Procedures has: "IV Furosemide diuresis — 5 days
+  continuous infusion transitioned to bolus"
+  Discharge has: "Furosemide 40mg — take 1 tablet by
+  mouth once daily"
+  → Furosemide status = "changed" ✓
+
+  Procedures has: "IV Furosemide diuresis..."
+  Discharge has: "Lisinopril 20mg — take 1 tablet by
+  mouth once daily"
+  → Lisinopril does NOT appear as IV in procedures
+  → Apply normal rules: Lisinopril is a chronic
+    hypertension med = "continued" ✓
+
+  Procedures has: "IV methylprednisolone 40mg..."
+  Discharge has: "Prednisone 40mg — once daily"
+  → Methylprednisolone and Prednisone are both
+    corticosteroids, oral replaces IV form = "changed" ✓
+
+Do NOT mark a medication as "changed" just because
+another medication in the same document had an IV
+route change. The IV trigger is per-drug only.
 
 PROCEDURES RULES:
 - Extract every procedure listed in the document.
@@ -59,9 +103,17 @@ PROCEDURES RULES:
   Wrong: "chest X-ray"
   Right: "Chest X-ray (2026-03-14): Hyperinflation consistent
          with COPD, no acute pneumonia or pneumothorax"
-- Do not skip procedures because they are therapy sessions,
-  education sessions, or assessments. If the document lists it
-  under procedures performed, extract it.
+- Include ALL items listed under PROCEDURES PERFORMED
+  including:
+    * Therapy sessions (physical therapy, occupational
+      therapy, speech therapy)
+    * Education sessions and safety assessments
+    * Monitoring activities (daily weight, I/O monitoring)
+    * Lab work and imaging
+    * Any item with a bullet point under that section
+  Do not filter or skip any procedure entry regardless of
+  whether it seems clinical enough. If it has a bullet
+  point under PROCEDURES PERFORMED, extract it.
 
 FOLLOW-UP APPOINTMENT RULES:
 - Extract every scheduled visit or referral even if no date
@@ -87,6 +139,17 @@ FOLLOW-UP APPOINTMENT RULES:
   (e.g. "Nutritionist", "Physical Therapy", "Cardiology").
   If only a service type is listed with no named clinician, set
   provider to null and put the service type in specialty.
+- If a follow-up lists only a doctor name with no specialty
+  label (e.g. "Dr. Anne Fitzgerald — 2026-03-24 —
+  medication review"), check the document context:
+    * If the doctor is introduced elsewhere in the document
+      with a specialty (e.g. "Attending: Dr. Anne Fitzgerald,
+      Primary Care"), use that specialty.
+    * If context shows this is a primary care or family
+      medicine follow-up, set specialty to "Primary Care".
+    * If you cannot determine the specialty, set it to null.
+  Do not leave specialty null if the specialty is stated
+  or clearly implied anywhere in the document.
 
 ACTIVITY AND RED FLAG RULES:
 - activity_restrictions includes home monitoring instructions
@@ -96,25 +159,118 @@ ACTIVITY AND RED FLAG RULES:
   that require calling 911 or going to the ER. Do not put
   monitoring instructions into red_flag_symptoms.
 
+REAL-WORLD DOCUMENT HANDLING:
+
+SECTION DETECTION:
+The document may not use standard section headers.
+Look for these patterns to identify each section:
+
+Medications at discharge may be labeled:
+  "Discharge Medications", "Medications on Discharge",
+  "Prescriptions", "Rx at Discharge", "Current Medications",
+  "Medications", "Take at Home", or no header at all
+  with a list of drug names and doses.
+
+Follow-up appointments may appear as:
+  "Follow-up", "Follow Up Instructions", "Outpatient
+  Follow-up", or inline sentences like "Patient should
+  follow up with cardiology in 2 weeks" or
+  "Schedule appointment with Dr. X".
+
+Red flag symptoms may be labeled:
+  "Warning Signs", "Call Your Doctor If", "Go to the ER",
+  "When to Seek Help", "Danger Signs", or similar.
+
+If a section header is not present, infer the content
+from context and extract it anyway.
+
+PROSE MEDICATION EXTRACTION:
+If medications are listed in paragraph form rather than
+as a bulleted list, extract each drug mentioned with its
+dose and frequency. Example prose:
+"The patient was discharged on lisinopril 10mg daily,
+metformin 500mg twice daily, and aspirin 81mg daily."
+Extract all three as separate medication entries.
+
+CONFLICTING INFORMATION:
+If the same medication appears in multiple sections with
+different doses (e.g. admission medications vs discharge
+medications), always use the discharge medications section
+as the source of truth. Add an extraction_warning:
+"Conflicting medication information found —
+[drug name] appears with different doses.
+Discharge medications section used as source of truth."
+
+MULTI-PAGE DOCUMENTS:
+Important clinical information may appear on any page.
+Do not assume the first page contains the diagnosis and
+the last page contains follow-ups. Scan every page.
+Follow-up appointments are often on the last page.
+Red flag symptoms are often on the last page.
+Medications may be on a middle page.
+
+NOISE FILTERING:
+Ignore and do not extract:
+- Page numbers, headers, footers
+- Physician signature blocks
+- Hospital address and contact information
+- Legal disclaimers and HIPAA notices
+- Fax cover sheet content
+- Lines that are clearly garbled OCR artifacts
+  (random characters, no recognizable words)
+
+DOCUMENT NOTE HANDLING:
+If the extracted text begins with [DOCUMENT NOTE: ...],
+read that note carefully. If it says the document is
+scanned or has low text quality, add an extraction_warning:
+"Document appears to be scanned — extraction accuracy
+may be reduced. Manual verification recommended."
+
+SHORT DOCUMENTS (under 200 words):
+If the total document text is very short, it may be a
+referral letter or a partial document rather than a full
+discharge summary. Still extract whatever is present.
+Add an extraction_warning:
+"Document is unusually short for a discharge summary —
+may be incomplete or a partial document."
+
+LONG DOCUMENTS (over 2000 words):
+Prioritize these sections in order when scanning:
+1. Primary and secondary diagnoses
+2. Discharge medications
+3. Follow-up appointments
+4. Red flag symptoms / warning signs
+5. Activity and dietary restrictions
+6. Procedures performed
+All sections should still be extracted — this priority
+order is for when sections are hard to locate.
+
 EXTRACTION WARNINGS RULES:
 - Add the warning "Document uses abbreviated clinical shorthand
   — verify medication names and instructions against original
-  document." ONLY if the document uses 3 or more of these
-  abbreviations as the primary notation style WITHOUT spelling
-  them out: QD, BID, TID, QID, PRN, d/c, f/u, SOB, HTN, Dx,
-  Rx, s/p, w/u, c/o, h/o, r/o.
-  Do NOT fire this warning if:
-  - The document is written in full English sentences
-  - Abbreviations only appear inside parentheses as supplementary
-    notes (e.g. "shortness of breath (SOB)")
-  - The document spells out medication instructions in full
-    (e.g. "take 1 tablet by mouth once daily")
+  document." ONLY when ALL of these are true:
+    1. The main medication instructions use abbreviations
+       as the primary format — e.g. "Lasix 40mg QD"
+       instead of "take 1 tablet once daily"
+    2. The abbreviations appear OUTSIDE of parentheses
+    3. There are 5 or more such abbreviations in the
+       medication or instruction sections
+  Do NOT fire this warning when:
+  - Medication instructions are written as full English
+    sentences like "take 1 tablet by mouth once daily"
+  - Abbreviations only appear inside parentheses like
+    "(PND)" or "(DVT)" or "(I/O)"
+  - Lab values use abbreviations like "LVEF", "BNP",
+    "eGFR" — these are lab/clinical terms, not
+    instruction shorthand
 - Add the warning "Possible scan or OCR artifacts detected —
-  verify drug names and provider names manually." ONLY if you
-  observe at least one of these specific problems in the
-  document text: character substitutions (rn appearing as m,
-  0 and O confused, l and 1 confused), words split mid-token
-  by spaces, or garbled strings that are not recognisable as
-  English words or medical terms.
-  Do NOT fire this warning on clean, fully readable document
-  text.
+  verify drug names and provider names manually." ONLY when
+  you see actual broken text in the document such as:
+    * A word split mid-token with a space: "me dication"
+    * Characters that look substituted: "rnetformin"
+      instead of "metformin"
+    * A provider name that is garbled and unreadable
+    * Numbers confused with letters in drug names
+  Do NOT fire this warning on clean, fully readable text.
+  If every word in the document is readable and makes sense,
+  this warning must be empty [].

@@ -395,36 +395,193 @@ def _parse_and_validate(raw_response: str) -> ExtractionOutput:
         raise
 
 
+def _detect_low_text_density(page: object) -> bool:
+    """
+    Return True if the page contains fewer than 20 words.
+
+    Pages below this threshold are likely scanned images with no extractable
+    text layer. They are flagged so the caller can assess overall document quality.
+
+    Args:
+        page: A pdfplumber Page object.
+
+    Returns:
+        bool: True if the page word count is under 20.
+    """
+    text = page.extract_text() or ""
+    return len(text.split()) < 20
+
+
+def _extract_page_tables(page: object) -> str:
+    """
+    Extract tables from a pdfplumber page and format them as pipe-delimited rows.
+
+    Each table row becomes one line: "cell1 | cell2 | cell3". This preserves
+    medication tables that pdfplumber's standard text extraction would flatten
+    into a single unreadable block.
+
+    Args:
+        page: A pdfplumber Page object.
+
+    Returns:
+        str: Pipe-delimited table rows joined by newlines, or "" if no tables found.
+    """
+    try:
+        tables = page.extract_tables()
+    except Exception as exc:  # noqa: BLE001 — pdfplumber table errors are non-fatal
+        logger.warning("Table extraction failed on a page: %s", exc)
+        return ""
+
+    if not tables:
+        return ""
+
+    table_parts = []
+    for table in tables:
+        for row in table:
+            # Replace None cells (merged/empty) with empty string before joining.
+            clean_row = [cell or "" for cell in row]
+            table_parts.append(" | ".join(clean_row))
+    return "\n".join(table_parts)
+
+
+def _extract_page_text(page: object) -> str:
+    """
+    Extract text from a single pdfplumber page with multi-column fallback.
+
+    Standard extraction is attempted first. If the result looks like a scrambled
+    multi-column layout — wide page, average line shorter than 40 characters —
+    the extraction is retried with tighter x/y tolerances. Table content is always
+    appended after the main text so medication tables are not lost.
+
+    Args:
+        page: A pdfplumber Page object.
+
+    Returns:
+        str: Combined page text including any table rows. May be empty for
+             image-only pages.
+    """
+    text = page.extract_text() or ""
+
+    # Multi-column detection: wide page with suspiciously short average line length.
+    if page.width > 500 and text:
+        lines = [line for line in text.splitlines() if line.strip()]
+        avg_line_len = sum(len(line) for line in lines) / len(lines) if lines else 0
+        if avg_line_len < 40:
+            # Tighter tolerances group characters that belong to the same column.
+            fallback = page.extract_text(x_tolerance=2, y_tolerance=2) or ""
+            if len(fallback) >= len(text):
+                text = fallback
+
+    table_text = _extract_page_tables(page)
+    if table_text:
+        text = f"{text}\n{table_text}" if text else table_text
+    return text
+
+
+def _build_document_notes(pages_info: list[dict]) -> str:
+    """
+    Build a prepended note string when more than 30% of pages are low-density.
+
+    The note is written in plain text so the LLM can read it and factor
+    extraction confidence accordingly.
+
+    Args:
+        pages_info: List of dicts, one per processed page, each with key
+                    'low_text_density' (bool).
+
+    Returns:
+        str: Warning note ending with two newlines, or "" if no anomaly detected.
+    """
+    total = len(pages_info)
+    if total == 0:
+        return ""
+    low_count = sum(1 for p in pages_info if p["low_text_density"])
+    if (low_count / total) > 0.30:
+        return (
+            "[DOCUMENT NOTE: Multiple pages appear to be scanned images with "
+            "limited extractable text. OCR quality may affect extraction accuracy.]\n\n"
+        )
+    return ""
+
+
 def extract_text_from_pdf(pdf_path: str) -> str:
     """
-    Extract all text from a PDF file using pdfplumber.
+    Extract all text from a PDF file using pdfplumber with real-world robustness.
 
-    Pages are joined with double newlines to preserve visual separation between
-    sections, which helps the LLM distinguish medication lists, instructions, etc.
+    Handles multi-column layouts, embedded tables, image-heavy/scanned pages,
+    documents over 50 pages, password-protected files, and corrupted PDFs.
+    Returns a single string ready for the LLM extraction call.
+
+    Per-page processing (via helpers):
+        - _detect_low_text_density: flags pages with < 20 words as likely scanned.
+        - _extract_page_text: standard text + multi-column fallback.
+        - _extract_page_tables: appends pipe-delimited table rows.
+
+    Document-level safeguards:
+        - Truncates at 50 pages and prepends a note if the document is longer.
+        - Prepends a scan-quality note if > 30% of pages are low-density.
+        - Prepends a no-text note if total extracted characters < 50.
 
     Args:
         pdf_path: Absolute or relative path to the PDF file.
 
     Returns:
-        str: Concatenated text from all pages. Empty string if the PDF has
-             no extractable text.
+        str: Concatenated page text, optionally prefixed with plain-text notes
+             describing any extraction anomalies the LLM should be aware of.
 
     Raises:
         FileNotFoundError: If the file does not exist at pdf_path.
-        pdfplumber.exceptions.PDFSyntaxError: If the file is not a valid PDF.
         OSError: If the file cannot be opened due to permissions or I/O errors.
+        RuntimeError: For corrupted PDFs, password-protected files, or any other
+                      unexpected pdfplumber error. Message includes pdf_path and
+                      the original exception type so the orchestrator can set
+                      pipeline_status="partial".
     """
+    _page_limit = 50
+    _min_text_chars = 50
+
     try:
         with pdfplumber.open(pdf_path) as pdf:
-            # Join pages with double newline so section boundaries are preserved.
-            pages = [page.extract_text() or "" for page in pdf.pages]
-        return "\n\n".join(pages).strip()
+            pages_to_process = pdf.pages[:_page_limit]
+            truncated = len(pdf.pages) > _page_limit
+            pages_info: list[dict] = []
+            page_texts: list[str] = []
+            for page in pages_to_process:
+                pages_info.append({"low_text_density": _detect_low_text_density(page)})
+                page_texts.append(_extract_page_text(page))
     except FileNotFoundError:
         logger.error("PDF not found: %s", pdf_path)
         raise
     except OSError as exc:
         logger.error("Failed to open PDF %s: %s", pdf_path, exc)
         raise
+    except Exception as exc:
+        # Catches pdfplumber PDFSyntaxError, PDFPasswordIncorrect, and any
+        # other format error. Wrapped in RuntimeError so the orchestrator
+        # receives a consistent exception type with context.
+        logger.error("PDF extraction failed for %s: %s", pdf_path, exc)
+        raise RuntimeError(
+            f"PDF extraction failed for '{pdf_path}': {type(exc).__name__}: {exc}"
+        ) from exc
+
+    document_text = "\n\n".join(page_texts).strip()
+    prefix = ""
+
+    if truncated:
+        prefix += (
+            "[DOCUMENT NOTE: Document exceeds 50 pages — only first 50 pages "
+            "processed. Verify completeness manually.]\n\n"
+        )
+
+    prefix += _build_document_notes(pages_info)
+
+    if len(document_text) < _min_text_chars:
+        prefix += (
+            "[DOCUMENT NOTE: No readable text could be extracted from this document. "
+            "It may be a scanned image or corrupted file.]\n\n"
+        )
+
+    return (prefix + document_text).strip()
 
 
 def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
