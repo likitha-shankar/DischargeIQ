@@ -2,21 +2,20 @@
 Pipeline orchestrator for DischargeIQ.
 
 Wires all five agents in sequence and aggregates their outputs into a
-PipelineResponse. Full agent implementations are added in later tickets;
-until then, run_pipeline returns a valid partial stub so POST /analyze
-never crashes.
+PipelineResponse. Agents 2-5 are stubbed until their tickets land;
+Agent 1 is fully live and runs on every request.
 
-Depends on: dischargeiq.models.extraction, dischargeiq.models.pipeline,
-            dischargeiq.agents.extraction_agent (DIS-5),
-            dischargeiq.agents.diagnosis_agent (DIS-8).
+Depends on: dischargeiq.agents.extraction_agent,
+            dischargeiq.models.extraction, dischargeiq.models.pipeline,
+            dischargeiq.utils.warnings.
 """
 
 import logging
 
-from dischargeiq.agents.extraction_agent import run_extraction_agent, extract_text_from_pdf
-from dischargeiq.agents.diagnosis_agent import run_diagnosis_agent
+from dischargeiq.agents.extraction_agent import extract_text_from_pdf, run_extraction_agent
 from dischargeiq.models.extraction import ExtractionOutput
 from dischargeiq.models.pipeline import PipelineResponse
+from dischargeiq.utils.warnings import assess_extraction_completeness
 
 logger = logging.getLogger(__name__)
 
@@ -25,67 +24,67 @@ def run_pipeline(pdf_path: str) -> PipelineResponse:
     """
     Run the multi-agent discharge pipeline on a PDF file path.
 
+    Currently live: Agent 1 (extraction).
+    Stubbed (empty string): Agents 2-5 — wired in Sprint 2.
+
+    Data contract: Agent 1 returns ExtractionOutput (locked schema).
+    All downstream agents will receive that model as input. Never change
+    field names in ExtractionOutput without full team sign-off.
+
+    On any agent failure the pipeline sets pipeline_status="partial" and
+    returns whatever was successfully extracted — it never raises to the
+    caller.
+
     Args:
         pdf_path: Absolute path to a temporary PDF written by the API layer.
 
     Returns:
-        PipelineResponse: Aggregated extraction and agent text outputs.
-        pipeline_status is "complete" when all agents succeed, or "partial"
-        when one or more agents failed with a fallback message.
-
-    Note:
-        Agent handoff contract: Agent 1 output (ExtractionOutput) is passed
-        directly to Agent 2. If Agent 1 fails, pipeline_status is set to
-        "partial" and downstream agents are skipped per project rules.
+        PipelineResponse: Aggregated outputs. pipeline_status is "complete"
+        when Agent 1 succeeds; "partial" on any failure.
     """
-    diagnosis_explanation = ""
-    fk_scores = {}
-    pipeline_status = "partial"
-
-    # ── Agent 1: Extraction ────────────────────────────────────────────────────
+    # ── Agent 1 — Extraction ─────────────────────────────────────────────────
+    # Produces the ExtractionOutput that all downstream agents consume.
+    # On failure, fall back to a minimal stub so the API never returns 500.
     try:
         pdf_text = extract_text_from_pdf(pdf_path)
         extraction = run_extraction_agent(pdf_text)
-        logger.info("Agent 1 complete: %s", extraction.primary_diagnosis)
-    except Exception as e:
-        logger.error("Agent 1 failed: %s", e)
-        # Return early with stub — downstream agents cannot run without extraction
-        extraction = ExtractionOutput(
-            primary_diagnosis="(Extraction failed)",
-            extraction_warnings=[f"Agent 1 error: {e}"],
-        )
-        return PipelineResponse(
-            extraction=extraction,
-            diagnosis_explanation="",
-            medication_rationale="",
-            recovery_trajectory="",
-            escalation_guide="",
-            fk_scores={},
-            extraction_warnings=extraction.extraction_warnings,
-            pipeline_status="partial",
-        )
-
-    # ── Agent 2: Diagnosis Explanation ─────────────────────────────────────────
-    try:
-        doc_id = pdf_path.split("/")[-1]  # Use filename as document identifier
-        agent2_result = run_diagnosis_agent(extraction, document_id=doc_id)
-        diagnosis_explanation = agent2_result["text"]
-        fk_scores["diagnosis"] = agent2_result["fk_grade"]
-        logger.info("Agent 2 complete: FK grade %.2f", agent2_result["fk_grade"])
         pipeline_status = "complete"
-    except Exception as e:
-        logger.error("Agent 2 failed: %s", e)
-        diagnosis_explanation = ""
+    except Exception as exc:
+        logger.error("Agent 1 failed for %s: %s", pdf_path, exc)
+        extraction = ExtractionOutput(
+            primary_diagnosis="Extraction failed",
+            extraction_warnings=[
+                f"Agent 1 error — could not extract document: {type(exc).__name__}: {exc}"
+            ],
+        )
         pipeline_status = "partial"
 
-    # ── Agents 3–5: Stubs (implemented in DIS-9, DIS-12, DIS-13) ──────────────
+    # ── Completeness check ────────────────────────────────────────────────────
+    # assess_extraction_completeness flags missing fields (no meds, no follow-ups, etc.)
+    # and returns human-readable warning strings for the response.
+    completeness = assess_extraction_completeness(extraction)
+    extraction_warnings = completeness["warning_messages"]
+
+    # If completeness warnings were raised, downgrade status to partial.
+    if completeness["has_warnings"] and pipeline_status == "complete":
+        pipeline_status = "partial"
+
+    # ── Agents 2-5 — Stubs (Sprint 2) ────────────────────────────────────────
+    # Each agent will receive `extraction` as its primary input.
+    # Placeholder empty strings keep PipelineResponse valid today.
+    diagnosis_explanation = ""   # Agent 2 (DIS-9)
+    medication_rationale = ""    # Agent 3 (DIS-12)
+    recovery_trajectory = ""     # Agent 4 (DIS-16)
+    escalation_guide = ""        # Agent 5 (DIS-22)
+    fk_scores: dict = {}         # Populated when agents 2-5 are live
+
     return PipelineResponse(
         extraction=extraction,
         diagnosis_explanation=diagnosis_explanation,
-        medication_rationale="",
-        recovery_trajectory="",
-        escalation_guide="",
+        medication_rationale=medication_rationale,
+        recovery_trajectory=recovery_trajectory,
+        escalation_guide=escalation_guide,
         fk_scores=fk_scores,
-        extraction_warnings=extraction.extraction_warnings,
+        extraction_warnings=extraction_warnings,
         pipeline_status=pipeline_status,
     )

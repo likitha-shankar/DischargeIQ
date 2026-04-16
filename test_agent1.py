@@ -15,13 +15,14 @@ Hard gate: 8/10 passes on the original clean PDFs required before Agent 2
 development starts. Stress-test results are reported separately.
 
 Rate limiting:
-  A short delay is inserted between API calls to stay within the Gemini
-  free-tier RPM limit. gemini-2.5-flash free tier = 5 RPM; 15s headroom.
+  A short delay is inserted between API calls to stay within free-tier RPM
+  limits. Most providers cap at 5–15 RPM; 15s gives comfortable headroom.
 
 Usage:
     python test_agent1.py
 
-Requires GOOGLE_STUDIO_API_KEY in the environment (or in a .env file at project root).
+Requires the API key for the chosen LLM_PROVIDER in the environment (or in a .env file
+at project root). Default provider is openrouter, which needs OPENROUTER_API_KEY.
 """
 
 import os
@@ -48,9 +49,9 @@ _STRESS_DATA_DIR = Path(__file__).parent / "test-data" / "stress-test"
 # Minimum passing documents from the original 10 to clear the hard gate.
 _HARD_GATE_THRESHOLD = 8
 
-# Seconds to wait between API calls to stay under the Gemini free-tier RPM
-# limit. gemini-2.5-flash free tier = 5 RPM, so we need 12s+ between calls.
-# 15s gives comfortable headroom. 10 calls = ~2.5 min total idle time.
+# Seconds to wait between API calls to stay within free-tier RPM limits.
+# Most free-tier providers cap at 5–15 RPM; 15s gives safe headroom.
+# 10 calls = ~2.5 min total idle time.
 _INTER_CALL_DELAY_SECONDS = 15
 
 
@@ -202,10 +203,11 @@ def main() -> None:
         print(f"No PDFs found in {_TEST_DATA_DIR}. Aborting.")
         sys.exit(1)
 
-    model_name = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
+    provider = os.environ.get("LLM_PROVIDER", "openrouter")
+    model_name = os.environ.get("LLM_MODEL", "default for provider")
     total = len(clean_files) + len(stress_files)
     print(f"Agent 1 test — {total} documents total ({len(clean_files)} original + {len(stress_files)} stress-test)")
-    print(f"Model : {model_name}  (set GEMINI_MODEL in .env to override)")
+    print(f"Provider: {provider}  |  Model: {model_name}  (set LLM_PROVIDER / LLM_MODEL in .env to override)")
     print(f"Delay : {_INTER_CALL_DELAY_SECONDS}s between calls (free-tier RPM limit)")
 
     clean_results = _run_batch(clean_files, "ORIGINAL SYNTHETIC SET", global_index_start=0)

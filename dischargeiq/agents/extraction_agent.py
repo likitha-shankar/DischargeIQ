@@ -6,16 +6,24 @@ with agent1_system_prompt.txt to produce JSON matching ExtractionOutput.
 Validates the response with Pydantic; never fabricates field values —
 missing data is returned as null or [] per the locked schema contract.
 
-Depends on: anthropic, pdfplumber, pydantic v2,
+Supports multiple LLM providers via the LLM_PROVIDER env var:
+  openrouter (default) — https://openrouter.ai
+  openai               — https://api.openai.com
+  ollama               — http://localhost:11434 (local, no key needed)
+
+Depends on: openai, pdfplumber, pydantic v2,
             dischargeiq.models.extraction, prompts/agent1_system_prompt.txt.
 """
 
 import json
 import logging
+import re
+import os
+import time
 from pathlib import Path
 
-import anthropic
 import pdfplumber
+from openai import OpenAI, RateLimitError
 from pydantic import ValidationError
 
 from dischargeiq.models.extraction import ExtractionOutput
@@ -96,7 +104,7 @@ def _build_user_message(pdf_text: str) -> str:
         pdf_text: Raw text extracted from the discharge PDF via pdfplumber.
 
     Returns:
-        str: Formatted prompt string ready to pass to generate_content().
+        str: Formatted prompt string ready to pass to the chat completions endpoint.
     """
     return (
         f"Extract all structured fields from the hospital discharge document below.\n\n"
@@ -105,39 +113,165 @@ def _build_user_message(pdf_text: str) -> str:
     )
 
 
-def _call_claude(system_prompt: str, pdf_text: str) -> str:
+def _is_rate_limit_error(exc: Exception) -> bool:
     """
-    Send the extraction request to Claude Sonnet and return the raw text response.
+    Return True if exc is an HTTP 429 rate-limit error from the LLM provider.
 
-    Reads ANTHROPIC_API_KEY from the environment (via python-dotenv).
-    Uses claude-sonnet-4-20250514 as specified in CLAUDE.md.
+    The openai SDK raises openai.RateLimitError for HTTP 429 responses across
+    all OpenAI-compatible providers (OpenRouter, OpenAI, Ollama). Using the
+    typed exception avoids fragile string matching against provider-specific
+    error bodies.
 
     Args:
-        system_prompt: System instruction string loaded from the prompt file.
+        exc: The caught exception.
+
+    Returns:
+        bool: True if this is a rate-limit error worth retrying after a delay.
+    """
+    return isinstance(exc, RateLimitError)
+
+
+# Default configuration per provider. Checked at runtime via _get_llm_client().
+# Add new providers here — no other code needs to change.
+_PROVIDER_DEFAULTS: dict[str, dict] = {
+    "openrouter": {
+        "base_url": "https://openrouter.ai/api/v1",
+        "api_key_env": "OPENROUTER_API_KEY",
+        # Free-tier model on OpenRouter. Override with LLM_MODEL in .env.
+        # Use openrouter.ai/models to browse available models for your account.
+        "default_model": "openai/gpt-oss-20b:free",
+    },
+    "openai": {
+        "base_url": "https://api.openai.com/v1",
+        "api_key_env": "OPENAI_API_KEY",
+        "default_model": "gpt-4o-mini",
+    },
+    "ollama": {
+        # Ollama exposes an OpenAI-compatible endpoint locally.
+        # Override base URL via OLLAMA_BASE_URL for remote or Docker-based installs.
+        "base_url": "http://localhost:11434/v1",
+        "api_key_env": None,  # No real key — "ollama" is a required placeholder
+        "default_model": "llama3.2",
+    },
+}
+
+
+def _get_llm_client() -> tuple[OpenAI, str]:
+    """
+    Build an OpenAI-compatible client and resolve the model name from env vars.
+
+    Reads LLM_PROVIDER (default: openrouter) to select the backend, then
+    reads the provider-specific API key and base URL. LLM_MODEL overrides the
+    provider default model if set.
+
+    Supported providers:
+        openrouter — https://openrouter.ai (needs OPENROUTER_API_KEY)
+        openai     — https://api.openai.com (needs OPENAI_API_KEY)
+        ollama     — http://localhost:11434 (no API key required)
+
+    Returns:
+        tuple[OpenAI, str]: Configured client and the resolved model name string.
+
+    Raises:
+        ValueError: If LLM_PROVIDER is set to an unrecognised value.
+        KeyError: If the required API key env var for the chosen provider is missing.
+    """
+    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
+
+    if provider not in _PROVIDER_DEFAULTS:
+        supported = ", ".join(_PROVIDER_DEFAULTS)
+        raise ValueError(
+            f"Unsupported LLM_PROVIDER '{provider}'. Supported values: {supported}"
+        )
+
+    config = _PROVIDER_DEFAULTS[provider]
+
+    # Ollama does not require a real API key; "ollama" is a required placeholder
+    # so the OpenAI client constructor does not reject a None value.
+    if config["api_key_env"] is None:
+        api_key = "ollama"
+    else:
+        api_key = os.environ[config["api_key_env"]]
+
+    # Allow Ollama base URL override for remote or Docker-based installs.
+    if provider == "ollama":
+        base_url = os.environ.get("OLLAMA_BASE_URL", config["base_url"])
+    else:
+        base_url = config["base_url"]
+
+    model_name = os.environ.get("LLM_MODEL", config["default_model"])
+    logger.debug(
+        "LLM provider: %s | model: %s | base_url: %s", provider, model_name, base_url
+    )
+    return OpenAI(base_url=base_url, api_key=api_key), model_name
+
+
+def _call_llm(system_prompt: str, pdf_text: str) -> str:
+    """
+    Send the extraction request to the configured LLM provider and return
+    the raw text response.
+
+    Provider and model are resolved from environment variables via
+    _get_llm_client(). Uses the OpenAI-compatible chat completions endpoint,
+    which is supported by OpenRouter, OpenAI, and Ollama.
+
+    Retries once on HTTP 429 (rate limit) after 65s. All other errors
+    propagate immediately without retry.
+
+    Args:
+        system_prompt: System instruction string from the prompt file.
         pdf_text: Raw discharge document text to be extracted.
 
     Returns:
-        str: Raw text response from Claude, stripped of leading/trailing whitespace.
+        str: Raw model response text, stripped of leading/trailing whitespace.
 
     Raises:
-        anthropic.APIError: On any API-level error (auth, rate limit, server error).
-        anthropic.APIConnectionError: If the network request fails.
+        openai.RateLimitError: After the single retry is exhausted.
+        openai.OpenAIError: On any other provider API error.
+        ValueError: If LLM_PROVIDER is unrecognised, or the model returns None.
+        KeyError: If the required API key env var for the chosen provider is missing.
     """
-    client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
-
+    client, model_name = _get_llm_client()
     user_message = _build_user_message(pdf_text)
 
-    try:
-        response = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=2000,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_message}],
-        )
-        return response.content[0].text.strip()
-    except anthropic.APIError as exc:
-        logger.error("Claude API call failed: %s", exc)
-        raise
+    # Single retry on rate limit (most free-tier providers are RPM-bounded).
+    # 65 seconds gives the one-minute window time to fully clear.
+    _rate_limit_retry_wait_seconds = 65
+    _max_retries = 1
+
+    for attempt in range(_max_retries + 1):
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message},
+                ],
+            )
+            content = response.choices[0].message.content
+            # content is Optional[str] in the SDK — guard against None responses
+            # from content-filtered or tool-use-only models.
+            if content is None:
+                raise ValueError(
+                    f"LLM returned an empty response "
+                    f"(provider: {os.environ.get('LLM_PROVIDER', 'openrouter')}, "
+                    f"model: {model_name}). Check for content filtering."
+                )
+            return content.strip()
+        except RateLimitError as exc:
+            if attempt < _max_retries:
+                logger.warning(
+                    "Rate limit hit (attempt %d) — waiting %ds before retry.",
+                    attempt + 1,
+                    _rate_limit_retry_wait_seconds,
+                )
+                time.sleep(_rate_limit_retry_wait_seconds)
+            else:
+                logger.error("Rate limit exhausted after retry: %s", exc)
+                raise
+        except Exception as exc:
+            logger.error("LLM API call failed: %s", exc)
+            raise
 
 
 def _strip_markdown_fences(raw: str) -> str:
@@ -150,6 +284,10 @@ def _strip_markdown_fences(raw: str) -> str:
     Returns:
         str: Cleaned string with fences removed, ready for json.loads().
     """
+    # Strip inline // comments that some models inject mid-JSON
+    # (e.g. "date": "2026-03-15"  // Assuming date format...).
+    # This runs before fence stripping so the regex sees the full raw string.
+    raw = re.sub(r'//[^\n]*', '', raw)
     # Strip the fenced code block markers the LLM sometimes adds despite
     # the prompt instructing it not to.
     return raw.replace("```json", "").replace("```", "").strip()
@@ -228,9 +366,9 @@ def _parse_and_validate(raw_response: str) -> ExtractionOutput:
     try:
         data = json.loads(cleaned)
     except json.JSONDecodeError as first_exc:
-        # Claude occasionally inserts stray tokens mid-JSON on
+        # Some models occasionally insert stray tokens mid-JSON on
         # table-heavy documents. This cleanup step removes non-JSON
-        # lines before parsing.
+        # lines before parsing as a last-resort fallback.
         logger.warning(
             "Initial JSON parse failed (%s). Attempting stray-token cleanup.",
             first_exc.msg,
@@ -320,8 +458,8 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
         json.JSONDecodeError: If the LLM returns malformed JSON despite the prompt.
         pydantic.ValidationError: If the JSON does not satisfy the ExtractionOutput schema.
         FileNotFoundError: If agent1_system_prompt.txt is missing.
-        Exception: Re-raises any unexpected LLM API error after logging.
+        openai.OpenAIError: Re-raises any unexpected LLM provider API error after logging.
     """
     system_prompt = _load_system_prompt()
-    raw_response = _call_claude(system_prompt, pdf_text)
+    raw_response = _call_llm(system_prompt, pdf_text)
     return _parse_and_validate(raw_response)
