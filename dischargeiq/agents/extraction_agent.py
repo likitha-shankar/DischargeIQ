@@ -27,11 +27,228 @@ from openai import OpenAI, RateLimitError
 from pydantic import ValidationError
 
 from dischargeiq.models.extraction import ExtractionOutput
+from dischargeiq.utils.llm_client import get_llm_client
 
 logger = logging.getLogger(__name__)
 
 # Absolute path to the prompts directory, resolved relative to this file.
 _PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
+
+# ── Deterministic post-processing tables ───────────────────────────────────
+# LLM prompt instructions are followed inconsistently; deterministic Python
+# post-processing is not. These lookup tables translate the most common
+# clinical abbreviations into plain-English phrases after the LLM response
+# is parsed. They are ordered by length (via sorted(..., key=len, reverse=True)
+# at substitution time) so that multi-dot variants like "q.i.d." match before
+# their dotless siblings like "qid".
+
+_FREQ_NORMALIZATION_MAP: dict[str, str] = {
+    # Multi-dot forms first (sorted() below handles ordering, but we keep
+    # them grouped here for readability).
+    "q.i.d.":        "four times daily",
+    "q.h.s.":        "every night at bedtime",
+    "q.d.":          "once daily",
+    "b.i.d.":        "twice daily",
+    "t.i.d.":        "three times daily",
+    "p.r.n.":        "as needed",
+    # Common dotless abbreviations.
+    "qid":           "four times daily",
+    "bid":           "twice daily",
+    "tid":           "three times daily",
+    "qhs":           "every night at bedtime",
+    "prn":           "as needed",
+    "qd":            "once daily",
+    "od":            "once daily",
+    "hs":            "every night at bedtime",
+    # Interval-based abbreviations.
+    "q4h":           "every 4 hours",
+    "q6h":           "every 6 hours",
+    "q8h":           "every 8 hours",
+    "q12h":          "every 12 hours",
+    # English-language variants the LLM sometimes emits verbatim; we
+    # canonicalise them to the same phrases so downstream consumers see
+    # a single form. NB: bare "daily" is intentionally NOT in this map —
+    # the single-pass regex would otherwise re-match "daily" inside
+    # already-canonical phrases like "once daily" or "twice daily",
+    # producing "once once daily". Patients understand "daily" perfectly
+    # well as-is, so leaving it unchanged is both safe and correct.
+    "once/day":            "once daily",
+    "twice/day":           "twice daily",
+    "once a day":          "once daily",
+    "once per day":        "once daily",
+    "twice a day":         "twice daily",
+    "twice per day":       "twice daily",
+    "three times a day":   "three times daily",
+    "three times per day": "three times daily",
+    "four times a day":    "four times daily",
+    "four times per day":  "four times daily",
+    "at bedtime":          "every night at bedtime",
+    "at hs":               "every night at bedtime",
+}
+
+_ROUTE_NORMALIZATION_MAP: dict[str, str] = {
+    "p.o.":          "by mouth",
+    "po":            "by mouth",
+    "oral":          "by mouth",
+    "i.v.":          "intravenous",
+    "iv":            "intravenous",
+    "sq":            "subcutaneous",
+    "sc":            "subcutaneous",
+    "subcut":        "subcutaneous",
+    "subcutaneous":  "subcutaneous",
+    "sl":            "sublingual",
+    "sublingual":    "sublingual",
+    "inh":           "inhaled",
+    "via nebulizer": "inhaled",
+    "top":           "topical",
+    "topical":       "topical",
+}
+
+# Documents shorter than this word count trigger an extraction warning.
+# Chosen to flag referral letters and truncated discharge summaries without
+# firing on genuinely concise ER discharge notes (which typically run ~200+
+# words after pdfplumber inserts whitespace for bullet structure).
+_SHORT_DOC_WORD_THRESHOLD = 150
+
+
+def _build_single_pass_pattern(mapping: dict[str, str]) -> "re.Pattern[str]":
+    """
+    Compile a single alternation regex over all keys in `mapping`, sorted
+    longest-first so multi-word phrases are tried before their components.
+
+    Args:
+        mapping: The abbreviation-to-canonical lookup table.
+
+    Returns:
+        A compiled case-insensitive regex whose single match replaces exactly
+        one abbreviation per position, preventing the cascade bug where
+        substituting "qid" to "four times daily" then re-substituting the
+        inner "daily" to "once daily" produced "four times once daily".
+    """
+    keys_longest_first = sorted(mapping, key=len, reverse=True)
+    alternation = "|".join(re.escape(k) for k in keys_longest_first)
+    # (?<![\w.]) and (?![\w]) enforce token boundaries without tripping on
+    # the trailing dot in forms like "q.i.d.". re.IGNORECASE handles the
+    # mixed-case strings the LLM emits ("BID", "bid", "Bid").
+    return re.compile(rf"(?<![\w.])(?:{alternation})(?![\w])", flags=re.IGNORECASE)
+
+
+_FREQ_PATTERN = _build_single_pass_pattern(_FREQ_NORMALIZATION_MAP)
+_ROUTE_PATTERN = _build_single_pass_pattern(_ROUTE_NORMALIZATION_MAP)
+
+
+def _normalize_frequency(raw: str | None) -> str | None:
+    """
+    Replace clinical frequency abbreviations with plain-English phrases.
+
+    Uses a single-pass alternation regex so each position in the input is
+    substituted at most once. This avoids the cascade bug where a long-form
+    abbreviation expanded to a phrase (e.g. "qid" -> "four times daily")
+    would have its inner tokens re-substituted on a second pass (e.g.
+    "daily" -> "once daily", yielding "four times once daily"). Compound
+    frequencies such as "BID PRN" are still handled because the regex
+    matches each token independently in one pass — the output is
+    "twice daily as needed".
+
+    Args:
+        raw: Raw frequency string as returned by the LLM. May be None for
+             medications where the frequency was not documented.
+
+    Returns:
+        Normalised frequency string with abbreviations expanded, or None if
+        `raw` was None. Whitespace is collapsed; non-abbreviation words are
+        preserved verbatim.
+    """
+    if raw is None:
+        return None
+    text = _FREQ_PATTERN.sub(
+        lambda m: _FREQ_NORMALIZATION_MAP[m.group(0).lower()], raw
+    )
+    text = re.sub(r"\s+", " ", text).strip()
+    return text or raw
+
+
+def _normalize_route(raw: str | None) -> str | None:
+    """
+    Replace route-of-administration abbreviations with plain-English phrases.
+
+    The Medication model does not expose a dedicated `route` field, but
+    discharge documents frequently concatenate route and frequency into a
+    single string (e.g. "PO BID", "SQ once daily"). Running this function on
+    the frequency field before the frequency normaliser ensures route
+    abbreviations are expanded consistently even though there is no separate
+    field to hold them.
+
+    Args:
+        raw: Raw string that may embed a route abbreviation.
+
+    Returns:
+        Normalised string, or None if `raw` was None.
+    """
+    if raw is None:
+        return None
+    text = _ROUTE_PATTERN.sub(
+        lambda m: _ROUTE_NORMALIZATION_MAP[m.group(0).lower()], raw
+    )
+    text = re.sub(r"\s+", " ", text).strip()
+    return text or raw
+
+
+def _apply_medication_normalization(extraction: ExtractionOutput) -> None:
+    """
+    Normalise frequency strings on every medication in-place.
+
+    Route normalisation is applied first (expands "PO" to "by mouth") so the
+    subsequent frequency normaliser sees a cleaner string without embedded
+    route tokens. Debug-level logging records any string that changed — the
+    DEBUG channel keeps the INFO session log quiet during normal runs while
+    still being available for spot-checking extraction quality.
+
+    Args:
+        extraction: The validated ExtractionOutput to mutate in place.
+    """
+    for medication in extraction.medications:
+        original_frequency = medication.frequency
+        if medication.frequency is not None:
+            after_route = _normalize_route(medication.frequency)
+            medication.frequency = _normalize_frequency(after_route)
+        if original_frequency != medication.frequency:
+            logger.debug(
+                "Medication '%s' frequency normalised: '%s' -> '%s'",
+                medication.name,
+                original_frequency,
+                medication.frequency,
+            )
+
+
+def _short_document_warning(raw_text: str) -> list[str]:
+    """
+    Return a single-element list containing a short-document warning when
+    the extracted text is below the word-count threshold, or an empty list.
+
+    Deterministic enforcement of the "unusually short document" rule that the
+    system prompt describes. Moving this check into Python guarantees the
+    warning fires regardless of whether the LLM obeyed the prompt on a given
+    request.
+
+    Args:
+        raw_text: The full extracted document text that will be sent to the
+                  LLM (after pdfplumber and any [DOCUMENT NOTE] prefixes).
+
+    Returns:
+        [warning_string] when word_count < _SHORT_DOC_WORD_THRESHOLD,
+        else []. The warning is phrased as a complete sentence so it can be
+        surfaced directly in the UI without additional formatting.
+    """
+    word_count = len(raw_text.split())
+    if word_count < _SHORT_DOC_WORD_THRESHOLD:
+        return [
+            f"This document is unusually short ({word_count} words). "
+            "It may be incomplete or missing key discharge sections. "
+            "Verify all fields manually."
+        ]
+    return []
+
 
 # JSON schema description injected into every user message so the model
 # knows the exact field names, types, and null-vs-empty rules.
@@ -42,6 +259,10 @@ Return a single JSON object with these fields (no extra keys, no commentary):
   "patient_name":             string or null,
   "discharge_date":           string or null  (e.g. "2024-03-15"),
   "primary_diagnosis":        string          (REQUIRED — never null),
+  "primary_diagnosis_source": {
+    "page": integer (1-indexed page number where the diagnosis appears),
+    "text": "the exact sentence or line from the PDF that states the primary diagnosis"
+  },
   "secondary_diagnoses":      array of strings ([] if none),
   "procedures_performed":     array of strings ([] if none),
   "medications": [
@@ -50,7 +271,11 @@ Return a single JSON object with these fields (no extra keys, no commentary):
       "dose":      string or null,
       "frequency": string or null,
       "duration":  string or null,
-      "status":    "new" | "changed" | "continued" | "discontinued" | null
+      "status":    "new" | "changed" | "continued" | "discontinued" | null,
+      "source": {
+        "page": integer (1-indexed page number where this medication appears),
+        "text": "the exact sentence or bullet from the PDF that lists this medication"
+      }
     }
   ],
   "follow_up_appointments": [
@@ -58,7 +283,11 @@ Return a single JSON object with these fields (no extra keys, no commentary):
       "provider":  string or null,
       "specialty": string or null,
       "date":      string or null,
-      "reason":    string or null
+      "reason":    string or null,
+      "source": {
+        "page": integer (1-indexed page number where this appointment appears),
+        "text": "the exact sentence or line from the PDF that mentions this appointment"
+      }
     }
   ],
   "activity_restrictions":  array of strings ([] if none),
@@ -131,79 +360,10 @@ def _is_rate_limit_error(exc: Exception) -> bool:
     return isinstance(exc, RateLimitError)
 
 
-# Default configuration per provider. Checked at runtime via _get_llm_client().
-# Add new providers here — no other code needs to change.
-_PROVIDER_DEFAULTS: dict[str, dict] = {
-    "openrouter": {
-        "base_url": "https://openrouter.ai/api/v1",
-        "api_key_env": "OPENROUTER_API_KEY",
-        # Free-tier model on OpenRouter. Override with LLM_MODEL in .env.
-        # Use openrouter.ai/models to browse available models for your account.
-        "default_model": "openai/gpt-oss-20b:free",
-    },
-    "openai": {
-        "base_url": "https://api.openai.com/v1",
-        "api_key_env": "OPENAI_API_KEY",
-        "default_model": "gpt-4o-mini",
-    },
-    "ollama": {
-        # Ollama exposes an OpenAI-compatible endpoint locally.
-        # Override base URL via OLLAMA_BASE_URL for remote or Docker-based installs.
-        "base_url": "http://localhost:11434/v1",
-        "api_key_env": None,  # No real key — "ollama" is a required placeholder
-        "default_model": "llama3.2",
-    },
-}
-
-
-def _get_llm_client() -> tuple[OpenAI, str]:
-    """
-    Build an OpenAI-compatible client and resolve the model name from env vars.
-
-    Reads LLM_PROVIDER (default: openrouter) to select the backend, then
-    reads the provider-specific API key and base URL. LLM_MODEL overrides the
-    provider default model if set.
-
-    Supported providers:
-        openrouter — https://openrouter.ai (needs OPENROUTER_API_KEY)
-        openai     — https://api.openai.com (needs OPENAI_API_KEY)
-        ollama     — http://localhost:11434 (no API key required)
-
-    Returns:
-        tuple[OpenAI, str]: Configured client and the resolved model name string.
-
-    Raises:
-        ValueError: If LLM_PROVIDER is set to an unrecognised value.
-        KeyError: If the required API key env var for the chosen provider is missing.
-    """
-    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
-
-    if provider not in _PROVIDER_DEFAULTS:
-        supported = ", ".join(_PROVIDER_DEFAULTS)
-        raise ValueError(
-            f"Unsupported LLM_PROVIDER '{provider}'. Supported values: {supported}"
-        )
-
-    config = _PROVIDER_DEFAULTS[provider]
-
-    # Ollama does not require a real API key; "ollama" is a required placeholder
-    # so the OpenAI client constructor does not reject a None value.
-    if config["api_key_env"] is None:
-        api_key = "ollama"
-    else:
-        api_key = os.environ[config["api_key_env"]]
-
-    # Allow Ollama base URL override for remote or Docker-based installs.
-    if provider == "ollama":
-        base_url = os.environ.get("OLLAMA_BASE_URL", config["base_url"])
-    else:
-        base_url = config["base_url"]
-
-    model_name = os.environ.get("LLM_MODEL", config["default_model"])
-    logger.debug(
-        "LLM provider: %s | model: %s | base_url: %s", provider, model_name, base_url
-    )
-    return OpenAI(base_url=base_url, api_key=api_key), model_name
+# Provider routing is centralised in dischargeiq/utils/llm_client.py.
+# All agents use get_llm_client() so changing LLM_PROVIDER in .env
+# switches every agent at once without touching agent code.
+_get_llm_client = get_llm_client
 
 
 def _call_llm(system_prompt: str, pdf_text: str) -> str:
@@ -243,6 +403,12 @@ def _call_llm(system_prompt: str, pdf_text: str) -> str:
         try:
             response = client.chat.completions.create(
                 model=model_name,
+                # Cap completion size. Without this, some OpenRouter models
+                # default to the full context window (e.g. 16384 for
+                # gpt-4o-mini), which tried to pre-reserve more credit than
+                # the account had and failed with HTTP 402. 4096 is a safe
+                # ceiling for the structured extraction JSON.
+                max_tokens=4096,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message},
@@ -564,7 +730,10 @@ def extract_text_from_pdf(pdf_path: str) -> str:
             f"PDF extraction failed for '{pdf_path}': {type(exc).__name__}: {exc}"
         ) from exc
 
-    document_text = "\n\n".join(page_texts).strip()
+    # Prepend [PAGE N] markers so the LLM knows which page each passage is on.
+    # This is the signal Agent 1 uses to populate source.page correctly.
+    marked_pages = [f"[PAGE {i}]\n{text}" for i, text in enumerate(page_texts, start=1)]
+    document_text = "\n\n".join(marked_pages).strip()
     prefix = ""
 
     if truncated:
@@ -617,6 +786,42 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
         FileNotFoundError: If agent1_system_prompt.txt is missing.
         openai.OpenAIError: Re-raises any unexpected LLM provider API error after logging.
     """
+    # Pre-LLM deterministic checks. These run before the LLM is invoked so
+    # the resulting warnings are guaranteed regardless of whether the model
+    # obeyed the prompt-level instructions on this request.
+    pre_warnings = _short_document_warning(pdf_text)
+
     system_prompt = _load_system_prompt()
     raw_response = _call_llm(system_prompt, pdf_text)
-    return _parse_and_validate(raw_response)
+    result = _parse_and_validate(raw_response)
+
+    # Post-LLM deterministic normalisation — route and frequency abbreviations
+    # are expanded on every medication entry so downstream agents see
+    # consistent plain-English text regardless of how the LLM formatted the
+    # discharge source.
+    _apply_medication_normalization(result)
+
+    # Merge pre-warnings with LLM-added warnings. A set-based dedupe keeps the
+    # list clean if the LLM happened to emit the same sentence independently.
+    existing_warnings = set(result.extraction_warnings)
+    for warning in pre_warnings:
+        if warning not in existing_warnings:
+            result.extraction_warnings.append(warning)
+            existing_warnings.add(warning)
+
+    # Log a structured completion summary so the orchestrator log shows
+    # extraction quality at a glance without needing to parse the full output.
+    logger.info(
+        "Agent 1 complete — diagnosis: '%s', meds: %d, follow-ups: %d, warnings: %d",
+        result.primary_diagnosis,
+        len(result.medications),
+        len(result.follow_up_appointments),
+        len(result.extraction_warnings),
+    )
+
+    for warning in result.extraction_warnings:
+        # Emit each extraction warning at WARNING level so it surfaces in the
+        # session log even when the overall extraction succeeded.
+        logger.warning("Agent 1 extraction warning: %s", warning)
+
+    return result

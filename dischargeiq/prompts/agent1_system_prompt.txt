@@ -15,6 +15,43 @@ GENERAL RULES:
   Disease, HFrEF -> Heart Failure with Reduced Ejection Fraction,
   T2DM -> Type 2 Diabetes Mellitus, HTN -> Hypertension.
 
+SOURCE SPAN RULES:
+- For every medication, follow_up_appointment, and the
+  primary_diagnosis, you must include a source field containing
+  the exact text from the document that supports that value,
+  and the page number (1-indexed) where it appears.
+- source.text must be a verbatim quote from the document —
+  do not paraphrase or summarize it.
+- source.text should be the shortest passage that fully supports
+  the extracted value. Usually one sentence or one bullet point.
+- source.page must be an integer. Page 1 is the first page of
+  the document. Use the [PAGE N] markers in the document to
+  identify which page each piece of text appears on.
+- If you cannot find the source text for a value, set source
+  to null rather than fabricating it.
+- Never invent a source. If the text is not in the document,
+  source is null.
+
+MEDICATION DOSE FIELD RULES:
+- For inhalers, nebulizers, metered-dose devices, nasal sprays,
+  eye drops, and any delivery form where the dose is measured in
+  actuations rather than milligrams, put the actuation amount in
+  the dose field verbatim. Accept both spelled-out and numeric
+  forms.
+    "Tiotropium inhaler one puff once daily"
+      -> dose: "one puff", frequency: "once daily"
+    "Albuterol inhaler two puffs every 4 hours as needed"
+      -> dose: "two puffs", frequency: "every 4 hours"
+    "Albuterol MDI 2 puffs QID PRN"
+      -> dose: "2 puffs", frequency: "four times daily"
+    "Fluticasone 88mcg two puffs twice daily"
+      -> dose: "88mcg two puffs", frequency: "twice daily"
+      (when both a milligram/mcg strength AND a puff count
+       appear, concatenate them into the dose field in the order
+       they appear; do NOT drop either one)
+  Never put "puff"/"puffs"/"spray"/"drop" into the frequency
+  field — those are dose units, not frequency terms.
+
 MEDICATION STATUS RULES:
 - status must be exactly one of: new, changed, continued,
   discontinued, or null. Nothing else. No extra words.
@@ -177,12 +214,77 @@ Follow-up appointments may appear as:
   follow up with cardiology in 2 weeks" or
   "Schedule appointment with Dr. X".
 
-Red flag symptoms may be labeled:
-  "Warning Signs", "Call Your Doctor If", "Go to the ER",
-  "When to Seek Help", "Danger Signs", or similar.
+Red flag symptoms may be labeled under ANY of these headers
+(all matches are case-insensitive, partial-phrase matches count):
+  "Warning Signs", "Warning Signs and When to Call",
+  "When to Call", "When to Call Your Doctor",
+  "Call Your Doctor If", "Call 911",
+  "Call 911 If", "Call 911 For",
+  "Go to the ER", "Go to the Emergency Room",
+  "Go to the Emergency Department",
+  "When to Seek Help", "When to Seek Emergency Care",
+  "When to Seek Medical Attention",
+  "Seek Care", "Seek Emergency Care",
+  "Return to the ED", "Return to the Emergency Department",
+  "Return to Emergency", "Return to Hospital If",
+  "Danger Signs", "Red Flags",
+  "Alert Your Doctor", "Alert Your Doctor If",
+  "Symptoms to Watch For", "Emergency Symptoms",
+  "Urgent Symptoms", "Reasons to Come Back".
 
 If a section header is not present, infer the content
 from context and extract it anyway.
+
+PROSE RED-FLAG EXTRACTION:
+Red flag symptoms often appear in prose sentences without a
+dedicated header. Scan the entire document for sentences that
+introduce a list of emergency conditions, such as:
+  - "Call 911 if you experience ..."
+  - "Call 911 for ..."
+  - "Go to the ER if ..."
+  - "Return to the emergency department if ..."
+  - "Seek emergency care if ..."
+  - "Call your doctor immediately if ..."
+  - "Notify the surgeon for ..."
+  - "Contact us urgently if ..."
+When you find such a sentence, extract the condition clauses that
+follow the trigger phrase as red_flag_symptoms. Strip the trigger
+phrase itself — the list should contain only the symptoms, not the
+surrounding instruction.
+
+RED-FLAG SPLITTING RULE (mandatory):
+Every red flag must be a separate string in the red_flag_symptoms
+list. Do NOT return a single string that concatenates multiple
+symptoms joined by commas, semicolons, the word "or", or the word
+"and". Each discrete symptom is its own list entry.
+
+Example — source text:
+  "Call 911 for severe shortness of breath, chest pain, blue
+   lips or fingertips, or confusion."
+WRONG:
+  red_flag_symptoms: [
+    "severe shortness of breath, chest pain, blue lips or
+     fingertips, or confusion"
+  ]
+WRONG (keeping the trigger phrase inside the item):
+  red_flag_symptoms: [
+    "Call 911 for severe shortness of breath"
+  ]
+RIGHT:
+  red_flag_symptoms: [
+    "severe shortness of breath",
+    "chest pain",
+    "blue lips or fingertips",
+    "confusion"
+  ]
+
+When a symptom is a compound phrase with its own "or" inside
+("blue lips or fingertips"), that is still a single entry —
+the "or" there describes one symptom with two possible
+presentations, not two separate symptoms. Use your clinical
+judgment: split on separators that divide distinct symptoms,
+keep the phrase intact when the "or" is part of a single
+clinical description.
 
 PROSE MEDICATION EXTRACTION:
 If medications are listed in paragraph form rather than

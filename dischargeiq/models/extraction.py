@@ -11,6 +11,19 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 
+class SourceSpan(BaseModel):
+    """
+    Points back to the exact passage in the PDF that supports an extracted value.
+
+    Used by the UI to show provenance — which page and which sentence each
+    field came from. Prevents hallucination trust issues by making every
+    extracted value traceable to the source document.
+    """
+
+    page: int        # 1-indexed page number within the PDF
+    text: str        # verbatim quote from the document (one sentence or bullet)
+
+
 class Medication(BaseModel):
     """A single medication entry extracted from the discharge document."""
 
@@ -19,6 +32,7 @@ class Medication(BaseModel):
     frequency: Optional[str] = None
     duration: Optional[str] = None
     status: Optional[str] = None  # new | changed | continued | discontinued
+    source: Optional[SourceSpan] = None  # provenance: page + verbatim text
 
 
 class FollowUpAppointment(BaseModel):
@@ -28,6 +42,7 @@ class FollowUpAppointment(BaseModel):
     specialty: Optional[str] = None
     date: Optional[str] = None
     reason: Optional[str] = None
+    source: Optional[SourceSpan] = None  # provenance: page + verbatim text
 
 
 class ExtractionOutput(BaseModel):
@@ -37,11 +52,16 @@ class ExtractionOutput(BaseModel):
     Agent 1 populates this model. Fields not found in the source document
     must be null (for Optional fields) or [] (for List fields).
     Agent 1 must NEVER fabricate or infer values.
+
+    Source span fields (primary_diagnosis_source, and source on each Medication
+    and FollowUpAppointment) are Optional and default to None for backward
+    compatibility — existing tests and downstream agents are unaffected.
     """
 
     patient_name: Optional[str] = None
     discharge_date: Optional[str] = None
     primary_diagnosis: str
+    primary_diagnosis_source: Optional[SourceSpan] = None
     secondary_diagnoses: List[str] = []
     procedures_performed: List[str] = []
     medications: List[Medication] = []
