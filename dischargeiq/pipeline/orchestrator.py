@@ -8,13 +8,15 @@ never crashes.
 
 Depends on: dischargeiq.models.extraction, dischargeiq.models.pipeline,
             dischargeiq.agents.extraction_agent (DIS-5),
-            dischargeiq.agents.diagnosis_agent (DIS-8).
+            dischargeiq.agents.diagnosis_agent (DIS-8),
+            dischargeiq.agents.medication_agent (DIS-12).
 """
 
 import logging
 
 from dischargeiq.agents.extraction_agent import run_extraction_agent, extract_text_from_pdf
 from dischargeiq.agents.diagnosis_agent import run_diagnosis_agent
+from dischargeiq.agents.medication_agent import run_medication_agent
 from dischargeiq.models.extraction import ExtractionOutput
 from dischargeiq.models.pipeline import PipelineResponse
 
@@ -78,11 +80,26 @@ def run_pipeline(pdf_path: str) -> PipelineResponse:
         diagnosis_explanation = ""
         pipeline_status = "partial"
 
-    # ── Agents 3–5: Stubs (implemented in DIS-9, DIS-12, DIS-13) ──────────────
+    # ── Agent 3: Medication Rationale ─────────────────────────────────────────
+    # Data contract: receives the full ExtractionOutput from Agent 1.
+    # Required fields: primary_diagnosis (str), medications (list[Medication]).
+    # Returns a plain-text string with one paragraph per medication.
+    medication_rationale = ""
+    try:
+        agent3_result = run_medication_agent(extraction, document_id=doc_id)
+        medication_rationale = agent3_result["text"]
+        fk_scores["medication"] = agent3_result["fk_grade"]
+        logger.info("Agent 3 complete: FK grade %.2f", agent3_result["fk_grade"])
+    except Exception as e:
+        logger.error("Agent 3 failed: %s", e)
+        medication_rationale = ""
+        pipeline_status = "partial"
+
+    # ── Agents 4–5: Stubs (implemented in DIS-16, DIS-22) ─────────────────────
     return PipelineResponse(
         extraction=extraction,
         diagnosis_explanation=diagnosis_explanation,
-        medication_rationale="",
+        medication_rationale=medication_rationale,
         recovery_trajectory="",
         escalation_guide="",
         fk_scores=fk_scores,

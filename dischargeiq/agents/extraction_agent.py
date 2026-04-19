@@ -6,16 +6,21 @@ with agent1_system_prompt.txt to produce JSON matching ExtractionOutput.
 Validates the response with Pydantic; never fabricates field values —
 missing data is returned as null or [] per the locked schema contract.
 
-Depends on: anthropic, pdfplumber, pydantic v2,
+Local dev uses openai/gpt-oss-20b via OpenRouter's free tier.
+Requires OPENROUTER_API_KEY in .env (free signup at openrouter.ai).
+TODO: switch to Claude Sonnet before Sprint 2 eval run (per team decision).
+
+Depends on: openai, pdfplumber, pydantic v2,
             dischargeiq.models.extraction, prompts/agent1_system_prompt.txt.
 """
 
 import json
 import logging
+import os
 from pathlib import Path
 
-import anthropic
 import pdfplumber
+from openai import OpenAI, APIError
 from pydantic import ValidationError
 
 from dischargeiq.models.extraction import ExtractionOutput
@@ -105,38 +110,50 @@ def _build_user_message(pdf_text: str) -> str:
     )
 
 
-def _call_claude(system_prompt: str, pdf_text: str) -> str:
+def _call_gemini(system_prompt: str, pdf_text: str) -> str:
     """
-    Send the extraction request to Claude Sonnet and return the raw text response.
+    Send the extraction request to OpenRouter's free tier and return the raw response.
 
-    Reads ANTHROPIC_API_KEY from the environment (via python-dotenv).
-    Uses claude-sonnet-4-20250514 as specified in CLAUDE.md.
+    Reads OPENROUTER_API_KEY from the environment (via python-dotenv).
+    Uses openai/gpt-oss-20b:free for local dev (free, no billing required).
+    TODO: switch to Claude Sonnet before Sprint 2 eval run.
 
     Args:
         system_prompt: System instruction string loaded from the prompt file.
         pdf_text: Raw discharge document text to be extracted.
 
     Returns:
-        str: Raw text response from Claude, stripped of leading/trailing whitespace.
+        str: Raw text response, stripped of leading/trailing whitespace.
 
     Raises:
-        anthropic.APIError: On any API-level error (auth, rate limit, server error).
-        anthropic.APIConnectionError: If the network request fails.
+        openai.APIError: On any API-level error (auth, rate limit, server error).
     """
-    client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        raise EnvironmentError(
+            "OPENROUTER_API_KEY is not set. Add it to your .env file. "
+            "Get a free key from https://openrouter.ai"
+        )
+
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://openrouter.ai/api/v1",
+    )
 
     user_message = _build_user_message(pdf_text)
 
     try:
-        response = client.messages.create(
-            model="claude-sonnet-4-20250514",
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-20b:free",
             max_tokens=2000,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_message}],
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
         )
-        return response.content[0].text.strip()
-    except anthropic.APIError as exc:
-        logger.error("Claude API call failed: %s", exc)
+        return response.choices[0].message.content.strip()
+    except APIError as exc:
+        logger.error("OpenRouter API call failed: %s", exc)
         raise
 
 
@@ -323,5 +340,5 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
         Exception: Re-raises any unexpected LLM API error after logging.
     """
     system_prompt = _load_system_prompt()
-    raw_response = _call_claude(system_prompt, pdf_text)
+    raw_response = _call_gemini(system_prompt, pdf_text)
     return _parse_and_validate(raw_response)

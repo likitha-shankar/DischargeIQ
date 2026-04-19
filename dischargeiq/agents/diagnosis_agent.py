@@ -33,8 +33,7 @@ import logging
 import os
 from pathlib import Path
 
-import anthropic
-from anthropic import APIError
+from openai import OpenAI, APIError
 
 from dischargeiq.models.extraction import ExtractionOutput
 from dischargeiq.utils.scorer import fk_check
@@ -43,16 +42,20 @@ logger = logging.getLogger(__name__)
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 
-# Allow model override via env var so team can swap without touching code
-_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-6")
+# Free model via OpenRouter for local dev.
+# TODO: switch to Claude Sonnet before Sprint 2 eval run.
+_MODEL = os.environ.get("OPENROUTER_MODEL", "openai/gpt-oss-20b:free")
 _MAX_TOKENS = 500
 
 # Paths resolved relative to this file
 _PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 _FK_LOG_PATH = Path(__file__).parent.parent / "evaluation" / "fk_log.csv"
 
-# Initialise Anthropic client once at module load
-_client = anthropic.Anthropic()
+# OpenRouter client initialised once at module load; reads OPENROUTER_API_KEY from env.
+_client = OpenAI(
+    api_key=os.environ.get("OPENROUTER_API_KEY", ""),
+    base_url="https://openrouter.ai/api/v1",
+)
 
 
 # ── Internal helpers ───────────────────────────────────────────────────────────
@@ -181,17 +184,19 @@ def run_diagnosis_agent(
     user_message = _build_user_message(extraction)
 
     try:
-        response = _client.messages.create(
+        response = _client.chat.completions.create(
             model=_MODEL,
             max_tokens=_MAX_TOKENS,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_message}],
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
         )
     except APIError as e:
         logger.error("Agent 2 API call failed for '%s': %s", document_id, e)
         raise
 
-    explanation = response.content[0].text.strip()
+    explanation = response.choices[0].message.content.strip()
 
     # Score and log — required by DIS-8 acceptance criteria
     fk_result = fk_check(explanation)
