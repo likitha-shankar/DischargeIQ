@@ -927,11 +927,13 @@ def _render_section_diagnosis(result: dict) -> None:
     )
 
     if explanation:
-        st.markdown(
-            f'<div style="color:#1E293B;line-height:1.75;font-size:0.95rem;">'
-            f'{explanation}</div>',
-            unsafe_allow_html=True,
-        )
+        # Agent 2 emits markdown (headers wrapped in **bold**, bullet lists).
+        # Passing the text directly to st.markdown() lets Streamlit's
+        # CommonMark parser render it. Do NOT wrap the output in a raw
+        # <div> with unsafe_allow_html=True — CommonMark does not parse
+        # markdown inside block-level HTML, so **bold** would come through
+        # as literal asterisks.
+        st.markdown(explanation)
     else:
         st.caption("Explanation not available.")
 
