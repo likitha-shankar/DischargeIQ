@@ -10,10 +10,14 @@ Depends on: dischargeiq.agents.extraction_agent,
             dischargeiq.utils.warnings.
 """
 
+import hashlib
 import logging
+import os
 import time
+import uuid
 
 from dischargeiq.agents.extraction_agent import extract_text_from_pdf, run_extraction_agent
+from dischargeiq.db.history import get_db_pool, save_discharge_history
 from dischargeiq.models.extraction import ExtractionOutput
 from dischargeiq.models.pipeline import PipelineResponse
 from dischargeiq.utils.warnings import assess_extraction_completeness
@@ -21,7 +25,9 @@ from dischargeiq.utils.warnings import assess_extraction_completeness
 logger = logging.getLogger(__name__)
 
 
-def run_pipeline(pdf_path: str) -> PipelineResponse:
+async def run_pipeline(
+    pdf_path: str, session_id: str | None = None
+) -> PipelineResponse:
     """
     Run the multi-agent discharge pipeline on a PDF file path.
 
@@ -151,7 +157,7 @@ def run_pipeline(pdf_path: str) -> PipelineResponse:
             elapsed,
         )
 
-    return PipelineResponse(
+    response = PipelineResponse(
         extraction=extraction,
         diagnosis_explanation=diagnosis_explanation,
         medication_rationale=medication_rationale,
@@ -161,3 +167,38 @@ def run_pipeline(pdf_path: str) -> PipelineResponse:
         extraction_warnings=extraction_warnings,
         pipeline_status=pipeline_status,
     )
+
+    # ── DB write (non-fatal) ────────────────────────────────────────────────
+    # Persist one row per pipeline run so the history screen can list past
+    # summaries. The DB write is wrapped in try/except — a Neon outage or
+    # schema drift must never crash the pipeline or block the UI response.
+    db_session_id = session_id or str(uuid.uuid4())
+    try:
+        with open(pdf_path, "rb") as pdf_file:
+            document_hash = hashlib.sha256(pdf_file.read()).hexdigest()
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            raise RuntimeError("DATABASE_URL not set")
+        pool = await get_db_pool(database_url)
+        try:
+            await save_discharge_history(
+                pool=pool,
+                session_id=db_session_id,
+                document_hash=document_hash,
+                extraction=extraction,
+                fk_scores=fk_scores,
+                pipeline_status=pipeline_status,
+            )
+            logger.info(
+                "Discharge history saved — session: %s", db_session_id
+            )
+        finally:
+            await pool.close()
+    except Exception as exc:
+        logger.warning(
+            "DB write failed (non-fatal) — session: %s — %s",
+            db_session_id,
+            exc,
+        )
+
+    return response

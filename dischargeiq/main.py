@@ -292,7 +292,7 @@ async def analyze_discharge(file: UploadFile = File(...)):
         tmp_path = tmp.name
 
     try:
-        result = run_pipeline(tmp_path)
+        result = await run_pipeline(tmp_path, session_id=pdf_session_id)
         logger.info(
             "POST /analyze complete — '%s', status: %s",
             file.filename,

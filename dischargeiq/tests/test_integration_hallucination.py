@@ -26,6 +26,7 @@ Dependencies (added to requirements.txt in this sprint):
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -845,10 +846,15 @@ def run_case(profile: Profile, index: int, total: int) -> dict:
         logger.error("PDF build failed for %s: %s", profile.name, pdf_exc)
         return result
 
-    # Run the real pipeline with rate-limit retry.
+    # Run the real pipeline with rate-limit retry. run_pipeline is async —
+    # wrap each call in asyncio.run() so the existing sync retry helper works
+    # unchanged.
+    def _run_pipeline_sync(path: str):
+        return asyncio.run(run_pipeline(path))
+
     try:
         pipeline_response = run_with_retry(
-            f"run_pipeline[{profile.name}]", run_pipeline, str(pdf_path)
+            f"run_pipeline[{profile.name}]", _run_pipeline_sync, str(pdf_path)
         )
     except Exception as pipe_exc:  # noqa: BLE001
         result["status"] = "ERROR"

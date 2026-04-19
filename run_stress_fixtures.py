@@ -10,6 +10,7 @@ Usage:
 """
 
 import argparse
+import asyncio
 import re
 from pathlib import Path
 
@@ -127,7 +128,7 @@ def main() -> None:
         label = case["label"]
         path = FIXTURES_DIR / case["file"]
         try:
-            r = run_pipeline(str(path))
+            r = asyncio.run(run_pipeline(str(path)))
         except Exception as exc:
             print(f"{label:22s} CRASH     — pipeline raised {type(exc).__name__}: {exc}")
             summary.append((label, "CRASH"))
