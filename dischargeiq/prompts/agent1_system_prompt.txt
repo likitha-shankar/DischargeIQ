@@ -84,11 +84,17 @@ MEDICATION STATUS RULES:
   route, dose, or frequency. Examples: metformin for
   pre-existing diabetes, lisinopril for pre-existing
   hypertension, a statin they were already taking.
-- Use "discontinued" ONLY for a medication explicitly
-  noted as stopped during the hospital stay. A discontinued
-  medication will NEVER appear in the discharge medications
-  list. If it is in the discharge medications list, it is
-  active — do not mark it discontinued.
+- Include medications explicitly listed as stopped or
+  discontinued at discharge in the medications list with
+  status: "discontinued". These are drugs the patient was
+  taking before or during the stay that they should NOT
+  continue taking at home. A "STOP taking X", "discontinue X",
+  "hold X", or "MEDICINES TO STOP TAKING" line in the
+  discharge instructions should produce a medications entry
+  with status="discontinued". Include the reason in the
+  duration or a trailing phrase of the name when the
+  document states one (e.g. "risk of low blood sugar with
+  new regimen", "hold until kidney function improves").
 - Use null when you cannot determine the status from the
   document.
 
