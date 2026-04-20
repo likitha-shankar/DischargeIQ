@@ -1,9 +1,238 @@
 """
-Agent 4 — Recovery trajectory agent.
+agents/recovery_agent.py
 
-Produces a week-by-week recovery guide from extraction data using
-agent4_system_prompt.txt, with readability enforced via fk_check().
+Agent 4 — Recovery Trajectory Agent (DIS-16).
+Owner: Suchithra | Sprint 2 Week 3
 
-This file is a stub until the recovery agent is implemented.
+Consumes ExtractionOutput.primary_diagnosis and procedures_performed from
+Agent 1 and produces a plain-language week-by-week recovery guide.
+
+Each week section covers: expected feelings, activity level, normal vs
+alarming symptoms, and one specific goal. Output closes with a realistic
+"When to expect improvement" section.
+
+Every output is FK-scored via utils.scorer.fk_check() and logged to
+dischargeiq/evaluation/fk_log.csv. Target: FK grade <= 6.0.
+
+NOTE: Per DIS-16 ticket, do NOT wire this into orchestrator.py yet.
+Test in isolation until Agent 5 (DIS-22) is also confirmed. Full pipeline
+wiring happens in DIS-14 (Week 4).
+
+Data contract:
+    Input:  dischargeiq.models.extraction.ExtractionOutput (from Agent 1)
+            Required: primary_diagnosis (str)
+            Optional: procedures_performed (list[str])
+    Output: dict with keys:
+                text     (str)   — full week-by-week recovery guide
+                fk_grade (float) — FK grade level of the output
+                passes   (bool)  — True if fk_grade <= 6.0
+
+Dependencies:
+    - openai             (pip install openai)
+    - OPENROUTER_API_KEY set in .env (free key from openrouter.ai)
+    - dischargeiq.models.extraction.ExtractionOutput
+    - dischargeiq.utils.scorer.fk_check
+    - dischargeiq/prompts/agent4_system_prompt.txt
+
+BLOCKED BY: DIS-9 (Agents 1-3 confirmed end-to-end) must be done first.
 """
 
+import csv
+import logging
+import os
+from pathlib import Path
+
+from openai import OpenAI, APIError
+
+from dischargeiq.models.extraction import ExtractionOutput
+from dischargeiq.utils.scorer import fk_check
+
+logger = logging.getLogger(__name__)
+
+# ── Configuration ──────────────────────────────────────────────────────────────
+
+# Free model via OpenRouter for local dev.
+# TODO: switch to Claude Sonnet before Sprint 2 eval run.
+_MODEL = os.environ.get("OPENROUTER_MODEL", "openai/gpt-oss-20b:free")
+
+# 800 tokens covers 4 weeks + improvement section comfortably.
+_MAX_TOKENS = 800
+
+# Paths resolved relative to this file so they work regardless of cwd.
+_PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
+_FK_LOG_PATH = Path(__file__).parent.parent / "evaluation" / "fk_log.csv"
+
+# OpenRouter client initialised once at module load; reads OPENROUTER_API_KEY from env.
+_client = OpenAI(
+    api_key=os.environ.get("OPENROUTER_API_KEY", ""),
+    base_url="https://openrouter.ai/api/v1",
+)
+
+
+# ── Internal helpers ───────────────────────────────────────────────────────────
+
+def _load_system_prompt() -> str:
+    """
+    Load the Agent 4 system prompt from dischargeiq/prompts/agent4_system_prompt.txt.
+
+    Returns:
+        str: The full system prompt text, whitespace-stripped.
+
+    Raises:
+        FileNotFoundError: If the prompt file does not exist at the expected path.
+    """
+    prompt_path = _PROMPTS_DIR / "agent4_system_prompt.txt"
+    if not prompt_path.exists():
+        raise FileNotFoundError(
+            f"Agent 4 system prompt not found at: {prompt_path}. "
+            "Ensure dischargeiq/prompts/agent4_system_prompt.txt exists."
+        )
+    return prompt_path.read_text(encoding="utf-8").strip()
+
+
+def _build_user_message(extraction: ExtractionOutput) -> str:
+    """
+    Build the user message sent to the LLM from Agent 1's ExtractionOutput.
+
+    Data contract:
+        - primary_diagnosis     (str, required): The patient's main diagnosis.
+        - procedures_performed  (list[str], optional): Procedures done during stay.
+          Included when present so the LLM can tailor recovery milestones
+          (e.g. hip replacement recovery differs from medical management alone).
+
+    Args:
+        extraction: Validated ExtractionOutput from Agent 1.
+
+    Returns:
+        str: Formatted user message ready for the LLM API call.
+    """
+    lines = [f"Primary diagnosis: {extraction.primary_diagnosis}"]
+
+    if extraction.procedures_performed:
+        lines.append(
+            f"Procedures performed: {', '.join(extraction.procedures_performed)}"
+        )
+
+    if extraction.activity_restrictions:
+        lines.append(
+            f"Activity restrictions: {', '.join(extraction.activity_restrictions)}"
+        )
+
+    return "\n".join(lines)
+
+
+def _log_fk_score(document_id: str, fk_result: dict) -> None:
+    """
+    Append an Agent 4 FK score result to dischargeiq/evaluation/fk_log.csv.
+
+    Creates the file with a header row if it does not already exist.
+    Per DIS-16 acceptance criteria — all Agent 4 FK scores must be logged.
+
+    Args:
+        document_id: Source document identifier (e.g. "heart_failure_01.pdf").
+        fk_result:   Dict returned by fk_check() — keys: fk_grade, passes, threshold.
+    """
+    _FK_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    write_header = not _FK_LOG_PATH.exists()
+
+    try:
+        with open(_FK_LOG_PATH, "a", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(
+                f,
+                fieldnames=["document_id", "agent", "fk_grade", "passes", "threshold"],
+            )
+            if write_header:
+                writer.writeheader()
+            writer.writerow({
+                "document_id": document_id,
+                "agent": "agent4_recovery",
+                "fk_grade": fk_result["fk_grade"],
+                "passes": fk_result["passes"],
+                "threshold": fk_result["threshold"],
+            })
+    except OSError as e:
+        logger.warning("Could not write FK log for '%s': %s", document_id, e)
+
+
+# ── Public API ─────────────────────────────────────────────────────────────────
+
+def run_recovery_agent(
+    extraction: ExtractionOutput,
+    document_id: str = "unknown",
+) -> dict:
+    """
+    Agent 4: Generate a week-by-week recovery guide from Agent 1 output.
+
+    Produces a plain-language guide covering Weeks 1, 2, 3-4 and a
+    "When to expect improvement" section. Each week covers: expected
+    feelings, activity level, normal vs alarming symptoms, and one goal.
+
+    Data contract:
+        Input:  ExtractionOutput from Agent 1.
+                primary_diagnosis must be a non-empty string.
+                procedures_performed and activity_restrictions are optional.
+        Output: dict with keys:
+                    text     (str)   — full recovery timeline as plain text
+                    fk_grade (float) — Flesch-Kincaid grade level
+                    passes   (bool)  — True if fk_grade <= 6.0
+
+    NOTE: Do not wire this into orchestrator.py until Agent 5 is confirmed.
+    See DIS-14 for full pipeline integration.
+
+    Args:
+        extraction:  Validated ExtractionOutput from Agent 1.
+        document_id: Source document label for FK logging and console output.
+
+    Returns:
+        dict with keys: text, fk_grade, passes.
+
+    Raises:
+        ValueError: If primary_diagnosis is missing from Agent 1 output.
+        APIError:   If the LLM API call fails.
+    """
+    if not extraction.primary_diagnosis:
+        raise ValueError(
+            "Agent 4 requires primary_diagnosis from Agent 1 output. "
+            f"Field is empty for document '{document_id}'."
+        )
+
+    system_prompt = _load_system_prompt()
+    user_message = _build_user_message(extraction)
+
+    logger.info("Agent 4 request — document: '%s'", document_id)
+
+    try:
+        response = _client.chat.completions.create(
+            model=_MODEL,
+            max_tokens=_MAX_TOKENS,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
+        )
+    except APIError as e:
+        logger.error("Agent 4 API call failed for '%s': %s", document_id, e)
+        raise
+
+    recovery_text = response.choices[0].message.content.strip()
+
+    # FK check — required by DIS-16 acceptance criteria.
+    fk_result = fk_check(recovery_text)
+    _log_fk_score(document_id, fk_result)
+
+    if fk_result["passes"]:
+        logger.info(
+            "Agent 4 FK PASS '%s': grade %.2f", document_id, fk_result["fk_grade"]
+        )
+    else:
+        logger.warning(
+            "Agent 4 FK FAIL '%s': grade %.2f — revise agent4_system_prompt.txt",
+            document_id,
+            fk_result["fk_grade"],
+        )
+
+    return {
+        "text": recovery_text,
+        "fk_grade": fk_result["fk_grade"],
+        "passes": fk_result["passes"],
+    }
