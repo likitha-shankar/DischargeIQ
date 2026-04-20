@@ -2,13 +2,13 @@
 Pipeline orchestrator for DischargeIQ.
 
 Wires all five agents in sequence and aggregates their outputs into a
-PipelineResponse. Agents 1-4 are fully live. Agent 5 is stubbed until
-DIS-22 lands.
+PipelineResponse. All five agents are now live.
 
 Depends on: dischargeiq.agents.extraction_agent (DIS-5),
             dischargeiq.agents.diagnosis_agent (DIS-8),
             dischargeiq.agents.medication_agent (DIS-12),
             dischargeiq.agents.recovery_agent (DIS-16),
+            dischargeiq.agents.escalation_agent (DIS-22),
             dischargeiq.db.history, dischargeiq.models.extraction,
             dischargeiq.models.pipeline, dischargeiq.utils.warnings.
 """
@@ -21,6 +21,7 @@ import time
 import uuid
 
 from dischargeiq.agents.diagnosis_agent import run_diagnosis_agent
+from dischargeiq.agents.escalation_agent import run_escalation_agent
 from dischargeiq.agents.extraction_agent import extract_text_from_pdf, run_extraction_agent
 from dischargeiq.agents.medication_agent import run_medication_agent
 from dischargeiq.agents.recovery_agent import run_recovery_agent
@@ -268,9 +269,34 @@ async def run_pipeline(
             recovery_trajectory = ""
             pipeline_status = "partial"
 
-    # ── Agent 5 — Stub (Sprint 2) ────────────────────────────────────────────
-    # Agent 5 (escalation) is tracked by DIS-22.
-    escalation_guide = ""        # Agent 5 (DIS-22)
+    # ── Agent 5 — Escalation / warning-signs decision tree ──────────────────
+    # Data contract: receives the full ExtractionOutput from Agent 1.
+    # Returns dict with keys: text, fk_grade, passes.
+    # Safety-critical — never let an Agent 5 exception crash the pipeline,
+    # but record it as partial so the caller knows the decision tree is
+    # missing from the response.
+    escalation_guide = ""
+
+    if agent1_succeeded:
+        try:
+            agent5_result = run_escalation_agent(
+                extraction=extraction,
+                document_id=pdf_path,
+            )
+            escalation_guide = agent5_result["text"]
+            fk_scores["agent5"] = {
+                "fk_grade": agent5_result["fk_grade"],
+                "passes": agent5_result["passes"],
+            }
+            logger.info(
+                "Agent 5 complete — FK grade: %.2f, passes: %s",
+                agent5_result["fk_grade"],
+                agent5_result["passes"],
+            )
+        except Exception as exc:
+            logger.error("Agent 5 failed for %s: %s", pdf_path, exc)
+            escalation_guide = ""
+            pipeline_status = "partial"
 
     elapsed = time.monotonic() - pipeline_start
 

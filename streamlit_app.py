@@ -1238,44 +1238,217 @@ def _render_section_appointments(result: dict) -> None:
 
 # ── Section: Warning signs ───────────────────────────────────────────────────
 
+# Tier header strings from agent5_system_prompt.txt. These must match the
+# prompt output exactly. If the prompt ever changes a header, update this
+# list in lock-step or the escalation tab goes blank.
+_ESCALATION_TIER_HEADERS = (
+    "CALL 911 IMMEDIATELY",
+    "GO TO THE ER TODAY",
+    "CALL YOUR DOCTOR",
+)
+
+# Per-tier styling — (background, border, heading color, subtitle color,
+# bullet-text color, accent-dot color). Red for 911 (urgency), amber for
+# ER (caution), yellow for doctor (information). Colors deliberately mirror
+# the existing diq-warning-card palette so the tab doesn't clash visually.
+_ESCALATION_TIER_STYLES = {
+    "CALL 911 IMMEDIATELY": {
+        "bg": "#FEE2E2", "border": "#FCA5A5",
+        "head": "#7F1D1D", "sub": "#991B1B",
+        "body": "#7F1D1D", "dot": "#DC2626",
+    },
+    "GO TO THE ER TODAY": {
+        "bg": "#FFEDD5", "border": "#FDBA74",
+        "head": "#7C2D12", "sub": "#9A3412",
+        "body": "#7C2D12", "dot": "#EA580C",
+    },
+    "CALL YOUR DOCTOR": {
+        "bg": "#FEF3C7", "border": "#FCD34D",
+        "head": "#78350F", "sub": "#92400E",
+        "body": "#78350F", "dot": "#D97706",
+    },
+}
+
+
+def _parse_escalation_guide(text: str) -> list[dict]:
+    """
+    Parse the plain-text three-tier escalation guide produced by Agent 5
+    into structured blocks for rendering.
+
+    Expected input shape (from agent5_system_prompt.txt):
+
+        CALL 911 IMMEDIATELY
+        These symptoms are life-threatening. Do not drive yourself.
+        - Symptom A: explanation sentence.
+        - Symptom B: explanation sentence.
+
+        GO TO THE ER TODAY
+        Do not wait until tomorrow. Go within a few hours.
+        - Symptom C: ...
+        ...
+
+    Missing tiers, extra blank lines, and bullets that use "•" instead of
+    "-" are all tolerated — the function is defensive so a small Agent 5
+    format drift never blanks the whole tab.
+
+    Args:
+        text: Full Agent 5 output string.
+
+    Returns:
+        list[dict]: Zero to three tier dicts, in the order headers appeared.
+                    Each dict has keys:
+                        header   (str) — exact header string (upper case)
+                        subtitle (str) — one-line sentence under the header
+                        bullets  (list[str]) — each bullet with the leading
+                                                dash/space stripped
+    """
+    if not text:
+        return []
+
+    lines = [line.rstrip() for line in text.splitlines()]
+    blocks: list[dict] = []
+    current: dict | None = None
+
+    # A "subtitle pending" flag lets us grab the first non-empty
+    # non-bullet line after a header as the subtitle without misclassifying
+    # it as a bullet.
+    subtitle_pending = False
+
+    for raw in lines:
+        stripped = raw.strip()
+        if not stripped:
+            continue
+
+        if stripped in _ESCALATION_TIER_HEADERS:
+            if current is not None:
+                blocks.append(current)
+            current = {"header": stripped, "subtitle": "", "bullets": []}
+            subtitle_pending = True
+            continue
+
+        if current is None:
+            # Preamble before the first header — ignore.
+            continue
+
+        # Bullets use "- " or occasionally "• "; everything else under a
+        # header is treated as continuation of the subtitle or prose.
+        if stripped.startswith("- ") or stripped.startswith("• "):
+            current["bullets"].append(stripped[2:].strip())
+            subtitle_pending = False
+        elif subtitle_pending:
+            current["subtitle"] = stripped
+            subtitle_pending = False
+        else:
+            # Defensive: treat stray lines as appended bullets rather than
+            # dropping them — a safety agent's words should not disappear.
+            current["bullets"].append(stripped)
+
+    if current is not None:
+        blocks.append(current)
+
+    return blocks
+
+
+def _render_escalation_tier(block: dict) -> None:
+    """
+    Render one parsed escalation-tier block as a coloured card.
+
+    Args:
+        block: Dict with keys header, subtitle, bullets (see
+               _parse_escalation_guide). Header must be one of the
+               three known strings in _ESCALATION_TIER_STYLES — unknown
+               headers are rendered in a neutral slate palette.
+    """
+    style = _ESCALATION_TIER_STYLES.get(block["header"], {
+        "bg": "#F1F5F9", "border": "#CBD5E1",
+        "head": "#0F172A", "sub": "#334155",
+        "body": "#1E293B", "dot": "#64748B",
+    })
+
+    bullets_html = "".join(
+        f'<div style="display:flex;gap:8px;align-items:flex-start;'
+        f'margin-top:6px;">'
+        f'<div style="min-width:6px;width:6px;height:6px;border-radius:50%;'
+        f'background:{style["dot"]};margin-top:7px;"></div>'
+        f'<div style="font-size:0.9rem;color:{style["body"]};'
+        f'line-height:1.4;">{_clean_str(bullet)}</div>'
+        f"</div>"
+        for bullet in block["bullets"]
+    )
+
+    subtitle_html = (
+        f'<div style="font-size:0.82rem;color:{style["sub"]};'
+        f'margin-top:2px;margin-bottom:6px;">'
+        f"{_clean_str(block['subtitle'])}</div>"
+        if block.get("subtitle")
+        else ""
+    )
+
+    st.markdown(
+        f'<div style="background:{style["bg"]};border:1px solid {style["border"]};'
+        f'border-radius:12px;padding:14px 16px;margin-top:10px;">'
+        f'<div style="font-weight:700;font-size:0.95rem;color:{style["head"]};'
+        f'letter-spacing:0.04em;">{block["header"]}</div>'
+        f"{subtitle_html}"
+        f"{bullets_html}"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+
 def _render_section_warning_signs(result: dict) -> None:
     """
-    Render the warning-signs tab — red-flag emergency symptoms in a
-    light-red card. No citation chips here per safety-spec: the patient
-    should not need to interact with the content to read it.
+    Render the warning-signs tab — the flat red-flag list from Agent 1
+    stays at the top as a quick reference, followed by the Agent 5
+    three-tier escalation guide (911 / ER / call doctor) rendered as
+    colour-coded cards.
+
+    No citation chips here per safety-spec: the patient should not need
+    to interact with the content to read it. Agent 5 output is parsed
+    defensively — format drift must not blank the tab.
 
     Args:
         result: PipelineResponse dict.
     """
     ext = result.get("extraction", {})
     flags = ext.get("red_flag_symptoms", [])
+    escalation = _clean_str(result.get("escalation_guide", ""))
 
     st.markdown(
         '<div class="diq-section-title">Warning Signs</div>',
         unsafe_allow_html=True,
     )
 
-    if not flags:
+    if not flags and not escalation:
         st.caption("No emergency warning signs listed in the document.")
         return
 
-    flag_rows_html = "".join(
-        f'<div class="diq-flag-row">'
-        f'<div class="diq-flag-dot"></div>'
-        f'<div style="font-size:0.9rem;color:#7F1D1D;">{_clean_str(flag)}</div>'
-        f'</div>'
-        for flag in flags
-    )
+    if flags:
+        flag_rows_html = "".join(
+            f'<div class="diq-flag-row">'
+            f'<div class="diq-flag-dot"></div>'
+            f'<div style="font-size:0.9rem;color:#7F1D1D;">{_clean_str(flag)}</div>'
+            f'</div>'
+            for flag in flags
+        )
 
-    st.markdown(
-        '<div class="diq-warning-card">'
-        '<div style="font-weight:700;font-size:0.9rem;color:#7F1D1D;margin-bottom:8px;">'
-        "Go to the ER or call 911 if you have:"
-        "</div>"
-        f"{flag_rows_html}"
-        "</div>",
-        unsafe_allow_html=True,
-    )
+        st.markdown(
+            '<div class="diq-warning-card">'
+            '<div style="font-weight:700;font-size:0.9rem;color:#7F1D1D;margin-bottom:8px;">'
+            "Go to the ER or call 911 if you have:"
+            "</div>"
+            f"{flag_rows_html}"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+    if escalation:
+        blocks = _parse_escalation_guide(escalation)
+        if blocks:
+            st.markdown("---")
+            st.markdown("#### What to do if you have these symptoms")
+            for block in blocks:
+                _render_escalation_tier(block)
 
 
 # ── Section: Recovery ────────────────────────────────────────────────────────
