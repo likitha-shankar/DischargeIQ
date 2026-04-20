@@ -196,13 +196,21 @@ def _normalize_route(raw: str | None) -> str | None:
 
 def _apply_medication_normalization(extraction: ExtractionOutput) -> None:
     """
-    Normalise frequency strings on every medication in-place.
+    Normalise frequency strings on every medication in-place and title-case
+    all-lowercase drug names.
 
     Route normalisation is applied first (expands "PO" to "by mouth") so the
     subsequent frequency normaliser sees a cleaner string without embedded
     route tokens. Debug-level logging records any string that changed — the
     DEBUG channel keeps the INFO session log quiet during normal runs while
     still being available for spot-checking extraction quality.
+
+    Name casing: when the LLM returns a drug name in all-lowercase form
+    (e.g. "prednisone"), title-case it to "Prednisone" so the UI renders a
+    consistent medication card header regardless of how the source document
+    was typeset. Names with any existing uppercase letter are left untouched,
+    which preserves mixed-case drug names like "Trimethoprim-sulfamethoxazole"
+    and branded names like "HydrOXYzine".
 
     Args:
         extraction: The validated ExtractionOutput to mutate in place.
@@ -219,6 +227,117 @@ def _apply_medication_normalization(extraction: ExtractionOutput) -> None:
                 original_frequency,
                 medication.frequency,
             )
+
+        # Title-case all-lowercase names only; leave mixed-case names alone.
+        if medication.name and medication.name == medication.name.lower():
+            original_name = medication.name
+            medication.name = medication.name.title()
+            logger.debug(
+                "Medication name title-cased: '%s' -> '%s'",
+                original_name,
+                medication.name,
+            )
+
+
+# Matches a numeric dose immediately followed by a mass/volume unit. Chosen
+# units cover the discharge-med vocabulary (mg, mcg, g, IU, units, ml). The
+# pattern is case-insensitive at compile time and anchors the number so
+# stray integers like "5 days" do not register as doses.
+_DOSE_VALUE_PATTERN = re.compile(
+    r"(\d+(?:\.\d+)?)\s*(mg|mcg|g|iu|units|ml)\b",
+    flags=re.IGNORECASE,
+)
+
+# Window (in characters) after a drug-name occurrence in which a dose value
+# counts as "belonging" to that drug. 60 chars is enough to span typical
+# phrasing like "Metoprolol increased from 12.5mg to 50mg twice daily"
+# while staying short enough to avoid picking up unrelated downstream doses.
+_DOSE_CONFLICT_WINDOW_CHARS = 60
+
+
+def _check_dose_conflicts(
+    raw_text: str,
+    medications: list,
+) -> list[str]:
+    """
+    Detect medications that appear with conflicting doses across sections.
+
+    Walks the raw discharge text for each medication's name (word-boundary,
+    case-insensitive) and, at every occurrence, pulls the first dose value
+    found within the next _DOSE_CONFLICT_WINDOW_CHARS characters. If the
+    same drug yields two or more distinct dose values across the document,
+    an extraction warning is produced so downstream agents and the UI can
+    surface the conflict instead of silently picking one value.
+
+    The check is deliberately conservative:
+        - Only numeric + unit tokens count (see _DOSE_VALUE_PATTERN), so
+          instruction text like "for 5 days" is ignored.
+        - A drug with fewer than two distinct dose values produces no
+          warning — occurrences that share the same dose are expected
+          (e.g. a discharge meds section and a discharge instructions
+          section both stating "Metoprolol 25mg twice daily").
+        - Dose values are normalised to lowercase for comparison, so
+          "25mg" and "25 MG" are the same dose.
+
+    Args:
+        raw_text:    Full discharge-document text as extracted by
+                     pdfplumber (the exact string sent to the LLM).
+        medications: The medication list from the validated
+                     ExtractionOutput, already normalised.
+
+    Returns:
+        list[str]: One warning per drug with conflicting doses. Empty
+                   list when no conflicts are found. Warnings are phrased
+                   as complete sentences ready for the UI.
+    """
+    if not raw_text or not medications:
+        return []
+
+    warnings: list[str] = []
+
+    for medication in medications:
+        name = medication.name or ""
+        if not name.strip():
+            continue
+
+        # Word-boundary match on the drug name, escaped so punctuation
+        # in the name (hyphens, slashes) is treated literally. For
+        # multi-word names the embedded spaces still match literally.
+        name_pattern = re.compile(
+            rf"\b{re.escape(name)}\b",
+            flags=re.IGNORECASE,
+        )
+
+        distinct_doses: list[str] = []
+        distinct_doses_seen: set[str] = set()
+
+        for match in name_pattern.finditer(raw_text):
+            window_end = match.end() + _DOSE_CONFLICT_WINDOW_CHARS
+            window = raw_text[match.end():window_end]
+
+            dose_match = _DOSE_VALUE_PATTERN.search(window)
+            if not dose_match:
+                continue
+
+            # Canonical form: "<number><unit>" in lowercase for dedupe.
+            canonical = (
+                f"{dose_match.group(1)}{dose_match.group(2).lower()}"
+            )
+            if canonical in distinct_doses_seen:
+                continue
+            distinct_doses_seen.add(canonical)
+            distinct_doses.append(
+                f"{dose_match.group(1)}{dose_match.group(2)}"
+            )
+
+        if len(distinct_doses) >= 2:
+            dose_list = ", ".join(distinct_doses)
+            warnings.append(
+                f"Conflicting doses for {name}: found "
+                f"{dose_list} in document. Verify against original."
+            )
+
+    return warnings
 
 
 def _short_document_warning(raw_text: str) -> list[str]:
@@ -563,19 +682,27 @@ def _parse_and_validate(raw_response: str) -> ExtractionOutput:
 
 def _detect_low_text_density(page: object) -> bool:
     """
-    Return True if the page contains fewer than 20 words.
+    Return True if the page contains fewer than 5 words.
 
-    Pages below this threshold are likely scanned images with no extractable
-    text layer. They are flagged so the caller can assess overall document quality.
+    The previous threshold of 20 words produced false positives on short but
+    perfectly text-extractable PDFs (e.g. a 3-line ER discharge note with
+    ~37 words on one page). A real scanned/image page typically exposes no
+    extractable words at all — at most a handful of artifacts from stamps
+    or OCR noise — so 5 words is a sharper signal for the true failure mode
+    we care about (no text layer to extract).
+
+    Pages below this threshold are combined with the document-level text
+    length check in _build_document_notes() to decide whether to prepend a
+    scan-quality note.
 
     Args:
         page: A pdfplumber Page object.
 
     Returns:
-        bool: True if the page word count is under 20.
+        bool: True if the page word count is under 5.
     """
     text = page.extract_text() or ""
-    return len(text.split()) < 20
+    return len(text.split()) < 5
 
 
 def _extract_page_tables(page: object) -> str:
@@ -644,25 +771,50 @@ def _extract_page_text(page: object) -> str:
     return text
 
 
-def _build_document_notes(pages_info: list[dict]) -> str:
+def _build_document_notes(
+    pages_info: list[dict],
+    document_text: str,
+) -> str:
     """
-    Build a prepended note string when more than 30% of pages are low-density.
+    Build a prepended note string when the document genuinely looks scanned.
+
+    Two conditions must both hold before the scan note is emitted:
+        1. More than 30% of processed pages are low-density (see
+           _detect_low_text_density — now thresholded at <5 words).
+        2. The whole document's average is below 5 words per page.
+
+    Requiring the document-level average prevents the scan note from firing
+    on short text-only discharge notes (e.g. a 3-line ER summary where one
+    page is "dense" by ratio but the document is just genuinely short). A
+    real scanned document will have nearly zero extractable words per page
+    across the board.
 
     The note is written in plain text so the LLM can read it and factor
     extraction confidence accordingly.
 
     Args:
-        pages_info: List of dicts, one per processed page, each with key
-                    'low_text_density' (bool).
+        pages_info:    List of dicts, one per processed page, each with key
+                       'low_text_density' (bool).
+        document_text: The concatenated text of all processed pages, used
+                       to compute the document-wide words-per-page average.
 
     Returns:
-        str: Warning note ending with two newlines, or "" if no anomaly detected.
+        str: Warning note ending with two newlines, or "" if the document
+             does not meet the scan-quality criteria above.
     """
     total = len(pages_info)
     if total == 0:
         return ""
+
     low_count = sum(1 for p in pages_info if p["low_text_density"])
-    if (low_count / total) > 0.30:
+    low_density_ratio = low_count / total
+
+    # Document-wide words-per-page average. Protects against a single short
+    # page triggering the warning on an otherwise text-rich document.
+    total_words = len(document_text.split()) if document_text else 0
+    avg_words_per_page = total_words / total
+
+    if low_density_ratio > 0.30 and avg_words_per_page < 5:
         return (
             "[DOCUMENT NOTE: Multiple pages appear to be scanned images with "
             "limited extractable text. OCR quality may affect extraction accuracy.]\n\n"
@@ -742,7 +894,7 @@ def extract_text_from_pdf(pdf_path: str) -> str:
             "processed. Verify completeness manually.]\n\n"
         )
 
-    prefix += _build_document_notes(pages_info)
+    prefix += _build_document_notes(pages_info, document_text)
 
     if len(document_text) < _min_text_chars:
         prefix += (
@@ -801,10 +953,18 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
     # discharge source.
     _apply_medication_normalization(result)
 
-    # Merge pre-warnings with LLM-added warnings. A set-based dedupe keeps the
-    # list clean if the LLM happened to emit the same sentence independently.
+    # Cross-section dose consistency check. Runs after normalisation so the
+    # warning uses the canonical drug name, and runs against the raw PDF
+    # text (not the LLM's JSON) so conflicts hidden inside narrative prose
+    # are still detected even if the LLM collapsed them into a single
+    # medications entry.
+    dose_conflict_warnings = _check_dose_conflicts(pdf_text, result.medications)
+
+    # Merge pre-warnings, dose-conflict warnings, and LLM-added warnings.
+    # A set-based dedupe keeps the list clean if the LLM happened to emit
+    # the same sentence independently.
     existing_warnings = set(result.extraction_warnings)
-    for warning in pre_warnings:
+    for warning in (*pre_warnings, *dose_conflict_warnings):
         if warning not in existing_warnings:
             result.extraction_warnings.append(warning)
             existing_warnings.add(warning)

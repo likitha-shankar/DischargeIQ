@@ -16,6 +16,7 @@ Depends on: dischargeiq.agents.extraction_agent (DIS-5),
 import hashlib
 import logging
 import os
+import re
 import time
 import uuid
 
@@ -29,6 +30,68 @@ from dischargeiq.models.pipeline import PipelineResponse
 from dischargeiq.utils.warnings import assess_extraction_completeness
 
 logger = logging.getLogger(__name__)
+
+# Trigger phrases for _extract_safety_context — matched case-insensitively
+# against each sentence of the raw discharge text. The list mirrors the
+# CRITICAL SAFETY LANGUAGE block in prompts/agent3_system_prompt.txt so the
+# LLM receives exactly the sentences it is expected to reproduce verbatim.
+_SAFETY_TRIGGERS = re.compile(
+    r"do not stop|never stop|stopping suddenly|stopping can cause|"
+    r"call 911|go to the er|face drooping|arm weakness|"
+    r"trouble speaking|signs of stroke|stroke|emergency",
+    flags=re.IGNORECASE,
+)
+
+# Hard cap on how many safety sentences we forward to Agent 3. Prevents a
+# pathological document (e.g. a long consent form pasted into the summary)
+# from pushing out the medication block in the user message.
+_SAFETY_MAX_SENTENCES = 10
+
+
+def _extract_safety_context(raw_text: str) -> str:
+    """
+    Scan the full discharge document text for emergency / critical-safety
+    language and return matching sentences as a newline-joined block.
+
+    Why this exists:
+        Agent 3's per-drug user message only carries the Medication.source
+        span captured by Agent 1, which is typically the drug's own line
+        in the medication list. When a discharge PDF puts a stroke / 911
+        warning in a separate `EMERGENCY` section (e.g. adv_06 warfarin),
+        that text never reaches Agent 3, so the CRITICAL SAFETY LANGUAGE
+        rule in agent3_system_prompt.txt cannot fire. This helper harvests
+        that cross-section language once and passes it to Agent 3 as a
+        document-wide `safety_context` block.
+
+    Args:
+        raw_text: Full pdfplumber-extracted text from the PDF. May be
+                  empty if Agent 1 extraction failed upstream.
+
+    Returns:
+        str: Up to _SAFETY_MAX_SENTENCES matching sentences joined by
+             newlines. Empty string when nothing matches or on any error
+             — callers must treat an empty result as "no safety block"
+             rather than as a failure.
+    """
+    if not raw_text:
+        return ""
+
+    try:
+        # Split on period OR newline so list-style warnings ("DO NOT STOP")
+        # and sentence-style warnings ("Stopping can cause stroke.") both
+        # survive as standalone candidates. Bullets and headings come
+        # through as their own lines already.
+        matches: list[str] = []
+        for candidate in re.split(r"[.\n]", raw_text):
+            sentence = candidate.strip()
+            if sentence and _SAFETY_TRIGGERS.search(sentence):
+                matches.append(sentence)
+                if len(matches) >= _SAFETY_MAX_SENTENCES:
+                    break
+        return "\n".join(matches)
+    except Exception as exc:  # pragma: no cover — defensive
+        logger.warning("safety context scan failed: %s", exc)
+        return ""
 
 
 async def run_pipeline(
@@ -64,6 +127,10 @@ async def run_pipeline(
     # ── Agent 1 — Extraction ─────────────────────────────────────────────────
     # Produces the ExtractionOutput that all downstream agents consume.
     # On failure, fall back to a minimal stub so the API never returns 500.
+    # pdf_text is initialised here (not inside try) so that downstream steps
+    # — notably _extract_safety_context before Agent 3 — can reference it
+    # unconditionally even if the text extraction step raised.
+    pdf_text = ""
     try:
         pdf_text = extract_text_from_pdf(pdf_path)
         extraction = run_extraction_agent(pdf_text)
@@ -149,9 +216,16 @@ async def run_pipeline(
 
     if agent1_succeeded:
         try:
+            # Harvest cross-section safety language (do-not-stop, stroke
+            # signs, 911 callouts) from the full PDF text so Agent 3 can
+            # reproduce warnings that live outside the medication list
+            # itself. Empty string when nothing matches — handled inside
+            # run_medication_agent as "no extra block".
+            safety_ctx = _extract_safety_context(pdf_text)
             agent3_result = run_medication_agent(
                 extraction=extraction,
                 document_id=pdf_path,
+                safety_context=safety_ctx,
             )
             medication_rationale = agent3_result["text"]
             fk_scores["agent3"] = {

@@ -976,6 +976,81 @@ def _render_section_diagnosis(result: dict) -> None:
 
 # ── Section: Medications ─────────────────────────────────────────────────────
 
+def _parse_medication_rationale(text: str) -> dict[str, dict]:
+    """
+    Parse Agent 3's medication_rationale string into a per-drug lookup.
+
+    Agent 3 emits one block per medication, blocks separated by a blank
+    line. The first line of each block is "DrugName:" for normal meds or
+    "DrugName — stopping:" for discontinued meds. Remaining lines in the
+    block are the patient-facing paragraph(s).
+
+    Args:
+        text: The full medication_rationale string from PipelineResponse.
+
+    Returns:
+        dict keyed by lowercased drug name. Each value is a dict with:
+            text     (str)  — the paragraph body, leading/trailing space trimmed
+            stopping (bool) — True for discontinued/stopped medications
+        Returns {} when text is empty or unparseable.
+    """
+    blocks: dict[str, dict] = {}
+    if not text:
+        return blocks
+
+    for raw_block in text.split("\n\n"):
+        block = raw_block.strip()
+        if not block:
+            continue
+        # First line is the header ("Name:" or "Name — stopping:"); rest is body.
+        head, _, body = block.partition("\n")
+        body = body.strip()
+        if not head.endswith(":") or not body:
+            continue
+        header = head[:-1].strip()
+        # Detect the discontinued variant — the prompt uses an em dash but
+        # we accept a plain hyphen too in case the model substitutes one.
+        is_stopping = False
+        for marker in (" — stopping", " - stopping"):
+            if header.lower().endswith(marker):
+                header = header[: -len(marker)].strip()
+                is_stopping = True
+                break
+        name_key = header.lower()
+        if name_key:
+            blocks[name_key] = {"text": body, "stopping": is_stopping}
+    return blocks
+
+
+def _find_rationale_for_med(med_name: str, blocks: dict[str, dict]) -> dict | None:
+    """
+    Look up the Agent 3 rationale block matching a given medication name.
+
+    Tries an exact case-insensitive match first, then falls back to a
+    prefix match in either direction so qualifiers like "Aspirin 81mg"
+    (extraction) still resolve to "Aspirin" (rationale) and vice versa.
+
+    Args:
+        med_name: The medication name from extraction.medications[*].name.
+        blocks:   The dict returned by _parse_medication_rationale().
+
+    Returns:
+        The matching block dict (keys: text, stopping), or None when no
+        block matches — caller skips rendering silently in that case.
+    """
+    if not med_name or not blocks:
+        return None
+    needle = med_name.strip().lower()
+    if not needle:
+        return None
+    if needle in blocks:
+        return blocks[needle]
+    for key, val in blocks.items():
+        if key.startswith(needle) or needle.startswith(key):
+            return val
+    return None
+
+
 def _render_medication_card(med: dict, card_index: int) -> None:
     """
     Render a single medication card with status badge and citation chip.
@@ -1054,8 +1129,24 @@ def _render_section_medications(result: dict) -> None:
         st.caption("No medications found in the document.")
         return
 
+    rationale_blocks = _parse_medication_rationale(
+        result.get("medication_rationale", "")
+    )
+
     for idx, med in enumerate(medications):
         _render_medication_card(med, idx)
+
+        block = _find_rationale_for_med(med.get("name", ""), rationale_blocks)
+        if not block:
+            continue
+
+        label = (
+            "Why your doctor stopped this"
+            if block.get("stopping")
+            else "Why you're taking this and what to expect"
+        )
+        with st.expander(label):
+            st.markdown(block.get("text", ""))
 
 
 # ── Section: Appointments ────────────────────────────────────────────────────
@@ -1240,6 +1331,12 @@ def _render_section_recovery(result: dict) -> None:
             f'</div>',
             unsafe_allow_html=True,
         )
+
+    trajectory = _clean_str(result.get("recovery_trajectory", ""))
+    if trajectory:
+        st.markdown("---")
+        st.markdown("#### Your recovery timeline")
+        st.markdown(trajectory)
 
 
 # ── Section dispatch ─────────────────────────────────────────────────────────

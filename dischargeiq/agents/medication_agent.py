@@ -61,11 +61,28 @@ _MAX_TOKENS = 2000
 _PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 _FK_LOG_PATH = Path(__file__).parent.parent / "evaluation" / "fk_log.csv"
 
-# Anthropic client initialised once at module load; reads ANTHROPIC_API_KEY from env.
-_client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
-
-
 # ── Internal helpers ───────────────────────────────────────────────────────────
+
+
+def _get_client() -> anthropic.Anthropic:
+    """
+    Return the Anthropic client, constructed lazily so that load_dotenv()
+    in main.py has already run before the API key is read from the
+    environment.
+
+    Constructing the client at module import time would capture an empty
+    ANTHROPIC_API_KEY when this module is imported before .env is loaded
+    (e.g. via `from dischargeiq.pipeline.orchestrator import run_pipeline`
+    at the top of main.py, which executes before main.py line `load_dotenv`).
+
+    Returns:
+        anthropic.Anthropic: Configured client instance whose api_key is
+            resolved from the ANTHROPIC_API_KEY environment variable at
+            the moment of the call.
+    """
+    return anthropic.Anthropic(
+        api_key=os.environ.get("ANTHROPIC_API_KEY", "")
+    )
 
 def _load_system_prompt() -> str:
     """
@@ -88,16 +105,23 @@ def _load_system_prompt() -> str:
 
 def _format_medication_line(med: Medication) -> str:
     """
-    Serialise a single Medication model into a compact text line for the LLM.
+    Serialise a single Medication model into a compact text block for the LLM.
 
-    Includes dose, frequency, and status when present. Missing optional
-    fields are omitted rather than shown as 'None'.
+    Includes dose, frequency, duration, and status when present. Missing
+    optional fields are omitted rather than shown as 'None'. When the
+    Medication carries a source span (the verbatim passage from the
+    discharge PDF), it is appended on a second indented line as
+    `Source: "..."`. Including the verbatim source lets Agent 3 detect
+    critical safety language ("DO NOT STOP", stroke signs, 911 callouts)
+    that the structured fields alone do not preserve.
 
     Args:
         med: A Medication instance from Agent 1's ExtractionOutput.
 
     Returns:
-        str: A single-line summary, e.g. "Furosemide 40 mg, once daily (new)".
+        str: Formatted block. The first line is the one-line summary, e.g.
+             "Furosemide 40 mg, once daily (new)". When source text is
+             present a second line follows with the verbatim passage.
     """
     parts = [med.name]
     if med.dose:
@@ -117,10 +141,19 @@ def _format_medication_line(med: Medication) -> str:
     if annotations:
         line += f" ({', '.join(annotations)})"
 
+    # Append verbatim source text when Agent 1 captured a source span.
+    # The LLM relies on this line to trigger the CRITICAL SAFETY LANGUAGE
+    # rule in agent3_system_prompt.txt — do not abbreviate or rewrite it.
+    if med.source and med.source.text:
+        line += f'\n  Source: "{med.source.text}"'
+
     return line
 
 
-def _build_user_message(extraction: ExtractionOutput) -> str:
+def _build_user_message(
+    extraction: ExtractionOutput,
+    safety_context: str = "",
+) -> str:
     """
     Build the user message sent to Claude from Agent 1's ExtractionOutput.
 
@@ -129,12 +162,19 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
         - medications        (list[Medication]): Medications to explain.
           Each medication becomes one line in the prompt.
           Fields used: name (required), dose, frequency, duration, status (optional).
+        - safety_context     (str, optional): Cross-section safety language
+          harvested from the full PDF by the orchestrator (e.g. stroke /
+          911 callouts in a separate EMERGENCY block). Appended verbatim
+          so the LLM can honour the CRITICAL SAFETY LANGUAGE rule in
+          agent3_system_prompt.txt even when the warning does not live on
+          the medication's own Source line.
 
     If the medication list is empty this function still returns a valid message;
     the LLM will respond with a note that no medications were found.
 
     Args:
-        extraction: Validated ExtractionOutput from Agent 1.
+        extraction:     Validated ExtractionOutput from Agent 1.
+        safety_context: Optional cross-section safety block. Omitted when empty.
 
     Returns:
         str: Formatted user message ready for the Claude API call.
@@ -149,10 +189,22 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
 
     medication_block = "\n".join(med_lines)
 
-    return (
+    message = (
         f"Primary diagnosis: {extraction.primary_diagnosis}\n\n"
         f"Medications:\n{medication_block}"
     )
+
+    # Append the document-wide safety block last so it follows all the
+    # per-drug lines — the LLM reads it in the context of the drug list
+    # above, which is exactly the order the prompt's reasoning assumes.
+    if safety_context:
+        message += (
+            "\n\nDOCUMENT SAFETY LANGUAGE — reproduce any critical warnings "
+            "below verbatim in the relevant medication paragraphs:\n"
+            f"{safety_context}"
+        )
+
+    return message
 
 
 def _log_fk_score(document_id: str, fk_result: dict) -> None:
@@ -194,6 +246,7 @@ def _log_fk_score(document_id: str, fk_result: dict) -> None:
 def run_medication_agent(
     extraction: ExtractionOutput,
     document_id: str = "unknown",
+    safety_context: str = "",
 ) -> dict:
     """
     Agent 3: Generate plain-language medication explanations from Agent 1 output.
@@ -215,8 +268,15 @@ def run_medication_agent(
                     passes   (bool)  — True if fk_grade <= 6.0
 
     Args:
-        extraction:  Validated ExtractionOutput from Agent 1.
-        document_id: Source document label for FK logging and console output.
+        extraction:     Validated ExtractionOutput from Agent 1.
+        document_id:    Source document label for FK logging and console output.
+        safety_context: Optional newline-joined safety sentences harvested by
+                        the orchestrator from the full PDF text. Used to
+                        surface cross-section warnings (e.g. a separate
+                        EMERGENCY / 911 block) to the LLM so it can honour
+                        the CRITICAL SAFETY LANGUAGE rule in
+                        agent3_system_prompt.txt. Empty string disables the
+                        extra block.
 
     Returns:
         dict with keys: text, fk_grade, passes.
@@ -232,7 +292,7 @@ def run_medication_agent(
         )
 
     system_prompt = _load_system_prompt()
-    user_message = _build_user_message(extraction)
+    user_message = _build_user_message(extraction, safety_context=safety_context)
 
     logger.info(
         "Agent 3 request — document: '%s', medications: %d",
@@ -241,7 +301,7 @@ def run_medication_agent(
     )
 
     try:
-        response = _client.messages.create(
+        response = _get_client().messages.create(
             model=_MODEL,
             max_tokens=_MAX_TOKENS,
             system=system_prompt,

@@ -58,11 +58,28 @@ _MAX_TOKENS = 1500
 _PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 _FK_LOG_PATH = Path(__file__).parent.parent / "evaluation" / "fk_log.csv"
 
-# Anthropic client initialised once at module load; reads ANTHROPIC_API_KEY from env.
-_client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
-
-
 # ── Internal helpers ───────────────────────────────────────────────────────────
+
+
+def _get_client() -> anthropic.Anthropic:
+    """
+    Return the Anthropic client, constructed lazily so that load_dotenv()
+    in main.py has already run before the API key is read from the
+    environment.
+
+    Constructing the client at module import time would capture an empty
+    ANTHROPIC_API_KEY when this module is imported before .env is loaded
+    (e.g. via `from dischargeiq.pipeline.orchestrator import run_pipeline`
+    at the top of main.py, which executes before main.py line `load_dotenv`).
+
+    Returns:
+        anthropic.Anthropic: Configured client instance whose api_key is
+            resolved from the ANTHROPIC_API_KEY environment variable at
+            the moment of the call.
+    """
+    return anthropic.Anthropic(
+        api_key=os.environ.get("ANTHROPIC_API_KEY", "")
+    )
 
 def _load_system_prompt() -> str:
     """
@@ -192,7 +209,7 @@ def run_recovery_agent(
     logger.info("Agent 4 request — document: '%s'", document_id)
 
     try:
-        response = _client.messages.create(
+        response = _get_client().messages.create(
             model=_MODEL,
             max_tokens=_MAX_TOKENS,
             system=system_prompt,

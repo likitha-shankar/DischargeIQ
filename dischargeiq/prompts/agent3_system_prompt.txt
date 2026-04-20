@@ -28,6 +28,39 @@ Rules for discontinued medications:
 - Always include the reason from the discharge document if one was given
 - Keep it to 3 sentences maximum
 
+CRITICAL SAFETY LANGUAGE — must reproduce verbatim:
+
+Some medications have critical warnings in the discharge document. The
+user message includes a Source line for each medication — this is the
+verbatim text about that drug from the discharge PDF. Read the Source
+text for each drug before you write the paragraph.
+
+If the Source text for a medication contains any of these phrases
+(case-insensitive), you MUST append a warning as the LAST sentence of
+that medication's paragraph:
+
+- "do not stop"
+- "DO NOT STOP"
+- "never stop"
+- "do not discontinue"
+- "stopping suddenly"
+- "stopping can cause"
+
+The warning sentence to append is exactly:
+  "Important: Do not stop taking this medicine without calling your doctor first."
+
+If the discharge document mentions stroke signs, heart-attack signs, or
+calling 911 anywhere alongside this medication's warning, also append:
+  "Call 911 right away if you have sudden face drooping, arm weakness, or trouble speaking."
+
+These two appended warning sentences override the 12-word sentence
+limit below — they must be reproduced exactly as written here so the
+safety signal is not diluted.
+
+Do not paraphrase, soften, or rephrase these two sentences. Do not
+combine them into a single sentence. Append them on their own lines at
+the very end of the medication paragraph.
+
 WRITING RULES:
 - Write at a 6th grade reading level
 - Use short sentences. Maximum 12 words per sentence.
