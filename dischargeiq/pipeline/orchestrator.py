@@ -2,12 +2,15 @@
 Pipeline orchestrator for DischargeIQ.
 
 Wires all five agents in sequence and aggregates their outputs into a
-PipelineResponse. Agents 1 and 2 are fully live. Agents 3-5 are stubbed
-until their tickets land.
+PipelineResponse. Agents 1-4 are fully live. Agent 5 is stubbed until
+DIS-22 lands.
 
-Depends on: dischargeiq.agents.extraction_agent,
-            dischargeiq.models.extraction, dischargeiq.models.pipeline,
-            dischargeiq.utils.warnings.
+Depends on: dischargeiq.agents.extraction_agent (DIS-5),
+            dischargeiq.agents.diagnosis_agent (DIS-8),
+            dischargeiq.agents.medication_agent (DIS-12),
+            dischargeiq.agents.recovery_agent (DIS-16),
+            dischargeiq.db.history, dischargeiq.models.extraction,
+            dischargeiq.models.pipeline, dischargeiq.utils.warnings.
 """
 
 import hashlib
@@ -16,7 +19,10 @@ import os
 import time
 import uuid
 
+from dischargeiq.agents.diagnosis_agent import run_diagnosis_agent
 from dischargeiq.agents.extraction_agent import extract_text_from_pdf, run_extraction_agent
+from dischargeiq.agents.medication_agent import run_medication_agent
+from dischargeiq.agents.recovery_agent import run_recovery_agent
 from dischargeiq.db.history import get_db_pool, save_discharge_history
 from dischargeiq.models.extraction import ExtractionOutput
 from dischargeiq.models.pipeline import PipelineResponse
@@ -31,8 +37,9 @@ async def run_pipeline(
     """
     Run the multi-agent discharge pipeline on a PDF file path.
 
-    Currently live: Agent 1 (extraction), Agent 2 (diagnosis explanation).
-    Stubbed (empty string): Agents 3-5 — wired in Sprint 2.
+    Currently live: Agent 1 (extraction), Agent 2 (diagnosis explanation),
+    Agent 3 (medication rationale), Agent 4 (recovery trajectory).
+    Agent 5 is stubbed — wired when DIS-22 lands.
 
     Data contract: Agent 1 returns ExtractionOutput (locked schema).
     All downstream agents receive that model as input. Never change
@@ -44,6 +51,8 @@ async def run_pipeline(
 
     Args:
         pdf_path: Absolute path to a temporary PDF written by the API layer.
+        session_id: Optional session identifier propagated to the DB row;
+                    a fresh UUID is generated when omitted.
 
     Returns:
         PipelineResponse: Aggregated outputs. pipeline_status is "complete"
@@ -85,6 +94,12 @@ async def run_pipeline(
             extraction_warnings,
         )
 
+    agent1_succeeded = extraction.primary_diagnosis not in (
+        None, "", "Extraction failed"
+    )
+
+    fk_scores: dict = {}
+
     # ── Agent 2 — Diagnosis Explanation ─────────────────────────────────────
     # Accepts ExtractionOutput from Agent 1.
     # Returns dict with keys: text, fk_grade, passes.
@@ -93,17 +108,9 @@ async def run_pipeline(
     # can be incomplete (missing follow-ups, activity restrictions, etc.) and
     # still have a valid diagnosis worth explaining to the patient.
     diagnosis_explanation = ""
-    agent2_fk: dict = {}
-
-    # Gate on diagnosis validity only — not on pipeline_status — so completeness
-    # warnings for missing fields don't block the explanation from running.
-    agent1_succeeded = extraction.primary_diagnosis not in (
-        None, "", "Extraction failed"
-    )
 
     if agent1_succeeded:
         try:
-            from dischargeiq.agents.diagnosis_agent import run_diagnosis_agent
             # Explicitly strip inpatient-only fields before handing the
             # extraction to Agent 2. procedures_performed contains IV drugs
             # and imaging findings from the hospital stay that the patient
@@ -121,7 +128,7 @@ async def run_pipeline(
                 document_id=pdf_path,
             )
             diagnosis_explanation = agent2_result["text"]
-            agent2_fk = {
+            fk_scores["agent2"] = {
                 "fk_grade": agent2_result["fk_grade"],
                 "passes": agent2_result["passes"],
             }
@@ -135,13 +142,61 @@ async def run_pipeline(
             diagnosis_explanation = ""
             pipeline_status = "partial"
 
-    # ── Agents 3-5 — Stubs (Sprint 2) ────────────────────────────────────────
-    # Each agent will receive `extraction` as its primary input.
-    # Placeholder empty strings keep PipelineResponse valid today.
-    medication_rationale = ""    # Agent 3 (DIS-12)
-    recovery_trajectory = ""     # Agent 4 (DIS-16)
+    # ── Agent 3 — Medication Rationale ───────────────────────────────────────
+    # Data contract: receives the full ExtractionOutput from Agent 1.
+    # Returns dict with keys: text, fk_grade, passes.
+    medication_rationale = ""
+
+    if agent1_succeeded:
+        try:
+            agent3_result = run_medication_agent(
+                extraction=extraction,
+                document_id=pdf_path,
+            )
+            medication_rationale = agent3_result["text"]
+            fk_scores["agent3"] = {
+                "fk_grade": agent3_result["fk_grade"],
+                "passes": agent3_result["passes"],
+            }
+            logger.info(
+                "Agent 3 complete — FK grade: %.2f, passes: %s",
+                agent3_result["fk_grade"],
+                agent3_result["passes"],
+            )
+        except Exception as exc:
+            logger.error("Agent 3 failed for %s: %s", pdf_path, exc)
+            medication_rationale = ""
+            pipeline_status = "partial"
+
+    # ── Agent 4 — Recovery Trajectory ────────────────────────────────────────
+    # Data contract: receives the full ExtractionOutput from Agent 1.
+    # Returns dict with keys: text, fk_grade, passes.
+    recovery_trajectory = ""
+
+    if agent1_succeeded:
+        try:
+            agent4_result = run_recovery_agent(
+                extraction=extraction,
+                document_id=pdf_path,
+            )
+            recovery_trajectory = agent4_result["text"]
+            fk_scores["agent4"] = {
+                "fk_grade": agent4_result["fk_grade"],
+                "passes": agent4_result["passes"],
+            }
+            logger.info(
+                "Agent 4 complete — FK grade: %.2f, passes: %s",
+                agent4_result["fk_grade"],
+                agent4_result["passes"],
+            )
+        except Exception as exc:
+            logger.error("Agent 4 failed for %s: %s", pdf_path, exc)
+            recovery_trajectory = ""
+            pipeline_status = "partial"
+
+    # ── Agent 5 — Stub (Sprint 2) ────────────────────────────────────────────
+    # Agent 5 (escalation) is tracked by DIS-22.
     escalation_guide = ""        # Agent 5 (DIS-22)
-    fk_scores: dict = {"agent2": agent2_fk} if agent2_fk else {}
 
     elapsed = time.monotonic() - pipeline_start
 
