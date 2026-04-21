@@ -27,7 +27,7 @@ from openai import OpenAI, RateLimitError
 from pydantic import ValidationError
 
 from dischargeiq.models.extraction import ExtractionOutput
-from dischargeiq.utils.llm_client import get_llm_client
+from dischargeiq.utils.llm_client import call_chat_with_fallback, get_llm_client
 
 logger = logging.getLogger(__name__)
 
@@ -511,52 +511,22 @@ def _call_llm(system_prompt: str, pdf_text: str) -> str:
         KeyError: If the required API key env var for the chosen provider is missing.
     """
     client, model_name = _get_llm_client()
+    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
     user_message = _build_user_message(pdf_text)
-
-    # Single retry on rate limit (most free-tier providers are RPM-bounded).
-    # 65 seconds gives the one-minute window time to fully clear.
-    _rate_limit_retry_wait_seconds = 65
-    _max_retries = 1
-
-    for attempt in range(_max_retries + 1):
-        try:
-            response = client.chat.completions.create(
-                model=model_name,
-                # Cap completion size. Without this, some OpenRouter models
-                # default to the full context window (e.g. 16384 for
-                # gpt-4o-mini), which tried to pre-reserve more credit than
-                # the account had and failed with HTTP 402. 4096 is a safe
-                # ceiling for the structured extraction JSON.
-                max_tokens=4096,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message},
-                ],
-            )
-            content = response.choices[0].message.content
-            # content is Optional[str] in the SDK — guard against None responses
-            # from content-filtered or tool-use-only models.
-            if content is None:
-                raise ValueError(
-                    f"LLM returned an empty response "
-                    f"(provider: {os.environ.get('LLM_PROVIDER', 'openrouter')}, "
-                    f"model: {model_name}). Check for content filtering."
-                )
-            return content.strip()
-        except RateLimitError as exc:
-            if attempt < _max_retries:
-                logger.warning(
-                    "Rate limit hit (attempt %d) — waiting %ds before retry.",
-                    attempt + 1,
-                    _rate_limit_retry_wait_seconds,
-                )
-                time.sleep(_rate_limit_retry_wait_seconds)
-            else:
-                logger.error("Rate limit exhausted after retry: %s", exc)
-                raise
-        except Exception as exc:
-            logger.error("LLM API call failed: %s", exc)
-            raise
+    try:
+        return call_chat_with_fallback(
+            client=client,
+            model_name=model_name,
+            system_prompt=system_prompt,
+            user_message=user_message,
+            max_tokens=4096,
+            provider=provider,
+            agent_name="Agent 1",
+            document_id="extraction",
+        )
+    except Exception as exc:
+        logger.error("LLM API call failed: %s", exc)
+        raise
 
 
 def _strip_markdown_fences(raw: str) -> str:

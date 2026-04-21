@@ -44,17 +44,20 @@ import csv
 import logging
 import os
 from pathlib import Path
+from typing import Any
 
 import anthropic
+from openai import OpenAI
 
 from dischargeiq.models.extraction import ExtractionOutput
+from dischargeiq.utils.llm_client import call_chat_with_fallback
 from dischargeiq.utils.scorer import fk_check
 
 logger = logging.getLogger(__name__)
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 
-_MODEL = "claude-sonnet-4-20250514"
+_MODEL = "claude-sonnet-4-6"
 
 # 1000 tokens is ample for a structured three-tier guide. The output is
 # deliberately short — 3 tier headers + ~3-6 bullets per tier × 1-2 short
@@ -69,11 +72,15 @@ _FK_LOG_PATH = Path(__file__).parent.parent / "evaluation" / "fk_log.csv"
 # ── Internal helpers ───────────────────────────────────────────────────────────
 
 
-def _get_client() -> anthropic.Anthropic:
+def _get_client() -> Any:
     """
-    Return the Anthropic client, constructed lazily so that load_dotenv()
-    in main.py has already run before the API key is read from the
-    environment.
+    Return an LLM client based on the LLM_PROVIDER environment setting.
+
+    Supported providers:
+        - anthropic  -> anthropic.Anthropic (default)
+        - openrouter -> openai.OpenAI with OpenRouter base_url
+        - openai     -> openai.OpenAI with api.openai.com base_url
+        - ollama     -> openai.OpenAI with local Ollama base_url
 
     Constructing the client at module import time would capture an empty
     ANTHROPIC_API_KEY when this module is imported before .env is loaded
@@ -81,13 +88,42 @@ def _get_client() -> anthropic.Anthropic:
     at the top of main.py, which executes before main.py's load_dotenv).
 
     Returns:
-        anthropic.Anthropic: Configured client instance whose api_key is
-            resolved from the ANTHROPIC_API_KEY environment variable at
-            the moment of the call.
+        Any: Configured client instance for the selected provider.
+
+    Raises:
+        KeyError: If provider-specific API credentials are missing
+            for the selected provider.
+
+    Note:
+        Timeout is provider-aware: 180s on OpenRouter/Ollama and 60s on
+        Anthropic/OpenAI.
     """
+    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    timeout = 180.0 if provider in {"openrouter", "ollama"} else 60.0
+    if provider == "openrouter":
+        return OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=os.environ["OPENROUTER_API_KEY"],
+            timeout=timeout,
+            max_retries=1,
+        )
+    if provider == "openai":
+        return OpenAI(
+            base_url="https://api.openai.com/v1",
+            api_key=os.environ["OPENAI_API_KEY"],
+            timeout=timeout,
+            max_retries=1,
+        )
+    if provider == "ollama":
+        return OpenAI(
+            base_url=os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
+            api_key="ollama",
+            timeout=timeout,
+            max_retries=1,
+        )
     return anthropic.Anthropic(
-        api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
-        timeout=60.0,
+        api_key=os.environ["ANTHROPIC_API_KEY"],
+        timeout=timeout,
         max_retries=1,
     )
 
@@ -242,8 +278,9 @@ def run_escalation_agent(
         dict with keys: text, fk_grade, passes.
 
     Raises:
-        ValueError:          If primary_diagnosis is missing from Agent 1 output.
-        anthropic.APIError:  If the Anthropic API call fails.
+        ValueError: If primary_diagnosis is missing from Agent 1 output.
+        anthropic.APIError: If the Anthropic API call fails on the Anthropic path.
+        Exception: If the OpenRouter API call fails.
     """
     if not extraction.primary_diagnosis:
         raise ValueError(
@@ -260,18 +297,43 @@ def run_escalation_agent(
         len(extraction.red_flag_symptoms or []),
     )
 
-    try:
-        response = _get_client().messages.create(
-            model=_MODEL,
-            max_tokens=_MAX_TOKENS,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_message}],
-        )
-    except anthropic.APIError as e:
-        logger.error("Agent 5 API call failed for '%s': %s", document_id, e)
-        raise
+    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    client = _get_client()
 
-    escalation_text = response.content[0].text.strip()
+    if provider != "anthropic":
+        default_model = {
+            "openrouter": "openrouter/free",
+            "openai": "gpt-4o-mini",
+            "ollama": "qwen2.5:7b",
+        }.get(provider, "openrouter/free")
+        model = os.environ.get("LLM_MODEL", default_model)
+        try:
+            escalation_text = call_chat_with_fallback(
+                client=client,
+                model_name=model,
+                system_prompt=system_prompt,
+                user_message=user_message,
+                max_tokens=_MAX_TOKENS,
+                provider=provider,
+                agent_name="Agent 5",
+                document_id=document_id,
+            )
+        except Exception as e:
+            logger.error("Agent 5 OpenRouter call failed for '%s': %s", document_id, e)
+            raise
+    else:
+        model = os.environ.get("LLM_MODEL", "claude-sonnet-4-6")
+        try:
+            response = client.messages.create(
+                model=model,
+                max_tokens=_MAX_TOKENS,
+                system=system_prompt,
+                messages=[{"role": "user", "content": user_message}],
+            )
+        except anthropic.APIError as e:
+            logger.error("Agent 5 API call failed for '%s': %s", document_id, e)
+            raise
+        escalation_text = response.content[0].text.strip()
 
     # FK check — required by DIS-22 acceptance criteria. Safety output must
     # be legible at a 6th-grade reading level; a failing score means the

@@ -49,8 +49,22 @@ fi
 # shellcheck source=/dev/null
 source "$VENV_DIR/bin/activate"
 
+# Resolve a working venv interpreter explicitly. Some local venv script
+# shims can lose executable bits; invoking modules via python -m avoids that.
+if [ -x "$VENV_DIR/bin/python3.14" ]; then
+    VENV_PY="$VENV_DIR/bin/python3.14"
+elif [ -x "$VENV_DIR/bin/python3" ]; then
+    VENV_PY="$VENV_DIR/bin/python3"
+elif [ -x "$VENV_DIR/bin/python" ]; then
+    VENV_PY="$VENV_DIR/bin/python"
+else
+    fail "No executable Python found in $VENV_DIR/bin"
+fi
+
+echo "[start] Venv Python: $VENV_PY"
+
 echo "[start] Installing requirements (quiet)"
-pip install --quiet --disable-pip-version-check -r requirements.txt
+"$VENV_PY" -m pip install --quiet --disable-pip-version-check -r requirements.txt
 
 # ── 3. .env validation ──────────────────────────────────────────────
 if [ ! -f ".env" ]; then
@@ -76,16 +90,26 @@ if [ ! -f ".env" ]; then
     fi
 fi
 
+# Preserve explicit CLI/provider overrides so .env does not clobber them.
+CLI_LLM_PROVIDER="${LLM_PROVIDER:-}"
+CLI_LLM_MODEL="${LLM_MODEL:-}"
+
 # Load .env into this shell so we can validate required keys.
 set -a
 # shellcheck source=/dev/null
 source .env
 set +a
 
+# Re-apply explicit CLI overrides if provided.
+if [ -n "$CLI_LLM_PROVIDER" ]; then
+    LLM_PROVIDER="$CLI_LLM_PROVIDER"
+fi
+if [ -n "$CLI_LLM_MODEL" ]; then
+    LLM_MODEL="$CLI_LLM_MODEL"
+fi
+
 LLM_PROVIDER="${LLM_PROVIDER:-openrouter}"
 MISSING=()
-
-[ -z "${ANTHROPIC_API_KEY:-}" ] && MISSING+=("ANTHROPIC_API_KEY (Claude — Agents 2-5)")
 
 case "$LLM_PROVIDER" in
     openrouter)
@@ -97,7 +121,9 @@ case "$LLM_PROVIDER" in
             MISSING+=("OPENAI_API_KEY (LLM_PROVIDER=openai)")
         ;;
     anthropic)
-        ;; # ANTHROPIC_API_KEY already checked above
+        [ -z "${ANTHROPIC_API_KEY:-}" ] && \
+            MISSING+=("ANTHROPIC_API_KEY (LLM_PROVIDER=anthropic)")
+        ;;
     ollama)
         ;; # local — no key needed
     *)
@@ -144,7 +170,7 @@ cleanup() {
 trap cleanup INT TERM EXIT
 
 echo "[start] Backend  → http://127.0.0.1:${BACKEND_PORT}  (log: $BACKEND_LOG)"
-uvicorn dischargeiq.main:app \
+"$VENV_PY" -m uvicorn dischargeiq.main:app \
     --host 127.0.0.1 --port "$BACKEND_PORT" --reload \
     >"$BACKEND_LOG" 2>&1 &
 BACKEND_PID=$!
@@ -153,7 +179,7 @@ echo "[start] Frontend → http://127.0.0.1:${FRONTEND_PORT} (log: $FRONTEND_LOG
 # --server.headless true skips Streamlit's first-run interactive email
 # prompt (which blocks forever when stdin is redirected) and stops it
 # from auto-opening a browser tab.
-streamlit run streamlit_app.py \
+"$VENV_PY" -m streamlit run streamlit_app.py \
     --server.address 127.0.0.1 --server.port "$FRONTEND_PORT" \
     --server.headless true --browser.gatherUsageStats false \
     >"$FRONTEND_LOG" 2>&1 &
