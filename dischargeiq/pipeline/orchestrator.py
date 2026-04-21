@@ -13,6 +13,7 @@ Depends on: dischargeiq.agents.extraction_agent (DIS-5),
             dischargeiq.models.pipeline, dischargeiq.utils.warnings.
 """
 
+import asyncio
 import hashlib
 import logging
 import os
@@ -47,6 +48,11 @@ _SAFETY_TRIGGERS = re.compile(
 # pathological document (e.g. a long consent form pasted into the summary)
 # from pushing out the medication block in the user message.
 _SAFETY_MAX_SENTENCES = 10
+
+# Pipeline-wide wall-clock cap. Five agents at p95 ~20s each plus pdfplumber
+# and a DB write comfortably fit inside this budget; anything past 300s is
+# a stuck LLM call worth surfacing to the caller as a 504.
+_PIPELINE_TIMEOUT_SECONDS = 300.0
 
 
 def _extract_safety_context(raw_text: str) -> str:
@@ -99,11 +105,26 @@ async def run_pipeline(
     pdf_path: str, session_id: str | None = None
 ) -> PipelineResponse:
     """
+    Public entry point — wraps _run_pipeline_internal in a 300-second
+    wall-clock timeout so a stuck LLM call cannot hang the API worker
+    forever. On timeout, asyncio.TimeoutError is allowed to propagate;
+    main.py translates it to an HTTP 504 for the client.
+    """
+    return await asyncio.wait_for(
+        _run_pipeline_internal(pdf_path, session_id),
+        timeout=_PIPELINE_TIMEOUT_SECONDS,
+    )
+
+
+async def _run_pipeline_internal(
+    pdf_path: str, session_id: str | None = None
+) -> PipelineResponse:
+    """
     Run the multi-agent discharge pipeline on a PDF file path.
 
-    Currently live: Agent 1 (extraction), Agent 2 (diagnosis explanation),
-    Agent 3 (medication rationale), Agent 4 (recovery trajectory).
-    Agent 5 is stubbed — wired when DIS-22 lands.
+    All five agents are live: Agent 1 (extraction), Agent 2 (diagnosis
+    explanation), Agent 3 (medication rationale), Agent 4 (recovery
+    trajectory), Agent 5 (escalation / warning-signs).
 
     Data contract: Agent 1 returns ExtractionOutput (locked schema).
     All downstream agents receive that model as input. Never change
@@ -111,7 +132,7 @@ async def run_pipeline(
 
     On any agent failure the pipeline sets pipeline_status="partial" and
     returns whatever was successfully extracted — it never raises to the
-    caller.
+    caller (except for the wall-clock timeout enforced by run_pipeline).
 
     Args:
         pdf_path: Absolute path to a temporary PDF written by the API layer.
@@ -120,7 +141,9 @@ async def run_pipeline(
 
     Returns:
         PipelineResponse: Aggregated outputs. pipeline_status is "complete"
-        when Agent 1 succeeds; "partial" on any failure.
+        when Agent 1 succeeds and no gaps were flagged; "complete_with_warnings"
+        when only advisory completeness warnings fired; "partial" on any
+        critical gap or downstream agent failure.
     """
     pipeline_start = time.monotonic()
     logger.info("Pipeline start — document: %s", pdf_path)
@@ -148,18 +171,32 @@ async def run_pipeline(
         pipeline_status = "partial"
 
     # ── Completeness check ────────────────────────────────────────────────────
-    # assess_extraction_completeness flags missing fields (no meds, no follow-ups, etc.)
-    # and returns human-readable warning strings for the response.
+    # assess_extraction_completeness splits missing fields into:
+    #   critical  — primary_diagnosis / medications / red_flag_symptoms missing
+    #               means this likely isn't a real discharge document, so we
+    #               downgrade status to "partial".
+    #   advisory  — common gaps on valid discharges (no follow-ups, missing
+    #               patient name, etc.). We promote to "complete_with_warnings"
+    #               so the UI can show a softer "Verified*" pill instead of
+    #               the alarming amber "Incomplete" one.
+    # Agent failures downstream (A2–A5) still set "partial" directly on their
+    # own except path — a crashed agent is always a real failure.
     completeness = assess_extraction_completeness(extraction)
     extraction_warnings = completeness["warning_messages"]
 
-    # If completeness warnings were raised, downgrade status to partial.
-    if completeness["has_warnings"] and pipeline_status == "complete":
+    if completeness["is_critical"] and pipeline_status == "complete":
         pipeline_status = "partial"
         logger.warning(
-            "Pipeline completeness warnings for %s: %s",
+            "Pipeline critical completeness failure for %s: %s",
             pdf_path,
-            extraction_warnings,
+            completeness["critical_warnings"],
+        )
+    elif completeness["advisory_warnings"] and pipeline_status == "complete":
+        pipeline_status = "complete_with_warnings"
+        logger.info(
+            "Pipeline advisory completeness warnings for %s: %s",
+            pdf_path,
+            completeness["advisory_warnings"],
         )
 
     agent1_succeeded = extraction.primary_diagnosis not in (

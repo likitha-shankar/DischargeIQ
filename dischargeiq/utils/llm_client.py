@@ -99,4 +99,9 @@ def get_llm_client() -> tuple[OpenAI, str]:
         "LLM provider: %s | model: %s | base_url: %s",
         provider, model_name, base_url,
     )
-    return OpenAI(base_url=base_url, api_key=api_key), model_name
+    return OpenAI(
+        base_url=base_url,
+        api_key=api_key,
+        timeout=60.0,
+        max_retries=1,
+    ), model_name

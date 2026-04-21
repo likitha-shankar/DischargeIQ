@@ -86,7 +86,9 @@ def _get_client() -> anthropic.Anthropic:
             the moment of the call.
     """
     return anthropic.Anthropic(
-        api_key=os.environ.get("ANTHROPIC_API_KEY", "")
+        api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
+        timeout=60.0,
+        max_retries=1,
     )
 
 

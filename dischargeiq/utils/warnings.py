@@ -1,9 +1,16 @@
 """
 Extraction completeness checker for DischargeIQ.
 
-Called after Agent 1 to flag fields that are missing or empty.
-The warnings are stored in extraction_warnings on the PipelineResponse
-and surfaced to the user so they know what data may be incomplete.
+Called after Agent 1 to flag fields that are missing or empty. Warnings
+are split into two severities:
+
+  * critical  — the document almost certainly is not a real discharge
+                summary (no diagnosis / no meds / no red-flag symptoms).
+                Orchestrator downgrades pipeline_status to "partial".
+  * advisory  — common gaps on otherwise valid discharges (no follow-up
+                appointment, no patient name, etc.). Orchestrator promotes
+                pipeline_status to "complete_with_warnings" so the UI can
+                show a softer "Verified*" pill with a tooltip.
 
 Depends on: dischargeiq.models.extraction.
 """
@@ -13,42 +20,59 @@ from dischargeiq.models.extraction import ExtractionOutput
 
 def assess_extraction_completeness(extraction: ExtractionOutput) -> dict:
     """
-    Check an ExtractionOutput for missing or empty fields and return status.
-
-    Each warning is a human-readable string describing what is missing.
-    These are informational — a missing field does not block the pipeline.
+    Check an ExtractionOutput for missing fields and classify them by severity.
 
     Args:
         extraction: Validated output from Agent 1.
 
     Returns:
         dict with keys:
-            has_warnings (bool): True if any warning was generated.
-            is_partial (bool): True if extraction looks incomplete (same as
-                has_warnings for this heuristic).
-            warning_messages (list[str]): Human-readable warning strings.
-
+            critical_warnings (list[str]): Missing fields that invalidate
+                the summary (primary_diagnosis, medications, red_flag_symptoms).
+            advisory_warnings (list[str]): Missing fields that are common
+                on valid discharges (follow-ups, activity/diet, dates, name).
+            warning_messages (list[str]): Union of both — kept for callers
+                that only want the flat list for display.
+            has_warnings (bool): True iff either list is non-empty.
+            is_critical  (bool): True iff critical_warnings is non-empty.
+            is_partial   (bool): Alias of is_critical, retained so any
+                older caller keying on this flag still behaves the same
+                way (partial == "document not usable", same as critical).
     """
-    warning_messages = []
+    critical_warnings: list[str] = []
+    advisory_warnings: list[str] = []
 
+    # ── Critical — three fields that together define a real discharge ──
+    # A document missing any of these is almost certainly not a discharge
+    # summary (could be an intake form, a consent page, or a non-clinical
+    # PDF). Downstream agents have nothing meaningful to say without them.
     if not extraction.primary_diagnosis:
-        warning_messages.append("Missing primary diagnosis.")
+        critical_warnings.append("Missing primary diagnosis.")
     if not extraction.medications:
-        warning_messages.append("No medications extracted.")
-    if not extraction.follow_up_appointments:
-        warning_messages.append("No follow-up appointments extracted.")
+        critical_warnings.append("No medications extracted.")
     if not extraction.red_flag_symptoms:
-        warning_messages.append("No red-flag symptoms extracted.")
-    if not extraction.activity_restrictions and not extraction.dietary_restrictions:
-        warning_messages.append("No activity or dietary restrictions extracted.")
-    if not extraction.discharge_date:
-        warning_messages.append("Missing discharge date.")
-    if not extraction.patient_name:
-        warning_messages.append("Missing patient name.")
+        critical_warnings.append("No red-flag symptoms extracted.")
 
-    has_warnings = len(warning_messages) > 0
+    # ── Advisory — common gaps on real, usable discharges ──
+    # These are worth surfacing to the patient (so they know the summary
+    # is incomplete) but they do not invalidate the extraction.
+    if not extraction.follow_up_appointments:
+        advisory_warnings.append("No follow-up appointments extracted.")
+    if not extraction.activity_restrictions and not extraction.dietary_restrictions:
+        advisory_warnings.append("No activity or dietary restrictions extracted.")
+    if not extraction.discharge_date:
+        advisory_warnings.append("Missing discharge date.")
+    if not extraction.patient_name:
+        advisory_warnings.append("Missing patient name.")
+
+    has_warnings = bool(critical_warnings) or bool(advisory_warnings)
+    is_critical = bool(critical_warnings)
+
     return {
+        "critical_warnings": critical_warnings,
+        "advisory_warnings": advisory_warnings,
+        "warning_messages": critical_warnings + advisory_warnings,
         "has_warnings": has_warnings,
-        "is_partial": has_warnings,
-        "warning_messages": warning_messages,
+        "is_critical": is_critical,
+        "is_partial": is_critical,
     }

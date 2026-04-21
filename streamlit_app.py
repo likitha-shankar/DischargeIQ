@@ -286,6 +286,20 @@ def _inject_global_css() -> None:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
+class _AnalyzeError(Exception):
+    """
+    Raised when /analyze returns a non-200 status so the upload handler
+    can branch on the HTTP code (413 / 415 / 504 / 5xx) and show a
+    user-friendly message for each case.
+    """
+
+    def __init__(self, status: int, message: str) -> None:
+        super().__init__(message)
+        self.status = status
+        self.message = message
+
+
 def _call_analyze(pdf_bytes: bytes, filename: str) -> dict:
     """
     POST the uploaded PDF to the FastAPI /analyze endpoint.
@@ -298,8 +312,13 @@ def _call_analyze(pdf_bytes: bytes, filename: str) -> dict:
         Parsed PipelineResponse JSON dict.
 
     Raises:
-        requests.RequestException: On connection or timeout errors.
-        ValueError: If the server returns a non-200 status.
+        requests.exceptions.ConnectionError: If the backend is unreachable.
+        requests.exceptions.Timeout:         If the server does not respond
+            within the client-side timeout.
+        _AnalyzeError: If the server returns a non-200 status. The HTTP code
+            is preserved on the exception so the caller can show an error
+            message tailored to the specific failure mode (413 for size,
+            415 for wrong file type, 504 for pipeline timeout, 5xx generic).
     """
     response = requests.post(
         _ANALYZE_URL,
@@ -307,8 +326,9 @@ def _call_analyze(pdf_bytes: bytes, filename: str) -> dict:
         timeout=180,
     )
     if response.status_code != 200:
-        raise ValueError(
-            f"API returned {response.status_code}: {response.text[:300]}"
+        raise _AnalyzeError(
+            status=response.status_code,
+            message=response.text[:300],
         )
     return response.json()
 
@@ -525,17 +545,35 @@ def _render_app_header(result: dict) -> None:
     date_raw = ext.get("discharge_date")
     date_display = _clean_str(_format_date(date_raw))
     pipeline_status = result.get("pipeline_status", "partial")
+    advisory_warnings = result.get("extraction_warnings", []) or []
 
+    # Three-tier status pill:
+    #   complete               → green "Verified"
+    #   complete_with_warnings → grey "Verified*" with advisory tooltip
+    #   partial  (or anything) → amber "Incomplete"
+    pill_title = ""
     if pipeline_status == "complete":
         pill_bg = "transparent"
         pill_border = "rgba(255,255,255,0.8)"
         pill_fg = "#ffffff"
         pill_text = "Verified"
+    elif pipeline_status == "complete_with_warnings":
+        pill_bg = "rgba(255,255,255,0.15)"
+        pill_border = "rgba(255,255,255,0.5)"
+        pill_fg = "#ffffff"
+        pill_text = "Verified*"
+        # Native tooltip — shows the list of advisory gaps when the user
+        # hovers the pill so they know what is missing without cluttering
+        # the bar.
+        if advisory_warnings:
+            pill_title = "Some non-critical fields missing: " + "; ".join(
+                advisory_warnings
+            )
     else:
         pill_bg = "#FCD34D"
         pill_border = "transparent"
         pill_fg = "#713F12"
-        pill_text = "Partial"
+        pill_text = "Incomplete"
 
     # Sentinel labels used as both button text and JS lookup key.
     upload_sentinel = "__diq_upload_new_hidden__"
@@ -604,6 +642,7 @@ def _render_app_header(result: dict) -> None:
         <span class="diq-patient-name">{name}</span>
         <span class="diq-patient-date">Discharged {date_display}</span>
         <span class="diq-pill"
+              title="{pill_title}"
               style="background:{pill_bg};color:{pill_fg};
                      border:1px solid {pill_border};">
           {pill_text}
@@ -2245,11 +2284,43 @@ def _render_upload_screen() -> None:
                     "Start the server with: "
                     "`uvicorn dischargeiq.main:app --reload`"
                 )
-            except ValueError as api_err:
-                st.error(f"API error: {api_err}")
+            except requests.exceptions.Timeout:
+                st.error(
+                    "The server took too long to respond. "
+                    "Please try again or use a smaller PDF."
+                )
+            except _AnalyzeError as api_err:
+                # Map known HTTP codes to a user-friendly message. The raw
+                # server detail is logged but never shown — patients should
+                # not see stack traces or internal error text.
+                logger.error(
+                    "Analyze returned %d for '%s': %s",
+                    api_err.status, uploaded.name, api_err.message,
+                )
+                if api_err.status == 413:
+                    st.error(
+                        "That PDF is too large. The limit is 50MB — "
+                        "try compressing it."
+                    )
+                elif api_err.status == 415:
+                    st.error(
+                        "That file doesn't look like a PDF. "
+                        "Please upload a PDF discharge summary."
+                    )
+                elif api_err.status == 504:
+                    st.error(
+                        "Analysis timed out. "
+                        "Try a smaller or clearer PDF."
+                    )
+                elif api_err.status >= 500:
+                    st.error(
+                        "Something went wrong on our end. Please try again."
+                    )
+                else:
+                    st.error(f"Upload failed ({api_err.status}). Please try again.")
             except Exception as unexpected_err:
                 logger.error("Unexpected error during upload: %s", unexpected_err)
-                st.error(f"Unexpected error: {unexpected_err}")
+                st.error("An unexpected error occurred. Please try again.")
 
 
 # ── Summary screen ────────────────────────────────────────────────────────────

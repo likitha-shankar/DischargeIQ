@@ -15,10 +15,12 @@ Depends on: FastAPI, python-dotenv, dischargeiq.pipeline.orchestrator,
             dischargeiq.utils.llm_client, dischargeiq.utils.logger.
 """
 
+import asyncio
 import json
 import logging
 import os
 import tempfile
+import threading
 import uuid
 from collections import OrderedDict
 
@@ -47,6 +49,19 @@ logger = logging.getLogger(__name__)
 _pdf_store: OrderedDict[str, bytes] = OrderedDict()
 _PDF_STORE_MAX = 50
 
+# ── /analyze upload limits ────────────────────────────────────────────────────
+# 50MB is well above a real discharge PDF (rarely >5MB even with images) but
+# low enough that a malicious upload can't exhaust the process memory.
+# _PDF_MAGIC is the 4-byte prefix every real PDF file starts with — cheap
+# sanity check that also blocks renamed binaries.
+_MAX_FILE_SIZE_MB = 50
+_MAX_FILE_SIZE_BYTES = _MAX_FILE_SIZE_MB * 1024 * 1024
+_PDF_MAGIC = b"%PDF"
+# Uvicorn serves endpoints from a thread pool; two concurrent /analyze
+# calls can race on _pdf_store.popitem + assignment and corrupt the
+# OrderedDict. All reads and writes go through this lock.
+_pdf_store_lock = threading.Lock()
+
 
 def _store_pdf(pdf_bytes: bytes) -> str:
     """
@@ -63,11 +78,27 @@ def _store_pdf(pdf_bytes: bytes) -> str:
         str: UUID string identifying this PDF in the store.
     """
     session_id = str(uuid.uuid4())
-    if len(_pdf_store) >= _PDF_STORE_MAX:
-        _pdf_store.popitem(last=False)  # evict oldest
-    _pdf_store[session_id] = pdf_bytes
+    with _pdf_store_lock:
+        if len(_pdf_store) >= _PDF_STORE_MAX:
+            _pdf_store.popitem(last=False)  # evict oldest
+        _pdf_store[session_id] = pdf_bytes
     logger.debug("PDF stored — session_id: %s, size: %d bytes", session_id, len(pdf_bytes))
     return session_id
+
+
+def _get_pdf(session_id: str) -> bytes | None:
+    """
+    Look up PDF bytes previously stored under session_id.
+
+    Args:
+        session_id: UUID returned by _store_pdf().
+
+    Returns:
+        bytes | None: The stored PDF bytes, or None if the session was
+        never stored or has been evicted from the LRU store.
+    """
+    with _pdf_store_lock:
+        return _pdf_store.get(session_id)
 
 
 app = FastAPI(
@@ -269,19 +300,39 @@ async def analyze_discharge(file: UploadFile = File(...)):
         dict: Serialised PipelineResponse (extraction, agent outputs, FK scores).
 
     Raises:
-        HTTPException 400: If the uploaded file is not a PDF.
+        HTTPException 413: If the uploaded file exceeds _MAX_FILE_SIZE_MB.
+        HTTPException 415: If the filename is not .pdf or the bytes do not
+                           start with the %PDF magic marker.
         HTTPException 500: If an unexpected error occurs during processing.
     """
     logger.info("POST /analyze received — filename: %s", file.filename)
 
+    # 1. Extension check. Cheap first-line filter; real validation is the
+    #    magic-byte check below (which catches renamed binaries).
     if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
+        raise HTTPException(status_code=415, detail="Only PDF files are accepted.")
 
-    try:
-        contents = await file.read()
-    except Exception as read_error:
-        logger.error("Failed to read uploaded file '%s': %s", file.filename, read_error)
-        raise HTTPException(status_code=500, detail="Failed to read uploaded file.")
+    contents = await file.read()
+
+    # 2. Size cap. Enforced after the read completes because Starlette's
+    #    UploadFile has already buffered the body by this point — the real
+    #    win here is refusing to pass giant uploads into pdfplumber / LLM
+    #    calls downstream, not bounding memory ingress.
+    if len(contents) > _MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File exceeds {_MAX_FILE_SIZE_MB}MB limit.",
+        )
+
+    # 3. Magic-byte check. A correct PDF always starts with "%PDF"; a file
+    #    renamed from .exe / .zip / .txt will not. Returning 415 (not 400)
+    #    tells the frontend this is an unsupported media type, distinct
+    #    from a malformed payload.
+    if not contents.startswith(_PDF_MAGIC):
+        raise HTTPException(
+            status_code=415,
+            detail="File is not a valid PDF (magic bytes missing).",
+        )
 
     # Store PDF bytes now so the frontend can fetch them via GET /pdf/{session_id}
     # without embedding a large base64 data URI in the page.
@@ -301,6 +352,16 @@ async def analyze_discharge(file: UploadFile = File(...)):
         result_dict = result.model_dump()
         result_dict["pdf_session_id"] = pdf_session_id
         return result_dict
+    except asyncio.TimeoutError:
+        # run_pipeline is wrapped in asyncio.wait_for(..., 300s). A timeout
+        # here means an LLM call (or the full five-agent chain) got stuck
+        # past the pipeline-wide budget. Surface as 504 so the UI can show
+        # a "try a smaller PDF" message rather than a generic 500.
+        logger.error("Pipeline timeout for document '%s'", file.filename)
+        raise HTTPException(
+            status_code=504,
+            detail="Analysis took longer than 5 minutes. Please try a smaller or clearer PDF.",
+        )
     except Exception as pipeline_error:
         logger.error(
             "Pipeline error for document '%s': %s", file.filename, pipeline_error
@@ -329,7 +390,7 @@ async def get_pdf(session_id: str):
     Raises:
         HTTPException 404: If the session_id is unknown or has been evicted.
     """
-    pdf_bytes = _pdf_store.get(session_id)
+    pdf_bytes = _get_pdf(session_id)
     if pdf_bytes is None:
         logger.warning("GET /pdf/%s — not found or evicted", session_id)
         raise HTTPException(status_code=404, detail="PDF not found or expired.")
