@@ -21,7 +21,7 @@ so no connection is held across an await on run_pipeline.
 
 Excluded from the default pytest run via @pytest.mark.slow.
 Run with:
-    PYTHONPATH=/Users/l/Desktop/DischargeIQ .venv/bin/python -m pytest \
+    PYTHONPATH=. .venv/bin/python -m pytest \
         -m slow dischargeiq/tests/test_all_corpus_smoke.py -v -s
 """
 

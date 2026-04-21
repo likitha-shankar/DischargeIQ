@@ -18,6 +18,20 @@ Depends on: dischargeiq.models.extraction.
 from dischargeiq.models.extraction import ExtractionOutput
 
 
+def _likely_not_discharge_summary(critical_warnings: list[str]) -> bool:
+    """
+    Heuristically flag uploads that likely are not discharge summaries.
+
+    Args:
+        critical_warnings: Critical completeness warnings already computed.
+
+    Returns:
+        bool: True when two or more critical discharge-defining fields are
+            missing (diagnosis, medications, red-flag symptoms).
+    """
+    return len(critical_warnings) >= 2
+
+
 def assess_extraction_completeness(extraction: ExtractionOutput) -> dict:
     """
     Check an ExtractionOutput for missing fields and classify them by severity.
@@ -52,6 +66,12 @@ def assess_extraction_completeness(extraction: ExtractionOutput) -> dict:
         critical_warnings.append("No medications extracted.")
     if not extraction.red_flag_symptoms:
         critical_warnings.append("No red-flag symptoms extracted.")
+
+    if _likely_not_discharge_summary(critical_warnings):
+        critical_warnings.append(
+            "This file may not be a hospital discharge summary. "
+            "Please upload a discharge summary PDF."
+        )
 
     # ── Advisory — common gaps on real, usable discharges ──
     # These are worth surfacing to the patient (so they know the summary
