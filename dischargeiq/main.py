@@ -63,6 +63,32 @@ _PDF_MAGIC = b"%PDF"
 _pdf_store_lock = threading.Lock()
 
 
+def _validate_uploaded_pdf(filename: str, contents: bytes) -> None:
+    """
+    Validate uploaded file metadata and bytes for /analyze.
+
+    Args:
+        filename: Original uploaded filename from the client.
+        contents: Raw uploaded file bytes.
+
+    Raises:
+        HTTPException: 415 for non-PDF extension or invalid PDF signature.
+        HTTPException: 413 when payload exceeds configured size cap.
+    """
+    if not filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=415, detail="Only PDF files are accepted.")
+    if len(contents) > _MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File exceeds {_MAX_FILE_SIZE_MB}MB limit.",
+        )
+    if not contents.startswith(_PDF_MAGIC):
+        raise HTTPException(
+            status_code=415,
+            detail="File is not a valid PDF (magic bytes missing).",
+        )
+
+
 def _store_pdf(pdf_bytes: bytes) -> str:
     """
     Store PDF bytes in the in-memory store under a new UUID key.
@@ -307,32 +333,8 @@ async def analyze_discharge(file: UploadFile = File(...)):
     """
     logger.info("POST /analyze received — filename: %s", file.filename)
 
-    # 1. Extension check. Cheap first-line filter; real validation is the
-    #    magic-byte check below (which catches renamed binaries).
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=415, detail="Only PDF files are accepted.")
-
     contents = await file.read()
-
-    # 2. Size cap. Enforced after the read completes because Starlette's
-    #    UploadFile has already buffered the body by this point — the real
-    #    win here is refusing to pass giant uploads into pdfplumber / LLM
-    #    calls downstream, not bounding memory ingress.
-    if len(contents) > _MAX_FILE_SIZE_BYTES:
-        raise HTTPException(
-            status_code=413,
-            detail=f"File exceeds {_MAX_FILE_SIZE_MB}MB limit.",
-        )
-
-    # 3. Magic-byte check. A correct PDF always starts with "%PDF"; a file
-    #    renamed from .exe / .zip / .txt will not. Returning 415 (not 400)
-    #    tells the frontend this is an unsupported media type, distinct
-    #    from a malformed payload.
-    if not contents.startswith(_PDF_MAGIC):
-        raise HTTPException(
-            status_code=415,
-            detail="File is not a valid PDF (magic bytes missing).",
-        )
+    _validate_uploaded_pdf(file.filename, contents)
 
     # Store PDF bytes now so the frontend can fetch them via GET /pdf/{session_id}
     # without embedding a large base64 data URI in the page.

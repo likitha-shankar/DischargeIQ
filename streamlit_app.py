@@ -704,10 +704,13 @@ def _render_app_header(result: dict) -> None:
 
     st.components.v1.html(header_html, height=1, scrolling=False)
 
-    # Extraction warnings are rendered as normal Streamlit elements
-    # below the injected header so the patient still sees them.
+    # Extraction warnings are rendered below the injected header so the patient
+    # still sees them. "Not a discharge summary" gets elevated styling.
     for warning in result.get("extraction_warnings", []):
-        st.info(warning)
+        if "may not be a hospital discharge summary" in warning.lower():
+            st.error(warning)
+        else:
+            st.info(warning)
 
 
 # ── Tab bar ──────────────────────────────────────────────────────────────────
