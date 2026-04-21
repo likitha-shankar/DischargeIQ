@@ -40,7 +40,7 @@ from pathlib import Path
 from openai import APIError, OpenAI
 
 from dischargeiq.models.extraction import ExtractionOutput
-from dischargeiq.utils.llm_client import get_llm_client
+from dischargeiq.utils.llm_client import call_chat_with_fallback, get_llm_client
 from dischargeiq.utils.scorer import fk_check
 
 logger = logging.getLogger(__name__)
@@ -147,26 +147,21 @@ def _call_llm(
         ValueError: If the provider returns a response with no content
                     (e.g. content filter blocked the completion).
     """
+    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
     try:
-        response = client.chat.completions.create(
-            model=model_name,
+        return call_chat_with_fallback(
+            client=client,
+            model_name=model_name,
+            system_prompt=system_prompt,
+            user_message=user_message,
             max_tokens=_MAX_TOKENS,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message},
-            ],
+            provider=provider,
+            agent_name="Agent 2",
+            document_id=document_id,
         )
     except APIError as exc:
         logger.error("Agent 2 API call failed for '%s': %s", document_id, exc)
         raise
-
-    content = response.choices[0].message.content
-    if content is None:
-        raise ValueError(
-            f"Agent 2: LLM returned an empty response for '{document_id}'. "
-            "Check for content filtering or model availability."
-        )
-    return content.strip()
 
 
 def _log_fk_score(document_id: str, fk_result: dict) -> None:

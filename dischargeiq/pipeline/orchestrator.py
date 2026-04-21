@@ -55,6 +55,53 @@ _SAFETY_MAX_SENTENCES = 10
 _PIPELINE_TIMEOUT_SECONDS = 300.0
 
 
+async def _save_history_with_retries(
+    database_url: str,
+    session_id: str,
+    document_hash: str,
+    extraction: ExtractionOutput,
+    fk_scores: dict,
+    pipeline_status: str,
+) -> None:
+    """
+    Persist one discharge_history row with short retries for transient outages.
+
+    Args:
+        database_url: Database connection string from DATABASE_URL.
+        session_id: Session identifier for the row.
+        document_hash: SHA-256 hash of the source PDF.
+        extraction: Agent 1 extraction payload.
+        fk_scores: Aggregated FK score dict for agents 2-5.
+        pipeline_status: Final pipeline status string.
+
+    Raises:
+        Exception: Re-raises the final persistence error after retries.
+    """
+    max_attempts = 3
+    last_error: Exception | None = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            pool = await get_db_pool(database_url)
+            try:
+                await save_discharge_history(
+                    pool=pool,
+                    session_id=session_id,
+                    document_hash=document_hash,
+                    extraction=extraction,
+                    fk_scores=fk_scores,
+                    pipeline_status=pipeline_status,
+                )
+                return
+            finally:
+                await pool.close()
+        except Exception as exc:
+            last_error = exc
+            if attempt < max_attempts:
+                await asyncio.sleep(float(attempt))
+    if last_error is not None:
+        raise last_error
+
+
 def _extract_safety_context(raw_text: str) -> str:
     """
     Scan the full discharge document text for emergency / critical-safety
@@ -182,7 +229,14 @@ async def _run_pipeline_internal(
     # Agent failures downstream (A2–A5) still set "partial" directly on their
     # own except path — a crashed agent is always a real failure.
     completeness = assess_extraction_completeness(extraction)
-    extraction_warnings = completeness["warning_messages"]
+    # Preserve deterministic Agent 1 warnings (e.g. short-document,
+    # conflicting-dose) and append completeness-classification warnings.
+    # Previous behavior overwrote Agent 1 warnings with completeness-only
+    # messages, which hid safety-relevant extraction signals.
+    extraction_warnings = list(extraction.extraction_warnings)
+    for warning in completeness["warning_messages"]:
+        if warning not in extraction_warnings:
+            extraction_warnings.append(warning)
 
     if completeness["is_critical"] and pipeline_status == "complete":
         pipeline_status = "partial"
@@ -371,21 +425,17 @@ async def _run_pipeline_internal(
         database_url = os.getenv("DATABASE_URL")
         if not database_url:
             raise RuntimeError("DATABASE_URL not set")
-        pool = await get_db_pool(database_url)
-        try:
-            await save_discharge_history(
-                pool=pool,
-                session_id=db_session_id,
-                document_hash=document_hash,
-                extraction=extraction,
-                fk_scores=fk_scores,
-                pipeline_status=pipeline_status,
-            )
-            logger.info(
-                "Discharge history saved — session: %s", db_session_id
-            )
-        finally:
-            await pool.close()
+        await _save_history_with_retries(
+            database_url=database_url,
+            session_id=db_session_id,
+            document_hash=document_hash,
+            extraction=extraction,
+            fk_scores=fk_scores,
+            pipeline_status=pipeline_status,
+        )
+        logger.info(
+            "Discharge history saved — session: %s", db_session_id
+        )
     except Exception as exc:
         logger.warning(
             "DB write failed (non-fatal) — session: %s — %s",

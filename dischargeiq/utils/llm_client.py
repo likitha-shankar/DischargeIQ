@@ -19,6 +19,7 @@ Override the Ollama base URL with OLLAMA_BASE_URL (for remote/Docker installs).
 
 import logging
 import os
+import time
 
 from openai import OpenAI
 
@@ -43,7 +44,7 @@ _PROVIDER_DEFAULTS: dict[str, dict] = {
         # working without forcing every agent to carry a second SDK dependency.
         "base_url": "https://api.anthropic.com/v1/",
         "api_key_env": "ANTHROPIC_API_KEY",
-        "default_model": "claude-sonnet-4-20250514",
+        "default_model": "claude-sonnet-4-6",
     },
     "ollama": {
         # Ollama exposes an OpenAI-compatible endpoint locally.
@@ -95,13 +96,141 @@ def get_llm_client() -> tuple[OpenAI, str]:
         base_url = config["base_url"]
 
     model_name = os.environ.get("LLM_MODEL", config["default_model"])
+    # OpenRouter free-tier and local Ollama models can take 90–120s+ to first
+    # token. Anthropic/OpenAI direct typically return faster.
+    timeout = 180.0 if provider in {"openrouter", "ollama"} else 60.0
     logger.debug(
-        "LLM provider: %s | model: %s | base_url: %s",
-        provider, model_name, base_url,
+        "LLM provider: %s | model: %s | base_url: %s | timeout: %.1fs",
+        provider, model_name, base_url, timeout,
     )
     return OpenAI(
         base_url=base_url,
         api_key=api_key,
-        timeout=60.0,
+        timeout=timeout,
         max_retries=1,
     ), model_name
+
+
+def _is_openrouter_developer_instruction_error(exc: Exception) -> bool:
+    """
+    Return True when OpenRouter routes to a model without system-role support.
+
+    Args:
+        exc: Exception raised by the OpenAI-compatible client call.
+
+    Returns:
+        bool: True if the error text indicates developer/system instructions are
+            unsupported on the routed model.
+    """
+    message = str(exc).lower()
+    return (
+        "developer instruction is not enabled" in message
+        or "system instruction is not enabled" in message
+    )
+
+
+def _is_openrouter_rate_limit_error(exc: Exception) -> bool:
+    """
+    Return True for common OpenRouter free-tier rate-limit responses.
+
+    Args:
+        exc: Exception raised by the OpenAI-compatible client call.
+
+    Returns:
+        bool: True if the error text indicates HTTP 429 / rate limiting.
+    """
+    message = str(exc).lower()
+    return "429" in message or "rate limit" in message or "rate-limited" in message
+
+
+def call_chat_with_fallback(
+    client: OpenAI,
+    model_name: str,
+    system_prompt: str,
+    user_message: str,
+    max_tokens: int,
+    provider: str,
+    agent_name: str,
+    document_id: str,
+) -> str:
+    """
+    Execute one chat completion with OpenRouter-specific resilience.
+
+    Args:
+        client: OpenAI-compatible client from get_llm_client() or agent client.
+        model_name: Model name string (for OpenRouter this may be openrouter/free).
+        system_prompt: System prompt text for the agent.
+        user_message: User message text for the agent.
+        max_tokens: Max completion tokens for the request.
+        provider: LLM provider identifier from LLM_PROVIDER.
+        agent_name: Human-readable agent label for logs.
+        document_id: Source document identifier for logs.
+
+    Returns:
+        str: Non-empty assistant response text, stripped.
+
+    Raises:
+        ValueError: If the provider returns empty content.
+        Exception: Re-raises provider exceptions after fallback/retry exhaustion.
+    """
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_message},
+    ]
+    max_attempts = 3 if provider == "openrouter" else 1
+    downgraded_system_role = False
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                max_tokens=max_tokens,
+                messages=messages,
+            )
+            content = response.choices[0].message.content
+            if not content:
+                raise ValueError(
+                    f"{agent_name}: empty completion for '{document_id}' "
+                    f"(provider={provider}, model={model_name})"
+                )
+            return content.strip()
+        except Exception as exc:
+            if (
+                provider == "openrouter"
+                and not downgraded_system_role
+                and _is_openrouter_developer_instruction_error(exc)
+            ):
+                logger.warning(
+                    "%s OpenRouter role fallback for '%s': %s",
+                    agent_name,
+                    document_id,
+                    exc,
+                )
+                merged_prompt = (
+                    "SYSTEM INSTRUCTIONS:\n"
+                    f"{system_prompt}\n\n"
+                    "USER REQUEST:\n"
+                    f"{user_message}"
+                )
+                messages = [{"role": "user", "content": merged_prompt}]
+                downgraded_system_role = True
+                continue
+
+            if (
+                provider == "openrouter"
+                and attempt < max_attempts
+                and _is_openrouter_rate_limit_error(exc)
+            ):
+                backoff_seconds = float(attempt * 3)
+                logger.warning(
+                    "%s OpenRouter rate-limit retry %d/%d for '%s' after %.1fs: %s",
+                    agent_name,
+                    attempt,
+                    max_attempts,
+                    document_id,
+                    backoff_seconds,
+                    exc,
+                )
+                time.sleep(backoff_seconds)
+                continue
+            raise
