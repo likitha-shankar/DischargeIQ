@@ -5,8 +5,8 @@ print a pass/fail report.
 Not part of the hallucination suite — standalone probe for fixtures 9–14.
 
 Usage:
-    python run_stress_fixtures.py                # all 6
-    python run_stress_fixtures.py --fixtures 9,14  # just these
+    python scripts/stress/run_stress_fixtures.py                  # all 6
+    python scripts/stress/run_stress_fixtures.py --fixtures 9,14  # just these
 """
 
 import argparse
@@ -16,11 +16,12 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(_REPO_ROOT / ".env")
 
 from dischargeiq.pipeline.orchestrator import run_pipeline  # noqa: E402
 
-FIXTURES_DIR = Path(__file__).parent / "dischargeiq" / "tests" / "fixtures"
+FIXTURES_DIR = _REPO_ROOT / "dischargeiq" / "tests" / "fixtures"
 
 CASES = [
     {

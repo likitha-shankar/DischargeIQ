@@ -14,7 +14,7 @@ cover:
     fixture_14_multipage_sepsis.pdf    — 6-page distractor doc (DM + sepsis)
 
 Run:
-    python generate_stress_fixtures.py
+    python scripts/stress/generate_stress_fixtures.py
 
 Idempotent: overwrites any existing output files.
 """
@@ -38,7 +38,8 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-OUT_DIR = Path(__file__).parent / "dischargeiq" / "tests" / "fixtures"
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+OUT_DIR = _REPO_ROOT / "dischargeiq" / "tests" / "fixtures"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
