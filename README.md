@@ -48,8 +48,8 @@ Open the dashboard at http://127.0.0.1:8501.
 python dischargeiq/tests/test_integration_hallucination.py
 
 # 6-case real-world-format stress suite
-python run_stress_fixtures.py                 # all 6
-python run_stress_fixtures.py --fixtures 9,14 # subset
+python scripts/stress/run_stress_fixtures.py                  # all 6
+python scripts/stress/run_stress_fixtures.py --fixtures 9,14  # subset
 ```
 
 ## Repo layout
