@@ -8,6 +8,13 @@ agent outputs.
 Depends on: asyncpg, dischargeiq.models.extraction.
 """
 
+# READ PATH — not yet implemented.
+# get_history_for_session() is defined below but not called
+# anywhere in the current UI. When the patient history screen
+# is built, wire it up in main.py as:
+#   GET /history/{session_id} -> get_history_for_session()
+# and add a "Past summaries" tab to streamlit_app.py.
+
 import json
 import logging
 
