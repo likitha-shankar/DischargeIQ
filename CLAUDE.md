@@ -32,10 +32,10 @@ discharge documents.
   `./start.sh` (or `start.bat` on Windows). Default URL: http://127.0.0.1:8501.
 - **Backend:** FastAPI in `dischargeiq/main.py`, typically http://127.0.0.1:8000.
 - **Failure mode:** The pipeline is designed to return **`pipeline_status` of
-  `"complete"` or `"partial"`** (not to crash on bad PDFs or LLM failures). Partial
-  runs may occur when an agent fails, rate limits hit (429), timeouts occur, or
-  keys are missing—downstream content may be empty and **warnings** should explain
-  what degraded.
+  `"complete"`, `"complete_with_warnings"`, or `"partial"`** (not to crash on bad PDFs or
+  LLM failures). `"partial"` runs may occur when an agent fails, rate limits hit (429),
+  timeouts occur, or keys are missing. `"complete_with_warnings"` means all agents ran
+  but extraction completeness warnings were raised.
 
 ### LLM and environment configuration
 
@@ -61,7 +61,7 @@ discharge documents.
 | GET | `/health` | Liveness |
 | POST | `/analyze` | Multipart PDF upload; runs full pipeline |
 | GET | `/pdf/{session_id}` | Retrieve stored PDF bytes for session (used with Streamlit viewer) |
-| POST | `/chat` | Patient question + context; grounded answer (CORS enabled for Streamlit origins) |
+| POST | `/chat` | Grounded chat answer. Body: `message`, `session_id`, `pipeline_context` (CORS enabled for Streamlit origins) |
 
 ### Frontend and tooling
 
@@ -219,7 +219,7 @@ class PipelineResponse(BaseModel):
     escalation_guide: str
     fk_scores: dict
     extraction_warnings: list
-    pipeline_status: str  # "complete" or "partial" — never raises an unhandled exception
+    pipeline_status: str  # "complete" | "complete_with_warnings" | "partial" — never raises an unhandled exception
 ```
 
 ## Five target diagnoses
