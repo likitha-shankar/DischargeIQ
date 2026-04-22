@@ -29,6 +29,9 @@ logs/
 # iOS app (on hold — local only)
 ios/
 
+# Runtime / local logs (never commit)
+*.log
+
 # Test artifacts — regenerated on every run
 dischargeiq/tests/fixtures/*.pdf
 dischargeiq/evaluation/fk_log.csv
