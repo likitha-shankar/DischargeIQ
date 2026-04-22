@@ -17,7 +17,7 @@ Everything downstream (FastAPI, CLI tests, Streamlit) calls into
 from dischargeiq.pipeline.orchestrator import run_pipeline
 
 result = run_pipeline("path/to/discharge.pdf")
-print(result.pipeline_status)        # "complete" or "partial"
+print(result.pipeline_status)        # "complete" | "complete_with_warnings" | "partial"
 print(result.extraction.primary_diagnosis)
 print(result.diagnosis_explanation)
 ```
@@ -26,6 +26,9 @@ print(result.diagnosis_explanation)
 
 - `run_pipeline` always returns a `PipelineResponse`. It does not
   raise on bad PDFs, missing fields, or LLM errors.
-- `pipeline_status` is `"complete"` only when every agent succeeded
-  with no warnings; otherwise `"partial"`.
+- `pipeline_status` is:
+  - `"complete"` when every agent succeeded with no extraction warnings.
+  - `"complete_with_warnings"` when every agent succeeded but extraction
+    completeness warnings were raised.
+  - `"partial"` when one or more agents failed and fallback content was used.
 - `fk_scores["agent2"]` is always present.
