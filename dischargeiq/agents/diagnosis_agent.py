@@ -11,6 +11,10 @@ explaining the diagnosis at a 6th grade Flesch-Kincaid reading level.
 Every output is scored with utils.scorer.fk_check() before return.
 FK scores are logged to dischargeiq/evaluation/fk_log.csv automatically.
 
+LLM provider is resolved from LLM_PROVIDER / LLM_MODEL in .env via
+dischargeiq.utils.llm_client.get_llm_client(). Changing LLM_PROVIDER
+switches every agent in the pipeline (same as agents 3–5).
+
 Data contract:
     Input:  dischargeiq.models.extraction.ExtractionOutput (from Agent 1)
     Output: dict with keys:
@@ -19,8 +23,8 @@ Data contract:
                 passes   (bool)  — True if fk_grade <= 6.0
 
 Dependencies:
-    - anthropic          (pip install anthropic)
-    - ANTHROPIC_API_KEY  set in .env or environment
+    - openai             (OpenAI-compatible client, used for all providers)
+    - dischargeiq.utils.llm_client.get_llm_client
     - dischargeiq.models.extraction.ExtractionOutput
     - dischargeiq.utils.scorer.fk_check
     - dischargeiq/prompts/agent2_system_prompt.txt
@@ -33,26 +37,29 @@ import logging
 import os
 from pathlib import Path
 
-import anthropic
-from anthropic import APIError
+from openai import APIError, OpenAI
 
 from dischargeiq.models.extraction import ExtractionOutput
+from dischargeiq.utils.llm_client import call_chat_with_fallback, get_llm_client
 from dischargeiq.utils.scorer import fk_check
 
 logger = logging.getLogger(__name__)
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 
-# Allow model override via env var so team can swap without touching code
-_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-6")
 _MAX_TOKENS = 500
+
+# FK grade ceiling for accepting an explanation. Sprint spec says 6.0 is
+# ideal; 6.5 is the acceptable cap for complex multi-comorbidity cases where
+# naming several conditions at once (e.g. AKI + CKD + diabetes + anemia)
+# forces slightly longer clause structure. When the first attempt scores
+# above this, Agent 2 issues exactly one simplification retry before
+# accepting whichever of the two attempts scored lower.
+_FK_RETRY_THRESHOLD = 6.5
 
 # Paths resolved relative to this file
 _PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 _FK_LOG_PATH = Path(__file__).parent.parent / "evaluation" / "fk_log.csv"
-
-# Initialise Anthropic client once at module load
-_client = anthropic.Anthropic()
 
 
 # ── Internal helpers ───────────────────────────────────────────────────────────
@@ -81,9 +88,9 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
     Build the user message from Agent 1's ExtractionOutput.
 
     Passes primary diagnosis, secondary diagnoses, and procedures performed
-    to give Claude enough context to explain what happened to the patient.
+    to give the LLM enough context to explain what happened to the patient.
 
-    Data contract: relies on ExtractionOutput fields from DIS-2 locked schema.
+    Data contract: relies on ExtractionOutput fields from the DIS-2 locked schema.
         - primary_diagnosis      (str, required)
         - secondary_diagnoses    (list[str], optional)
         - procedures_performed   (list[str], optional)
@@ -92,7 +99,7 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
         extraction: Validated ExtractionOutput from Agent 1.
 
     Returns:
-        str: Formatted user message for the Claude API call.
+        str: Formatted user message for the LLM API call.
     """
     lines = [f"Primary diagnosis: {extraction.primary_diagnosis}"]
 
@@ -108,6 +115,53 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
         )
 
     return "\n".join(lines)
+
+
+def _call_llm(
+    client: OpenAI,
+    model_name: str,
+    system_prompt: str,
+    user_message: str,
+    document_id: str,
+) -> str:
+    """
+    Execute one chat completion against the configured LLM and return the text.
+
+    Extracted so the retry path in run_diagnosis_agent() can invoke the same
+    call pattern twice without duplicating the APIError handling and
+    empty-response guard.
+
+    Args:
+        client:        OpenAI-compatible client from get_llm_client().
+        model_name:    Model string resolved from LLM_MODEL env var.
+        system_prompt: Agent 2 system prompt (patient-education instructions).
+        user_message:  Either the base Agent-1-derived context or that context
+                       plus a simplification reinforcement suffix on retry.
+        document_id:   Source document label, used only for log context.
+
+    Returns:
+        str: Stripped explanation text from the LLM response.
+
+    Raises:
+        APIError:   If the LLM API call fails at transport level.
+        ValueError: If the provider returns a response with no content
+                    (e.g. content filter blocked the completion).
+    """
+    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
+    try:
+        return call_chat_with_fallback(
+            client=client,
+            model_name=model_name,
+            system_prompt=system_prompt,
+            user_message=user_message,
+            max_tokens=_MAX_TOKENS,
+            provider=provider,
+            agent_name="Agent 2",
+            document_id=document_id,
+        )
+    except APIError as exc:
+        logger.error("Agent 2 API call failed for '%s': %s", document_id, exc)
+        raise
 
 
 def _log_fk_score(document_id: str, fk_result: dict) -> None:
@@ -148,9 +202,12 @@ def run_diagnosis_agent(
     """
     Agent 2: Generate a plain-language diagnosis explanation from Agent 1 output.
 
-    Sends primary diagnosis (plus secondary diagnoses and procedures) to Claude
-    with a patient-education system prompt. Scores the output with fk_check()
-    and logs the result to dischargeiq/evaluation/fk_log.csv.
+    Sends primary diagnosis (plus secondary diagnoses and procedures) to the
+    configured LLM provider with a patient-education system prompt. Scores the
+    output with fk_check() and logs the result to fk_log.csv.
+
+    Provider and model are resolved from LLM_PROVIDER / LLM_MODEL in .env via
+    get_llm_client(). Supports openrouter, openai, and ollama.
 
     Data contract:
         Input:  ExtractionOutput from Agent 1 (DIS-5).
@@ -168,8 +225,10 @@ def run_diagnosis_agent(
         dict with keys: text, fk_grade, passes.
 
     Raises:
-        ValueError: If primary_diagnosis is missing from Agent 1 output.
-        APIError:   If the Anthropic API call fails.
+        ValueError:  If primary_diagnosis is missing from Agent 1 output, or if
+                     the LLM returns an empty response.
+        APIError:    If the LLM API call fails.
+        ValueError:  If the required API key env var for the chosen provider is missing.
     """
     if not extraction.primary_diagnosis:
         raise ValueError(
@@ -180,36 +239,82 @@ def run_diagnosis_agent(
     system_prompt = _load_system_prompt()
     user_message = _build_user_message(extraction)
 
-    try:
-        response = _client.messages.create(
-            model=_MODEL,
-            max_tokens=_MAX_TOKENS,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_message}],
+    # get_llm_client() reads LLM_PROVIDER and LLM_MODEL from the environment.
+    # Changing .env switches the provider for all agents simultaneously.
+    client, model_name = get_llm_client()
+
+    # First attempt.
+    explanation_1 = _call_llm(
+        client, model_name, system_prompt, user_message, document_id,
+    )
+    fk_1 = fk_check(explanation_1)
+
+    # Simplification retry gate. Sprint spec targets FK ≤ 6.0, but we allow up
+    # to _FK_RETRY_THRESHOLD (6.5) without retrying because multi-comorbidity
+    # cases (AKI + CKD + diabetes + anemia + HTN) force slightly longer clause
+    # structure even at 6th-grade vocabulary. Anything above 6.5 gets exactly
+    # one retry with an explicit simplification reinforcement appended to the
+    # user message. We then accept whichever of the two attempts scored lower
+    # — retries can occasionally regress, so we never blindly prefer attempt 2.
+    if fk_1["fk_grade"] <= _FK_RETRY_THRESHOLD:
+        chosen_text, chosen_fk = explanation_1, fk_1
+        retried = False
+    else:
+        logger.warning(
+            "Agent 2 retry '%s': first attempt FK=%.2f > %.1f — simplifying",
+            document_id, fk_1["fk_grade"], _FK_RETRY_THRESHOLD,
         )
-    except APIError as e:
-        logger.error("Agent 2 API call failed for '%s': %s", document_id, e)
-        raise
-
-    explanation = response.content[0].text.strip()
-
-    # Score and log — required by DIS-8 acceptance criteria
-    fk_result = fk_check(explanation)
-    _log_fk_score(document_id, fk_result)
-
-    if fk_result["passes"]:
+        # Reinforcement suffix is additive — the system prompt already carries
+        # the full reading-level rules; this just pushes the model harder on
+        # the specific failure mode (long compound sentences with
+        # "which"/"because" subordinate clauses).
+        retry_user_message = (
+            user_message
+            + "\n\nYour previous explanation scored "
+            + f"{fk_1['fk_grade']:.1f} on Flesch-Kincaid. That is too hard to read. "
+            + "Rewrite it at a 6th grade level. Maximum 15 words per sentence. "
+            + "No subordinate clauses starting with 'which', 'that', 'because'. "
+            + "Use 'also' not 'additionally', 'but' not 'however', 'so' not 'therefore'."
+        )
+        explanation_2 = _call_llm(
+            client, model_name, system_prompt, retry_user_message, document_id,
+        )
+        fk_2 = fk_check(explanation_2)
+        if fk_2["fk_grade"] < fk_1["fk_grade"]:
+            chosen_text, chosen_fk = explanation_2, fk_2
+        else:
+            chosen_text, chosen_fk = explanation_1, fk_1
+        retried = True
         logger.info(
-            "Agent 2 FK PASS '%s': grade %.2f", document_id, fk_result["fk_grade"]
+            "Agent 2 retry result '%s': attempt1=%.2f attempt2=%.2f chose=%.2f",
+            document_id, fk_1["fk_grade"], fk_2["fk_grade"], chosen_fk["fk_grade"],
+        )
+
+    # Only the accepted attempt is logged to fk_log.csv — downstream evaluators
+    # see one row per document, not two rows for retried cases.
+    _log_fk_score(document_id, chosen_fk)
+
+    if chosen_fk["passes"]:
+        logger.info(
+            "Agent 2 FK PASS '%s': grade %.2f (retried=%s)",
+            document_id, chosen_fk["fk_grade"], retried,
         )
     else:
         logger.warning(
-            "Agent 2 FK FAIL '%s': grade %.2f — revise agent2_system_prompt.txt",
-            document_id, fk_result["fk_grade"],
+            "Agent 2 FK FAIL '%s': grade %.2f (retried=%s) — revise agent2_system_prompt.txt",
+            document_id, chosen_fk["fk_grade"], retried,
         )
 
-    return {
-        "text": explanation,
-        "fk_grade": fk_result["fk_grade"],
-        "passes": fk_result["passes"],
-    }
+    logger.info(
+        "Agent 2 complete — '%s', FK grade: %.2f, passes: %s, length: %d chars",
+        document_id,
+        chosen_fk["fk_grade"],
+        chosen_fk["passes"],
+        len(chosen_text),
+    )
 
+    return {
+        "text": chosen_text,
+        "fk_grade": chosen_fk["fk_grade"],
+        "passes": chosen_fk["passes"],
+    }

@@ -1,13 +1,34 @@
+# Environment and secrets
 .env
+
+# Python build/cache artifacts
 __pycache__/
 *.pyc
 *.pyo
-.venv/
-venv/
 *.egg-info/
 dist/
 build/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# OS/editor/runtime clutter
 .DS_Store
 *.tmp
+logs/
 
+# Local tool metadata
 .claude
+
+# Xcode / Swift
+**/xcuserdata/
+**/*.xcuserstate
+
+# iOS app (on hold — local only)
+ios/
+
+# Test artifacts — regenerated on every run
+dischargeiq/tests/fixtures/*.pdf
+dischargeiq/evaluation/fk_log.csv
