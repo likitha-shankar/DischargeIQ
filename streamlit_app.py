@@ -930,7 +930,16 @@ def _render_tab_bar(active_tab: str) -> None:
 
 # ── PDF modal overlay ────────────────────────────────────────────────────────
 
-def _inject_pdf_modal(pdf_session_id: str | None, page: int) -> None:
+# In-browser embedding cap — keeps the injected HTML component reasonable;
+# above this size we fall back to GET /pdf/{id} only (needs a warm backend).
+_MAX_PDF_EMBED_BYTES = 4 * 1024 * 1024
+
+
+def _inject_pdf_modal(
+    pdf_session_id: str | None,
+    page: int,
+    pdf_bytes: bytes | None = None,
+) -> None:
     """
     Inject a full-screen PDF modal into window.parent.document.body.
 
@@ -939,17 +948,31 @@ def _inject_pdf_modal(pdf_session_id: str | None, page: int) -> None:
     document" link). The pending state is consumed after this call so
     the modal does not re-inject on subsequent reruns.
 
+    When upload bytes are still in session state, the PDF is shown from a
+    browser blob URL so "View original document" still works after a backend
+    restart (uvicorn --reload clears the in-memory PDF store).
+
     Args:
-        pdf_session_id: UUID from the /analyze response used to build
-                        the iframe src. If None, a warning replaces the
-                        modal injection.
+        pdf_session_id: UUID from the /analyze response for GET /pdf/{id}.
         page:           1-indexed page number to open the PDF at.
+        pdf_bytes:      Optional raw PDF from the upload; preferred for display.
     """
-    if not pdf_session_id:
+    raw = pdf_bytes
+    if raw is not None and isinstance(raw, (bytes, bytearray)):
+        raw = bytes(raw)
+    else:
+        raw = None
+
+    embed_b64: str | None = None
+    if raw is not None and len(raw) <= _MAX_PDF_EMBED_BYTES:
+        embed_b64 = base64.b64encode(raw).decode("ascii")
+
+    if not pdf_session_id and not embed_b64:
         st.warning("PDF not available for this session — please re-upload the document.")
         return
 
-    iframe_src = f"{_API_BASE}/pdf/{pdf_session_id}#page={page}"
+    iframe_src = f"{_API_BASE}/pdf/{pdf_session_id}#page={page}" if pdf_session_id else ""
+    iframe_src_attr = "about:blank" if embed_b64 else iframe_src
 
     modal_css = """
       #diq-pdf-modal-overlay {
@@ -1008,14 +1031,20 @@ def _inject_pdf_modal(pdf_session_id: str | None, page: int) -> None:
                       aria-label="Close">&#10005;</button>
             </div>
           </div>
-          <iframe id="diq-pdf-modal-iframe" src="{iframe_src}"></iframe>
+          <iframe id="diq-pdf-modal-iframe" src="{iframe_src_attr}"></iframe>
         </div>
       </div>
     """
 
+    b64_literal = json.dumps(embed_b64)
+    server_url_literal = json.dumps(iframe_src)
+
     injection_html = f"""<!DOCTYPE html><html><head><script>
 (function() {{
   var pdoc = window.parent.document;
+  var embeddedB64 = {b64_literal};
+  var serverPdfUrl = {server_url_literal};
+  var blobUrl = null;
 
   // Idempotent: strip any previous modal + styles before re-injecting.
   ['diq-pdf-modal', 'diq-pdf-modal-styles'].forEach(function(id) {{
@@ -1033,7 +1062,27 @@ def _inject_pdf_modal(pdf_session_id: str | None, page: int) -> None:
   root.innerHTML = {json.dumps(modal_body_html)};
   pdoc.body.appendChild(root);
 
+  var iframe = pdoc.getElementById('diq-pdf-modal-iframe');
+  if (iframe && embeddedB64 && embeddedB64.length > 0) {{
+    try {{
+      var bin = atob(embeddedB64);
+      var arr = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      var blob = new Blob([arr], {{ type: 'application/pdf' }});
+      blobUrl = URL.createObjectURL(blob);
+      iframe.src = blobUrl + '#page=' + {int(page)};
+    }} catch (e) {{
+      if (serverPdfUrl) iframe.src = serverPdfUrl;
+    }}
+  }} else if (iframe && serverPdfUrl && iframe.getAttribute('src') === 'about:blank') {{
+    iframe.src = serverPdfUrl;
+  }}
+
   function closeModal() {{
+    if (blobUrl) {{
+      try {{ URL.revokeObjectURL(blobUrl); }} catch (e) {{}}
+      blobUrl = null;
+    }}
     var m = pdoc.getElementById('diq-pdf-modal');
     var s = pdoc.getElementById('diq-pdf-modal-styles');
     if (m) m.remove();
@@ -2501,7 +2550,17 @@ def _render_summary_screen() -> None:
     # not re-open on the next rerun (e.g. tab switch after user closed it).
     pending = st.session_state[_S_PENDING_CITATION]
     if pending:
-        _inject_pdf_modal(pdf_session_id, int(pending.get("page", 1) or 1))
+        _raw_pdf = st.session_state.get(_S_PDF_BYTES)
+        _pdf_for_modal = (
+            bytes(_raw_pdf)
+            if isinstance(_raw_pdf, (bytes, bytearray))
+            else None
+        )
+        _inject_pdf_modal(
+            pdf_session_id,
+            int(pending.get("page", 1) or 1),
+            _pdf_for_modal,
+        )
         st.session_state[_S_PENDING_CITATION] = None
 
     # Chat panel — injected last so it sits above earlier components.
