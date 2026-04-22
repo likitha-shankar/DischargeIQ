@@ -389,6 +389,113 @@ def _clean_str(value: object) -> str:
     return _strip_html_tags(str(value))
 
 
+def _empty_generation_message(result: dict, section_label: str) -> None:
+    """
+    When an agent section is blank, explain partial pipeline / config issues
+    instead of a bare caption — especially during provider outages or 429s.
+    """
+    status = (result.get("pipeline_status") or "").lower()
+    if status == "partial":
+        st.warning(
+            f"{section_label} could not be generated. "
+            "The AI service may be busy, rate-limited, or misconfigured "
+            "(check .env API keys). This is not medical advice — contact your "
+            "care team or emergency services for urgent symptoms."
+        )
+    else:
+        st.caption(f"{section_label} is not available for this document.")
+
+
+def _pdf_safe_txt(text: str) -> str:
+    """FPDF core fonts are latin-1; replace unsupported characters."""
+    if not text:
+        return ""
+    return text.encode("latin-1", "replace").decode("latin-1")
+
+
+def _build_summary_pdf_bytes(result: dict) -> bytes:
+    """
+    Build a simple take-home PDF from the current pipeline result (post-demo).
+
+    Uses fpdf2 (already in requirements.txt). Not a clinical record — patient
+    education summary only.
+    """
+    from fpdf import FPDF
+
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Helvetica", size=10)
+
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.multi_cell(0, 8, txt=_pdf_safe_txt("DischargeIQ — Plain-language summary"))
+    pdf.set_font("Helvetica", "", 9)
+    pdf.multi_cell(
+        0,
+        4,
+        txt=_pdf_safe_txt(
+            "AI-generated for education only — not medical advice. "
+            "Confirm all instructions and warning signs with your care team "
+            "before relying on this document."
+        ),
+    )
+    pdf.ln(3)
+
+    ext = result.get("extraction") or {}
+    patient = _clean_str(ext.get("patient_name")) or "Patient"
+    ddate = _clean_str(ext.get("discharge_date"))
+    pdf.multi_cell(0, 5, txt=_pdf_safe_txt(f"Patient: {patient}"))
+    if ddate:
+        pdf.multi_cell(0, 5, txt=_pdf_safe_txt(f"Discharge date: {ddate}"))
+    pdf.ln(2)
+
+    def add_section(title: str, body: str) -> None:
+        pdf.set_font("Helvetica", "B", 11)
+        pdf.multi_cell(0, 6, txt=_pdf_safe_txt(title))
+        pdf.set_font("Helvetica", "", 10)
+        content = body.strip() if body.strip() else "(Not generated.)"
+        pdf.multi_cell(0, 5, txt=_pdf_safe_txt(content))
+        pdf.ln(2)
+
+    add_section(
+        "1. What happened to you",
+        _clean_str(result.get("diagnosis_explanation", "")),
+    )
+    add_section(
+        "2. Your medications explained",
+        _clean_str(result.get("medication_rationale", "")),
+    )
+    add_section(
+        "3. Your recovery timeline",
+        _clean_str(result.get("recovery_trajectory", "")),
+    )
+    add_section(
+        "4. Warning signs — when to get help",
+        _clean_str(result.get("escalation_guide", "")),
+    )
+
+    dx = _clean_str(ext.get("primary_diagnosis", ""))
+    meds = ext.get("medications") or []
+    med_lines = []
+    for m in meds:
+        if isinstance(m, dict):
+            nm = _clean_str(m.get("name"))
+            if nm:
+                med_lines.append(nm)
+    detail_lines = [f"Primary diagnosis: {dx}"] if dx else []
+    if med_lines:
+        detail_lines.append("Medications noted: " + ", ".join(med_lines))
+    add_section(
+        "5. Discharge details (from your document)",
+        "\n".join(detail_lines) if detail_lines else "",
+    )
+
+    out = pdf.output(dest="S")
+    if isinstance(out, str):
+        return out.encode("latin-1", "replace")
+    return bytes(out)
+
+
 def _hidden_click_target(label: str, key: str) -> bool:
     """
     Render a Streamlit button preceded by a diq-hidden-btn-slot marker.
@@ -977,7 +1084,7 @@ def _render_section_diagnosis(result: dict) -> None:
         # as literal asterisks.
         st.markdown(explanation)
     else:
-        st.caption("Explanation not available.")
+        _empty_generation_message(result, "This explanation")
 
     chip_col, fk_col = st.columns([1, 4])
     with chip_col:
@@ -1189,6 +1296,11 @@ def _render_section_medications(result: dict) -> None:
         )
         with st.expander(label):
             st.markdown(block.get("text", ""))
+
+    rationale_raw = (result.get("medication_rationale") or "").strip()
+    if medications and not rationale_raw:
+        st.markdown("---")
+        _empty_generation_message(result, "Medication explanations")
 
 
 # ── Section: Appointments ────────────────────────────────────────────────────
@@ -1461,6 +1573,13 @@ def _render_section_warning_signs(result: dict) -> None:
         unsafe_allow_html=True,
     )
 
+    st.info(
+        "**Important:** This warning-signs guide is **AI-generated** and may be "
+        "incomplete or incorrect. **Call your care team** to confirm what symptoms "
+        "require emergency care for your situation. For life-threatening "
+        "emergencies, call **911** (or your local emergency number)."
+    )
+
     if not flags and not escalation:
         st.caption("No emergency warning signs listed in the document.")
         return
@@ -1491,6 +1610,12 @@ def _render_section_warning_signs(result: dict) -> None:
             st.markdown("#### What to do if you have these symptoms")
             for block in blocks:
                 _render_escalation_tier(block)
+        else:
+            st.markdown("---")
+            _empty_generation_message(
+                result,
+                "The step-by-step escalation guide (when to call 911 / your doctor)",
+            )
 
 
 # ── Section: Recovery ────────────────────────────────────────────────────────
@@ -1548,10 +1673,12 @@ def _render_section_recovery(result: dict) -> None:
         )
 
     trajectory = _clean_str(result.get("recovery_trajectory", ""))
+    st.markdown("---")
+    st.markdown("#### Your recovery timeline")
     if trajectory:
-        st.markdown("---")
-        st.markdown("#### Your recovery timeline")
         st.markdown(trajectory)
+    else:
+        _empty_generation_message(result, "Your recovery timeline")
 
 
 # ── Section dispatch ─────────────────────────────────────────────────────────
@@ -2346,6 +2473,23 @@ def _render_summary_screen() -> None:
     pdf_session_id = st.session_state[_S_PDF_SESSION_ID]
 
     _render_app_header(result)
+
+    _dl_a, _dl_b = st.columns([3, 1])
+    with _dl_b:
+        try:
+            _pdf_blob = _build_summary_pdf_bytes(result)
+            st.download_button(
+                label="Download summary (PDF)",
+                data=_pdf_blob,
+                file_name="dischargeiq_plain_language_summary.pdf",
+                mime="application/pdf",
+                key="download_summary_pdf",
+                help="Take-home plain-language summary (not a legal medical record).",
+            )
+        except Exception as pdf_err:
+            logger.warning("Summary PDF build failed: %s", pdf_err)
+            st.caption("PDF download unavailable.")
+
     _render_tab_bar(active_tab)
 
     # Dispatch to the active tab's section renderer — only one section

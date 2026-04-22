@@ -50,14 +50,18 @@ import anthropic
 from openai import OpenAI
 
 from dischargeiq.models.extraction import ExtractionOutput
-from dischargeiq.utils.llm_client import call_chat_with_fallback
+from dischargeiq.utils.llm_client import (
+    DEFAULT_ANTHROPIC_MODEL,
+    call_chat_with_fallback,
+    require_provider_api_key,
+)
 from dischargeiq.utils.scorer import fk_check
 
 logger = logging.getLogger(__name__)
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 
-_MODEL = "claude-sonnet-4-6"
+_MODEL = DEFAULT_ANTHROPIC_MODEL
 
 # 1000 tokens is ample for a structured three-tier guide. The output is
 # deliberately short — 3 tier headers + ~3-6 bullets per tier × 1-2 short
@@ -91,26 +95,26 @@ def _get_client() -> Any:
         Any: Configured client instance for the selected provider.
 
     Raises:
-        KeyError: If provider-specific API credentials are missing
-            for the selected provider.
+        ValueError: If provider-specific API credentials are missing.
 
     Note:
         Timeout is provider-aware: 180s on OpenRouter/Ollama and 60s on
         Anthropic/OpenAI.
     """
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
+    require_provider_api_key(provider)
     timeout = 180.0 if provider in {"openrouter", "ollama"} else 60.0
     if provider == "openrouter":
         return OpenAI(
             base_url="https://openrouter.ai/api/v1",
-            api_key=os.environ["OPENROUTER_API_KEY"],
+            api_key=os.environ["OPENROUTER_API_KEY"].strip(),
             timeout=timeout,
             max_retries=1,
         )
     if provider == "openai":
         return OpenAI(
             base_url="https://api.openai.com/v1",
-            api_key=os.environ["OPENAI_API_KEY"],
+            api_key=os.environ["OPENAI_API_KEY"].strip(),
             timeout=timeout,
             max_retries=1,
         )
@@ -122,7 +126,7 @@ def _get_client() -> Any:
             max_retries=1,
         )
     return anthropic.Anthropic(
-        api_key=os.environ["ANTHROPIC_API_KEY"],
+        api_key=os.environ["ANTHROPIC_API_KEY"].strip(),
         timeout=timeout,
         max_retries=1,
     )
@@ -297,7 +301,7 @@ def run_escalation_agent(
         len(extraction.red_flag_symptoms or []),
     )
 
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
     client = _get_client()
 
     if provider != "anthropic":
@@ -322,7 +326,7 @@ def run_escalation_agent(
             logger.error("Agent 5 OpenRouter call failed for '%s': %s", document_id, e)
             raise
     else:
-        model = os.environ.get("LLM_MODEL", "claude-sonnet-4-6")
+        model = os.environ.get("LLM_MODEL", DEFAULT_ANTHROPIC_MODEL)
         try:
             response = client.messages.create(
                 model=model,

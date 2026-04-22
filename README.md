@@ -6,9 +6,10 @@ plain-language patient education at a 6th-grade reading level.
 ## Requirements
 
 - Python 3.11+
-- An Anthropic API key (Claude Sonnet powers Agents 2–5)
-- One of: OpenRouter key, OpenAI key, or local Ollama
-  (Agent 1 extraction provider — configured via `LLM_PROVIDER`)
+- API credentials for your chosen **`LLM_PROVIDER`** (see `.env.example`).
+  **All five agents** use the same provider: `openrouter` (default), `openai`,
+  `anthropic`, or `ollama`. For Claude evals, use `anthropic` and set
+  **`LLM_MODEL=claude-sonnet-4-20250514`** (undated model ids can 404).
 
 ## Quick start
 
@@ -27,11 +28,10 @@ Second run launches both servers.
 
 Open `.env` and set:
 
-- `ANTHROPIC_API_KEY` — required (Agents 2–5)
-- `LLM_PROVIDER` — one of `openrouter` (default), `openai`,
-  `anthropic`, or `ollama`
-- The matching provider key:
-  `OPENROUTER_API_KEY` / `OPENAI_API_KEY` (not needed for `ollama`)
+- `LLM_PROVIDER` — `openrouter` (default), `openai`, `anthropic`, or `ollama`
+- The matching key: `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, or
+  `ANTHROPIC_API_KEY` (Ollama needs no key)
+- Optional: `LLM_MODEL` — required to pin Sonnet for `anthropic` (see `.env.example`)
 
 ## Running
 
@@ -44,13 +44,24 @@ Open the dashboard at http://127.0.0.1:8501.
 ## Testing
 
 ```bash
-# 8-case hallucination + integration suite (gates: 0 hallucinations)
+# Fast pytest suite (API guardrails, resilience mocks — seconds)
+.venv/bin/python -m pytest dischargeiq/tests/
+
+# Quiet dots only (harder to see progress — not recommended while debugging)
+.venv/bin/python -m pytest dischargeiq/tests/ -q
+
+# Full PDF corpus smoke (slow: real LLM + Neon — can take hours)
+.venv/bin/python -m pytest -m slow dischargeiq/tests/test_all_corpus_smoke.py -v -s
+
+# 8-case hallucination + integration suite (gates: 0 hallucinations) — separate script
 python dischargeiq/tests/test_integration_hallucination.py
 
 # 6-case real-world-format stress suite
 python scripts/stress/run_stress_fixtures.py                  # all 6
 python scripts/stress/run_stress_fixtures.py --fixtures 9,14  # subset
 ```
+
+Default `pytest` settings live in `pytest.ini` (**verbose**, **skip `slow`**).
 
 ## Repo layout
 

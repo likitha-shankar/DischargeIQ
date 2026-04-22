@@ -14,7 +14,17 @@ from fastapi import HTTPException
 
 from dischargeiq.main import _validate_uploaded_pdf
 from dischargeiq.models.extraction import ExtractionOutput
+from dischargeiq.utils.llm_client import require_provider_api_key
 from dischargeiq.utils.warnings import assess_extraction_completeness
+
+
+def test_require_provider_api_key_raises_valueerror_not_keyerror(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Missing API key should surface a clear ValueError for operators."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    with pytest.raises(ValueError, match="ANTHROPIC_API_KEY"):
+        require_provider_api_key("anthropic")
 
 
 def test_analyze_rejects_non_pdf_extension() -> None:

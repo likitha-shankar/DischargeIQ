@@ -3,7 +3,7 @@ DischargeIQ — FastAPI entry point.
 
 Defines the REST API for the DischargeIQ multi-agent pipeline.
 Endpoints:
-  - GET  /health   → liveness check
+  - GET  /health   → liveness + anthropic key flag + DB reachability (when configured)
   - POST /analyze  → accepts a discharge PDF, runs the agent pipeline
   - POST /chat     → accepts a patient question + pipeline context, returns
                      a grounded plain-language answer from the LLM
@@ -31,6 +31,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 from typing import Optional
 
+from dischargeiq.db.history import get_db_pool
 from dischargeiq.pipeline.orchestrator import run_pipeline
 from dischargeiq.utils.logger import configure_logging
 from dischargeiq.utils.llm_client import get_llm_client
@@ -307,8 +308,43 @@ def _extract_source_page(reply: str, pipeline_context: dict) -> Optional[int]:
 
 @app.get("/health")
 async def health():
-    """Liveness probe — returns 200 with {"status": "ok"} if the server is running."""
-    return {"status": "ok"}
+    """
+    Liveness plus lightweight dependency signals for ops / eval prep.
+
+    Returns 200 when the process is up. Includes whether ANTHROPIC_API_KEY is
+    set (boolean only, never the secret) and whether DATABASE_URL, when set,
+    can open a pool and run SELECT 1.
+    """
+    anthropic_set = bool(os.getenv("ANTHROPIC_API_KEY", "").strip())
+    provider = os.getenv("LLM_PROVIDER", "openrouter").lower()
+    database_url = os.getenv("DATABASE_URL", "").strip()
+    db_reachable: bool | None = None
+    db_detail = ""
+    if database_url:
+        try:
+            pool = await get_db_pool(database_url)
+            try:
+                async with pool.acquire() as conn:
+                    await conn.fetchval("SELECT 1")
+                db_reachable = True
+            finally:
+                await pool.close()
+        except Exception as exc:
+            db_reachable = False
+            db_detail = str(exc)[:300]
+    else:
+        db_detail = "DATABASE_URL not set"
+
+    return {
+        "status": "ok",
+        "llm_provider": provider,
+        "anthropic_api_key_configured": anthropic_set,
+        "database": {
+            "configured": bool(database_url),
+            "reachable": db_reachable,
+            "detail": db_detail,
+        },
+    }
 
 
 @app.post("/analyze")

@@ -22,6 +22,13 @@ logs/
 # Local tool metadata
 .claude
 
+# Xcode / Swift
+**/xcuserdata/
+**/*.xcuserstate
+
+# iOS app (on hold — local only)
+ios/
+
 # Test artifacts — regenerated on every run
 dischargeiq/tests/fixtures/*.pdf
 dischargeiq/evaluation/fk_log.csv

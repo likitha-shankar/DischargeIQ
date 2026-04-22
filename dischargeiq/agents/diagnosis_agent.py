@@ -13,7 +13,7 @@ FK scores are logged to dischargeiq/evaluation/fk_log.csv automatically.
 
 LLM provider is resolved from LLM_PROVIDER / LLM_MODEL in .env via
 dischargeiq.utils.llm_client.get_llm_client(). Changing LLM_PROVIDER
-to "openrouter", "openai", or "ollama" switches all agents at once.
+switches every agent in the pipeline (same as agents 3–5).
 
 Data contract:
     Input:  dischargeiq.models.extraction.ExtractionOutput (from Agent 1)
@@ -228,7 +228,7 @@ def run_diagnosis_agent(
         ValueError:  If primary_diagnosis is missing from Agent 1 output, or if
                      the LLM returns an empty response.
         APIError:    If the LLM API call fails.
-        KeyError:    If the required API key env var for the chosen provider is missing.
+        ValueError:  If the required API key env var for the chosen provider is missing.
     """
     if not extraction.primary_diagnosis:
         raise ValueError(
