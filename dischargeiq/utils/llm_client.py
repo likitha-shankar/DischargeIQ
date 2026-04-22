@@ -217,6 +217,19 @@ def call_chat_with_fallback(
             )
             content = response.choices[0].message.content
             if not content:
+                # OpenRouter free routing sometimes returns empty content when
+                # the routed model refuses or times out internally. Treat this
+                # as retryable so the next attempt may land on a different model.
+                if provider == "openrouter" and attempt < max_attempts:
+                    logger.warning(
+                        "%s empty completion (attempt %d/%d) for '%s' — retrying",
+                        agent_name,
+                        attempt,
+                        max_attempts,
+                        document_id,
+                    )
+                    time.sleep(float(attempt * 2))
+                    continue
                 raise ValueError(
                     f"{agent_name}: empty completion for '{document_id}' "
                     f"(provider={provider}, model={model_name})"
