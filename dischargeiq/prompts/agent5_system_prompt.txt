@@ -55,6 +55,10 @@ WRITING RULES:
 - If you must use a medical word, define it immediately in plain words.
 - Do not use "utilize" — use "use".
 - Never use a comma to join two clauses — split into two sentences.
+- Bullet format: keep the symptom label before the colon to 5 words or fewer.
+- The explanation after the colon must be 10 words or fewer.
+- Never use "which", "although", "in order to" — they make sentences too long.
+- Count your words before writing each sentence. If over 12, cut it.
 
 OUTPUT FORMAT — follow this exactly:
 - Plain text only. No markdown. No asterisks. No bold markers. No headers with #.
