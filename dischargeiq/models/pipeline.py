@@ -2,8 +2,11 @@
 Pydantic model for the full pipeline response.
 
 Returned by POST /analyze after all five agents have run.
-pipeline_status is "complete" when all agents succeed, or "partial" when
-one or more agents failed with a fallback message.
+pipeline_status can be:
+  - "complete" when all agents succeed and no warnings were raised
+  - "complete_with_warnings" when all agents succeed but advisory/critical
+    extraction warnings are present
+  - "partial" when one or more agents fail and fallback text is used
 
 Depends on: dischargeiq.models.extraction.
 """
@@ -24,7 +27,8 @@ class PipelineResponse(BaseModel):
         escalation_guide: Three-tier warning-sign decision tree from Agent 5.
         fk_scores: Flesch-Kincaid grade for each agent's text output.
         extraction_warnings: Completeness warnings from utils/warnings.py.
-        pipeline_status: "complete" or "partial" — never raises unhandled exceptions.
+        pipeline_status: "complete", "complete_with_warnings", or "partial"
+            — never raises unhandled exceptions.
     """
 
     extraction: ExtractionOutput
@@ -34,4 +38,4 @@ class PipelineResponse(BaseModel):
     escalation_guide: str
     fk_scores: dict
     extraction_warnings: list
-    pipeline_status: str  # "complete" or "partial"
+    pipeline_status: str  # "complete" | "complete_with_warnings" | "partial"

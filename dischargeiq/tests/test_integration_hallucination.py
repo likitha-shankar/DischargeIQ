@@ -816,7 +816,7 @@ def run_case(profile: Profile, index: int, total: int) -> dict:
         {
             "name": str,
             "status": "PASS" | "FAIL" | "ERROR",
-            "pipeline_status": "complete" | "partial" | "error",
+            "pipeline_status": "complete" | "complete_with_warnings" | "partial" | "error",
             "issues": list[Issue],
             "hallucinations": int,
             "omissions": int,
