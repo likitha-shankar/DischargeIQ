@@ -64,7 +64,7 @@ async def save_discharge_history(
         document_hash: SHA-256 hash of the uploaded PDF for deduplication.
         extraction: Validated Agent 1 output.
         fk_scores: Flesch-Kincaid scores for each agent's text output.
-        pipeline_status: "complete" or "partial".
+        pipeline_status: "complete", "complete_with_warnings", or "partial".
 
     Returns:
         int: The auto-generated row id of the inserted record.
