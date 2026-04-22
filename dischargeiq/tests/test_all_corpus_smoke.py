@@ -30,6 +30,7 @@ import asyncio
 import os
 import time
 from datetime import datetime, timedelta, timezone
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +41,17 @@ from dotenv import load_dotenv
 
 # local
 from dischargeiq.pipeline.orchestrator import run_pipeline
+
+# Lower bound for `WHERE created_at >= …` in test_corpus_db_invariants.
+# Must be pinned when the pytest session *starts*, not when the last test
+# runs: `test_start_ts` was only requested by the final test, so it used to
+# default to "now" after all PDFs finished and the COUNT(*) saw 0–1 rows.
+_SWEEP_DB_WINDOW_START: datetime | None = None
+
+
+def _naive_utc_now() -> datetime:
+    """UTC 'now' as naive datetime (matches asyncpg TIMESTAMP WITHOUT TIME ZONE)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -217,18 +229,29 @@ def _format_pass_line(
 # Session-scoped fixtures
 # ──────────────────────────────────────────────────────────────────────────────
 
+@pytest.fixture(scope="session", autouse=True)
+def _pin_db_query_window_for_corpus_sweep() -> Iterator[None]:
+    """
+    Run once at session start (before any parametrized PDF case).
+
+    Binds the DB aggregation window so rows written during the ~20+ minute
+    sweep are all `created_at >= test_start_ts`.
+    """
+    global _SWEEP_DB_WINDOW_START
+    _SWEEP_DB_WINDOW_START = _naive_utc_now() - timedelta(seconds=2)
+    yield
+
+
 @pytest.fixture(scope="session")
 def test_start_ts() -> datetime:
     """
-    Naive UTC timestamp captured once per test session, minus a 2-second
-    buffer so rows written in the same second as collection are still
-    included in the post-sweep DB-invariant count.
+    Naive UTC lower bound for discharge_history rows belonging to this sweep.
 
     Returns:
-        datetime: Naive UTC datetime suitable for binding to a
-                  TIMESTAMP WITHOUT TIME ZONE column.
+        datetime: Naive UTC datetime for `WHERE created_at >= $1`.
     """
-    return datetime.utcnow() - timedelta(seconds=2)
+    assert _SWEEP_DB_WINDOW_START is not None
+    return _SWEEP_DB_WINDOW_START
 
 
 @pytest.fixture(scope="session")

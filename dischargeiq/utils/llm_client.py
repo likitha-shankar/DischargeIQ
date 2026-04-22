@@ -25,6 +25,10 @@ from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
+# Anthropic Messages API + OpenAI-compatible /v1 chat: use a dated Sonnet ID.
+# Undated aliases (e.g. claude-sonnet-4-6) can 404; Week 5 eval must pin this.
+DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
+
 # Default configuration per provider.
 # Add a new provider here — no agent code needs to change.
 _PROVIDER_DEFAULTS: dict[str, dict] = {
@@ -44,7 +48,7 @@ _PROVIDER_DEFAULTS: dict[str, dict] = {
         # working without forcing every agent to carry a second SDK dependency.
         "base_url": "https://api.anthropic.com/v1/",
         "api_key_env": "ANTHROPIC_API_KEY",
-        "default_model": "claude-sonnet-4-6",
+        "default_model": DEFAULT_ANTHROPIC_MODEL,
     },
     "ollama": {
         # Ollama exposes an OpenAI-compatible endpoint locally.
@@ -53,6 +57,31 @@ _PROVIDER_DEFAULTS: dict[str, dict] = {
         "default_model": "llama3.2",
     },
 }
+
+
+def require_provider_api_key(provider: str) -> None:
+    """
+    Ensure the API key env var for the chosen provider is set and non-empty.
+
+    Raises:
+        ValueError: With a human-readable message (not KeyError) when missing.
+    """
+    p = provider.lower()
+    if p not in _PROVIDER_DEFAULTS:
+        return
+    env_name = _PROVIDER_DEFAULTS[p]["api_key_env"]
+    if env_name is None:
+        return
+    raw = os.environ.get(env_name, "")
+    if isinstance(raw, str):
+        raw = raw.strip()
+    if not raw:
+        raise ValueError(
+            f"Missing API key for LLM_PROVIDER={provider!r}. "
+            f"Set {env_name} in your .env (see .env.example). "
+            f"For Claude on all agents use LLM_PROVIDER=anthropic and "
+            f"LLM_MODEL={DEFAULT_ANTHROPIC_MODEL!r}."
+        )
 
 
 def get_llm_client() -> tuple[OpenAI, str]:
@@ -67,9 +96,7 @@ def get_llm_client() -> tuple[OpenAI, str]:
         tuple[OpenAI, str]: Configured client and the resolved model name string.
 
     Raises:
-        ValueError: If LLM_PROVIDER is set to an unrecognised value.
-        KeyError:   If the required API key env var for the chosen provider is
-                    missing from the environment.
+        ValueError: If LLM_PROVIDER is invalid or the required API key is missing.
     """
     provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
 
@@ -80,6 +107,7 @@ def get_llm_client() -> tuple[OpenAI, str]:
             f"Supported values: {supported}"
         )
 
+    require_provider_api_key(provider)
     config = _PROVIDER_DEFAULTS[provider]
 
     # Ollama does not require a real API key; pass a placeholder string so the
@@ -87,7 +115,7 @@ def get_llm_client() -> tuple[OpenAI, str]:
     if config["api_key_env"] is None:
         api_key = "ollama"
     else:
-        api_key = os.environ[config["api_key_env"]]
+        api_key = os.environ[config["api_key_env"]].strip()
 
     # Allow Ollama base URL override for remote or Docker-based installs.
     if provider == "ollama":

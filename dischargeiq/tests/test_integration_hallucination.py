@@ -759,7 +759,7 @@ def audit_agent2_claims(
     try:
         client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
         response = client.messages.create(
-            model="claude-sonnet-4-6",
+            model="claude-sonnet-4-20250514",
             max_tokens=500,
             system=_AUDIT_SYSTEM,
             messages=[{"role": "user", "content": user_message}],

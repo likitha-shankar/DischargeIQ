@@ -29,6 +29,12 @@ from dischargeiq.agents.recovery_agent import run_recovery_agent
 from dischargeiq.db.history import get_db_pool, save_discharge_history
 from dischargeiq.models.extraction import ExtractionOutput
 from dischargeiq.models.pipeline import PipelineResponse
+from dischargeiq.utils.extraction_scope import (
+    scope_for_agent2,
+    scope_for_agent3,
+    scope_for_agent4,
+    scope_for_agent5,
+)
 from dischargeiq.utils.warnings import assess_extraction_completeness
 
 logger = logging.getLogger(__name__)
@@ -174,8 +180,10 @@ async def _run_pipeline_internal(
     trajectory), Agent 5 (escalation / warning-signs).
 
     Data contract: Agent 1 returns ExtractionOutput (locked schema).
-    All downstream agents receive that model as input. Never change
-    field names in ExtractionOutput without full team sign-off.
+    Agents 2–5 each receive a **scoped** copy (see `utils/extraction_scope.py`)
+    with only the fields that agent’s prompt uses, to save tokens and reduce
+    cross-field confusion. Never change ExtractionOutput field names without
+    full team sign-off.
 
     On any agent failure the pipeline sets pipeline_status="partial" and
     returns whatever was successfully extracted — it never raises to the
@@ -279,8 +287,8 @@ async def _run_pipeline_internal(
             # should reason only about the discharge diagnoses and the
             # discharge medication list; anything else is inpatient
             # context, not patient-facing discharge education.
-            agent2_input = extraction.model_copy(
-                update={"procedures_performed": []}
+            agent2_input = scope_for_agent2(
+                extraction.model_copy(update={"procedures_performed": []})
             )
             agent2_result = run_diagnosis_agent(
                 extraction=agent2_input,
@@ -315,7 +323,7 @@ async def _run_pipeline_internal(
             # run_medication_agent as "no extra block".
             safety_ctx = _extract_safety_context(pdf_text)
             agent3_result = run_medication_agent(
-                extraction=extraction,
+                extraction=scope_for_agent3(extraction),
                 document_id=pdf_path,
                 safety_context=safety_ctx,
             )
@@ -342,7 +350,7 @@ async def _run_pipeline_internal(
     if agent1_succeeded:
         try:
             agent4_result = run_recovery_agent(
-                extraction=extraction,
+                extraction=scope_for_agent4(extraction),
                 document_id=pdf_path,
             )
             recovery_trajectory = agent4_result["text"]
@@ -371,7 +379,7 @@ async def _run_pipeline_internal(
     if agent1_succeeded:
         try:
             agent5_result = run_escalation_agent(
-                extraction=extraction,
+                extraction=scope_for_agent5(extraction),
                 document_id=pdf_path,
             )
             escalation_guide = agent5_result["text"]
