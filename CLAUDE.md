@@ -18,6 +18,90 @@ It targets the LOF Patient Engagement pillar. The primary use case is
 post-discharge health literacy for patients who do not understand their
 discharge documents.
 
+## Current project status (detailed) — for AI assistants
+
+**Last reviewed:** April 2026. Treat this section as the source of truth for
+“what is happening now.” Older sections below (e.g. sprint dates) may be stale.
+
+### Where the product stands
+
+- **End-to-end pipeline is implemented:** PDF upload → Agent 1 extraction →
+  Agents 2–5 (diagnosis, medication, recovery, escalation) → FK checks →
+  `PipelineResponse` JSON. Orchestration lives in `dischargeiq/pipeline/orchestrator.py`.
+- **Primary surface for demos:** **Streamlit** (`streamlit_app.py`), started by
+  `./start.sh` (or `start.bat` on Windows). Default URL: http://127.0.0.1:8501.
+- **Backend:** FastAPI in `dischargeiq/main.py`, typically http://127.0.0.1:8000.
+- **Failure mode:** The pipeline is designed to return **`pipeline_status` of
+  `"complete"`, `"complete_with_warnings"`, or `"partial"`** (not to crash on bad PDFs or
+  LLM failures). `"partial"` runs may occur when an agent fails, rate limits hit (429),
+  timeouts occur, or keys are missing. `"complete_with_warnings"` means all agents ran
+  but extraction completeness warnings were raised.
+
+### LLM and environment configuration
+
+- **Single provider for all five agents:** Every agent reads **`LLM_PROVIDER`**
+  (default **`openrouter`**) via `get_llm_client()` in `dischargeiq/utils/llm_client.py`
+  (Agent 1 / Agent 2) or `_get_client()` in agents 3–5. There is **no** split where
+  only Agent 1 uses OpenRouter and 2–5 always use Anthropic—switching `.env` switches
+  **every** agent. Token cost jumps when moving to **`anthropic`** for eval.
+- **Anthropic model ID:** Use a **dated** Sonnet id (e.g. **`claude-sonnet-4-20250514`**).
+  Undated aliases can **404**. Set `LLM_MODEL` explicitly in `.env` for Week 5.
+- Keys per `.env.example`: `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, **`ANTHROPIC_API_KEY`**
+  (required when `LLM_PROVIDER=anthropic`), optional `OLLAMA_BASE_URL`. Missing keys
+  raise **`ValueError`** with a clear message from `require_provider_api_key()` rather
+  than a raw **`KeyError`**.
+- **`DATABASE_URL`** supports Neon PostgreSQL (history / persistence) where wired;
+  local development may work without DB for core `/analyze` paths—confirm in code
+  paths if debugging save failures.
+
+### HTTP API (FastAPI)
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/health` | Liveness |
+| POST | `/analyze` | Multipart PDF upload; runs full pipeline |
+| GET | `/pdf/{session_id}` | Retrieve stored PDF bytes for session (used with Streamlit viewer) |
+| POST | `/chat` | Grounded chat answer. Body: `message`, `session_id`, `pipeline_context` (CORS enabled for Streamlit origins) |
+
+### Frontend and tooling
+
+- **Streamlit** is the main MVP UI; it talks to the API (including `/chat` with CORS).
+- **iOS / SwiftUI client:** Development is **on hold** for the shared repo.
+  The entire **`ios/`** directory is listed in **`.gitignore`** so it stays
+  **local-only** until the team turns it back on. Do not assume teammates have
+  `ios/` in their clone from Git.
+
+### Testing
+
+Notable tests under `dischargeiq/tests/`:
+
+- `test_integration_hallucination.py` — integration / hallucination gates (see README).
+- `test_api_guardrails.py` — API behavior and guardrails.
+- `test_resilience_hardening.py` — retries, OpenRouter error paths.
+- `test_all_corpus_smoke.py` — corpus smoke coverage.
+
+Additional scripts and stress runners are documented in **`README.md`**.
+
+### Documentation map
+
+| File | Audience |
+|------|----------|
+| `README.md` | Install, run, test commands |
+| `LEARNERS.md` | Short learner-oriented status and file map |
+| `CLAUDE.md` (this file) | Agents: architecture, rules, contracts |
+
+### Known operational pain points
+
+- **OpenRouter free tier / rate limits:** Frequent **429** responses; pipeline may
+  go **partial** or retry per `llm_client.py`.
+- **Multi-key setup:** New contributors often forget one of `OPENROUTER_*` /
+  `OPENAI_*` / `ANTHROPIC_*` depending on which path they test.
+- **No iOS in Git:** Any Swift work lives only in local `ios/` until `.gitignore`
+  changes.
+- **No automatic LLM cross-failover:** If `anthropic` is down, agents 2–5 paths
+  fail together; the API still returns **partial** with empty sections. Streamlit
+  now shows **section-level warnings**; a full provider fallback is not wired.
+
 ## Team (Plan B assignments)
 
 - Likitha — Team Lead, Backend + LLM (owns DIS-1, DIS-5, DIS-13, DIS-14, DIS-23)
@@ -29,7 +113,9 @@ discharge documents.
 ## Tech stack
 
 - Backend: FastAPI + Python 3.11+
-- LLM: Claude Sonnet (claude-sonnet-4-20250514) via Anthropic SDK
+- LLM: Configurable — all agents share `LLM_PROVIDER` (OpenAI-compatible client
+  and/or native Anthropic SDK in agents 3–5 when `LLM_PROVIDER=anthropic`).
+  Default Sonnet id for Anthropic path: `claude-sonnet-4-20250514` (see `llm_client.py`).
 - Database: Neon PostgreSQL (asyncpg)
 - Frontend: Streamlit (MVP) or React
 - PDF parsing: pdfplumber
@@ -133,7 +219,7 @@ class PipelineResponse(BaseModel):
     escalation_guide: str
     fk_scores: dict
     extraction_warnings: list
-    pipeline_status: str  # "complete" or "partial" — never raises an unhandled exception
+    pipeline_status: str  # "complete" | "complete_with_warnings" | "partial" — never raises an unhandled exception
 ```
 
 ## Five target diagnoses
@@ -248,18 +334,11 @@ CREATE TABLE discharge_history (
 Never store full PDF text or free-text agent outputs in the database.
 Only store structured fields, hashes, and metadata.
 
-## Current sprint status (Sprint 1, Week 1, due Mar 30)
+## Historical sprint note (superseded)
 
-DIS-1: Repo setup — Likitha
-DIS-2: Lock JSON schema — Suchithra
-DIS-3: Collect 10 synthetic PDFs — Manusha (all contribute 2 each)
-DIS-4: FK scorer utility — Deepesh
-DIS-5: Build Agent 1 Extraction — Likitha (HARD GATE)
-DIS-6: Guideline assignments — Deepesh
-DIS-7: API cost estimate — Rushi
-
-Sprint 2 runs April 7 through May 4 and covers Agents 4 and 5,
-full pipeline integration, evaluation, and final demo.
+Early sprint breakdowns (DIS-* tickets, week-1 targets) appeared below in prior
+edits of this file. **Current priorities** are **not** tracked in CLAUDE.md; use
+team planning tools and the section **[Current project status (detailed)](#current-project-status-detailed--for-ai-assistants)** above. DIS-* IDs in the team list are still useful ownership hints.
 
 ## What a good Agent 2 output looks like (example for heart failure)
 

@@ -8,6 +8,13 @@ agent outputs.
 Depends on: asyncpg, dischargeiq.models.extraction.
 """
 
+# READ PATH — not yet implemented.
+# get_history_for_session() is defined below but not called
+# anywhere in the current UI. When the patient history screen
+# is built, wire it up in main.py as:
+#   GET /history/{session_id} -> get_history_for_session()
+# and add a "Past summaries" tab to streamlit_app.py.
+
 import json
 import logging
 
@@ -57,7 +64,7 @@ async def save_discharge_history(
         document_hash: SHA-256 hash of the uploaded PDF for deduplication.
         extraction: Validated Agent 1 output.
         fk_scores: Flesch-Kincaid scores for each agent's text output.
-        pipeline_status: "complete" or "partial".
+        pipeline_status: "complete", "complete_with_warnings", or "partial".
 
     Returns:
         int: The auto-generated row id of the inserted record.
