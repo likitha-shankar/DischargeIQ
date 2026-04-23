@@ -1145,17 +1145,7 @@ def _render_section_diagnosis(result: dict) -> None:
             )
 
     with fk_col:
-        fk_scores = result.get("fk_scores", {})
-        agent2_fk = fk_scores.get("agent2", {})
-        if agent2_fk:
-            grade = agent2_fk.get("fk_grade", "—")
-            passes = agent2_fk.get("passes", False)
-            color = "#22C55E" if passes else "#EF4444"
-            st.markdown(
-                f'<span style="font-size:0.75rem;color:{color};">'
-                f'Reading level: grade {grade}</span>',
-                unsafe_allow_html=True,
-            )
+        pass
 
     if secondary:
         pills_html = "".join(
@@ -2537,7 +2527,6 @@ def _render_summary_screen() -> None:
             )
         except Exception as pdf_err:
             logger.warning("Summary PDF build failed: %s", pdf_err)
-            st.caption("PDF download unavailable.")
 
     _render_tab_bar(active_tab)
 
