@@ -9,6 +9,7 @@ Depends on: dischargeiq.agents.extraction_agent (DIS-5),
             dischargeiq.agents.medication_agent (DIS-12),
             dischargeiq.agents.recovery_agent (DIS-16),
             dischargeiq.agents.escalation_agent (DIS-22),
+            dischargeiq.agents.patient_simulator_agent (Agent 6),
             dischargeiq.db.history, dischargeiq.models.extraction,
             dischargeiq.models.pipeline, dischargeiq.utils.warnings.
 """
@@ -24,6 +25,7 @@ import uuid
 from dischargeiq.agents.diagnosis_agent import run_diagnosis_agent
 from dischargeiq.agents.escalation_agent import run_escalation_agent
 from dischargeiq.agents.extraction_agent import extract_text_from_pdf, run_extraction_agent
+from dischargeiq.agents.patient_simulator_agent import run_patient_simulator_agent
 from dischargeiq.agents.medication_agent import run_medication_agent
 from dischargeiq.agents.recovery_agent import run_recovery_agent
 from dischargeiq.db.history import get_db_pool, save_discharge_history
@@ -397,6 +399,32 @@ async def _run_pipeline_internal(
             escalation_guide = ""
             pipeline_status = "partial"
 
+    # ── Agent 6 — AI patient simulator (non-fatal) ───────────────────────────
+    patient_simulator_result = None
+    if agent1_succeeded:
+        try:
+            logger.info(
+                "Agent 6 (patient simulator) starting for '%s'", pdf_path
+            )
+            patient_simulator_result = run_patient_simulator_agent(
+                extraction=extraction,
+                document_id=pdf_path,
+            )
+            missed_n = sum(
+                1
+                for c in patient_simulator_result.missed_concepts
+                if not c.answered_by_doc
+            )
+            logger.info(
+                "Agent 6 complete: gap_score=%d missed=%d fk=%.1f",
+                patient_simulator_result.overall_gap_score,
+                missed_n,
+                patient_simulator_result.fk_grade,
+            )
+        except Exception as exc:
+            logger.error("Agent 6 failed for '%s': %s", pdf_path, exc)
+            patient_simulator_result = None
+
     elapsed = time.monotonic() - pipeline_start
 
     if pipeline_status == "partial":
@@ -420,6 +448,7 @@ async def _run_pipeline_internal(
         fk_scores=fk_scores,
         extraction_warnings=extraction_warnings,
         pipeline_status=pipeline_status,
+        patient_simulator=patient_simulator_result,
     )
 
     # ── DB write (non-fatal) ────────────────────────────────────────────────

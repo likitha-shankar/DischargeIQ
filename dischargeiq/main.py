@@ -48,6 +48,7 @@ logger = logging.getLogger(__name__)
 # This avoids large base64 data URIs in the Streamlit frontend.
 
 _pdf_store: OrderedDict[str, bytes] = OrderedDict()
+_simulator_store: OrderedDict[str, dict] = OrderedDict()
 _PDF_STORE_MAX = 50
 
 # ── /analyze upload limits ────────────────────────────────────────────────────
@@ -107,10 +108,22 @@ def _store_pdf(pdf_bytes: bytes) -> str:
     session_id = str(uuid.uuid4())
     with _pdf_store_lock:
         if len(_pdf_store) >= _PDF_STORE_MAX:
-            _pdf_store.popitem(last=False)  # evict oldest
+            old_sid, _ = _pdf_store.popitem(last=False)  # evict oldest
+            _simulator_store.pop(old_sid, None)
         _pdf_store[session_id] = pdf_bytes
     logger.debug("PDF stored — session_id: %s, size: %d bytes", session_id, len(pdf_bytes))
     return session_id
+
+
+def _get_simulator_json(session_id: str) -> dict | None:
+    """
+    Look up serialized PatientSimulatorOutput for a pdf_session_id.
+
+    Returns:
+        dict | None: model_dump() from Agent 6, or None if missing.
+    """
+    with _pdf_store_lock:
+        return _simulator_store.get(session_id)
 
 
 def _get_pdf(session_id: str) -> bytes | None:
@@ -145,6 +158,7 @@ app.add_middleware(
         "http://127.0.0.1:8501",
         "http://127.0.0.1:8502",
     ],
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
@@ -389,6 +403,11 @@ async def analyze_discharge(file: UploadFile = File(...)):
         )
         result_dict = result.model_dump()
         result_dict["pdf_session_id"] = pdf_session_id
+        if result.patient_simulator is not None:
+            with _pdf_store_lock:
+                _simulator_store[pdf_session_id] = (
+                    result.patient_simulator.model_dump()
+                )
         return result_dict
     except asyncio.TimeoutError:
         # run_pipeline is wrapped in asyncio.wait_for(..., 300s). A timeout
@@ -434,6 +453,22 @@ async def get_pdf(session_id: str):
         raise HTTPException(status_code=404, detail="PDF not found or expired.")
     logger.debug("GET /pdf/%s — serving %d bytes", session_id, len(pdf_bytes))
     return Response(content=pdf_bytes, media_type="application/pdf")
+
+
+@app.get("/simulator/{session_id}")
+async def get_simulator(session_id: str):
+    """
+    Return Agent 6 (patient simulator) JSON for a prior /analyze session.
+
+    Uses the same session id as pdf_session_id / GET /pdf/{session_id}.
+    """
+    payload = _get_simulator_json(session_id)
+    if payload is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No simulator output for this session",
+        )
+    return payload
 
 
 @app.post("/chat", response_model=ChatResponse)
