@@ -1,4 +1,16 @@
 #!/usr/bin/env bash
+# File: start.sh
+# Owner: Likitha Shankar
+# Description: macOS/Linux dev bootstrap — creates .venv if needed, installs
+#   requirements.txt, validates .env keys for the chosen LLM_PROVIDER, then starts
+#   uvicorn (8000), Streamlit (8501), and optionally Flutter web (55497) in background.
+# Usage: ./start.sh (from repo root, after chmod +x)
+# Environment variables required: Reads .env (LLM_PROVIDER and provider API keys);
+#   honors CLI_LLM_PROVIDER / CLI_LLM_MODEL overrides when sourcing .env.
+# Edge cases: Exits with setup instructions if .env missing keys; Flutter optional;
+#   waits only on backend+Streamlit so a failed Flutter start does not kill the stack;
+#   Ctrl-C runs cleanup on child PIDs.
+
 # DischargeIQ — one-command startup for macOS / Linux.
 #
 # What this does:
@@ -7,7 +19,8 @@
 #      Exits with clear instructions if any required key is missing.
 #   3. Starts the FastAPI backend (uvicorn) on http://127.0.0.1:8000.
 #   4. Starts the Streamlit frontend on http://127.0.0.1:8501.
-#   5. Ctrl-C stops both cleanly.
+#   5. Starts Flutter web app on http://127.0.0.1:55497 when available.
+#   6. Ctrl-C stops all started services cleanly.
 
 set -euo pipefail
 
@@ -17,6 +30,7 @@ PY="${PYTHON:-python3}"
 VENV_DIR=".venv"
 BACKEND_PORT=8000
 FRONTEND_PORT=8501
+FLUTTER_WEB_PORT=55497
 
 banner() {
     echo "────────────────────────────────────────────────────────────"
@@ -49,15 +63,24 @@ fi
 # shellcheck source=/dev/null
 source "$VENV_DIR/bin/activate"
 
-# Resolve a working venv interpreter explicitly. Some local venv script
-# shims can lose executable bits; invoking modules via python -m avoids that.
-if [ -x "$VENV_DIR/bin/python3.14" ]; then
-    VENV_PY="$VENV_DIR/bin/python3.14"
-elif [ -x "$VENV_DIR/bin/python3" ]; then
-    VENV_PY="$VENV_DIR/bin/python3"
-elif [ -x "$VENV_DIR/bin/python" ]; then
-    VENV_PY="$VENV_DIR/bin/python"
-else
+# Resolve a working venv interpreter explicitly. Prefer the standard venv
+# entrypoints; fall back to python3.M (e.g. 3.12, 3.14) if shims are broken.
+VENV_PY=""
+for cand in "$VENV_DIR/bin/python" "$VENV_DIR/bin/python3"; do
+    if [ -x "$cand" ]; then
+        VENV_PY="$cand"
+        break
+    fi
+done
+if [ -z "$VENV_PY" ]; then
+    for cand in "$VENV_DIR"/bin/python3.[0-9]*; do
+        if [ -x "$cand" ]; then
+            VENV_PY="$cand"
+            break
+        fi
+    done
+fi
+if [ -z "$VENV_PY" ]; then
     fail "No executable Python found in $VENV_DIR/bin"
 fi
 
@@ -78,9 +101,9 @@ if [ ! -f ".env" ]; then
         echo "   All five agents use the same LLM_PROVIDER."
         echo ""
         echo " Typical keys (pick one path):"
-        echo "   • OPENROUTER_API_KEY  (if LLM_PROVIDER=openrouter, default)"
+        echo "   • ANTHROPIC_API_KEY   (if LLM_PROVIDER=anthropic, default — optional LLM_MODEL, see .env.example)"
+        echo "   • OPENROUTER_API_KEY  (if LLM_PROVIDER=openrouter)"
         echo "   • OPENAI_API_KEY      (if LLM_PROVIDER=openai)"
-        echo "   • ANTHROPIC_API_KEY   (if LLM_PROVIDER=anthropic — pin LLM_MODEL, see .env.example)"
         echo "   • (nothing)           (if LLM_PROVIDER=ollama, run locally)"
         echo ""
         echo " Then re-run:  ./start.sh"
@@ -109,7 +132,7 @@ if [ -n "$CLI_LLM_MODEL" ]; then
     LLM_MODEL="$CLI_LLM_MODEL"
 fi
 
-LLM_PROVIDER="${LLM_PROVIDER:-openrouter}"
+LLM_PROVIDER="${LLM_PROVIDER:-anthropic}"
 MISSING=()
 
 case "$LLM_PROVIDER" in
@@ -147,10 +170,24 @@ fi
 
 echo "[start] .env OK  (LLM_PROVIDER=$LLM_PROVIDER)"
 
-# ── 4. Launch servers ───────────────────────────────────────────────
+# ── 4. Clear stale processes on target ports ────────────────────────
+# If a previous start.sh was backgrounded or killed without cleanup,
+# the ports may still be held. Kill any holder so bind always succeeds.
+for port in "$BACKEND_PORT" "$FRONTEND_PORT"; do
+    held=$(lsof -ti:"$port" 2>/dev/null | sort -u) || true
+    if [ -n "$held" ]; then
+        echo "[start] Port $port busy — clearing stale process(es): $held"
+        echo "$held" | xargs kill -9 2>/dev/null || true
+        sleep 0.5
+    fi
+done
+
+# ── 5. Launch servers ───────────────────────────────────────────────
 mkdir -p logs
 BACKEND_LOG="logs/backend.log"
 FRONTEND_LOG="logs/frontend.log"
+FLUTTER_LOG="logs/flutter_web.log"
+RUN_FLUTTER=0
 
 _cleanup_done=0
 cleanup() {
@@ -165,6 +202,10 @@ cleanup() {
     if [ -n "${FRONTEND_PID:-}" ] && kill -0 "$FRONTEND_PID" 2>/dev/null; then
         kill "$FRONTEND_PID" 2>/dev/null || true
         wait "$FRONTEND_PID" 2>/dev/null || true
+    fi
+    if [ -n "${FLUTTER_PID:-}" ] && kill -0 "$FLUTTER_PID" 2>/dev/null; then
+        kill "$FLUTTER_PID" 2>/dev/null || true
+        wait "$FLUTTER_PID" 2>/dev/null || true
     fi
     echo "[start] Done."
 }
@@ -186,12 +227,33 @@ echo "[start] Frontend → http://127.0.0.1:${FRONTEND_PORT} (log: $FRONTEND_LOG
     >"$FRONTEND_LOG" 2>&1 &
 FRONTEND_PID=$!
 
-echo ""
-echo "[start] Both servers running. Press Ctrl-C to stop."
-echo "[start] Open: http://127.0.0.1:${FRONTEND_PORT}"
+if command -v flutter >/dev/null 2>&1 && [ -d "dischargeiq_mobile" ]; then
+    RUN_FLUTTER=1
+    echo "[start] Flutter  → http://127.0.0.1:${FLUTTER_WEB_PORT} (log: $FLUTTER_LOG)"
+    (
+        cd "dischargeiq_mobile"
+        flutter run -d chrome --web-port "$FLUTTER_WEB_PORT"
+    ) >"$FLUTTER_LOG" 2>&1 &
+    FLUTTER_PID=$!
+else
+    echo "[start] Flutter  → skipped (install Flutter and ensure ./dischargeiq_mobile exists)"
+fi
 
-# Wait until either child exits or the user hits Ctrl-C.
+echo ""
+echo "[start] Services running. Press Ctrl-C to stop."
+echo "[start] Open Streamlit: http://127.0.0.1:${FRONTEND_PORT}"
+if [ "$RUN_FLUTTER" -eq 1 ]; then
+    echo "[start] Open Flutter:  http://127.0.0.1:${FLUTTER_WEB_PORT}"
+fi
+
+# Wait until backend or Streamlit exits, or the user hits Ctrl-C.
+# Flutter is NOT part of this loop: `flutter run -d chrome` often exits
+# immediately when Chrome/device is missing or the project fails to build.
+# If we waited on FLUTTER_PID, one failed Flutter start would tear down the
+# whole stack right after "Services running."
 # (Avoid `wait -n` — not available in macOS's default bash 3.2.)
-while kill -0 "$BACKEND_PID" 2>/dev/null && kill -0 "$FRONTEND_PID" 2>/dev/null; do
+while true; do
+    kill -0 "$BACKEND_PID" 2>/dev/null || break
+    kill -0 "$FRONTEND_PID" 2>/dev/null || break
     sleep 1
 done

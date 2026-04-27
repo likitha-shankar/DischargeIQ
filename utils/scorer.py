@@ -1,13 +1,14 @@
 """
-utils/scorer.py
-
-Flesch-Kincaid readability scorer for the DischargeIQ pipeline.
-Belongs to: all agents — called after every agent output automatically.
-Dependency: pip install textstat
-
-Every agent output must be scored before being returned to the frontend.
-Target: FK Grade Level <= 6.0 for all patient-facing text.
-Per AMA guidelines, patient health materials should not exceed 6th grade reading level.
+File: utils/scorer.py
+Owner: Deepesh Kumar
+Description: Standalone Flesch-Kincaid helpers for evaluation scripts — computes FK grade,
+  pass/fail against a threshold with human-readable labels, and can score raw PDF text for
+  delta KPIs. Enforces a minimum character length so textstat gets enough words.
+Key functions/classes: fk_score, fk_check, fk_baseline
+Edge cases handled:
+  - Raises ValueError when input text is empty or under ~10 characters (unreliable FK).
+Dependencies: textstat (third-party only — not dischargeiq package imports).
+Called by: Legacy/eval scripts; production agents use dischargeiq/utils/scorer.py instead.
 """
 
 import textstat

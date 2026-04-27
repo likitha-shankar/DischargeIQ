@@ -7,8 +7,8 @@ plain-language patient education at a 6th-grade reading level.
 
 - Python 3.11+
 - API credentials for your chosen **`LLM_PROVIDER`** (see `.env.example`).
-  **All five agents** use the same provider: `openrouter` (default), `openai`,
-  `anthropic`, or `ollama`. For Claude evals, use `anthropic` and set
+  **All agents** use the same provider: `anthropic` (default, Haiku), `openrouter`,
+  `openai`, or `ollama`. For higher-quality Claude runs / evals, set
   **`LLM_MODEL=claude-sonnet-4-20250514`** (undated model ids can 404).
 
 ## Quick start
@@ -28,7 +28,7 @@ Second run launches both servers.
 
 Open `.env` and set:
 
-- `LLM_PROVIDER` — `openrouter` (default), `openai`, `anthropic`, or `ollama`
+- `LLM_PROVIDER` — `anthropic` (default, Haiku), `openrouter`, `openai`, or `ollama`
 - The matching key: `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, or
   `ANTHROPIC_API_KEY` (Ollama needs no key)
 - Optional: `LLM_MODEL` — required to pin Sonnet for `anthropic` (see `.env.example`)
@@ -59,14 +59,23 @@ python dischargeiq/tests/test_integration_hallucination.py
 # 6-case real-world-format stress suite
 python scripts/stress/run_stress_fixtures.py                  # all 6
 python scripts/stress/run_stress_fixtures.py --fixtures 9,14  # subset
+
+# Root integration runners (LLM / real PDFs — manual)
+python tests/test_agent1.py
+python tests/test_agents_1_2.py
+
+# API / DB smoke scripts (manual)
+python tests/manual/test_claude_api.py
+python tests/manual/test_neon_db.py
 ```
 
-Default `pytest` settings live in `pytest.ini` (**verbose**, **skip `slow`**).
+Default `pytest` settings live in `pytest.ini` (**verbose**, **skip `slow`**; default discovery is `dischargeiq/tests/` only).
 
 ## Repo layout
 
 ```
 dischargeiq/       Python package (agents, pipeline, models, prompts)
+tests/             Root-level integration runners + tests/manual/ smoke scripts
 streamlit_app.py   Dashboard frontend
 start.sh / .bat    One-command startup scripts
 requirements.txt   Pinned dependencies

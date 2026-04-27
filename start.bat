@@ -1,4 +1,14 @@
 @echo off
+REM File: start.bat
+REM Owner: Likitha Shankar
+REM Description: Windows dev bootstrap — creates .venv, pip installs requirements,
+REM   validates .env keys for LLM_PROVIDER, starts uvicorn backend in background and
+REM   runs Streamlit in foreground on port 8501.
+REM Usage: start.bat (from repo root, double-click or cmd)
+REM Environment variables required: .env with keys per LLM_PROVIDER (see script output).
+REM Edge cases: Closing the window or stopping Streamlit triggers taskkill on backend
+REM   listener port; Flutter is not started on this path.
+
 REM DischargeIQ - one-command startup for Windows.
 REM
 REM What this does:
@@ -62,7 +72,8 @@ if not exist ".env" (
         echo    * ANTHROPIC_API_KEY   ^(Claude - used by Agents 2-5^)
         echo.
         echo  Depending on LLM_PROVIDER, also set ONE of:
-        echo    * OPENROUTER_API_KEY  ^(if LLM_PROVIDER=openrouter, default^)
+        echo    * ANTHROPIC_API_KEY   ^(if LLM_PROVIDER=anthropic, default^)
+        echo    * OPENROUTER_API_KEY  ^(if LLM_PROVIDER=openrouter^)
         echo    * OPENAI_API_KEY      ^(if LLM_PROVIDER=openai^)
         echo    * ^(nothing^)           ^(if LLM_PROVIDER=ollama^)
         echo.
@@ -77,7 +88,7 @@ if not exist ".env" (
 
 REM Read the required keys from .env via a small Python helper.
 REM This handles quoting and trailing whitespace without a fragile .bat parser.
-for /f "delims=" %%L in ('%PY% -c "from dotenv import dotenv_values; v=dotenv_values('.env'); import sys; sys.stdout.write('LLM_PROVIDER=%%s\nANTHROPIC=%%s\nOPENROUTER=%%s\nOPENAI=%%s' %% (v.get('LLM_PROVIDER','openrouter') or 'openrouter', v.get('ANTHROPIC_API_KEY','') or '', v.get('OPENROUTER_API_KEY','') or '', v.get('OPENAI_API_KEY','') or ''))"') do (
+for /f "delims=" %%L in ('%PY% -c "from dotenv import dotenv_values; v=dotenv_values('.env'); import sys; sys.stdout.write('LLM_PROVIDER=%%s\nANTHROPIC=%%s\nOPENROUTER=%%s\nOPENAI=%%s' %% (v.get('LLM_PROVIDER','anthropic') or 'anthropic', v.get('ANTHROPIC_API_KEY','') or '', v.get('OPENROUTER_API_KEY','') or '', v.get('OPENAI_API_KEY','') or ''))"') do (
     for /f "tokens=1,2 delims==" %%A in ("%%L") do (
         set "%%A=%%B"
     )

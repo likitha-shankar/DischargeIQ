@@ -1,3 +1,12 @@
+<!--
+File: LEARNERS.md
+Owner: Likitha Shankar
+Description: Short learner-facing entry to the repo — status table, core concepts
+  (pipeline, PipelineResponse, FK, partial runs, single LLM provider), minimal run
+  commands, and pointers to README vs CLAUDE for depth.
+Maintained for: Classmates and new contributors before they read CLAUDE.md.
+-->
+
 # DischargeIQ — Learner guide & project status
 
 This file is the **friendly entry point** for anyone learning the codebase or reporting status in class. For deep technical detail aimed at AI tooling, see [`CLAUDE.md`](CLAUDE.md). For install and commands, see [`README.md`](README.md).

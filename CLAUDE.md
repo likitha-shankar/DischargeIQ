@@ -1,3 +1,12 @@
+<!--
+File: CLAUDE.md
+Owner: Likitha Shankar
+Description: Long-form project handbook for AI assistants — architecture, locked Agent 1
+  schema, pipeline contracts, API overview, team DIS ownership, testing map, and strict
+  rules (e.g. no agent-authored commits, no real PHI). Complements README operational steps.
+Maintained for: Course team and Cursor/Claude context; keep "Current project status" accurate.
+-->
+
 # DischargeIQ — Project Context for AI Agents
 
 ## What this project is
@@ -21,7 +30,7 @@ discharge documents.
 ## Current project status (detailed) — for AI assistants
 
 **Last reviewed:** April 2026. Treat this section as the source of truth for
-“what is happening now.” Older sections below (e.g. sprint dates) may be stale.
+“what is happening now.” Older sections below (e.g. dated milestones) may be stale.
 
 ### Where the product stands
 
@@ -39,13 +48,14 @@ discharge documents.
 
 ### LLM and environment configuration
 
-- **Single provider for all five agents:** Every agent reads **`LLM_PROVIDER`**
-  (default **`openrouter`**) via `get_llm_client()` in `dischargeiq/utils/llm_client.py`
+- **Single provider for all agents:** Every agent reads **`LLM_PROVIDER`**
+  (default **`anthropic`**) via `get_llm_client()` in `dischargeiq/utils/llm_client.py`
   (Agent 1 / Agent 2) or `_get_client()` in agents 3–5. There is **no** split where
-  only Agent 1 uses OpenRouter and 2–5 always use Anthropic—switching `.env` switches
-  **every** agent. Token cost jumps when moving to **`anthropic`** for eval.
-- **Anthropic model ID:** Use a **dated** Sonnet id (e.g. **`claude-sonnet-4-20250514`**).
-  Undated aliases can **404**. Set `LLM_MODEL` explicitly in `.env` for Week 5.
+  only one agent uses a different backend—switching `.env` switches **every** agent.
+  Default Anthropic model is **Haiku** (`claude-3-5-haiku-20241022`, cheapest tier);
+  set **`LLM_MODEL=claude-sonnet-4-20250514`** for higher-quality batch evaluation (higher cost).
+- **Anthropic model IDs:** Use **dated** ids. Undated aliases can **404**. Default Haiku
+  is pinned in `llm_client.py`; override with `LLM_MODEL` in `.env` (e.g. Sonnet above).
 - Keys per `.env.example`: `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, **`ANTHROPIC_API_KEY`**
   (required when `LLM_PROVIDER=anthropic`), optional `OLLAMA_BASE_URL`. Missing keys
   raise **`ValueError`** with a clear message from `require_provider_api_key()` rather
@@ -104,11 +114,11 @@ Additional scripts and stress runners are documented in **`README.md`**.
 
 ## Team (Plan B assignments)
 
-- Likitha — Team Lead, Backend + LLM (owns DIS-1, DIS-5, DIS-13, DIS-14, DIS-23)
-- Suchithra — Strong, Frontend + LLM (owns DIS-2, DIS-9, DIS-12, DIS-16, DIS-22, DIS-24)
-- Deepesh — Strong, Anything (owns DIS-4, DIS-6, DIS-8, DIS-10, DIS-17, DIS-21)
-- Rushi — Weak, Anything (owns DIS-7, DIS-15, DIS-19)
-- Manusha — Weak, Data Infra (owns DIS-3, DIS-18)
+- Likitha — Team Lead, Backend + LLM
+- Suchithra — Strong, Frontend + LLM
+- Deepesh — Strong, Anything
+- Rushi — Weak, Anything
+- Manusha — Weak, Data Infra
 
 ## Tech stack
 
@@ -309,12 +319,12 @@ async def analyze_discharge(file: UploadFile = File(...)):
 
 ## Test scripts
 
-- test_agent1.py — runs Agent 1 on all PDFs in /test-data/, prints pass/fail
-- test_agents_1_2.py — end-to-end Agents 1 and 2
-- test_agents_1_2_3.py — end-to-end Agents 1, 2, and 3
-- test_full_pipeline.py — all 5 agents, logs P95 time, must be under 30s
+- `tests/test_agent1.py` — runs Agent 1 on all PDFs in `test-data/`, prints pass/fail (manual: `python tests/test_agent1.py` from repo root).
+- `tests/test_agents_1_2.py` — end-to-end Agents 1 and 2 on `test-data/` (manual: `python tests/test_agents_1_2.py`).
+- `tests/manual/test_claude_api.py` — Anthropic API key smoke (manual: `python tests/manual/test_claude_api.py`).
+- `tests/manual/test_neon_db.py` — Neon/Postgres connectivity smoke (manual: `python tests/manual/test_neon_db.py`).
 
-Hard gate: Agent 1 must pass 8/10 test documents before Agent 2 development starts.
+Automated pytest suites live under `dischargeiq/tests/` (see README). Hard gate: Agent 1 must pass 8/10 test documents before Agent 2 development starts.
 
 ## Neon PostgreSQL schema
 ```sql
@@ -334,11 +344,11 @@ CREATE TABLE discharge_history (
 Never store full PDF text or free-text agent outputs in the database.
 Only store structured fields, hashes, and metadata.
 
-## Historical sprint note (superseded)
+## Historical planning note (superseded)
 
-Early sprint breakdowns (DIS-* tickets, week-1 targets) appeared below in prior
-edits of this file. **Current priorities** are **not** tracked in CLAUDE.md; use
-team planning tools and the section **[Current project status (detailed)](#current-project-status-detailed--for-ai-assistants)** above. DIS-* IDs in the team list are still useful ownership hints.
+Older milestone breakdowns appeared below in prior edits of this file.
+**Current priorities** are **not** tracked in CLAUDE.md; use team planning tools
+and the section **[Current project status (detailed)](#current-project-status-detailed--for-ai-assistants)** above.
 
 ## What a good Agent 2 output looks like (example for heart failure)
 
