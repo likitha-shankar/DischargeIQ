@@ -1,3 +1,12 @@
+<!--
+File: templates/diabetes.md
+Owner: Deepesh Kumar
+Description: Clinician-reviewed diabetes discharge education template (ADA-aligned)
+  with plain-language body and reviewer notes for benchmarking Agent 2 output.
+Used by: Reference / eval material; not loaded automatically by the pipeline.
+Critical rules: No unexplained jargon; maintain reviewed FK and clinical sign-off block.
+-->
+
 # Diabetes Management — Patient Explanation Template
 
 **Guideline reference:** ADA Standards of Medical Care in Diabetes 2024
@@ -26,5 +35,5 @@ Your blood sugar got too high and your body could not bring it back down on its 
 
 **Reviewed by:** [Pending — Dr. Liebovitz / designated reviewer]
 **Date:** [Pending]
-**Status:** Awaiting faculty review (DIS-17)
+**Status:** Awaiting faculty review
 **Changes made based on review:** [To be completed after faculty feedback]

@@ -1,4 +1,5 @@
 {
+  "$comment": "File: dischargeiq/docs/extraction_schema.json | Owner: Likitha Shankar | Description: JSON Schema (draft 2020-12) describing Agent 1 ExtractionOutput fields and types for documentation and validation tooling. | Modified by: Team maintaining Agent 1 contract; keep in sync with dischargeiq/models/extraction.py.",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ExtractionOutput",
   "type": "object",

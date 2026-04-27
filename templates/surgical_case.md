@@ -1,3 +1,12 @@
+<!--
+File: templates/surgical_case.md
+Owner: Deepesh Kumar
+Description: Clinician-reviewed laparoscopic / perioperative discharge template
+  (ACC/ACS-aligned) with patient narrative and reviewer notes for Agent 2 benchmarking.
+Used by: Reference / eval material; not loaded automatically by the pipeline.
+Critical rules: Preserve perioperative safety tone; keep FK and sign-off metadata accurate.
+-->
+
 # Laparoscopic Surgery — Patient Explanation Template
 
 **Guideline reference:** ACC/ACS Perioperative Care Guidelines (2024)
@@ -29,5 +38,5 @@ Your doctor made small cuts in your belly to do the surgery. A tiny camera and s
 
 **Reviewed by:** [Pending — Dr. Liebovitz / designated reviewer]
 **Date:** [Pending]
-**Status:** Awaiting faculty review (DIS-17)
+**Status:** Awaiting faculty review
 **Changes made based on review:** [To be completed after faculty feedback]

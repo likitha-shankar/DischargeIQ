@@ -1,3 +1,12 @@
+<!--
+File: templates/hip_replacement.md
+Owner: Deepesh Kumar
+Description: Clinician-reviewed hip replacement recovery template (AAOS-aligned)
+  with structured patient text and reviewer notes for literacy checks.
+Used by: Reference / eval material; not loaded automatically by the pipeline.
+Critical rules: Maintain post-op precautions tone; keep FK/clinical metadata accurate.
+-->
+
 # Hip Replacement — Patient Explanation Template
 
 **Guideline reference:** AAOS Clinical Practice Guidelines for Total Hip Arthroplasty (2023)
@@ -27,5 +36,5 @@ Your doctor took out your old hip joint and put in a new one. The new joint is m
 
 **Reviewed by:** [Pending — Dr. Liebovitz / designated reviewer]
 **Date:** [Pending]
-**Status:** Awaiting faculty review (DIS-17)
+**Status:** Awaiting faculty review
 **Changes made based on review:** [To be completed after faculty feedback]

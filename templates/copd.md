@@ -1,3 +1,12 @@
+<!--
+File: templates/copd.md
+Owner: Deepesh Kumar
+Description: Clinician-reviewed plain-language COPD discharge education template
+  (GOLD-aligned) with FK grade metadata and reviewer notes for Agent 2 quality reference.
+Used by: Reference / eval material; not loaded automatically by the pipeline.
+Critical rules: Keep patient text at low reading level; guideline citation in header.
+-->
+
 # COPD — Patient Explanation Template
 
 **Guideline reference:** GOLD 2024 Global Strategy for Prevention, Diagnosis and Management of COPD
@@ -27,5 +36,5 @@ COPD is a lung disease that makes it hard to breathe. Your airways get narrow an
 
 **Reviewed by:** [Pending — Dr. Liebovitz / designated reviewer]
 **Date:** [Pending]
-**Status:** Awaiting faculty review (DIS-17)
+**Status:** Awaiting faculty review
 **Changes made based on review:** [To be completed after faculty feedback]

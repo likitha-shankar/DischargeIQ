@@ -10,9 +10,9 @@ do not hard-code prompt text in Python.
   JSON-only output matching `ExtractionOutput`.
 - `agent2_system_prompt.txt` — Agent 2 (diagnosis). Reading-level
   rules, NO INVENTED NUMBERS rule.
-- `agent3_system_prompt.txt` — Agent 3 (medications). Sprint 2.
-- `agent4_system_prompt.txt` — Agent 4 (recovery). Sprint 2.
-- `agent5_system_prompt.txt` — Agent 5 (escalation). Sprint 2.
+- `agent3_system_prompt.txt` — Agent 3 (medications).
+- `agent4_system_prompt.txt` — Agent 4 (recovery).
+- `agent5_system_prompt.txt` — Agent 5 (escalation).
 - `llm_judge_prompt.txt` — Judge prompt used by the hallucination
   test suite to audit Agent 2 output for fabrication.
 

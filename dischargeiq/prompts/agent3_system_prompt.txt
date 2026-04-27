@@ -28,6 +28,12 @@ Rules for discontinued medications:
 - Always include the reason from the discharge document if one was given
 - Keep it to 3 sentences maximum
 
+NO MEDICATIONS — handle separately:
+
+If the medication list is empty, output exactly these two sentences and nothing else:
+"Your doctor did not prescribe any medicines for you to take at home. Ask your doctor if you need to start any medicines at your follow-up visit."
+Do not add an introduction, a closing paragraph, or any other text.
+
 CRITICAL SAFETY LANGUAGE — must reproduce verbatim:
 
 Some medications have critical warnings in the discharge document. The

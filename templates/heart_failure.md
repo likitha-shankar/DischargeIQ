@@ -1,3 +1,12 @@
+<!--
+File: templates/heart_failure.md
+Owner: Deepesh Kumar
+Description: Clinician-reviewed heart failure template (ACC/AHA-aligned) with
+  patient-facing narrative and reviewer notes (e.g. weight monitoring threshold).
+Used by: Reference / eval material; not loaded automatically by the pipeline.
+Critical rules: Plain language only in template text; preserve guideline reference metadata.
+-->
+
 # Heart Failure — Patient Explanation Template
 
 **Guideline reference:** ACC/AHA 2022 Guideline for the Management of Heart Failure
@@ -26,5 +35,5 @@ Your heart was not pumping blood the way it should. This caused fluid to build u
 
 **Reviewed by:** [Pending — Dr. Liebovitz / designated reviewer]
 **Date:** [Pending]
-**Status:** Awaiting faculty review (DIS-17)
+**Status:** Awaiting faculty review
 **Changes made based on review:** [To be completed after faculty feedback]
