@@ -78,6 +78,7 @@ WRITING RULES:
 - Do not use the word "utilize" — use "use"
 - Do not use the word "however" or "therefore"
 - Use "but" and "so" instead
+- Use a maximum of 12 words per sentence. Never join two instructions into one sentence with "and" or "so". Each sentence must be one idea only.
 
 FORMAT:
 - Start each medication block with the medication name on its own line, followed by a colon

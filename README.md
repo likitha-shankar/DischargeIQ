@@ -1,7 +1,14 @@
 # DischargeIQ
 
-Multi-agent system that reads hospital discharge PDFs and generates
-plain-language patient education at a 6th-grade reading level.
+DischargeIQ is a **patient-friendly chatbot** grounded in your discharge
+document, plus an **AI simulation layer** that surfaces missed concepts —
+questions a confused patient would ask that the document does not answer.
+
+Upload your discharge PDF: get plain-language answers to your questions via
+the chat panel, and see what gaps the AI found before you go home. Six
+specialised agents run in sequence: Agent 1 extracts structured data; Agents
+2–5 produce four patient-facing education sections; Agent 6 (AI patient
+simulator) identifies missed concepts and scores document gaps 0–10.
 
 ## Requirements
 
@@ -74,9 +81,19 @@ Default `pytest` settings live in `pytest.ini` (**verbose**, **skip `slow`**; de
 ## Repo layout
 
 ```
-dischargeiq/       Python package (agents, pipeline, models, prompts)
+dischargeiq/
+├── agents/            Agents 1–6 (extraction → education → simulator)
+├── pipeline/          Async orchestrator wiring all agents
+├── models/            Pydantic models (ExtractionOutput, PipelineResponse)
+├── prompts/           System prompts for all 6 agents + LLM judge
+├── utils/             FK scorer, LLM client, warnings, logger
+├── db/                Neon history persistence
+├── tests/             Pytest suites (guardrails, hallucination, corpus)
+├── evaluation/        FK logs, cost estimates, judge results
+└── docs/              Extraction schema reference
 tests/             Root-level integration runners + tests/manual/ smoke scripts
-streamlit_app.py   Dashboard frontend
+streamlit_app.py   6-tab Streamlit dashboard (What Happened / Medications /
+                   Appointments / Warning Signs / Recovery / AI Review)
 start.sh / .bat    One-command startup scripts
 requirements.txt   Pinned dependencies
 .env.example       Env template — copy to .env and fill in keys

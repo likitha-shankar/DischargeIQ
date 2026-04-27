@@ -11,16 +11,26 @@ Maintained for: Course team and Cursor/Claude context; keep "Current project sta
 
 ## What this project is
 
-DischargeIQ is a multi-agent AI system that reads hospital discharge PDFs
-and generates plain-language patient education content. A patient uploads
-a photo or PDF of their discharge document and receives five sections of
-output written at a 6th grade reading level:
+DischargeIQ is two things working together:
 
-1. What Happened to You (diagnosis explanation)
-2. Your Medications Explained (per-drug rationale)
-3. Your Recovery Timeline (week-by-week guide)
-4. Warning Signs: When to Get Help (three-tier escalation decision tree)
-5. Your Discharge Summary Details (structured extraction)
+1. **A patient-friendly chatbot** grounded in the uploaded discharge document.
+   Patients ask plain-language questions; the chat panel answers from the doc.
+2. **An AI simulation layer** that reads the same discharge document and
+   surfaces "missed concepts" — questions a confused patient would ask that
+   the document does not answer — before the patient ever sees the summary.
+
+A patient uploads a PDF of their discharge document and receives output from
+six specialised agents, displayed across six tabs in the Streamlit UI:
+
+1. What Happened to You (Agent 2 — diagnosis explanation)
+2. Your Medications Explained (Agent 3 — per-drug rationale)
+3. Your Recovery Timeline (Agent 4 — week-by-week guide)
+4. Warning Signs: When to Get Help (Agent 5 — three-tier escalation decision tree)
+5. Your Follow-Up Appointments (Agent 1 extraction — sorted, with source citations)
+6. AI Review (Agent 6 — AI patient simulator: gap score 0–10, missed concepts)
+
+The AI surfaces gaps; a human (care coordinator, nurse, or the patient's own
+care team) acts on them. The system never takes clinical responsibility.
 
 This is a graduate course project (CS 595, IIT Chicago, Spring 2026).
 It targets the LOF Patient Engagement pillar. The primary use case is
@@ -35,8 +45,9 @@ discharge documents.
 ### Where the product stands
 
 - **End-to-end pipeline is implemented:** PDF upload → Agent 1 extraction →
-  Agents 2–5 (diagnosis, medication, recovery, escalation) → FK checks →
-  `PipelineResponse` JSON. Orchestration lives in `dischargeiq/pipeline/orchestrator.py`.
+  Agents 2–5 (diagnosis, medication, recovery, escalation) → Agent 6 (AI patient
+  simulator, non-fatal) → FK checks → `PipelineResponse` JSON. Orchestration lives
+  in `dischargeiq/pipeline/orchestrator.py`.
 - **Primary surface for demos:** **Streamlit** (`streamlit_app.py`), started by
   `./start.sh` (or `start.bat` on Windows). Default URL: http://127.0.0.1:8501.
 - **Backend:** FastAPI in `dischargeiq/main.py`, typically http://127.0.0.1:8000.
@@ -76,10 +87,18 @@ discharge documents.
 ### Frontend and tooling
 
 - **Streamlit** is the main MVP UI; it talks to the API (including `/chat` with CORS).
+- **Streamlit UI has 6 tabs:** What Happened / Medications / Appointments /
+  Warning Signs / Recovery / AI Review. The AI Review tab surfaces Agent 6
+  output (gap score bar, missed-concept cards by severity, answered-concept expander).
+  The tab is always visible — Agent 6 runs on every upload (non-fatal fallback on failure).
+- **HITL framing:** The AI Review tab opens with a patient-facing notice that
+  gaps are for discussion with their care team, not medical diagnoses.
 - **iOS / SwiftUI client:** Development is **on hold** for the shared repo.
   The entire **`ios/`** directory is listed in **`.gitignore`** so it stays
   **local-only** until the team turns it back on. Do not assume teammates have
   `ios/` in their clone from Git.
+- **Flutter app (`dischargeiq_mobile/`):** Also on hold and gitignored. Same
+  principle — local-only until the team decides to revive it.
 
 ### Testing
 
@@ -106,8 +125,8 @@ Additional scripts and stress runners are documented in **`README.md`**.
   go **partial** or retry per `llm_client.py`.
 - **Multi-key setup:** New contributors often forget one of `OPENROUTER_*` /
   `OPENAI_*` / `ANTHROPIC_*` depending on which path they test.
-- **No iOS in Git:** Any Swift work lives only in local `ios/` until `.gitignore`
-  changes.
+- **No mobile apps in Git:** `ios/` (SwiftUI) and `dischargeiq_mobile/` (Flutter)
+  are both gitignored and local-only until the team revives them.
 - **No automatic LLM cross-failover:** If `anthropic` is down, agents 2–5 paths
   fail together; the API still returns **partial** with empty sections. Streamlit
   now shows **section-level warnings**; a full provider fallback is not wired.
@@ -140,25 +159,30 @@ dischargeiq/
 ├── .env.example               # ANTHROPIC_API_KEY= and DATABASE_URL=
 ├── .gitignore                 # must include .env
 ├── agents/
-│   ├── extraction_agent.py    # Agent 1
-│   ├── diagnosis_agent.py     # Agent 2
-│   ├── medication_agent.py    # Agent 3
-│   ├── recovery_agent.py      # Agent 4
-│   └── escalation_agent.py    # Agent 5
+│   ├── extraction_agent.py         # Agent 1 — structured extraction
+│   ├── diagnosis_agent.py          # Agent 2 — diagnosis explanation
+│   ├── medication_agent.py         # Agent 3 — medication rationale
+│   ├── recovery_agent.py           # Agent 4 — recovery timeline
+│   ├── escalation_agent.py         # Agent 5 — escalation / warning signs
+│   └── patient_simulator_agent.py  # Agent 6 — AI patient simulator (gap scoring)
 ├── models/
 │   ├── extraction.py          # Pydantic ExtractionOutput model
-│   └── pipeline.py            # Pydantic PipelineResponse model
+│   └── pipeline.py            # Pydantic PipelineResponse + PatientSimulatorOutput
 ├── pipeline/
-│   └── orchestrator.py        # Wires all 5 agents together
+│   └── orchestrator.py        # Async orchestrator — wires all 6 agents
 ├── prompts/
 │   ├── agent1_system_prompt.txt
 │   ├── agent2_system_prompt.txt
 │   ├── agent3_system_prompt.txt
 │   ├── agent4_system_prompt.txt
 │   ├── agent5_system_prompt.txt
+│   ├── agent6_system_prompt.txt
 │   └── llm_judge_prompt.txt
 ├── utils/
 │   ├── scorer.py              # fk_score() and fk_check()
+│   ├── llm_client.py          # get_llm_client(), call_chat_with_fallback()
+│   ├── extraction_scope.py    # Field scoping per agent
+│   ├── logger.py              # Shared logger config
 │   └── warnings.py            # assess_extraction_completeness()
 ├── db/
 │   └── history.py             # save_discharge_history(), get_history_for_session()
@@ -221,6 +245,19 @@ class ExtractionOutput(BaseModel):
 
 ## Pipeline response model
 ```python
+class MissedConcept(BaseModel):
+    question: str
+    answered_by_doc: bool
+    gap_summary: str
+    severity: Literal["critical", "moderate", "minor"]
+
+class PatientSimulatorOutput(BaseModel):
+    missed_concepts: list[MissedConcept]
+    overall_gap_score: int          # 0–10; higher = more gaps
+    simulator_summary: str
+    fk_grade: float
+    passes: bool                    # vs internal FK threshold of 8.0
+
 class PipelineResponse(BaseModel):
     extraction: ExtractionOutput
     diagnosis_explanation: str
@@ -229,7 +266,8 @@ class PipelineResponse(BaseModel):
     escalation_guide: str
     fk_scores: dict
     extraction_warnings: list
-    pipeline_status: str  # "complete" | "complete_with_warnings" | "partial" — never raises an unhandled exception
+    pipeline_status: str            # "complete" | "complete_with_warnings" | "partial"
+    patient_simulator: Optional[PatientSimulatorOutput] = None  # None if Agent 6 skipped/failed
 ```
 
 ## Five target diagnoses

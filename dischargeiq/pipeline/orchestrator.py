@@ -468,7 +468,11 @@ async def _run_pipeline_internal(
             escalation_guide = ""
             pipeline_status = "partial"
 
-    # ── Agent 6 — AI patient simulator (non-fatal) ───────────────────────────
+    # ── Agent 6 — AI patient simulator (non-fatal) ──────────────────────────
+    # Surfaces "missed concepts" — questions a confused patient would ask that
+    # the document does not answer. Runs on every successful pipeline call.
+    # Never fatal: run_patient_simulator_agent() returns a safe fallback on
+    # all error paths so a simulator failure cannot degrade the pipeline status.
     patient_simulator_result = None
     if agent1_succeeded:
         try:

@@ -63,6 +63,14 @@ _PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 _FK_LOG_PATH = Path(__file__).parent.parent / "evaluation" / "fk_log.csv"
 _FK_THRESHOLD = 8.0
 
+_FALLBACK_OUTPUT = PatientSimulatorOutput(
+    missed_concepts=[],
+    overall_gap_score=0,
+    simulator_summary="",
+    fk_grade=0.0,
+    passes=False,
+)
+
 
 # ── Internal helpers ───────────────────────────────────────────────────────────
 
@@ -166,24 +174,38 @@ def _normalize_agent6_raw(raw: str) -> str:
     """
     Strip markdown and noisy formatting before parsing Agent 6 output.
 
-    Removes markdown markers, header lines, and horizontal rules so Q:/SUMMARY
-    patterns match reliably.
+    Removes bold/italic markers, heading lines, horizontal rules, blockquotes,
+    and leading bullet characters so Q:/SUMMARY patterns match reliably across
+    LLM format drift. Also strips the calibration table the prompt includes as
+    a reference guide if the LLM accidentally echoes it back.
     """
     text = raw
+    # Strip bold/italic markers iteratively until stable.
+    # Use word-boundary guards on italic underscores so SCREAMING_SNAKE_CASE
+    # labels like OVERALL_GAP_SCORE are not destroyed.
     prev = None
     while prev != text:
         prev = text
         text = re.sub(r"\*+([^*]+?)\*+", r"\1", text)
+        text = re.sub(r"(?<!\w)_([^_]+?)_(?!\w)", r"\1", text)
+    # Remove the calibration table if echoed back (reference-only section).
+    text = re.sub(
+        r"(?is)GAP SCORE CALIBRATION.*?(?=\nQ\s*[:.]|\nOVERALL_GAP_SCORE|\Z)",
+        "",
+        text,
+    )
     lines_out: list[str] = []
     for line in text.splitlines():
         s = line.strip()
         if s.startswith("#"):
             continue
-        if s.startswith("---"):
+        if re.match(r"^-{3,}$", s):
             continue
         if s.startswith(">"):
             continue
-        if s.startswith("*"):
+        # Strip leading bullet characters but keep the rest of the line.
+        if re.match(r"^[\*\-]\s", s):
+            lines_out.append(s[2:].rstrip())
             continue
         lines_out.append(line.rstrip())
     text = "\n".join(lines_out)
@@ -192,37 +214,74 @@ def _normalize_agent6_raw(raw: str) -> str:
 
 
 def _parse_q_block(chunk: str) -> MissedConcept | None:
-    """Parse one question block (Q: or numbered) into MissedConcept."""
+    """
+    Parse one question block into a MissedConcept.
+
+    Handles common LLM format drift:
+    - ANSWERED line missing → infer from GAP content (N/A → answered, text → not)
+    - Multi-line GAP values → join continuation lines
+    - Inline ANSWERED on the Q: line (e.g. "Q: ... ANSWERED: NO") → extracted
+    """
     chunk = chunk.strip()
     if not chunk:
         return None
     lines = chunk.splitlines()
     question = lines[0].strip()
     question = re.sub(r"^Q\s*[:\.]\s*", "", question, flags=re.I).strip()
+    # Handle inline ANSWERED on the Q line ("Q: ... ANSWERED: NO").
+    inline = re.search(r"\bANSWERED\s*:\s*(YES|NO)\b", question, re.I)
+    inline_answered: str | None = None
+    if inline:
+        inline_answered = inline.group(1).upper()
+        question = question[: inline.start()].strip()
     if not question:
         return None
-    answered_val: str | None = None
-    gap = ""
+
+    answered_val: str | None = inline_answered
+    gap_parts: list[str] = []
     severity_raw = "moderate"
-    for line in lines[1:]:
+
+    i = 1
+    while i < len(lines):
+        line = lines[i]
         if re.match(r"^\s*answered\s*:", line, re.I):
             answered_val = line.split(":", 1)[1].strip().upper()
         elif re.match(r"^\s*gap\s*:", line, re.I):
-            gap = line.split(":", 1)[1].strip()
+            gap_parts.append(line.split(":", 1)[1].strip())
+            # Collect continuation lines (indented or not starting with a label).
+            j = i + 1
+            while j < len(lines):
+                nxt = lines[j].strip()
+                if re.match(r"^\s*(answered|gap|severity|q)\s*:", lines[j], re.I):
+                    break
+                if nxt:
+                    gap_parts.append(nxt)
+                j += 1
+            i = j
+            continue
         elif re.match(r"^\s*severity\s*:", line, re.I):
             severity_raw = line.split(":", 1)[1].strip()
-    has_gap = any(re.match(r"^\s*gap\s*:", ln, re.I) for ln in lines[1:])
-    has_sev = any(re.match(r"^\s*severity\s*:", ln, re.I) for ln in lines[1:])
+        i += 1
+
+    gap = " ".join(gap_parts).strip()
+    has_gap = bool(gap)
+    has_sev = severity_raw != "moderate"
     has_ans = answered_val is not None
+
+    # Reject blocks with no structured labels at all.
     if not has_ans and not has_gap and not has_sev:
         return None
+
     if answered_val is None:
-        answered_by_doc = True
+        # Infer from gap text: "N/A" or empty → answered; real text → not answered.
+        answered_by_doc = not has_gap or gap.strip().upper() == "N/A"
     else:
         tok = answered_val.split()
         answered_by_doc = bool(tok and tok[0] == "YES")
+
     if not gap:
-        gap = "N/A" if answered_by_doc else ""
+        gap = "N/A" if answered_by_doc else "No additional detail provided."
+
     return MissedConcept(
         question=question,
         answered_by_doc=answered_by_doc,
@@ -233,19 +292,39 @@ def _parse_q_block(chunk: str) -> MissedConcept | None:
 
 def _concepts_from_q_body(q_body: str) -> list[MissedConcept]:
     """
-    Split question body on Q: patterns, else numbered fallback; parse blocks.
+    Split question body into blocks and parse each into a MissedConcept.
+
+    Strategy (in priority order):
+    1. Split on explicit Q: / Q. markers — the canonical format.
+    2. Split on "N. Q:" patterns (numbered + Q: on same line).
+    3. Fall back to bare numbered list (1. / 1) prefixes).
+    Return whichever strategy produces the most parsed concepts.
     """
+    _MIN = 2  # accept ≥2 parsed concepts (down from 3 — ER docs can be short)
+
+    def _parse_chunks(chunks: list[str]) -> list[MissedConcept]:
+        return [c for c in (_parse_q_block(ch) for ch in chunks) if c]
+
+    # Strategy 1 — explicit Q: markers.
     parts_q = re.split(r"(?m)^\s*Q\s*[:\.]\s*", q_body)
-    chunks_q = [p.strip() for p in parts_q if p.strip()]
-    concepts_q = [c for c in (_parse_q_block(ch) for ch in chunks_q) if c]
-    if len(concepts_q) >= 3:
+    concepts_q = _parse_chunks([p.strip() for p in parts_q if p.strip()])
+    if len(concepts_q) >= _MIN:
         return concepts_q
+
+    # Strategy 2 — "1. Q:" combined prefix.
+    parts_nq = re.split(r"(?m)^\s*\d+[\.\)]\s*Q\s*[:\.]\s*", q_body)
+    concepts_nq = _parse_chunks([p.strip() for p in parts_nq if p.strip()])
+    if len(concepts_nq) >= _MIN:
+        return concepts_nq
+
+    # Strategy 3 — bare numbered list.
     parts_n = re.split(r"(?m)^\s*\d+[\.\)]\s+", q_body)
-    chunks_n = [p.strip() for p in parts_n if p.strip()]
-    concepts_n = [c for c in (_parse_q_block(ch) for ch in chunks_n) if c]
-    if len(concepts_n) >= 3:
+    concepts_n = _parse_chunks([p.strip() for p in parts_n if p.strip()])
+    if len(concepts_n) >= _MIN:
         return concepts_n
-    return concepts_q if len(concepts_q) >= len(concepts_n) else concepts_n
+
+    # Return whichever gave us the most, even if under minimum.
+    return max([concepts_q, concepts_nq, concepts_n], key=len)
 
 
 def _parse_overall_gap_and_summary(cleaned: str, document_id: str) -> tuple[int, str]:
@@ -323,15 +402,15 @@ def _parse_simulator_response(
     Parse LLM Q/ANSWERED/GAP/SEVERITY blocks into PatientSimulatorOutput.
 
     Computes fk_grade via textstat on gap summaries + simulator summary.
-    Appends fk_log row. Raises ValueError if fewer than 3 questions parsed.
+    Appends fk_log row. Raises ValueError if fewer than 2 questions parsed.
     """
     _ = extraction  # Reserved for future validation against extraction scope.
     cleaned = _normalize_agent6_raw(raw)
     q_body = _split_q_body_from_cleaned(cleaned)
     concepts = _concepts_from_q_body(q_body)
-    if len(concepts) < 3:
+    if len(concepts) < 2:
         raise ValueError(
-            f"Agent 6 parse: fewer than 3 questions parsed, got {len(concepts)}"
+            f"Agent 6 parse: fewer than 2 questions parsed, got {len(concepts)}"
         )
     overall_gap, summary = _parse_overall_gap_and_summary(cleaned, document_id)
     fk_sample = _text_for_fk(concepts, summary)
@@ -413,30 +492,58 @@ def run_patient_simulator_agent(
 
     Data contract:
         Input:  ExtractionOutput from Agent 1.
-        Output: PatientSimulatorOutput — missed_concepts (≥3 parsed questions),
-                overall_gap_score, simulator_summary, fk_grade, passes.
+        Output: PatientSimulatorOutput — missed_concepts, overall_gap_score,
+                simulator_summary, fk_grade, passes.
 
     Args:
         extraction: Validated ExtractionOutput from Agent 1.
         document_id: Source document label for logging and FK log rows.
 
     Returns:
-        PatientSimulatorOutput with missed concepts, gap score, summary, and FK.
-
-    Raises:
-        ValueError: If the LLM returns empty content, the API call fails, or
-            parsing yields fewer than three question blocks.
+        PatientSimulatorOutput on success, or a safe zero-value fallback on all
+        error paths. Never raises — all failures are logged at WARNING level.
     """
-    raw = _fetch_raw_simulator_output(extraction, document_id)
-    if not raw:
-        raise ValueError(
-            f"agent6_patient_simulator: empty completion for '{document_id}'"
+    try:
+        raw = _fetch_raw_simulator_output(extraction, document_id)
+    except Exception as exc:
+        logger.warning(
+            "agent6_patient_simulator fetch failed for '%s': %s — returning fallback",
+            document_id,
+            exc,
         )
+        return _FALLBACK_OUTPUT
+
+    if not raw:
+        logger.warning(
+            "agent6_patient_simulator: empty completion for '%s' — returning fallback",
+            document_id,
+        )
+        return _FALLBACK_OUTPUT
+
     try:
         out = _parse_simulator_response(raw, extraction, document_id)
-    except ValueError:
-        logger.error("agent6_patient_simulator parse failed for '%s'", document_id)
-        raise
+    except ValueError as exc:
+        salvaged_score = 0
+        mo = re.search(r"OVERALL_GAP_SCORE\s*[:\s]+\s*(\d+)", raw, re.I)
+        if mo:
+            try:
+                salvaged_score = max(0, min(10, int(mo.group(1))))
+            except ValueError:
+                pass
+        logger.warning(
+            "agent6_patient_simulator parse failed for '%s' (%s) — returning partial fallback",
+            document_id,
+            exc,
+        )
+        return PatientSimulatorOutput(
+            missed_concepts=[],
+            overall_gap_score=salvaged_score,
+            simulator_summary="",
+            fk_grade=0.0,
+            passes=False,
+        )
+
+    out = out.model_copy(update={"missed_concepts": list(out.missed_concepts)})
     missed = sum(1 for c in out.missed_concepts if not c.answered_by_doc)
     logger.info(
         "agent6_patient_simulator complete '%s' gap_score=%d missed=%d fk=%.2f",

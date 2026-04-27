@@ -1,23 +1,41 @@
 """
-DischargeIQ Streamlit frontend.
-
-Layout (post-redesign):
-  - Teal sticky app header injected into window.parent.document.body
-  - Horizontal tab bar (5 tabs) injected just below the header
-  - Active section content — only the selected tab's section renders
-  - Fixed right-side chat panel (320px) injected into the parent DOM
-  - PDF viewer appears as a full-screen modal overlay, opened when a
-    citation chip or the header "View original document" link is clicked
-
-All three persistent UI elements (header, tab bar, chat panel) live in
-window.parent.document so they survive Streamlit reruns and sit above
-the Streamlit main section. State transitions are routed through
-hidden Streamlit buttons whose clicks are forwarded from the visible
-parent-DOM UI by JS .click(), preserving Streamlit's native button
-state-management semantics.
-
-Depends on: streamlit, requests, dischargeiq.utils.logger.
-Backend must be running at API_BASE_URL (default http://localhost:8000).
+File: streamlit_app.py
+Owner: Likitha Shankar
+Description: Streamlit frontend for DischargeIQ — renders the upload screen,
+  drives the PDF analysis pipeline via POST /analyze to the FastAPI backend,
+  and displays a 6-tab summary screen (What Happened, Medications, Appointments,
+  Warning Signs, Recovery, AI Review). All persistent UI elements (header, tab
+  bar, chat panel, PDF modal) are injected into window.parent.document so they
+  survive Streamlit reruns. State transitions route through hidden Streamlit
+  buttons whose clicks are forwarded from the visible parent-DOM UI via JS
+  .click(), preserving Streamlit's native button state-management semantics.
+Key functions/classes:
+  _render_upload_screen        — upload zone, drag-and-drop, Get Started button
+  _render_summary_screen       — tab host, citation modal, beforeunload warning
+  _render_app_header           — sticky teal header with logo + action buttons
+  _render_tab_bar              — horizontal tab bar injected above main content
+  _inject_global_css           — shared CSS injected once per session
+  _pipeline_loading_visual_html — animated progress bar iframe during analysis
+  _render_section_diagnosis    — What Happened tab (Agent 2 output + DX badges)
+  _render_section_medications  — Medications tab (Agent 3 output + med cards)
+  _render_section_appointments — Appointments tab (sorted, with SVG calendar)
+  _render_section_warning_signs — Warning Signs tab (Agent 5 escalation tiers)
+  _render_section_recovery     — Recovery tab (Agent 4 timeline)
+  _render_section_simulator    — AI Review tab (Agent 6 gap score + concepts)
+  _citation_button             — p.N chip that opens PDF modal at source page
+  _render_appointment_row      — single appointment card with date + citation
+Edge cases handled:
+  - pipeline_status partial/complete_with_warnings: section-level warning banners
+  - Citation modal: opens PDF at correct page; clears pending state after one rerun
+  - Progress bar: indet shuttle → nudge crawl → abort on result; watchdog fallback
+  - beforeunload: warns patient before browser refresh wipes results
+  - Logo click: navigates to What Happened tab from any tab
+  - Agent 6 tab: graceful fallback message if simulator was skipped or failed
+  - Dark-mode toggle on upload screen preserved across reruns via session state
+Dependencies: streamlit, requests, dischargeiq.utils.logger.
+  Backend (FastAPI) must be running at API_BASE_URL (default http://127.0.0.1:8000).
+Called by: start.sh / start.bat via `streamlit run streamlit_app.py`;
+  also compatible with Streamlit Cloud and any reverse-proxy deployment.
 """
 
 import base64
@@ -33,6 +51,7 @@ import streamlit as st
 from dotenv import load_dotenv
 
 from dischargeiq.utils.logger import configure_logging
+from dischargeiq.utils.questions_html import build_copy_button_html, build_questions_section_html
 
 load_dotenv(dotenv_path=".env")
 configure_logging()
@@ -1213,19 +1232,61 @@ def _render_app_header(result: dict) -> None:
   bar.innerHTML = {json.dumps(inner_html)};
   pdoc.body.insertBefore(bar, pdoc.body.firstChild);
 
-  function clickHiddenBtn(label) {{
+  // Forward a click from a parent-DOM button to the hidden Streamlit button
+  // identified by `label`.  Streamlit may not have rendered the marker span
+  // yet (rerun in flight, container not mounted), so we poll up to 20 times
+  // at 50ms intervals = 1s budget.  This is well above the typical Streamlit
+  // mount latency (50-150ms) but still feels instant to a user.
+  function clickHiddenBtn(label, retriesLeft) {{
+    if (retriesLeft === undefined) retriesLeft = 20;
     var marker = pdoc.querySelector(
       'span[data-diq-slot="' + label + '"]'
     );
-    if (!marker) return;
+    if (!marker) {{
+      if (retriesLeft > 0) {{
+        setTimeout(function() {{ clickHiddenBtn(label, retriesLeft - 1); }}, 50);
+      }} else {{
+        console.warn('[diq] hidden button slot not found after retries:', label);
+      }}
+      return;
+    }}
     var markerContainer = marker.closest(
       'div[data-testid="stElementContainer"]'
     );
-    if (!markerContainer) return;
+    if (!markerContainer) {{
+      if (retriesLeft > 0) {{
+        setTimeout(function() {{ clickHiddenBtn(label, retriesLeft - 1); }}, 50);
+      }} else {{
+        console.warn('[diq] marker container not found after retries:', label);
+      }}
+      return;
+    }}
     var btnContainer = markerContainer.nextElementSibling;
-    if (!btnContainer) return;
+    if (!btnContainer) {{
+      if (retriesLeft > 0) {{
+        setTimeout(function() {{ clickHiddenBtn(label, retriesLeft - 1); }}, 50);
+      }} else {{
+        console.warn('[diq] hidden button sibling not found after retries:', label);
+      }}
+      return;
+    }}
     var btn = btnContainer.querySelector('button');
-    if (btn) btn.click();
+    if (btn) {{
+      console.log('[diq] forwarding click to hidden button:', label);
+      // Belt-and-suspenders: .click() works for plain DOM buttons, but some
+      // React-controlled buttons only respond to a dispatched MouseEvent.
+      // Fire both so either path triggers Streamlit's onClick handler.
+      btn.click();
+      try {{
+        btn.dispatchEvent(new MouseEvent('click', {{
+          bubbles: true, cancelable: true, view: window
+        }}));
+      }} catch(e) {{ /* MouseEvent unsupported in very old browsers */ }}
+    }} else if (retriesLeft > 0) {{
+      setTimeout(function() {{ clickHiddenBtn(label, retriesLeft - 1); }}, 50);
+    }} else {{
+      console.warn('[diq] hidden button element not found after retries:', label);
+    }}
   }}
 
   var upBtn = pdoc.getElementById('diq-upload-new-btn');
@@ -1348,19 +1409,61 @@ def _render_tab_bar(active_tab: str) -> None:
     pdoc.body.appendChild(bar);
   }}
 
-  function clickHiddenBtn(label) {{
+  // Forward a click from a parent-DOM button to the hidden Streamlit button
+  // identified by `label`.  Streamlit may not have rendered the marker span
+  // yet (rerun in flight, container not mounted), so we poll up to 20 times
+  // at 50ms intervals = 1s budget.  This is well above the typical Streamlit
+  // mount latency (50-150ms) but still feels instant to a user.
+  function clickHiddenBtn(label, retriesLeft) {{
+    if (retriesLeft === undefined) retriesLeft = 20;
     var marker = pdoc.querySelector(
       'span[data-diq-slot="' + label + '"]'
     );
-    if (!marker) return;
+    if (!marker) {{
+      if (retriesLeft > 0) {{
+        setTimeout(function() {{ clickHiddenBtn(label, retriesLeft - 1); }}, 50);
+      }} else {{
+        console.warn('[diq] hidden button slot not found after retries:', label);
+      }}
+      return;
+    }}
     var markerContainer = marker.closest(
       'div[data-testid="stElementContainer"]'
     );
-    if (!markerContainer) return;
+    if (!markerContainer) {{
+      if (retriesLeft > 0) {{
+        setTimeout(function() {{ clickHiddenBtn(label, retriesLeft - 1); }}, 50);
+      }} else {{
+        console.warn('[diq] marker container not found after retries:', label);
+      }}
+      return;
+    }}
     var btnContainer = markerContainer.nextElementSibling;
-    if (!btnContainer) return;
+    if (!btnContainer) {{
+      if (retriesLeft > 0) {{
+        setTimeout(function() {{ clickHiddenBtn(label, retriesLeft - 1); }}, 50);
+      }} else {{
+        console.warn('[diq] hidden button sibling not found after retries:', label);
+      }}
+      return;
+    }}
     var btn = btnContainer.querySelector('button');
-    if (btn) btn.click();
+    if (btn) {{
+      console.log('[diq] forwarding click to hidden button:', label);
+      // Belt-and-suspenders: .click() works for plain DOM buttons, but some
+      // React-controlled buttons only respond to a dispatched MouseEvent.
+      // Fire both so either path triggers Streamlit's onClick handler.
+      btn.click();
+      try {{
+        btn.dispatchEvent(new MouseEvent('click', {{
+          bubbles: true, cancelable: true, view: window
+        }}));
+      }} catch(e) {{ /* MouseEvent unsupported in very old browsers */ }}
+    }} else if (retriesLeft > 0) {{
+      setTimeout(function() {{ clickHiddenBtn(label, retriesLeft - 1); }}, 50);
+    }} else {{
+      console.warn('[diq] hidden button element not found after retries:', label);
+    }}
   }}
 
   bar.querySelectorAll('.diq-tab').forEach(function(btn) {{
@@ -1796,6 +1899,12 @@ def _render_section_medications(result: dict) -> None:
         unsafe_allow_html=True,
     )
 
+    _render_agent6_gap_callout(
+        result,
+        ["medication", "medicine", "drug", "dose", "dosage", "pill",
+         "tablet", "inhaler", "inject", "insulin", "prescription", "refill"],
+    )
+
     if not medications:
         st.caption("No medications found in the document.")
         return
@@ -2173,6 +2282,12 @@ def _render_section_warning_signs(result: dict) -> None:
         "emergencies, call **911** (or your local emergency number)."
     )
 
+    _render_agent6_gap_callout(
+        result,
+        ["symptom", "emergency", "911", "er ", "warning", "sign", "fever",
+         "pain", "breathe", "bleeding", "swelling", "dizzy", "chest", "call"],
+    )
+
     if not flags and not escalation:
         st.caption("No emergency warning signs listed in the document.")
         return
@@ -2274,6 +2389,55 @@ def _render_section_recovery(result: dict) -> None:
         _empty_generation_message(result, "Your recovery timeline")
 
 
+# ── Agent 6 cross-tab gap callout ────────────────────────────────────────────
+
+def _render_agent6_gap_callout(result: dict, topic_keywords: list[str]) -> None:
+    """
+    Render a small Agent 6 callout if any unanswered critical/moderate concept
+    matches the given topic keywords (e.g. ["medication", "drug", "dose"]).
+
+    Called at the top of relevant tabs (Medications, Warning Signs) so the
+    patient sees related gaps in context rather than only in the AI Review tab.
+
+    Args:
+        result:         PipelineResponse dict.
+        topic_keywords: Lowercase strings; a concept matches if any keyword
+                        appears in the question or gap_summary text.
+    """
+    sim = result.get("patient_simulator")
+    if not sim:
+        return
+    concepts = sim.get("missed_concepts") or []
+    relevant = [
+        c for c in concepts
+        if not c.get("answered_by_doc", True)
+        and c.get("severity") in ("critical", "moderate")
+        and any(
+            kw in (c.get("question", "") + " " + c.get("gap_summary", "")).lower()
+            for kw in topic_keywords
+        )
+    ]
+    if not relevant:
+        return
+    items_html = "".join(
+        f'<li style="margin-bottom:3px;">{_clean_str(c.get("question",""))}</li>'
+        for c in relevant[:3]
+    )
+    st.markdown(
+        f'<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;'
+        f'padding:10px 14px;margin-bottom:14px;">'
+        f'<div style="font-size:0.78rem;font-weight:700;color:#78350F;margin-bottom:4px;">'
+        f'AI Review flagged {len(relevant)} unanswered question'
+        f'{"s" if len(relevant) > 1 else ""} in this area</div>'
+        f'<ul style="margin:0;padding-left:18px;font-size:0.82rem;color:#92400E;">'
+        f'{items_html}</ul>'
+        f'<div style="font-size:0.75rem;color:#B45309;margin-top:6px;">'
+        f'See the <em>AI Review</em> tab for full details.</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
 # ── Section: AI Patient Simulator (Agent 6) ──────────────────────────────────
 
 _SIM_SEVERITY_COLORS = {
@@ -2303,49 +2467,72 @@ def _render_section_simulator(result: dict) -> None:
 
     if not sim:
         st.info(
-            "Agent 6 (AI patient simulator) did not run for this document. "
-            "This can happen when the agent is skipped, timed out, or the "
-            "pipeline ran in partial mode. Re-analyze the document to retry."
+            "The AI gap finder did not run for this document. "
+            "This can happen when the pipeline ran in partial mode or the agent timed out. "
+            "Re-analyze the document to retry."
         )
         return
 
+    # ── Human-in-the-loop notice ───────────────────────────────────────────────
+    st.markdown(
+        '<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;'
+        'padding:12px 16px;margin-bottom:10px;font-size:0.88rem;color:#78350F;">'
+        '<strong>For you to bring up with your care team:</strong> The AI noticed '
+        'questions your discharge document may not fully answer. These are not '
+        'medical diagnoses — bring them up with your nurse, doctor, or care '
+        'coordinator before you go home.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<p style="font-size:0.78rem;color:#94A3B8;margin-top:2px;margin-bottom:16px;">'
+        'Care coordinators: run this before the patient leaves to catch gaps in the '
+        'discharge instructions before they go home.'
+        '</p>',
+        unsafe_allow_html=True,
+    )
+
     # ── Overall gap score ──────────────────────────────────────────────────────
     gap_score = int(sim.get("overall_gap_score", 0))
-    summary = _clean_str(sim.get("simulator_summary", ""))
+    summary    = _clean_str(sim.get("simulator_summary", ""))
 
-    # Colour the score bar: green ≤3, amber 4-6, red ≥7
     if gap_score <= 3:
-        bar_color = "#1D9E75"
-        score_label = "Low gap"
+        bar_color   = "#1D9E75"
+        score_label = "Low gap — document covers most patient needs"
     elif gap_score <= 6:
-        bar_color = "#D97706"
-        score_label = "Moderate gap"
+        bar_color   = "#D97706"
+        score_label = "Moderate gap — patient likely has unanswered questions"
     else:
-        bar_color = "#C0392B"
-        score_label = "High gap"
+        bar_color   = "#C0392B"
+        score_label = "High gap — critical information may be missing"
 
-    bar_pct = gap_score * 10  # 0-100
+    bar_pct = gap_score * 10
     st.markdown(
-        f'<div style="margin:10px 0 4px;font-size:0.8rem;color:#64748B;font-weight:600;">'
-        f'OVERALL GAP SCORE — {score_label}</div>'
-        f'<div style="background:#E5E7EB;border-radius:6px;height:10px;overflow:hidden;">'
+        f'<div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;'
+        f'padding:16px 20px;margin-bottom:16px;">'
+        f'<div style="font-size:0.75rem;color:#64748B;font-weight:700;'
+        f'text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">'
+        f'Overall Gap Score</div>'
+        f'<div style="display:flex;align-items:center;gap:14px;">'
+        f'<div style="font-size:2.2rem;font-weight:800;color:{bar_color};'
+        f'line-height:1;">{gap_score}'
+        f'<span style="font-size:1rem;color:#94A3B8;font-weight:400;"> / 10</span></div>'
+        f'<div style="flex:1;">'
+        f'<div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;">'
         f'<div style="width:{bar_pct}%;height:100%;background:{bar_color};'
-        f'border-radius:6px;transition:width 0.4s;"></div></div>'
-        f'<div style="font-size:1.5rem;font-weight:700;color:{bar_color};'
-        f'margin-top:4px;">{gap_score}<span style="font-size:0.9rem;color:#64748B;'
-        f'font-weight:400;"> / 10</span></div>',
+        f'border-radius:6px;"></div></div>'
+        f'<div style="font-size:0.8rem;color:{bar_color};font-weight:600;margin-top:4px;">'
+        f'{score_label}</div></div></div></div>',
         unsafe_allow_html=True,
     )
 
     if summary:
         st.markdown(
-            f'<div style="background:#F8FAFC;border-left:3px solid #CBD5E1;'
-            f'padding:10px 14px;border-radius:4px;margin:12px 0;'
-            f'font-size:0.88rem;color:#374151;">{summary}</div>',
+            f'<div style="background:#F0FDF9;border-left:3px solid #1D9E75;'
+            f'padding:10px 14px;border-radius:4px;margin-bottom:16px;'
+            f'font-size:0.88rem;color:#0F4C3A;">{summary}</div>',
             unsafe_allow_html=True,
         )
-
-    st.markdown("---")
 
     # ── Missed concepts ────────────────────────────────────────────────────────
     concepts = sim.get("missed_concepts") or []
@@ -2353,11 +2540,31 @@ def _render_section_simulator(result: dict) -> None:
         st.caption("No concept questions returned by the simulator.")
         return
 
-    gaps = [c for c in concepts if not c.get("answered_by_doc", True)]
+    gaps     = [c for c in concepts if not c.get("answered_by_doc", True)]
     answered = [c for c in concepts if c.get("answered_by_doc", True)]
 
+    # Severity breakdown pill row.
+    n_critical = sum(1 for c in gaps if (c.get("severity") or "") == "critical")
+    n_moderate = sum(1 for c in gaps if (c.get("severity") or "") == "moderate")
+    n_minor    = sum(1 for c in gaps if (c.get("severity") or "") == "minor")
+
+    def _pill(count: int, label: str, color: str) -> str:
+        if not count:
+            return ""
+        return (
+            f'<span style="font-size:0.72rem;font-weight:700;color:{color};'
+            f'background:rgba(0,0,0,0.05);border-radius:20px;padding:2px 10px;'
+            f'margin-right:6px;">{count} {label}</span>'
+        )
+
     if gaps:
+        pills = (
+            _pill(n_critical, "critical", "#C0392B")
+            + _pill(n_moderate, "moderate", "#D97706")
+            + _pill(n_minor, "minor", "#1E3A5F")
+        )
         st.markdown(
+            f'<div style="margin-bottom:10px;">{pills}</div>'
             f'<div style="font-size:0.8rem;font-weight:700;color:#64748B;'
             f'text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">'
             f'Questions the document did not fully answer ({len(gaps)})</div>',
@@ -2370,13 +2577,13 @@ def _render_section_simulator(result: dict) -> None:
             )
             question = _clean_str(concept.get("question", ""))
             gap_text = _clean_str(concept.get("gap_summary", ""))
-            badge = severity.upper()
+            badge    = severity.upper()
             st.markdown(
                 f'<div style="background:{bg_col};border:1px solid {bdr_col};'
                 f'border-radius:8px;padding:12px 16px;margin-bottom:8px;">'
                 f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
                 f'<span style="font-size:0.65rem;font-weight:700;color:{txt_col};'
-                f'background:rgba(0,0,0,0.06);border-radius:4px;padding:1px 6px;">'
+                f'background:rgba(0,0,0,0.07);border-radius:4px;padding:1px 7px;">'
                 f'{badge}</span>'
                 f'<span style="font-size:0.9rem;font-weight:600;color:{txt_col};">'
                 f'{question}</span></div>'
@@ -2390,13 +2597,20 @@ def _render_section_simulator(result: dict) -> None:
                 unsafe_allow_html=True,
             )
 
+    # ── Questions to bring to your care team ──────────────────────────────────
+    questions_html = build_questions_section_html(gaps)
+    if questions_html:
+        st.markdown(questions_html, unsafe_allow_html=True)
+        st.components.v1.html(build_copy_button_html(gaps), height=48, scrolling=False)
+
     if answered:
         with st.expander(f"Questions the document answered ({len(answered)})", expanded=False):
             for concept in answered:
                 q = _clean_str(concept.get("question", ""))
                 st.markdown(
-                    f'<div style="font-size:0.85rem;color:#64748B;padding:4px 0;'
-                    f'border-bottom:1px solid #F1F5F9;">✓ {q}</div>',
+                    f'<div style="font-size:0.85rem;color:#64748B;padding:5px 0;'
+                    f'border-bottom:1px solid #F1F5F9;">'
+                    f'<span style="color:#1D9E75;margin-right:6px;">✓</span>{q}</div>',
                     unsafe_allow_html=True,
                 )
 
@@ -3130,7 +3344,7 @@ def _render_upload_screen() -> None:
     DischargeIQ
   </span>
   <div style="display:flex;align-items:center;gap:10px;">
-    <span style="font-size:11px;color:{sub_col};">Patient education only</span>
+    <span style="font-size:11px;color:{sub_col};">Patient chatbot · AI gap finder</span>
     <div title="{toggle_title_text}"
          style="display:flex;background:{pill_bg_col};border-radius:8px;
                 overflow:hidden;border:0.5px solid {pill_border_col};flex-shrink:0;">
@@ -3542,6 +3756,7 @@ def _inject_guided_tour() -> None:
         # replaced with the literal "true"/"false" so the same iframe both
         # tears down any prior Driver.js DOM nodes and re-injects the tour.
         st.session_state[_S_TOUR_REPLAY] = False
+        logger.info("Take Tour: force_replay=True consumed, injecting tour")
     force_replay_literal = "true" if force_replay else "false"
 
     tour_html = """<!DOCTYPE html><html><head><script>
@@ -3550,14 +3765,14 @@ def _inject_guided_tour() -> None:
   var win  = window.parent;
   var FORCE_REPLAY = __DIQ_FORCE_REPLAY__;
 
-  // Optional debug logging — enable by appending ?diqDebug=1 to the URL.
-  var DEBUG = false;
-  try { DEBUG = /[?&]diqDebug=1/.test(win.location.search); } catch(e) {}
+  // Verbose logging during Take-Tour debugging. Always emits when the tour
+  // iframe runs so we can trace the full chain from click forwarding to
+  // driverObj.drive() in the browser console without setting any flag.
   function log() {
-    if (!DEBUG) return;
     try { console.log.apply(console, ['[diq tour]'].concat([].slice.call(arguments))); }
     catch(e) {}
   }
+  log('iframe IIFE running, FORCE_REPLAY=' + __DIQ_FORCE_REPLAY__);
 
   if (FORCE_REPLAY) {
     // The user clicked "Take tour": clear the one-shot completion flag so
@@ -3623,7 +3838,15 @@ def _inject_guided_tour() -> None:
   }
 
   function driverLoaded() {
+    // The v1.3.1 IIFE bundle exposes the driver function TWO levels deep:
+    //   window.driver = {} (placeholder)
+    //   window.driver.js = the IIFE module
+    //   window.driver.js.driver = the function we want
+    // Earlier v1.x IIFEs used window.driver.driver directly, and even older
+    // builds used window.driver as a function.  All three checks stay so the
+    // resolver survives a CDN URL bump.
     return !!(
+      (win.driver && win.driver.js && typeof win.driver.js.driver === 'function') ||
       (win.driver && typeof win.driver === 'object' && typeof win.driver.driver === 'function') ||
       (typeof win.driver === 'function') ||
       (win.Driver && typeof win.Driver === 'function')
@@ -3662,33 +3885,46 @@ def _inject_guided_tour() -> None:
 
   ensureCss();
   ensureThemeStyles();
+  log('css and theme injected; waiting 600ms before driver load');
   // Small delay before the first ensureDriverLoaded call so Streamlit has
   // finished mounting the tab bar / chat panel that the tour anchors to.
   setTimeout(function() {
+    log('600ms timeout fired; calling ensureDriverLoaded');
     ensureDriverLoaded(function() {
-      log('starting tour, FORCE_REPLAY=' + FORCE_REPLAY + ', driver loaded=' + driverLoaded());
+      log('driver loaded callback fired; starting tour');
       startTour();
     });
   }, 600);
 
   function startTour() {
-    // Resolve the correct global for Driver.js v1.x IIFE bundle.
+    log('startTour() entered; resolving driver global');
+    // Resolve the correct global for Driver.js v1.x IIFE bundle.  Checked in
+    // priority order — the v1.3.1 path wins for the jsDelivr URL we serve.
     var driverFn = null;
-    if (win.driver && typeof win.driver === 'object' && typeof win.driver.driver === 'function') {
-      driverFn = win.driver.driver;    // v1.x IIFE: { driver: fn }
+    if (win.driver && win.driver.js && typeof win.driver.js.driver === 'function') {
+      driverFn = win.driver.js.driver;  // v1.3.1 IIFE: window.driver.js.driver
+      log('driver resolved via win.driver.js.driver');
+    } else if (win.driver && typeof win.driver === 'object' && typeof win.driver.driver === 'function') {
+      driverFn = win.driver.driver;     // earlier v1.x IIFE: { driver: fn }
+      log('driver resolved via win.driver.driver');
     } else if (typeof win.driver === 'function') {
-      driverFn = win.driver;            // older API
+      driverFn = win.driver;             // older API
+      log('driver resolved via win.driver');
     } else if (win.Driver && typeof win.Driver === 'function') {
       driverFn = win.Driver;
+      log('driver resolved via win.Driver');
     }
     if (!driverFn) {
-      log('giving up — driver function not found');
+      console.error('[diq tour] giving up — driver function not found on window');
       return;
     }
 
     var steps = buildSteps(pdoc);
     log('built ' + steps.length + ' visible steps');
-    if (!steps.length) return;
+    if (!steps.length) {
+      console.error('[diq tour] no visible steps — dropping tour');
+      return;
+    }
 
     var driverObj = driverFn({
       animate:              true,

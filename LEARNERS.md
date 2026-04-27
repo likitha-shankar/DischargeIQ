@@ -18,11 +18,12 @@ This file is the **friendly entry point** for anyone learning the codebase or re
 | Area | What it is | Status |
 |------|------------|--------|
 | **Backend** | FastAPI app, `/analyze` PDF upload, multi-agent pipeline | Core path implemented; depends on `.env` keys and provider quotas |
-| **Agents 1–5** | Extract → 4 education sections + FK checks | Implemented under `dischargeiq/agents/` and `dischargeiq/pipeline/` |
-| **Web UI** | Streamlit dashboard | Run via `./start.sh` → http://127.0.0.1:8501 |
+| **Agents 1–6** | Extract → 4 education sections + FK checks + AI patient simulator | Implemented under `dischargeiq/agents/` and `dischargeiq/pipeline/` |
+| **Web UI** | Streamlit dashboard — 6 tabs (What Happened, Medications, Appointments, Warning Signs, Recovery, AI Review) | Run via `./start.sh` → http://127.0.0.1:8501 |
 | **API** | Uvicorn | Default http://127.0.0.1:8000 |
 | **Tests** | Integration / smoke tests | See `README.md` and `dischargeiq/tests/` |
 | **iOS app** | SwiftUI client (was planned for `ios/`) | **On hold**; `ios/` is in `.gitignore` (local-only until revived) |
+| **Flutter app** | Cross-platform client (`dischargeiq_mobile/`) | **On hold**; `dischargeiq_mobile/` is in `.gitignore` (local-only until revived) |
 
 **Blockers you might hit:** missing or invalid API keys, provider **429** rate limits (e.g. free tier), or local LLM not running if using Ollama.
 
@@ -30,11 +31,12 @@ This file is the **friendly entry point** for anyone learning the codebase or re
 
 ## What you are learning (concepts)
 
-1. **Pipeline** — A PDF goes in; **Agent 1** extracts structured facts; **Agents 2–5** turn those into plain-language sections at a controlled reading level.
-2. **`PipelineResponse`** — The JSON shape the API returns (diagnosis text, medication rationale, recovery, escalation, extraction details, warnings, status).
-3. **FK (Flesch–Kincaid)** — Readability scoring used as a guardrail; scores appear in responses as `fk_scores`.
-4. **Partial runs** — If one step fails (e.g. rate limit), the pipeline may still return a **partial** result with warnings; the UI surfaces that.
-5. **One LLM provider for all agents** — `LLM_PROVIDER` in `.env` applies to every agent (not “Agent 1 only”). For Claude, pin `LLM_MODEL=claude-sonnet-4-20250514`.
+1. **Two-pillar product** — DischargeIQ is a **patient chatbot** (grounded Q&A via the floating chat panel) plus an **AI simulation layer** (Agent 6) that surfaces "missed concepts" — gaps in the discharge document a confused patient would ask about. The AI flags gaps; a human care team acts on them.
+2. **Pipeline** — A PDF goes in; **Agent 1** extracts structured facts; **Agents 2–5** turn those into plain-language sections at a controlled reading level; **Agent 6** simulates a patient reading the document and surfaces unanswered questions (gap score 0–10, always runs on every upload).
+3. **`PipelineResponse`** — The JSON shape the API returns (diagnosis text, medication rationale, recovery, escalation, extraction details, warnings, status, and `patient_simulator` output from Agent 6).
+4. **FK (Flesch–Kincaid)** — Readability scoring used as a guardrail; scores appear in responses as `fk_scores`.
+5. **Partial runs** — If one step fails (e.g. rate limit), the pipeline may still return a **partial** result with warnings; the UI surfaces that.
+6. **One LLM provider for all agents** — `LLM_PROVIDER` in `.env` applies to every agent (not “Agent 1 only”). For Claude, pin `LLM_MODEL=claude-sonnet-4-20250514`.
 
 ---
 

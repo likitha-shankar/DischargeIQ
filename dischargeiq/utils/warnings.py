@@ -81,7 +81,11 @@ def assess_extraction_completeness(extraction: ExtractionOutput) -> dict:
                 "specific list in this PDF."
             )
         else:
-            critical_warnings.append("No medications extracted.")
+            # Advisory, not critical: ER documents (contusions, lacerations,
+            # minor visits) legitimately prescribe no medications. Critical
+            # non-discharge detection relies on missing diagnosis + red-flags
+            # (the two-critical threshold in _likely_not_discharge_summary).
+            advisory_warnings.append("No medications extracted.")
     if not extraction.red_flag_symptoms:
         critical_warnings.append("No red-flag symptoms extracted.")
 

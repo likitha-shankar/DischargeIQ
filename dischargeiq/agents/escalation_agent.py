@@ -346,7 +346,10 @@ def run_escalation_agent(
         except anthropic.APIError as e:
             logger.error("Agent 5 API call failed for '%s': %s", document_id, e)
             raise
-        escalation_text = response.content[0].text.strip()
+        # Guard: Anthropic occasionally returns an empty content array on
+        # transient errors that don't raise.  Empty string flows through the
+        # FK check below and surfaces as a normal empty-output failure.
+        escalation_text = response.content[0].text.strip() if response.content else ""
 
     # FK check. Safety output must
     # be legible at a 6th-grade reading level; a failing score means the

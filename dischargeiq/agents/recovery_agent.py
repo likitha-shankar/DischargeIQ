@@ -294,7 +294,10 @@ def run_recovery_agent(
         except anthropic.APIError as e:
             logger.error("Agent 4 API call failed for '%s': %s", document_id, e)
             raise
-        recovery_text = response.content[0].text.strip()
+        # Guard: Anthropic occasionally returns an empty content array on
+        # transient errors that don't raise.  Empty string flows through the
+        # FK check below and surfaces as a normal empty-output failure.
+        recovery_text = response.content[0].text.strip() if response.content else ""
 
     # FK check.
     fk_result = fk_check(recovery_text)

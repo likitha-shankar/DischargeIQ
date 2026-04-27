@@ -212,6 +212,22 @@ def call_chat_with_fallback(
                 max_tokens=max_tokens,
                 messages=messages,
             )
+            # Guard against empty `choices` arrays (rare but seen on some
+            # OpenRouter free-tier responses where the upstream model rejects
+            # the call without raising an HTTP error).  Without this we
+            # IndexError outside the try block in callers.
+            if not response.choices:
+                if provider == "openrouter" and attempt < max_attempts:
+                    logger.warning(
+                        "%s empty choices array (attempt %d/%d) for '%s' — retrying",
+                        agent_name, attempt, max_attempts, document_id,
+                    )
+                    time.sleep(float(attempt * 2))
+                    continue
+                raise ValueError(
+                    f"{agent_name}: empty choices for '{document_id}' "
+                    f"(provider={provider}, model={model_name})"
+                )
             content = response.choices[0].message.content
             if not content:
                 # OpenRouter free routing sometimes returns empty content when
