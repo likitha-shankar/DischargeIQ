@@ -1,18 +1,13 @@
 """
-Stress-test PDF generator for DischargeIQ Agent 1 evaluation.
-
-Creates 4 synthetic discharge documents that simulate real-world formatting
-problems not present in the clean test-data/ PDFs:
-
-  messy_01.pdf  --  Narrative prose, no section headers, medications buried inline
-  messy_02.pdf  --  Table-only format (Drug|Dose|Instructions, Follow-up table)
-  messy_03.pdf  --  Heavy medical abbreviations, no full words
-  messy_04.pdf  --  OCR-style character errors and inconsistent spacing
-
-All content is fully synthetic. No real patient data.
-
-Run from the project root:
-    python test-data/stress-test/generate_stress_pdfs.py
+File: test-data/stress-test/generate_stress_pdfs.py
+Owner: Likitha Shankar
+Description: fpdf2 generator for messy_01–04.pdf — narrative-only, table-only, heavy-abbrev,
+  and OCR-noise synthetic discharges to torture Agent 1 parsing beyond clean fixtures.
+Key functions/classes: _new_pdf, per-fixture builder functions
+Edge cases handled:
+  - Outputs into test-data/stress-test/; overwrites prior PDFs; no PHI.
+Dependencies: fpdf2
+Called by: Manual: python test-data/stress-test/generate_stress_pdfs.py
 """
 
 from pathlib import Path

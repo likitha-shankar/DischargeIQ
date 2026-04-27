@@ -1,11 +1,14 @@
 """
-DIS-1 smoke test: verify Neon PostgreSQL connectivity.
-
-Connects to the Neon database, creates the discharge_history table if it
-does not exist, and verifies the table is accessible.
-
-Run:  source .venv/bin/activate && python test_neon_db.py
-Requires: DATABASE_URL set in .env or environment.
+File: tests/manual/test_neon_db.py
+Owner: Likitha Shankar
+Description: Asyncpg smoke test against DATABASE_URL — connects to Neon (or any
+  Postgres), ensures discharge_history exists (creates from schema if missing), and
+  verifies readability for local DB setup debugging.
+Key functions/classes: run_neon_db_smoke, main
+Edge cases handled:
+  - Prints clear error when DATABASE_URL unset; closes connection in finally.
+Dependencies: asyncpg, dotenv
+Called by: Manual: ``python tests/manual/test_neon_db.py`` from repo root.
 """
 
 import asyncio
@@ -18,7 +21,7 @@ import asyncpg
 load_dotenv()
 
 
-async def test_neon_connection():
+async def run_neon_db_smoke():
     """
     Connect to Neon PostgreSQL, create the discharge_history table, and verify it exists.
 
@@ -76,4 +79,4 @@ async def test_neon_connection():
 
 
 if __name__ == "__main__":
-    asyncio.run(test_neon_connection())
+    asyncio.run(run_neon_db_smoke())

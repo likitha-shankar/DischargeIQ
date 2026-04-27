@@ -2,7 +2,7 @@
 Integration + hallucination test for Agent 1 (extraction) and Agent 2
 (diagnosis explanation).
 
-Owner: Likitha | Sprint 2
+Owner: Likitha
 
 Generates 8 synthetic discharge PDFs with fully known ground truth,
 runs the real `dischargeiq.pipeline.orchestrator.run_pipeline()` end to
@@ -19,7 +19,7 @@ Exits 0 on PASS, 1 on FAIL. Also writes a per-case report to stdout
 and detailed diffs to the existing session log file
 (logs/session_YYYYMMDD_HHMMSS.log) via the project logger.
 
-Dependencies (added to requirements.txt in this sprint):
+Dependencies (added to requirements.txt for this test suite):
     - reportlab   — synthetic PDF generation
     - deepdiff    — pretty diffs in debug log only (not in gate path)
 """

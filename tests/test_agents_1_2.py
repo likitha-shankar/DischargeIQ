@@ -1,47 +1,42 @@
 """
-test_agents_1_2.py
-
-Integration test for Agent 1 (Extraction) + Agent 2 (Diagnosis Explanation).
-DIS-8 acceptance criteria: confirms Agents 1 and 2 running end-to-end
-on multiple documents with FK scores logged.
-
-Usage:
-    python test_agents_1_2.py
-
-Requirements:
-    - ANTHROPIC_API_KEY set in .env
-    - GOOGLE_STUDIO_API_KEY set in .env (for Agent 1 / Gemini)
-    - test-data/ directory with synthetic discharge PDFs from DIS-3
-
-Per CLAUDE.md: do NOT run git commit, push, or add from this script.
-Review the output, then the human commits manually.
+File: tests/test_agents_1_2.py
+Owner: Deepesh Kumar
+Description: Manual integration runner that walks PDFs under test-data/, runs
+  extract_text_from_pdf + run_extraction_agent then run_diagnosis_agent, and prints
+  per-file outcomes for Agent 1→2 debugging (not pytest-discovered by default).
+Key functions/classes: run_tests
+Edge cases handled:
+  - Skips non-PDF files; continues on per-file failures while tallying results.
+Dependencies: dischargeiq.agents.extraction_agent, dischargeiq.agents.diagnosis_agent, dotenv.
+Called by: ``python tests/test_agents_1_2.py`` from repo root (or ``python -m tests.test_agents_1_2``).
 """
 
 import os
 import sys
 from pathlib import Path
+
 from dotenv import load_dotenv
 
-load_dotenv()
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_REPO_ROOT))
 
-# Allow running from repo root
-sys.path.insert(0, str(Path(__file__).parent))
+load_dotenv(_REPO_ROOT / ".env")
 
 from dischargeiq.agents.extraction_agent import run_extraction_agent, extract_text_from_pdf
 from dischargeiq.agents.diagnosis_agent import run_diagnosis_agent
 
-TEST_DATA_DIR = Path(__file__).parent / "test-data"
+TEST_DATA_DIR = _REPO_ROOT / "test-data"
 
 
 def run_tests():
     """
     Run Agents 1 and 2 end-to-end on all PDFs in test-data/.
 
-    Prints results per document and confirms the DIS-8 gate:
+    Prints results per document and confirms the Agent 2 FK gate:
     all outputs must pass FK grade <= 6.0.
     """
     print("=" * 65)
-    print("DischargeIQ — Agents 1 + 2 Integration Test (DIS-8)")
+    print("DischargeIQ — Agents 1 + 2 Integration Test")
     print("=" * 65)
 
     # Collect all PDFs — skip stress-test folder
@@ -51,7 +46,7 @@ def run_tests():
 
     if not pdf_files:
         print(f"\n[FAIL] No PDFs found in {TEST_DATA_DIR}")
-        print("   Run DIS-3 to generate synthetic test documents first.")
+        print("   Generate synthetic test documents first (see project docs).")
         return
 
     results = []
@@ -107,13 +102,13 @@ def run_tests():
     print("\n[NOTE] Per CLAUDE.md: do NOT git commit from here.")
     print("    Review output above, then commit manually.")
 
-    # DIS-8 gate check
+    # Agent 2 FK gate check
     if pass_count == total and error_count == 0:
-        print(f"\n[OK] DIS-8 GATE MET: All {total} outputs pass FK <= 6.0")
-        print("   Post in group chat: DIS-8 done — Agent 2 ready. @Suchithra DIS-9 is unblocked.")
+        print(f"\n[OK] AGENT 2 FK GATE MET: All {total} outputs pass FK <= 6.0")
+        print("   Agent 2 outputs meet the FK threshold; downstream agents can proceed.")
     else:
         not_passing = total - pass_count
-        print(f"\n[FAIL] DIS-8 GATE NOT MET: {not_passing} output(s) not passing.")
+        print(f"\n[FAIL] AGENT 2 FK GATE NOT MET: {not_passing} output(s) not passing.")
         print("   Fix issues above before opening the PR.")
 
 

@@ -1,22 +1,14 @@
 """
-Stress-test fixture generator for DischargeIQ (fixtures 9–14).
-
-Renders six realistic discharge-document PDFs into
-dischargeiq/tests/fixtures/ using reportlab. Each fixture targets a
-specific real-world format that the existing synthetic fixtures don't
-cover:
-
-    fixture_09_epic_chf.pdf            — Epic After-Visit Summary (CHF)
-    fixture_10_cerner_pneumonia.pdf    — Cerner dense prose (pneumonia, elderly)
-    fixture_11_word_knee.pdf           — Word-to-PDF community hospital (TKA)
-    fixture_12_twocolumn_mi.pdf        — two-column platypus frame (post-MI)
-    fixture_13_pediatric_appy.pdf      — parent-directed narrative (peds appy)
-    fixture_14_multipage_sepsis.pdf    — 6-page distractor doc (DM + sepsis)
-
-Run:
-    python scripts/stress/generate_stress_fixtures.py
-
-Idempotent: overwrites any existing output files.
+File: scripts/stress/generate_stress_fixtures.py
+Owner: Likitha Shankar
+Description: ReportLab generator for fixtures 9–14 — Epic/Cerner/Word-like layouts,
+  two-column MI narrative, pediatric appendix story, and multipage sepsis distractor —
+  written to dischargeiq/tests/fixtures for pipeline stress testing.
+Key functions/classes: build_* PDF builder functions (module level)
+Edge cases handled:
+  - Overwrites existing PDFs idempotently; pure local generation (no API calls).
+Dependencies: reportlab; writes under dischargeiq/tests/fixtures
+Called by: Developers manually or CI prep: python scripts/stress/generate_stress_fixtures.py
 """
 
 from pathlib import Path

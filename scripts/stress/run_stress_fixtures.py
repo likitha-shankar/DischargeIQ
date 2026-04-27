@@ -1,12 +1,14 @@
 """
-Run the 6 stress-test fixtures through the full DischargeIQ pipeline and
-print a pass/fail report.
-
-Not part of the hallucination suite — standalone probe for fixtures 9–14.
-
-Usage:
-    python scripts/stress/run_stress_fixtures.py                  # all 6
-    python scripts/stress/run_stress_fixtures.py --fixtures 9,14  # just these
+File: scripts/stress/run_stress_fixtures.py
+Owner: Likitha Shankar
+Description: CLI that asyncio-runs run_pipeline on stress fixtures 9–14 with optional
+  subset filter, asserting expected med counts/discontinued lists and printing pass/fail
+  summary for manual pipeline QA (uses real LLM when .env configured).
+Key functions/classes: main argparse entry, CASES table
+Edge cases handled:
+  - Parses comma fixture list; loads .env from repo root; asyncio.run per PDF.
+Dependencies: dotenv, dischargeiq.pipeline.orchestrator
+Called by: Manual: python scripts/stress/run_stress_fixtures.py [--fixtures 9,14]
 """
 
 import argparse

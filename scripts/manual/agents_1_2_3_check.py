@@ -1,12 +1,14 @@
 """
-Manual integration check for Agents 1, 2, and 3.
-
-Runs PDF -> Agent 1 (extraction) -> Agent 2 (diagnosis explanation) ->
-Agent 3 (medication rationale) on a representative test-data subset and
-prints structured results for human review.
-
-Usage:
-    python scripts/manual/agents_1_2_3_check.py
+File: scripts/manual/agents_1_2_3_check.py
+Owner: Likitha Shankar
+Description: Manual three-agent chain check on representative PDFs — extraction, diagnosis
+  explanation, and medication rationale printed sequentially for quick LLM/prompt debugging
+  without full orchestrator or Streamlit.
+Key functions/classes: module-level runner functions
+Edge cases handled:
+  - Continues per-doc on errors with logged failures; seeds sys.path to import dischargeiq.
+Dependencies: dotenv, dischargeiq.agents.extraction_agent, diagnosis_agent, medication_agent
+Called by: Manual invocation from repo root.
 """
 
 import sys

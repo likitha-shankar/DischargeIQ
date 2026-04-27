@@ -1,11 +1,14 @@
 """
-Fast resilience tests for real-world document and provider edge cases.
-
-These are representative hardening tests (not exhaustive-by-definition):
-  - weird/nonstandard PDF layout handling (multi-column + table text)
-  - malformed/corrupt PDF behavior
-  - OCR-heavy image-only extraction behavior
-  - provider outage/rate-limit fallback behavior
+File: dischargeiq/tests/test_resilience_hardening.py
+Owner: Likitha Shankar
+Description: Deterministic resilience tests — pdfplumber extraction shims for weird layouts,
+  corrupt PDF errors, scan-quality warnings, and mocked OpenRouter paths for empty completions,
+  developer-role fallback, rate-limit retries, and exhaustion behavior in llm_client.
+Key functions/classes: test_* functions, _FakePage, _FakePdf shims
+Edge cases handled:
+  - Uses monkeypatched pdfplumber.open and fake OpenAI client responses; no network I/O.
+Dependencies: pytest, dischargeiq.agents.extraction_agent, dischargeiq.utils.llm_client
+Called by: pytest default run (not marked slow).
 """
 
 from types import SimpleNamespace

@@ -1,19 +1,14 @@
 """
-Generator for multipage_01.pdf — a 3-page heart failure discharge summary.
-
-Uses reportlab so each page has a proper PDF page boundary, giving pdfplumber
-a genuine multi-page document to parse.
-
-Page layout:
-  Page 1 — Patient info, primary diagnosis, secondary diagnoses, procedures
-  Page 2 — Discharge medications (9 drugs), activity restrictions, dietary restrictions
-  Page 3 — Follow-up appointments, red flag symptoms, discharge condition, reviewer block
-
-Diagnosis: Acute Decompensated Heart Failure with Reduced Ejection Fraction (HFrEF)
-All content is fully synthetic. No real patient data.
-
-Run from the project root:
-    python test-data/stress-test/generate_multipage.py
+File: test-data/stress-test/generate_multipage.py
+Owner: Likitha Shankar
+Description: ReportLab script emitting multipage_01.pdf — three-page synthetic HFrEF
+  discharge with meds, restrictions, follow-ups, and red flags to stress multi-page
+  pdfplumber extraction and pagination markers.
+Key functions/classes: module-level build/run helpers
+Edge cases handled:
+  - Writes beside this script; synthetic content only.
+Dependencies: reportlab
+Called by: Manual regeneration of stress PDF asset.
 """
 
 from pathlib import Path

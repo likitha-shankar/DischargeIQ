@@ -1,28 +1,15 @@
 """
-DIS-27 — full-corpus smoke test.
-
-Iterates every PDF under dischargeiq/tests/fixtures/, test-data/, and
-test-data/stress-test/ through the production pipeline and asserts:
-  - run_pipeline() returns (no uncaught exception)
-  - pipeline_status is one of {"complete", "complete_with_warnings",
-    "partial"} (the canonical whitelist enforced by the DIS-26 CHECK
-    constraint on discharge_history.pipeline_status)
-  - every Flesch-Kincaid grade present on agent2..agent5 is <= 6.5
-  - after all fixtures run, a matching discharge_history row landed
-    for each, and zero rows fell outside the whitelist
-
-This test replaces the one-off /tmp/full_fixture_sweep.py harness that
-ran before DIS-26 shipped. That harness reused a single asyncpg
-connection for the entire 4+ hour run, so Neon dropped the idle
-connection mid-sweep and every post-flight DB check raised
-InterfaceError (logged as a false "CRASH"). The core fix here is
-_fresh_query(): every DB read opens and closes its own connection,
-so no connection is held across an await on run_pipeline.
-
-Excluded from the default pytest run via @pytest.mark.slow.
-Run with:
-    PYTHONPATH=. .venv/bin/python -m pytest \
-        -m slow dischargeiq/tests/test_all_corpus_smoke.py -v -s
+File: dischargeiq/tests/test_all_corpus_smoke.py
+Owner: Likitha Shankar
+Description: Slow, marked integration sweep — runs run_pipeline across fixtures in
+  dischargeiq/tests/fixtures, test-data, and stress-test; asserts pipeline_status whitelist,
+  FK ceilings for agents 2–5, and Neon discharge_history rows using short-lived DB connections
+  per query to avoid idle disconnects on long runs.
+Key functions/classes: pytest slow tests, _fresh_query helper (internal)
+Edge cases handled:
+  - Skipped unless -m slow; uses fresh asyncpg connections for post-run DB verification.
+Dependencies: asyncio, asyncpg, pytest, dischargeiq.pipeline.orchestrator, DATABASE_URL when enabled.
+Called by: pytest -m slow only.
 """
 
 # stdlib
@@ -105,7 +92,7 @@ async def _fresh_query(sql: str, *args: Any) -> list[asyncpg.Record]:
     """
     Run a single SQL query on a freshly-opened asyncpg connection.
 
-    This is the core fix DIS-27 adds over the /tmp sweep harness: every
+    Unlike the /tmp sweep harness, every
     DB read opens a new connection and closes it before returning, so no
     connection is held idle long enough for Neon to drop it server-side.
 
@@ -153,7 +140,7 @@ async def _count_invalid_statuses(since: datetime) -> int:
     """
     Count rows in the window whose pipeline_status is outside the whitelist.
 
-    If the CHECK constraint added in DIS-26 is working, this is always 0;
+    If the pipeline_status CHECK constraint is working, this is always 0;
     this assertion is what detects a future agent introducing a new status
     value without updating the constraint or the orchestrator canon.
 
@@ -273,7 +260,7 @@ def test_corpus_fixture_passes(pdf_path: Path) -> None:
     Run the pipeline on one fixture; assert whitelist + FK-gate invariants.
 
     Belt-and-suspenders: `run_pipeline` already applies its own 300-second
-    asyncio.wait_for internally (DIS-26 Issue 3). The outer wait_for here
+    asyncio.wait_for internally. The outer wait_for here
     ensures the test harness itself can never hang.
 
     Args:

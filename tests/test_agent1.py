@@ -1,27 +1,14 @@
 """
-Test harness for Agent 1 (DIS-5) — Extraction agent.
-
-Runs Agent 1 on all synthetic PDFs in test-data/ (10 clean documents) plus
-the 4 stress-test edge-case documents in test-data/stress-test/ and prints
-per-file results and a final pass/fail count.
-
-Pass criteria (all four must be met):
-  1. run_extraction_agent() returns without raising an exception.
-  2. primary_diagnosis is a non-empty string.
-  3. At least one medication was extracted.
-  4. At least one follow-up appointment was extracted.
-
-Hard gate: 8/10 passes on the original clean PDFs required before Agent 2
-development starts. Stress-test results are reported separately.
-
-Rate limiting:
-  A short delay is inserted between API calls to stay within the Gemini
-  free-tier RPM limit. gemini-2.5-flash free tier = 5 RPM; 15s headroom.
-
-Usage:
-    python test_agent1.py
-
-Requires GOOGLE_STUDIO_API_KEY in the environment (or in a .env file at project root).
+File: tests/test_agent1.py
+Owner: Likitha Shankar
+Description: Standalone Agent 1 regression runner over test-data/ and stress-test PDFs —
+  extracts text, calls run_extraction_agent, and scores each file against primary_diagnosis,
+  medication, and follow-up presence rules with pass tallies (uses LLM via project client).
+Key functions/classes: run_tests, per-PDF validation helpers
+Edge cases handled:
+  - Sleep between calls for provider rate limits; continues suite after individual failures.
+Dependencies: dischargeiq.agents.extraction_agent, pathlib, dotenv-loaded env
+Called by: Manual: ``python tests/test_agent1.py`` or ``python -m tests.test_agent1`` from repo root.
 """
 
 import os
@@ -29,21 +16,21 @@ import sys
 import time
 from pathlib import Path
 
-# Add the project root to sys.path so 'dischargeiq' is importable when running
-# this script directly from the project root without installing the package.
-sys.path.insert(0, str(Path(__file__).parent))
+# Repo root — package ``dischargeiq`` is importable when running this file directly.
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_REPO_ROOT))
 
 from dotenv import load_dotenv
 
-load_dotenv()  # Load .env from project root if present
+load_dotenv(_REPO_ROOT / ".env")
 
 from dischargeiq.agents.extraction_agent import extract_text_from_pdf, run_extraction_agent
 
 # Clean synthetic PDFs (original 10 documents, hard-gate set).
-_TEST_DATA_DIR = Path(__file__).parent / "test-data"
+_TEST_DATA_DIR = _REPO_ROOT / "test-data"
 
 # Edge-case stress-test PDFs (4 documents: prose, table, abbreviation, OCR).
-_STRESS_DATA_DIR = Path(__file__).parent / "test-data" / "stress-test"
+_STRESS_DATA_DIR = _REPO_ROOT / "test-data" / "stress-test"
 
 # Minimum passing documents from the original 10 to clear the hard gate.
 _HARD_GATE_THRESHOLD = 8

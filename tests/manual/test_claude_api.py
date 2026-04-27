@@ -1,11 +1,14 @@
 """
-DIS-1 smoke test: verify Claude API connectivity.
-
-Sends a simple message to Claude Sonnet and checks that a valid response
-comes back. This confirms the ANTHROPIC_API_KEY is set and the API is reachable.
-
-Run:  source .venv/bin/activate && python test_claude_api.py
-Requires: ANTHROPIC_API_KEY set in .env or environment.
+File: tests/manual/test_claude_api.py
+Owner: Likitha Shankar
+Description: Minimal Anthropic SDK smoke test — sends a one-line prompt to
+  claude-sonnet-4-20250514 and asserts the reply contains “DischargeIQ” to verify
+  API key and network path before heavier pipeline runs.
+Key functions/classes: run_claude_api_smoke
+Edge cases handled:
+  - Exits with message on missing key; catches auth and connection errors explicitly.
+Dependencies: anthropic, dotenv
+Called by: Manual: ``python tests/manual/test_claude_api.py`` from repo root.
 """
 
 import os
@@ -17,7 +20,7 @@ import anthropic
 load_dotenv()
 
 
-def test_claude_api():
+def run_claude_api_smoke():
     """
     Send a single message to Claude and verify the response contains expected text.
 
@@ -59,4 +62,4 @@ def test_claude_api():
 
 
 if __name__ == "__main__":
-    test_claude_api()
+    run_claude_api_smoke()

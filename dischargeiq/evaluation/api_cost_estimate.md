@@ -1,6 +1,6 @@
 # LLM-as-Judge API Cost Estimate
-**Sprint 2 — Week 5 Batch Evaluation**
-*Prepared: Sprint 1, Week 1 | Model: claude-sonnet-4-20250514*
+**Batch evaluation (LLM-as-Judge)**
+*Owner: Rushi | Model: claude-sonnet-4-20250514*
 
 ---
 
@@ -81,14 +81,14 @@ Using the upper bound of token estimates (2,500 input + 300 output per call):
 | Recommended pre-load (safety buffer) | **$5.00** |
 
 **Recommendation:** Pre-load or confirm $5.00 of credits are available before
-Sprint 2 begins. This covers the evaluation batch at standard rates with more
+the evaluation batch run. This covers the evaluation batch at standard rates with more
 than 20× headroom — enough to re-run the full batch multiple times if needed
 during debugging, plus any associated pipeline calls.
 
 > **⚠️ Important:** This estimate covers *only* the LLM-as-Judge evaluation calls.
 > It does not include the primary pipeline API calls (generating the discharge
-> summaries themselves). Factor those in separately when reviewing total Sprint 2
-> API spend.
+> summaries themselves). Factor those in separately when reviewing total
+> API spend for the evaluation period.
 
 ---
 
@@ -103,14 +103,12 @@ during debugging, plus any associated pipeline calls.
 
 ---
 
-## 7. Pre-Sprint Checklist
+## 7. Pre-run checklist
 
 - [ ] Log into [console.anthropic.com](https://console.anthropic.com) and verify credit balance
 - [ ] Confirm balance is ≥ $5.00 (or flag to team lead to add credits)
 - [ ] Confirm API key in use has Sonnet access (not restricted to Haiku only)
 - [ ] Decide: standard real-time API vs. Batch API for evaluation run
-- [ ] Review `../prompts/llm_judge_prompt.txt` before Sprint 2 Week 5
+- [ ] Review `../prompts/llm_judge_prompt.txt` before the batch evaluation run
 
 ---
-
-*Document owner: Backend Owner | Last updated: Sprint 1, Week 1*

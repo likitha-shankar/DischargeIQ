@@ -1,11 +1,14 @@
 """
-API guardrail tests for upload validation and non-discharge detection.
-
-Covers:
-  - wrong file extension -> 415
-  - wrong PDF magic bytes -> 415
-  - oversized payload -> 413
-  - critical extraction gaps produce non-discharge warning
+File: dischargeiq/tests/test_api_guardrails.py
+Owner: Likitha Shankar
+Description: Fast pytest suite (no live LLM) for upload validation helpers, provider key
+  error shaping, and extraction completeness classification used by the API guardrails.
+Key functions/classes: test_* module-level functions
+Edge cases handled:
+  - Asserts ValueError (not KeyError) on missing keys; HTTPException statuses for bad PDFs.
+Dependencies: pytest, fastapi, dischargeiq.main, dischargeiq.models.extraction,
+  dischargeiq.utils.llm_client, dischargeiq.utils.warnings
+Called by: pytest (default non-slow run).
 """
 
 import pytest
