@@ -1,8 +1,8 @@
 """
 agents/diagnosis_agent.py
 
-Agent 2 — Diagnosis Explanation Agent (DIS-8).
-Owner: Deepesh Kumar | Sprint 1 Week 2
+Agent 2 — Diagnosis Explanation Agent.
+Owner: Deepesh Kumar
 
 Consumes ExtractionOutput.primary_diagnosis (and secondary_diagnoses,
 procedures_performed) from Agent 1 and produces a plain-language paragraph
@@ -29,7 +29,7 @@ Dependencies:
     - dischargeiq.utils.scorer.fk_check
     - dischargeiq/prompts/agent2_system_prompt.txt
 
-BLOCKED BY: DIS-5 (Agent 1) must be Done before this runs in production.
+BLOCKED BY: Agent 1 must be done before this runs in production.
 """
 
 import csv
@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 
 _MAX_TOKENS = 500
 
-# FK grade ceiling for accepting an explanation. Sprint spec says 6.0 is
+# FK grade ceiling for accepting an explanation. 6.0 is
 # ideal; 6.5 is the acceptable cap for complex multi-comorbidity cases where
 # naming several conditions at once (e.g. AKI + CKD + diabetes + anemia)
 # forces slightly longer clause structure. When the first attempt scores
@@ -90,7 +90,7 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
     Passes primary diagnosis, secondary diagnoses, and procedures performed
     to give the LLM enough context to explain what happened to the patient.
 
-    Data contract: relies on ExtractionOutput fields from the DIS-2 locked schema.
+    Data contract: relies on ExtractionOutput fields from the locked schema.
         - primary_diagnosis      (str, required)
         - secondary_diagnoses    (list[str], optional)
         - procedures_performed   (list[str], optional)
@@ -147,7 +147,7 @@ def _call_llm(
         ValueError: If the provider returns a response with no content
                     (e.g. content filter blocked the completion).
     """
-    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
+    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
     try:
         return call_chat_with_fallback(
             client=client,
@@ -169,7 +169,7 @@ def _log_fk_score(document_id: str, fk_result: dict) -> None:
     Append an FK score result to dischargeiq/evaluation/fk_log.csv.
 
     Creates the file with a header row if it does not already exist.
-    Per DIS-8 acceptance criteria — all Agent 2 FK scores must be logged.
+    All Agent 2 FK scores must be logged.
 
     Args:
         document_id: Source document identifier (e.g. "heart_failure_01.pdf").
@@ -210,7 +210,7 @@ def run_diagnosis_agent(
     get_llm_client(). Supports openrouter, openai, and ollama.
 
     Data contract:
-        Input:  ExtractionOutput from Agent 1 (DIS-5).
+        Input:  ExtractionOutput from Agent 1.
                 primary_diagnosis must not be None or empty.
         Output: dict with keys:
                     text     (str)   — plain-language explanation paragraph
@@ -249,7 +249,7 @@ def run_diagnosis_agent(
     )
     fk_1 = fk_check(explanation_1)
 
-    # Simplification retry gate. Sprint spec targets FK ≤ 6.0, but we allow up
+    # Simplification retry gate. Target FK ≤ 6.0, but we allow up
     # to _FK_RETRY_THRESHOLD (6.5) without retrying because multi-comorbidity
     # cases (AKI + CKD + diabetes + anemia + HTN) force slightly longer clause
     # structure even at 6th-grade vocabulary. Anything above 6.5 gets exactly

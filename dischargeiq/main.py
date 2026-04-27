@@ -1,31 +1,32 @@
 """
-DischargeIQ — FastAPI entry point.
-
-Defines the REST API for the DischargeIQ multi-agent pipeline.
-Endpoints:
-  - GET  /health   → liveness + anthropic key flag + DB reachability (when configured)
-  - POST /analyze  → accepts a discharge PDF, runs the agent pipeline
-  - POST /chat     → accepts a patient question + pipeline context, returns
-                     a grounded plain-language answer from the LLM
-
-CORS is enabled for localhost Streamlit origins (ports 8501–8502) so the
-floating chat widget can call /chat directly from the browser without a proxy.
-
-Depends on: FastAPI, python-dotenv, dischargeiq.pipeline.orchestrator,
-            dischargeiq.utils.llm_client, dischargeiq.utils.logger.
+File: dischargeiq/main.py
+Owner: Likitha Shankar
+Description: FastAPI application — validates multipart PDF uploads, runs async run_pipeline
+  with session ids, stores PDF bytes and optional Agent 6 JSON in bounded in-memory dicts,
+  exposes /pdf and /simulator fetch by session, /chat for grounded patient Q&A, and /health
+  for liveness plus optional DB pool check.
+Key functions/classes: app, ChatRequest, ChatResponse, analyze_discharge, chat, get_simulator,
+  get_pdf, _validate_uploaded_pdf, _store_pdf
+Edge cases handled:
+  - LRU-evicts oldest PDF when store cap reached; analyze wrapped in wait_for timeout;
+  - Agent 6 storage skipped when null; CORS regex for localhost dev; strict PDF magic/size checks.
+Dependencies: dischargeiq.pipeline.orchestrator, dischargeiq.db.history, dischargeiq.utils.logger,
+  dischargeiq.utils.llm_client
+Called by: uvicorn (production entry); tests import helpers from this module.
 """
 
 import asyncio
 import json
 import logging
 import os
+import re
 import tempfile
 import threading
 import uuid
 from collections import OrderedDict
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
@@ -50,6 +51,7 @@ logger = logging.getLogger(__name__)
 _pdf_store: OrderedDict[str, bytes] = OrderedDict()
 _simulator_store: OrderedDict[str, dict] = OrderedDict()
 _PDF_STORE_MAX = 50
+_pipeline_progress: dict[str, dict] = {}
 
 # ── /analyze upload limits ────────────────────────────────────────────────────
 # 50MB is well above a real discharge PDF (rarely >5MB even with images) but
@@ -91,7 +93,7 @@ def _validate_uploaded_pdf(filename: str, contents: bytes) -> None:
         )
 
 
-def _store_pdf(pdf_bytes: bytes) -> str:
+def _store_pdf(pdf_bytes: bytes, session_id: str | None = None) -> str:
     """
     Store PDF bytes in the in-memory store under a new UUID key.
 
@@ -105,7 +107,7 @@ def _store_pdf(pdf_bytes: bytes) -> str:
     Returns:
         str: UUID string identifying this PDF in the store.
     """
-    session_id = str(uuid.uuid4())
+    session_id = session_id or str(uuid.uuid4())
     with _pdf_store_lock:
         if len(_pdf_store) >= _PDF_STORE_MAX:
             old_sid, _ = _pdf_store.popitem(last=False)  # evict oldest
@@ -160,7 +162,7 @@ app.add_middleware(
     ],
     allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "X-Discharge-Session-Id"],
 )
 
 
@@ -187,12 +189,18 @@ class ChatResponse(BaseModel):
     Response body returned by POST /chat.
 
     Fields:
-        reply:       Plain-language answer to the patient's question.
-        source_page: Page number (1-indexed) referenced in the answer, or null.
+        reply:         Plain-language answer to the patient's question.
+        source_page:   Page number (1-indexed) referenced in the answer, or null.
+        from_document: True when the answer is grounded in the patient's PDF;
+                       False when the LLM fell back on general medical knowledge.
+                       The frontend uses this to decide whether to attribute the
+                       answer to the document — never imply PDF sourcing for
+                       general guidance (patient-trust requirement).
     """
 
     reply: str
     source_page: Optional[int] = None
+    from_document: bool = True
 
 
 # ── System prompt for the /chat endpoint ─────────────────────────────────────
@@ -218,7 +226,9 @@ _CHAT_SYSTEM_TEMPLATE = (
     "  recovery trajectory).\n"
     "- Use 'you' and 'your'. Never lecture. Never sound like a chart.\n"
     "- Prefer plain, everyday words. Short sentences. 6th-grade reading "
-    "  level. Target under 80 words unless the patient asks for more.\n\n"
+    "  level. Target under 80 words unless the patient asks for more.\n"
+    "- Never use emojis in your responses. This is a medical tool and emojis "
+    "  are not appropriate. Write in a warm but professional tone.\n\n"
 
     "WHAT YOU HAVE:\n"
     "Below is the patient's discharge summary — structured extraction "
@@ -242,6 +252,18 @@ _CHAT_SYSTEM_TEMPLATE = (
     "  If they ask about changing meds, direct them to their prescriber.\n"
     "- If they describe a red-flag symptom from the warnings list or an "
     "  emergency, tell them to call 911 or go to the nearest ER.\n\n"
+
+    "CITATION AND TRUST:\n"
+    "- When your answer is based on information from the discharge document, "
+    "do not add your own \"from your document (p.X)\" line — the DischargeIQ "
+    "app attaches that label when it can tie your answer to extracted fields.\n"
+    "- When your answer uses general medical knowledge because the document "
+    "does not contain the relevant information, do NOT imply it came from the "
+    "PDF. End your response with exactly: — general medical guidance (not from "
+    "your specific document). Ask your care team to confirm this applies to "
+    "your situation.\n"
+    "- Never cite the document for content that was not in the document. "
+    "This is critical for patient trust.\n\n"
 
     "DISCHARGE SUMMARY CONTEXT:\n{context_json}"
 )
@@ -310,12 +332,21 @@ def _extract_source_page(reply: str, pipeline_context: dict) -> Optional[int]:
             if source and source.get("page"):
                 return source["page"]
 
-    # Fall back to primary_diagnosis_source page if nothing more specific found.
-    dx_source = extraction.get("primary_diagnosis_source")
-    if dx_source and dx_source.get("page"):
-        return dx_source["page"]
-
     return None
+
+
+def _reply_declares_general_medical_guidance(reply: str) -> bool:
+    """True when the model marked the answer as not sourced from the PDF."""
+    return bool(re.search(r"general medical guidance", reply, re.IGNORECASE))
+
+
+def _strip_general_medical_guidance_suffix(reply: str) -> str:
+    """
+    Remove the model's inline general-guidance closing sentence so the chat UI
+    can show a single footer line (avoids duplicate attribution).
+    """
+    pattern = r"\s*[-—]\s*general medical guidance.*$"
+    return re.sub(pattern, "", reply, flags=re.IGNORECASE | re.DOTALL).rstrip()
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -330,7 +361,7 @@ async def health():
     can open a pool and run SELECT 1.
     """
     anthropic_set = bool(os.getenv("ANTHROPIC_API_KEY", "").strip())
-    provider = os.getenv("LLM_PROVIDER", "openrouter").lower()
+    provider = os.getenv("LLM_PROVIDER", "anthropic").lower()
     database_url = os.getenv("DATABASE_URL", "").strip()
     db_reachable: bool | None = None
     db_detail = ""
@@ -361,8 +392,23 @@ async def health():
     }
 
 
+@app.get("/progress/{session_id}")
+async def get_progress(session_id: str):
+    """Return real-time pipeline progress for a session id."""
+    payload = _pipeline_progress.get(session_id)
+    if payload is None:
+        return {"status": "not_found", "current_agent": 0}
+    return payload
+
+
+async def _cleanup_progress_after_delay(session_id: str, delay_s: float = 300.0) -> None:
+    """Remove a progress record after a retention delay."""
+    await asyncio.sleep(delay_s)
+    _pipeline_progress.pop(session_id, None)
+
+
 @app.post("/analyze")
-async def analyze_discharge(file: UploadFile = File(...)):
+async def analyze_discharge(request: Request, file: UploadFile = File(...)):
     """
     Accept a discharge PDF upload and run the multi-agent pipeline.
 
@@ -386,16 +432,49 @@ async def analyze_discharge(file: UploadFile = File(...)):
     contents = await file.read()
     _validate_uploaded_pdf(file.filename, contents)
 
+    # Generate session id up front so frontend can poll /progress/{session_id}
+    # while the pipeline is running.
+    client_session_id = (request.headers.get("X-Discharge-Session-Id") or "").strip()
+    try:
+        pdf_session_id = str(uuid.UUID(client_session_id)) if client_session_id else str(uuid.uuid4())
+    except ValueError:
+        pdf_session_id = str(uuid.uuid4())
+    _pipeline_progress[pdf_session_id] = {
+        "status": "running",
+        "current_agent": 0,
+        "agent_name": "Starting",
+        "message": "Reading your document...",
+    }
+
     # Store PDF bytes now so the frontend can fetch them via GET /pdf/{session_id}
     # without embedding a large base64 data URI in the page.
-    pdf_session_id = _store_pdf(contents)
+    _store_pdf(contents, session_id=pdf_session_id)
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
         tmp.write(contents)
         tmp_path = tmp.name
 
     try:
-        result = await run_pipeline(tmp_path, session_id=pdf_session_id)
+        def update_progress(agent_num: int, agent_name: str, message: str) -> None:
+            _pipeline_progress[pdf_session_id] = {
+                "status": "running",
+                "current_agent": agent_num,
+                "agent_name": agent_name,
+                "message": message,
+            }
+
+        result = await run_pipeline(
+            tmp_path,
+            session_id=pdf_session_id,
+            on_progress=update_progress,
+        )
+        _pipeline_progress[pdf_session_id] = {
+            "status": "complete",
+            "current_agent": 7,
+            "agent_name": "Complete",
+            "message": "Almost ready...",
+        }
+        asyncio.create_task(_cleanup_progress_after_delay(pdf_session_id))
         logger.info(
             "POST /analyze complete — '%s', status: %s",
             file.filename,
@@ -410,6 +489,13 @@ async def analyze_discharge(file: UploadFile = File(...)):
                 )
         return result_dict
     except asyncio.TimeoutError:
+        _pipeline_progress[pdf_session_id] = {
+            "status": "error",
+            "current_agent": 0,
+            "agent_name": "Timeout",
+            "message": "Analysis timed out.",
+        }
+        asyncio.create_task(_cleanup_progress_after_delay(pdf_session_id))
         # run_pipeline is wrapped in asyncio.wait_for(..., 300s). A timeout
         # here means an LLM call (or the full five-agent chain) got stuck
         # past the pipeline-wide budget. Surface as 504 so the UI can show
@@ -420,6 +506,13 @@ async def analyze_discharge(file: UploadFile = File(...)):
             detail="Analysis took longer than 5 minutes. Please try a smaller or clearer PDF.",
         )
     except Exception as pipeline_error:
+        _pipeline_progress[pdf_session_id] = {
+            "status": "error",
+            "current_agent": 0,
+            "agent_name": "Error",
+            "message": "Analysis failed.",
+        }
+        asyncio.create_task(_cleanup_progress_after_delay(pdf_session_id))
         logger.error(
             "Pipeline error for document '%s': %s", file.filename, pipeline_error
         )
@@ -524,13 +617,27 @@ async def chat(request: ChatRequest):
             "Please ask your doctor."
         )
 
-    source_page = _extract_source_page(reply, request.pipeline_context)
+    # Distinguish PDF-grounded answers from general medical knowledge so the
+    # frontend can label them correctly. The model declares the latter via the
+    # "general medical guidance" suffix; we strip it server-side and pass the
+    # signal through as from_document=False.
+    is_general_guidance = _reply_declares_general_medical_guidance(reply)
+    if is_general_guidance:
+        source_page = None
+        reply = _strip_general_medical_guidance_suffix(reply)
+    else:
+        source_page = _extract_source_page(reply, request.pipeline_context)
 
     logger.info(
-        "POST /chat response — session: %s, source_page: %s, length: %d chars",
+        "POST /chat response — session: %s, source_page: %s, length: %d chars, from_document: %s",
         request.session_id,
         source_page,
         len(reply),
+        not is_general_guidance,
     )
 
-    return ChatResponse(reply=reply, source_page=source_page)
+    return ChatResponse(
+        reply=reply,
+        source_page=source_page,
+        from_document=not is_general_guidance,
+    )

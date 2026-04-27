@@ -1,20 +1,17 @@
 """
-dischargeiq/utils/llm_client.py
-
-Shared LLM provider factory used by all DischargeIQ agents.
-
-Reads LLM_PROVIDER and LLM_MODEL from the environment and returns an
-OpenAI-compatible client pointed at the chosen backend. Every agent imports
-get_llm_client() from here instead of defining its own routing logic.
-
-Supported providers (set LLM_PROVIDER in .env):
-  openrouter (default) — https://openrouter.ai       needs OPENROUTER_API_KEY
-  openai               — https://api.openai.com       needs OPENAI_API_KEY
-  anthropic            — https://api.anthropic.com    needs ANTHROPIC_API_KEY
-  ollama               — http://localhost:11434        no API key required
-
-Override the default model for any provider with LLM_MODEL in .env.
-Override the Ollama base URL with OLLAMA_BASE_URL (for remote/Docker installs).
+File: dischargeiq/utils/llm_client.py
+Owner: Likitha Shankar
+Description: Central LLM routing — builds an OpenAI-compatible client for anthropic,
+  openrouter, openai, or ollama from LLM_PROVIDER/LLM_MODEL and validates API keys with
+  clear ValueError messages. call_chat_with_fallback adds OpenRouter-only retries for
+  empty completions, developer-instruction role merge, and 429 backoff.
+Key functions/classes: require_provider_api_key, get_llm_client, call_chat_with_fallback
+Edge cases handled:
+  - OpenRouter empty content and rate limits retry with backoff; role fallback on
+    unsupported developer-message errors; Ollama uses placeholder API key string.
+Dependencies: openai (SDK); reads env vars only (no other dischargeiq imports).
+Called by: dischargeiq.agents.extraction_agent, diagnosis_agent, patient_simulator_agent,
+  dischargeiq.main (/chat), dischargeiq.tests.test_api_guardrails, test_resilience_hardening.
 """
 
 import logging
@@ -25,9 +22,9 @@ from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
-# Anthropic Messages API + OpenAI-compatible /v1 chat: use a dated Sonnet ID.
-# Undated aliases (e.g. claude-sonnet-4-6) can 404; Week 5 eval must pin this.
-DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
+# Anthropic default: dated Haiku (cheapest tier). Undated aliases can 404.
+# For higher-quality eval / demos, set LLM_MODEL=claude-sonnet-4-20250514 in .env.
+DEFAULT_ANTHROPIC_MODEL = "claude-3-5-haiku-20241022"
 
 # Default configuration per provider.
 # Add a new provider here — no agent code needs to change.
@@ -88,7 +85,7 @@ def get_llm_client() -> tuple[OpenAI, str]:
     """
     Build an OpenAI-compatible client and resolve the model name from env vars.
 
-    Reads LLM_PROVIDER (default: openrouter) to select the backend, then
+    Reads LLM_PROVIDER (default: anthropic) to select the backend, then
     reads the provider-specific API key and base URL. LLM_MODEL overrides the
     provider default model when set.
 
@@ -98,7 +95,7 @@ def get_llm_client() -> tuple[OpenAI, str]:
     Raises:
         ValueError: If LLM_PROVIDER is invalid or the required API key is missing.
     """
-    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
+    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
 
     if provider not in _PROVIDER_DEFAULTS:
         supported = ", ".join(_PROVIDER_DEFAULTS)

@@ -1,18 +1,41 @@
 """
 agents/patient_simulator_agent.py
 
-Agent 6 — AI Patient Simulator. Missed-concept detection from a simulated
-patient perspective (DIS-22).
+Agent 6 — AI Patient Simulator
+Owner: Likitha
 
-run_patient_simulator_agent:
-    Args:
-        extraction: Agent 1 ExtractionOutput.
-        document_id: Source document id for logging and fk_log.csv.
-    Returns:
-        PatientSimulatorOutput with missed_concepts, gap score, FK grade.
-    Raises:
-        ValueError: Empty LLM response, transport failure, or parse failure
-            (fewer than three questions).
+Simulates a patient reading the structured extraction and asks plain-language
+questions about gaps between what the document says and what a lay reader might
+still misunderstand. Output is parsed into MissedConcept rows, an overall
+gap score, a short summary, and a Flesch-Kincaid grade on the gap text (for
+eval / logging only — not shown to patients in the main Streamlit flow).
+
+Every run appends one FK row to dischargeiq/evaluation/fk_log.csv under
+agent key agent6_patient_simulator.
+
+LLM provider and model are resolved from LLM_PROVIDER / LLM_MODEL in .env via
+dischargeiq.utils.llm_client.get_llm_client(), same as Agent 2. The completion
+path uses call_chat_with_fallback() for OpenRouter resilience.
+
+Data contract:
+    Input:  dischargeiq.models.extraction.ExtractionOutput (from Agent 1)
+    Output: dischargeiq.models.pipeline.PatientSimulatorOutput
+                missed_concepts     (list[MissedConcept])
+                overall_gap_score   (int, 0–10)
+                simulator_summary   (str)
+                fk_grade            (float)
+                passes              (bool) — vs internal _FK_THRESHOLD
+
+Dependencies:
+    - openai             (OpenAI-compatible client, used for all providers)
+    - textstat           (Flesch-Kincaid on gap summaries + summary)
+    - dischargeiq.utils.llm_client (get_llm_client, call_chat_with_fallback)
+    - dischargeiq.models.extraction.ExtractionOutput
+    - dischargeiq.models.pipeline (MissedConcept, PatientSimulatorOutput)
+    - dischargeiq/prompts/agent6_system_prompt.txt
+
+BLOCKED BY: Agent 1 — requires validated ExtractionOutput. Typically
+invoked from evaluation or orchestration paths after extraction succeeds.
 """
 
 from __future__ import annotations
@@ -33,10 +56,15 @@ from dischargeiq.utils.llm_client import call_chat_with_fallback, get_llm_client
 
 logger = logging.getLogger(__name__)
 
+# ── Configuration ──────────────────────────────────────────────────────────────
+
 _MAX_TOKENS = 1200
 _PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 _FK_LOG_PATH = Path(__file__).parent.parent / "evaluation" / "fk_log.csv"
 _FK_THRESHOLD = 8.0
+
+
+# ── Internal helpers ───────────────────────────────────────────────────────────
 
 
 def _load_system_prompt() -> str:
@@ -134,27 +162,65 @@ def _map_severity(raw: str) -> Literal["critical", "moderate", "minor"]:
     return "moderate"
 
 
+def _normalize_agent6_raw(raw: str) -> str:
+    """
+    Strip markdown and noisy formatting before parsing Agent 6 output.
+
+    Removes markdown markers, header lines, and horizontal rules so Q:/SUMMARY
+    patterns match reliably.
+    """
+    text = raw
+    prev = None
+    while prev != text:
+        prev = text
+        text = re.sub(r"\*+([^*]+?)\*+", r"\1", text)
+    lines_out: list[str] = []
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith("#"):
+            continue
+        if s.startswith("---"):
+            continue
+        if s.startswith(">"):
+            continue
+        if s.startswith("*"):
+            continue
+        lines_out.append(line.rstrip())
+    text = "\n".join(lines_out)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
 def _parse_q_block(chunk: str) -> MissedConcept | None:
-    """Parse one Q:/ANSWERED/GAP/SEVERITY block into MissedConcept."""
+    """Parse one question block (Q: or numbered) into MissedConcept."""
     chunk = chunk.strip()
     if not chunk:
         return None
     lines = chunk.splitlines()
     question = lines[0].strip()
+    question = re.sub(r"^Q\s*[:\.]\s*", "", question, flags=re.I).strip()
+    if not question:
+        return None
     answered_val: str | None = None
     gap = ""
     severity_raw = "moderate"
     for line in lines[1:]:
-        u = line.upper().strip()
-        if u.startswith("ANSWERED:"):
+        if re.match(r"^\s*answered\s*:", line, re.I):
             answered_val = line.split(":", 1)[1].strip().upper()
-        elif line.upper().startswith("GAP:"):
+        elif re.match(r"^\s*gap\s*:", line, re.I):
             gap = line.split(":", 1)[1].strip()
-        elif line.upper().startswith("SEVERITY:"):
+        elif re.match(r"^\s*severity\s*:", line, re.I):
             severity_raw = line.split(":", 1)[1].strip()
-    if answered_val is None or not question:
+    has_gap = any(re.match(r"^\s*gap\s*:", ln, re.I) for ln in lines[1:])
+    has_sev = any(re.match(r"^\s*severity\s*:", ln, re.I) for ln in lines[1:])
+    has_ans = answered_val is not None
+    if not has_ans and not has_gap and not has_sev:
         return None
-    answered_by_doc = answered_val == "YES"
+    if answered_val is None:
+        answered_by_doc = True
+    else:
+        tok = answered_val.split()
+        answered_by_doc = bool(tok and tok[0] == "YES")
     if not gap:
         gap = "N/A" if answered_by_doc else ""
     return MissedConcept(
@@ -165,28 +231,49 @@ def _parse_q_block(chunk: str) -> MissedConcept | None:
     )
 
 
-def _split_questions_and_tail(raw: str) -> tuple[str, str]:
-    """Split Q blocks from OVERALL_GAP_SCORE / SUMMARY tail."""
-    m = re.search(r"(?m)^OVERALL_GAP_SCORE:\s*", raw)
-    if not m:
-        return raw.strip(), ""
-    return raw[: m.start()].strip(), raw[m.start() :].strip()
+def _concepts_from_q_body(q_body: str) -> list[MissedConcept]:
+    """
+    Split question body on Q: patterns, else numbered fallback; parse blocks.
+    """
+    parts_q = re.split(r"(?m)^\s*Q\s*[:\.]\s*", q_body)
+    chunks_q = [p.strip() for p in parts_q if p.strip()]
+    concepts_q = [c for c in (_parse_q_block(ch) for ch in chunks_q) if c]
+    if len(concepts_q) >= 3:
+        return concepts_q
+    parts_n = re.split(r"(?m)^\s*\d+[\.\)]\s+", q_body)
+    chunks_n = [p.strip() for p in parts_n if p.strip()]
+    concepts_n = [c for c in (_parse_q_block(ch) for ch in chunks_n) if c]
+    if len(concepts_n) >= 3:
+        return concepts_n
+    return concepts_q if len(concepts_q) >= len(concepts_n) else concepts_n
 
 
-def _parse_tail_scores(tail: str) -> tuple[int, str]:
-    """Parse OVERALL_GAP_SCORE and SUMMARY from tail section."""
+def _parse_overall_gap_and_summary(cleaned: str, document_id: str) -> tuple[int, str]:
+    """Extract OVERALL_GAP_SCORE (first int) and SUMMARY; summary may be empty."""
     score = 5
-    mo = re.search(r"(?m)^OVERALL_GAP_SCORE:\s*(\d+)", tail)
+    mo = re.search(r"OVERALL_GAP_SCORE\s*[:\s]+\s*(\d+)", cleaned, re.I)
     if mo:
         try:
             score = max(0, min(10, int(mo.group(1))))
         except ValueError:
             pass
     summary = ""
-    ms = re.search(r"(?m)^SUMMARY:\s*(.*)", tail, re.DOTALL)
+    ms = re.search(r"(?is)\bSUMMARY\s*:\s*(.*)", cleaned)
     if ms:
         summary = (ms.group(1) or "").strip()
+    else:
+        logger.warning(
+            "agent6 summary missing for '%s' — defaulting to empty", document_id
+        )
     return score, summary
+
+
+def _split_q_body_from_cleaned(cleaned: str) -> str:
+    """Text before OVERALL_GAP_SCORE line (case-insensitive), else full."""
+    m = re.search(r"(?mi)^\s*OVERALL_GAP_SCORE\s*[:\s]", cleaned)
+    if not m:
+        return cleaned.strip()
+    return cleaned[: m.start()].strip()
 
 
 def _text_for_fk(concepts: list[MissedConcept], simulator_summary: str) -> str:
@@ -239,19 +326,14 @@ def _parse_simulator_response(
     Appends fk_log row. Raises ValueError if fewer than 3 questions parsed.
     """
     _ = extraction  # Reserved for future validation against extraction scope.
-    q_body, tail = _split_questions_and_tail(raw)
-    parts = re.split(r"(?m)^Q:\s*", q_body)
-    chunks = [p.strip() for p in parts if p.strip()]
-    concepts: list[MissedConcept] = []
-    for ch in chunks:
-        mc = _parse_q_block(ch)
-        if mc is not None:
-            concepts.append(mc)
+    cleaned = _normalize_agent6_raw(raw)
+    q_body = _split_q_body_from_cleaned(cleaned)
+    concepts = _concepts_from_q_body(q_body)
     if len(concepts) < 3:
         raise ValueError(
-            f"Agent 6 parse: expected at least 3 questions, got {len(concepts)}"
+            f"Agent 6 parse: fewer than 3 questions parsed, got {len(concepts)}"
         )
-    overall_gap, summary = _parse_tail_scores(tail)
+    overall_gap, summary = _parse_overall_gap_and_summary(cleaned, document_id)
     fk_sample = _text_for_fk(concepts, summary)
     raw_fk = textstat.flesch_kincaid_grade(fk_sample)
     fk_grade = round(float(raw_fk), 2)
@@ -275,7 +357,7 @@ def _call_llm(
     document_id: str,
 ) -> str:
     """Invoke shared chat helper for Agent 6."""
-    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
+    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
     return call_chat_with_fallback(
         client=client,
         model_name=model_name,
@@ -312,22 +394,38 @@ def _fetch_raw_simulator_output(
         raise
 
 
+# ── Public API ─────────────────────────────────────────────────────────────────
+
 def run_patient_simulator_agent(
     extraction: ExtractionOutput,
     document_id: str,
 ) -> PatientSimulatorOutput:
     """
-    Run the AI patient simulator on an extracted discharge document.
+    Agent 6: Run the AI patient simulator on Agent 1 extraction output.
+
+    Serializes extraction into a readable brief, calls the LLM with
+    agent6_system_prompt.txt, and parses Q:/ANSWERED/GAP/SEVERITY blocks plus
+    OVERALL_GAP_SCORE and SUMMARY. Computes FK grade on gap text via textstat
+    and logs one row to fk_log.csv.
+
+    Provider and model are resolved from LLM_PROVIDER / LLM_MODEL in .env via
+    get_llm_client(). Supports openrouter, openai, ollama, and anthropic.
+
+    Data contract:
+        Input:  ExtractionOutput from Agent 1.
+        Output: PatientSimulatorOutput — missed_concepts (≥3 parsed questions),
+                overall_gap_score, simulator_summary, fk_grade, passes.
 
     Args:
-        extraction: Structured extraction output from Agent 1.
-        document_id: Source document path/ID for logging.
+        extraction: Validated ExtractionOutput from Agent 1.
+        document_id: Source document label for logging and FK log rows.
 
     Returns:
-        PatientSimulatorOutput with missed concepts and gap score.
+        PatientSimulatorOutput with missed concepts, gap score, summary, and FK.
 
     Raises:
-        ValueError: If the LLM returns empty content or parsing fails.
+        ValueError: If the LLM returns empty content, the API call fails, or
+            parsing yields fewer than three question blocks.
     """
     raw = _fetch_raw_simulator_output(extraction, document_id)
     if not raw:

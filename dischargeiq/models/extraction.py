@@ -1,10 +1,14 @@
 """
-Pydantic models for Agent 1 (Extraction) output.
-
-This is the LOCKED schema — the contract between Agent 1 and all downstream
-agents (2-5). Do not change field names or types without full team sign-off.
-
-Depends on: pydantic v2.
+File: dischargeiq/models/extraction.py
+Owner: Likitha Shankar
+Description: Pydantic v2 models for Agent 1 structured extraction — SourceSpan,
+  Medication, FollowUpAppointment, and ExtractionOutput define the locked JSON contract
+  passed to scoped downstream agents; optional provenance fields support UI citations.
+Key functions/classes: SourceSpan, Medication, FollowUpAppointment, ExtractionOutput
+Edge cases handled:
+  - Lists default to [] and optional scalars to None to avoid fabricated values.
+Dependencies: pydantic
+Called by: dischargeiq.agents.extraction_agent, orchestrator, main, db.history, streamlit.
 """
 
 from pydantic import BaseModel

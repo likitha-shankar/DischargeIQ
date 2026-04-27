@@ -1,8 +1,8 @@
 """
 agents/medication_agent.py
 
-Agent 3 — Medication Rationale Agent (DIS-12).
-Owner: Suchithra | Sprint 1 Week 2
+Agent 3 — Medication Rationale Agent.
+Owner: Suchithra
 
 Consumes ExtractionOutput.medications and ExtractionOutput.primary_diagnosis
 from Agent 1 and produces a plain-language, per-medication explanation that
@@ -35,7 +35,7 @@ Dependencies:
     - dischargeiq.utils.scorer.fk_check
     - dischargeiq/prompts/agent3_system_prompt.txt
 
-BLOCKED BY: DIS-8 (Agent 2) must be confirmed before this is marked Done.
+BLOCKED BY: Agent 2 must be confirmed before this is marked done.
 """
 
 import csv
@@ -97,7 +97,7 @@ def _get_client() -> Any:
         Timeout is provider-aware: 180s on OpenRouter/Ollama and 60s on
         Anthropic/OpenAI.
     """
-    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
+    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
     require_provider_api_key(provider)
     timeout = 180.0 if provider in {"openrouter", "ollama"} else 60.0
     if provider == "openrouter":
@@ -255,7 +255,7 @@ def _log_fk_score(document_id: str, fk_result: dict) -> None:
     Append an Agent 3 FK score result to dischargeiq/evaluation/fk_log.csv.
 
     Creates the file with a header row if it does not already exist.
-    Per DIS-12 acceptance criteria — all Agent 3 FK scores must be logged.
+    All Agent 3 FK scores must be logged.
 
     Args:
         document_id: Source document identifier (e.g. "heart_failure_01.pdf").
@@ -382,7 +382,7 @@ def run_medication_agent(
             raise
         rationale_text = response.content[0].text.strip()
 
-    # FK check on the combined output — required by DIS-12 acceptance criteria.
+    # FK check on the combined output.
     fk_result = fk_check(rationale_text)
     _log_fk_score(document_id, fk_result)
 

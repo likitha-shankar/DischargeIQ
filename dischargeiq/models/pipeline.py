@@ -1,14 +1,14 @@
 """
-Pydantic model for the full pipeline response.
-
-Returned by POST /analyze after agents 1–5 have run; agent 6 may be present.
-pipeline_status can be:
-  - "complete" when all agents succeed and no warnings were raised
-  - "complete_with_warnings" when all agents succeed but advisory/critical
-    extraction warnings are present
-  - "partial" when one or more agents fail and fallback text is used
-
-Depends on: dischargeiq.models.extraction.
+File: dischargeiq/models/pipeline.py
+Owner: Likitha Shankar
+Description: API-facing aggregate models — MissedConcept and PatientSimulatorOutput for
+  Agent 6 eval, and PipelineResponse wrapping extraction plus all five agent text outputs,
+  fk_scores, warnings, pipeline_status, and optional simulator payload for /analyze JSON.
+Key functions/classes: MissedConcept, PatientSimulatorOutput, PipelineResponse
+Edge cases handled:
+  - patient_simulator is optional when Agent 6 is skipped or fails non-fatally.
+Dependencies: pydantic; dischargeiq.models.extraction.ExtractionOutput
+Called by: dischargeiq.pipeline.orchestrator, dischargeiq.main, streamlit_app, tests.
 """
 
 from typing import Literal, Optional

@@ -1,11 +1,15 @@
 """
-Database access layer for discharge history (Neon PostgreSQL).
-
-Provides functions to save and retrieve pipeline results. Only structured
-fields, hashes, and metadata are stored — never full PDF text or free-text
-agent outputs.
-
-Depends on: asyncpg, dischargeiq.models.extraction.
+File: dischargeiq/db/history.py
+Owner: Likitha Shankar
+Description: Async PostgreSQL helpers (asyncpg) for Neon — connection pool creation,
+  insert of discharge_history rows (structured extraction JSON + fk_scores + status),
+  and session lookup placeholder; DB failures are logged but should not crash analysis.
+Key functions/classes: get_db_pool, save_discharge_history, get_history_for_session
+Edge cases handled:
+  - Read API noted as not wired in UI yet; callers must pass valid DATABASE_URL.
+Dependencies: asyncpg, dischargeiq.models.extraction.ExtractionOutput
+Called by: dischargeiq.pipeline.orchestrator (_save_history_with_retries), dischargeiq.main
+  (pool for /health DB check when configured).
 """
 
 # READ PATH — not yet implemented.

@@ -1,21 +1,33 @@
 """
-Extraction completeness checker for DischargeIQ.
-
-Called after Agent 1 to flag fields that are missing or empty. Warnings
-are split into two severities:
-
-  * critical  — the document almost certainly is not a real discharge
-                summary (no diagnosis / no meds / no red-flag symptoms).
-                Orchestrator downgrades pipeline_status to "partial".
-  * advisory  — common gaps on otherwise valid discharges (no follow-up
-                appointment, no patient name, etc.). Orchestrator promotes
-                pipeline_status to "complete_with_warnings" so the UI can
-                show a softer "Verified*" pill with a tooltip.
-
-Depends on: dischargeiq.models.extraction.
+File: dischargeiq/utils/warnings.py
+Owner: Likitha Shankar
+Description: Classifies Agent 1 extraction gaps into critical vs advisory warnings
+  to drive pipeline_status (partial vs complete_with_warnings) and UI messaging —
+  distinguishes true non-discharge uploads from incomplete-but-usable summaries.
+Key functions/classes: assess_extraction_completeness, _home_meds_without_list_only,
+  _likely_not_discharge_summary
+Edge cases handled:
+  - "Continue home meds" without a list maps to advisory warning, not critical empty-meds.
+  - Two or more critical gaps append a generic non-discharge-summary hint.
+Dependencies: dischargeiq.models.extraction.ExtractionOutput
+Called by: dischargeiq.pipeline.orchestrator, dischargeiq.tests.test_api_guardrails
 """
 
 from dischargeiq.models.extraction import ExtractionOutput
+
+# Must match agent1_system_prompt.txt — ER sheets that say "continue home
+# medications" without listing drugs.
+_HOME_MEDS_NO_LIST_WARNING = (
+    "Document says continue home meds but no medication list provided"
+)
+
+
+def _home_meds_without_list_only(extraction: ExtractionOutput) -> bool:
+    """True when Agent 1 documented 'continue home meds' with no list."""
+    return any(
+        _HOME_MEDS_NO_LIST_WARNING in (w or "")
+        for w in extraction.extraction_warnings
+    )
 
 
 def _likely_not_discharge_summary(critical_warnings: list[str]) -> bool:
@@ -63,7 +75,13 @@ def assess_extraction_completeness(extraction: ExtractionOutput) -> dict:
     if not extraction.primary_diagnosis:
         critical_warnings.append("Missing primary diagnosis.")
     if not extraction.medications:
-        critical_warnings.append("No medications extracted.")
+        if _home_meds_without_list_only(extraction):
+            advisory_warnings.append(
+                "Medications: document references home medications without a "
+                "specific list in this PDF."
+            )
+        else:
+            critical_warnings.append("No medications extracted.")
     if not extraction.red_flag_symptoms:
         critical_warnings.append("No red-flag symptoms extracted.")
 

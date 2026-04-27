@@ -1,4 +1,14 @@
-textstat==0.7.3
+# File: requirements.txt
+# Owner: Likitha Shankar
+# Description: Pinned Python dependencies for the FastAPI backend, Streamlit UI,
+#   PDF extraction, LLM clients (anthropic + openai SDK), DB driver, and pytest.
+#   textstat>=0.7.13 avoids pkg_resources (required on Python 3.14+).
+# Usage: pip install -r requirements.txt (often via start.sh / a venv).
+# Environment variables required: None for install; runtime uses .env for API keys.
+# Edge cases: Version pins are minimal ranges; upgrade carefully with the test suite.
+
+# textstat>=0.7.13: older releases import pkg_resources (broken on Python 3.14+)
+textstat>=0.7.13
 fastapi>=0.110.0
 uvicorn>=0.29.0
 python-multipart>=0.0.9
@@ -7,7 +17,6 @@ anthropic>=0.25.0
 openai>=1.0.0
 pdfplumber>=0.11.0
 fpdf2>=2.7.0
-textstat>=0.7.3
 pydantic>=2.0.0
 asyncpg>=0.29.0
 python-dotenv>=1.0.0

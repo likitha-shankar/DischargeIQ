@@ -1,16 +1,14 @@
 """
-dischargeiq/utils/logger.py
-
-Configures the project-wide 'dischargeiq' logger with dual output:
-console (stdout) and a per-session file at logs/session_YYYYMMDD_HHMMSS.log.
-A new log file is created each time configure_logging() is called without
-prior handlers — meaning each server startup gets its own log.
-
-Call configure_logging() once at application startup from main.py and
-streamlit_app.py. All module-level loggers (logging.getLogger(__name__))
-propagate to the 'dischargeiq' root logger automatically.
-
-Depends on: Python standard library only.
+File: dischargeiq/utils/logger.py
+Owner: Likitha Shankar
+Description: Configures the shared 'dischargeiq' logging namespace with console and
+  rotating session file handlers under logs/session_*.log; idempotent on Streamlit
+  reruns so duplicate handlers are not attached.
+Key functions/classes: configure_logging
+Edge cases handled:
+  - If handlers already exist, returns existing file path without adding duplicates.
+Dependencies: Python standard library (logging, pathlib).
+Called by: dischargeiq.main, streamlit_app (and tests that bootstrap logging).
 """
 
 import logging

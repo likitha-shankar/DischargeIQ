@@ -1,18 +1,37 @@
 """
-Agent 1 — Extraction agent (DIS-5).
+agents/extraction_agent.py
 
-Reads discharge document text (extracted via pdfplumber) and calls the LLM
-with agent1_system_prompt.txt to produce JSON matching ExtractionOutput.
-Validates the response with Pydantic; never fabricates field values —
-missing data is returned as null or [] per the locked schema contract.
+Agent 1 — Extraction Agent.
+Owner: Likitha
 
-Supports multiple LLM providers via the LLM_PROVIDER env var:
-  openrouter (default) — https://openrouter.ai
-  openai               — https://api.openai.com
-  ollama               — http://localhost:11434 (local, no key needed)
+Reads discharge document text (marked with [PAGE N] prefixes from pdfplumber)
+and calls the LLM with agent1_system_prompt.txt to produce JSON matching
+ExtractionOutput. Validates the response with Pydantic; never fabricates field
+values — missing data is returned as null or [] per the locked schema contract.
 
-Depends on: openai, pdfplumber, pydantic v2,
-            dischargeiq.models.extraction, prompts/agent1_system_prompt.txt.
+Post-processing expands common medication frequency/route abbreviations into
+plain English so Agents 2–5 see consistent patient-facing strings.
+
+LLM provider and model are resolved from LLM_PROVIDER / LLM_MODEL in .env via
+dischargeiq.utils.llm_client.get_llm_client(). Changing LLM_PROVIDER switches
+this agent together with every other agent in the pipeline.
+
+Data contract:
+    Input:  str — raw PDF text (typically from extract_text_from_pdf()).
+    Output: dischargeiq.models.extraction.ExtractionOutput
+            Required: primary_diagnosis (str)
+            Optional fields: null or [] per schema; lists are never null.
+
+Dependencies:
+    - openai             (OpenAI-compatible client for OpenRouter/OpenAI/Ollama)
+    - pdfplumber         (PDF text + table extraction)
+    - pydantic v2        (ExtractionOutput validation)
+    - dischargeiq.utils.llm_client (get_llm_client, call_chat_with_fallback)
+    - dischargeiq.models.extraction.ExtractionOutput
+    - dischargeiq/prompts/agent1_system_prompt.txt
+
+BLOCKED BY: None — Agent 1 is the pipeline schema gate. Agents 2–5 require a
+valid ExtractionOutput from this module.
 """
 
 import json
@@ -31,10 +50,12 @@ from dischargeiq.utils.llm_client import call_chat_with_fallback, get_llm_client
 
 logger = logging.getLogger(__name__)
 
+# ── Configuration ──────────────────────────────────────────────────────────────
+
 # Absolute path to the prompts directory, resolved relative to this file.
 _PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 
-# ── Deterministic post-processing tables ───────────────────────────────────
+# ── Deterministic post-processing tables ───────────────────────────────────────
 # LLM prompt instructions are followed inconsistently; deterministic Python
 # post-processing is not. These lookup tables translate the most common
 # clinical abbreviations into plain-English phrases after the LLM response
@@ -108,7 +129,7 @@ _ROUTE_NORMALIZATION_MAP: dict[str, str] = {
 # Chosen to flag referral letters and truncated discharge summaries without
 # firing on genuinely concise ER discharge notes (which typically run ~200+
 # words after pdfplumber inserts whitespace for bullet structure).
-_SHORT_DOC_WORD_THRESHOLD = 150
+_SHORT_DOC_WORD_THRESHOLD = 75
 
 
 def _build_single_pass_pattern(mapping: dict[str, str]) -> "re.Pattern[str]":
@@ -345,10 +366,9 @@ def _short_document_warning(raw_text: str) -> list[str]:
     Return a single-element list containing a short-document warning when
     the extracted text is below the word-count threshold, or an empty list.
 
-    Deterministic enforcement of the "unusually short document" rule that the
-    system prompt describes. Moving this check into Python guarantees the
-    warning fires regardless of whether the LLM obeyed the prompt on a given
-    request.
+    Deterministic enforcement of the short-document rule. Moving this check
+    into Python guarantees the warning fires regardless of whether the LLM
+    obeyed the prompt on a given request.
 
     Args:
         raw_text: The full extracted document text that will be sent to the
@@ -362,9 +382,9 @@ def _short_document_warning(raw_text: str) -> list[str]:
     word_count = len(raw_text.split())
     if word_count < _SHORT_DOC_WORD_THRESHOLD:
         return [
-            f"This document is unusually short ({word_count} words). "
-            "It may be incomplete or missing key discharge sections. "
-            "Verify all fields manually."
+            f"Document is very short ({word_count} words). This may be an "
+            "ER discharge sheet or a brief summary — extraction will continue "
+            "but some sections may be empty by design."
         ]
     return []
 
@@ -511,7 +531,7 @@ def _call_llm(system_prompt: str, pdf_text: str) -> str:
         KeyError: If the required API key env var for the chosen provider is missing.
     """
     client, model_name = _get_llm_client()
-    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
+    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
     user_message = _build_user_message(pdf_text)
     try:
         return call_chat_with_fallback(
@@ -875,6 +895,8 @@ def extract_text_from_pdf(pdf_path: str) -> str:
     return (prefix + document_text).strip()
 
 
+# ── Public API ─────────────────────────────────────────────────────────────────
+
 def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
     """
     Agent 1: Extract structured fields from raw discharge document text.
@@ -882,6 +904,9 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
     Sends the PDF text to the LLM with a strict extraction system prompt.
     Validates the response against the ExtractionOutput Pydantic model.
     Returns the validated model on success.
+
+    Provider and model are resolved from LLM_PROVIDER / LLM_MODEL in .env via
+    get_llm_client(). Supports openrouter, openai, ollama, and anthropic.
 
     This is the HARD GATE agent — do not proceed to Agent 2 until this
     function passes on 8/10 test documents. The schema it returns is the

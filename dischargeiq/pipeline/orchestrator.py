@@ -1,17 +1,18 @@
 """
-Pipeline orchestrator for DischargeIQ.
-
-Wires all five agents in sequence and aggregates their outputs into a
-PipelineResponse. All five agents are now live.
-
-Depends on: dischargeiq.agents.extraction_agent (DIS-5),
-            dischargeiq.agents.diagnosis_agent (DIS-8),
-            dischargeiq.agents.medication_agent (DIS-12),
-            dischargeiq.agents.recovery_agent (DIS-16),
-            dischargeiq.agents.escalation_agent (DIS-22),
-            dischargeiq.agents.patient_simulator_agent (Agent 6),
-            dischargeiq.db.history, dischargeiq.models.extraction,
-            dischargeiq.models.pipeline, dischargeiq.utils.warnings.
+File: dischargeiq/pipeline/orchestrator.py
+Owner: Likitha Shankar
+Description: Async coordinator for PDF→text extraction, Agents 1–5, optional Agent 6,
+  and Neon history persistence — wraps each agent in try/except, scopes extraction per
+  agent via extraction_scope, injects safety_context sentences into Agent 3 input from
+  raw PDF text, and sets pipeline_status from completeness + failure state.
+Key functions/classes: run_pipeline, _run_pipeline_internal, _extract_safety_context,
+  _save_history_with_retries
+Edge cases handled:
+  - Per-agent failures return partial pipeline with empties; 300s asyncio timeout;
+  - DB save retried; completeness critical vs advisory drives status; simulator errors non-fatal.
+Dependencies: all dischargeiq.agents.*, dischargeiq.db.history, dischargeiq.models.*,
+  dischargeiq.utils.extraction_scope, dischargeiq.utils.warnings
+Called by: dischargeiq.main (/analyze), scripts/stress/run_stress_fixtures.py, slow corpus tests.
 """
 
 import asyncio
@@ -21,6 +22,8 @@ import os
 import re
 import time
 import uuid
+from datetime import datetime
+from typing import Callable
 
 from dischargeiq.agents.diagnosis_agent import run_diagnosis_agent
 from dischargeiq.agents.escalation_agent import run_escalation_agent
@@ -29,7 +32,7 @@ from dischargeiq.agents.patient_simulator_agent import run_patient_simulator_age
 from dischargeiq.agents.medication_agent import run_medication_agent
 from dischargeiq.agents.recovery_agent import run_recovery_agent
 from dischargeiq.db.history import get_db_pool, save_discharge_history
-from dischargeiq.models.extraction import ExtractionOutput
+from dischargeiq.models.extraction import ExtractionOutput, FollowUpAppointment
 from dischargeiq.models.pipeline import PipelineResponse
 from dischargeiq.utils.extraction_scope import (
     scope_for_agent2,
@@ -40,6 +43,36 @@ from dischargeiq.utils.extraction_scope import (
 from dischargeiq.utils.warnings import assess_extraction_completeness
 
 logger = logging.getLogger(__name__)
+
+_APPT_DATE_FORMATS = (
+    "%Y-%m-%d",
+    "%B %d, %Y",
+    "%b %d, %Y",
+    "%m/%d/%Y",
+    "%m/%d/%y",
+    "%d %B %Y",
+    "%d %b %Y",
+)
+
+
+def _parse_appt_date(appt: FollowUpAppointment) -> datetime:
+    """
+    Parse appointment date string to datetime for sorting (soonest first).
+
+    Handles common discharge-summary formats. Unparseable or missing dates
+    sort last so they do not appear before real dates.
+    """
+    raw = appt.date
+    if not raw or not str(raw).strip():
+        return datetime.max
+    s = str(raw).strip()
+    for fmt in _APPT_DATE_FORMATS:
+        try:
+            return datetime.strptime(s, fmt)
+        except ValueError:
+            continue
+    return datetime.max
+
 
 # Trigger phrases for _extract_safety_context — matched case-insensitively
 # against each sentence of the raw discharge text. The list mirrors the
@@ -157,7 +190,9 @@ def _extract_safety_context(raw_text: str) -> str:
 
 
 async def run_pipeline(
-    pdf_path: str, session_id: str | None = None
+    pdf_path: str,
+    session_id: str | None = None,
+    on_progress: Callable[[int, str, str], None] | None = None,
 ) -> PipelineResponse:
     """
     Public entry point — wraps _run_pipeline_internal in a 300-second
@@ -166,13 +201,15 @@ async def run_pipeline(
     main.py translates it to an HTTP 504 for the client.
     """
     return await asyncio.wait_for(
-        _run_pipeline_internal(pdf_path, session_id),
+        _run_pipeline_internal(pdf_path, session_id, on_progress),
         timeout=_PIPELINE_TIMEOUT_SECONDS,
     )
 
 
 async def _run_pipeline_internal(
-    pdf_path: str, session_id: str | None = None
+    pdf_path: str,
+    session_id: str | None = None,
+    on_progress: Callable[[int, str, str], None] | None = None,
 ) -> PipelineResponse:
     """
     Run the multi-agent discharge pipeline on a PDF file path.
@@ -206,6 +243,8 @@ async def _run_pipeline_internal(
     logger.info("Pipeline start — document: %s", pdf_path)
 
     # ── Agent 1 — Extraction ─────────────────────────────────────────────────
+    if on_progress is not None:
+        on_progress(1, "Extraction", "Reading your discharge document...")
     # Produces the ExtractionOutput that all downstream agents consume.
     # On failure, fall back to a minimal stub so the API never returns 500.
     # pdf_text is initialised here (not inside try) so that downstream steps
@@ -213,8 +252,15 @@ async def _run_pipeline_internal(
     # unconditionally even if the text extraction step raised.
     pdf_text = ""
     try:
-        pdf_text = extract_text_from_pdf(pdf_path)
-        extraction = run_extraction_agent(pdf_text)
+        # Each agent's LLM client (Anthropic / OpenAI / OpenRouter) is
+        # synchronous and blocks the FastAPI event loop while waiting on the
+        # network. With six sequential agents at 5–15 s each, that starves
+        # the /progress poller in the loading iframe — the bar appears
+        # frozen even though the pipeline is making progress. asyncio.to_thread
+        # offloads each blocking call to the default thread pool so the
+        # event loop can keep serving /progress in real time.
+        pdf_text = await asyncio.to_thread(extract_text_from_pdf, pdf_path)
+        extraction = await asyncio.to_thread(run_extraction_agent, pdf_text)
         pipeline_status = "complete"
         logger.info("Agent 1 complete — primary_diagnosis: '%s'", extraction.primary_diagnosis)
     except Exception as exc:
@@ -226,6 +272,17 @@ async def _run_pipeline_internal(
             ],
         )
         pipeline_status = "partial"
+
+    # Soonest follow-ups first — document order is not always chronological.
+    if extraction.follow_up_appointments:
+        extraction = extraction.model_copy(
+            update={
+                "follow_up_appointments": sorted(
+                    extraction.follow_up_appointments,
+                    key=_parse_appt_date,
+                )
+            }
+        )
 
     # ── Completeness check ────────────────────────────────────────────────────
     # assess_extraction_completeness splits missing fields into:
@@ -280,6 +337,8 @@ async def _run_pipeline_internal(
 
     if agent1_succeeded:
         try:
+            if on_progress is not None:
+                on_progress(2, "Diagnosis", "Understanding your diagnosis...")
             # Explicitly strip inpatient-only fields before handing the
             # extraction to Agent 2. procedures_performed contains IV drugs
             # and imaging findings from the hospital stay that the patient
@@ -292,7 +351,8 @@ async def _run_pipeline_internal(
             agent2_input = scope_for_agent2(
                 extraction.model_copy(update={"procedures_performed": []})
             )
-            agent2_result = run_diagnosis_agent(
+            agent2_result = await asyncio.to_thread(
+                run_diagnosis_agent,
                 extraction=agent2_input,
                 document_id=pdf_path,
             )
@@ -318,13 +378,16 @@ async def _run_pipeline_internal(
 
     if agent1_succeeded:
         try:
+            if on_progress is not None:
+                on_progress(3, "Medication", "Analyzing your medications...")
             # Harvest cross-section safety language (do-not-stop, stroke
             # signs, 911 callouts) from the full PDF text so Agent 3 can
             # reproduce warnings that live outside the medication list
             # itself. Empty string when nothing matches — handled inside
             # run_medication_agent as "no extra block".
             safety_ctx = _extract_safety_context(pdf_text)
-            agent3_result = run_medication_agent(
+            agent3_result = await asyncio.to_thread(
+                run_medication_agent,
                 extraction=scope_for_agent3(extraction),
                 document_id=pdf_path,
                 safety_context=safety_ctx,
@@ -351,7 +414,10 @@ async def _run_pipeline_internal(
 
     if agent1_succeeded:
         try:
-            agent4_result = run_recovery_agent(
+            if on_progress is not None:
+                on_progress(4, "Recovery", "Building your recovery plan...")
+            agent4_result = await asyncio.to_thread(
+                run_recovery_agent,
                 extraction=scope_for_agent4(extraction),
                 document_id=pdf_path,
             )
@@ -380,7 +446,10 @@ async def _run_pipeline_internal(
 
     if agent1_succeeded:
         try:
-            agent5_result = run_escalation_agent(
+            if on_progress is not None:
+                on_progress(5, "Escalation", "Checking warning signs...")
+            agent5_result = await asyncio.to_thread(
+                run_escalation_agent,
                 extraction=scope_for_agent5(extraction),
                 document_id=pdf_path,
             )
@@ -403,10 +472,13 @@ async def _run_pipeline_internal(
     patient_simulator_result = None
     if agent1_succeeded:
         try:
+            if on_progress is not None:
+                on_progress(6, "Simulator", "Running discharge quality check...")
             logger.info(
                 "Agent 6 (patient simulator) starting for '%s'", pdf_path
             )
-            patient_simulator_result = run_patient_simulator_agent(
+            patient_simulator_result = await asyncio.to_thread(
+                run_patient_simulator_agent,
                 extraction=extraction,
                 document_id=pdf_path,
             )

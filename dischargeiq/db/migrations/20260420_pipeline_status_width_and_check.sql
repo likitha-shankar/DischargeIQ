@@ -1,3 +1,11 @@
+-- File: dischargeiq/db/migrations/20260420_pipeline_status_width_and_check.sql
+-- Owner: Likitha Shankar
+-- Description: Widens pipeline_status to VARCHAR(30) so complete_with_warnings fits,
+--   replaces CHECK constraint to lock allowed status strings to orchestrator values.
+-- Run order: After schema.sql baseline on databases that had VARCHAR(20); idempotent
+--   DROP/ADD for chk_pipeline_status.
+-- Depends on: discharge_history table from dischargeiq/db/schema.sql (or equivalent).
+
 -- Migration: widen discharge_history.pipeline_status and add a CHECK constraint.
 --
 -- Context:

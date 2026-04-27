@@ -1,8 +1,8 @@
 """
 agents/recovery_agent.py
 
-Agent 4 — Recovery Trajectory Agent (DIS-16).
-Owner: Suchithra | Sprint 2 Week 3
+Agent 4 — Recovery Trajectory Agent.
+Owner: Suchithra
 
 Consumes ExtractionOutput.primary_diagnosis and procedures_performed from
 Agent 1 and produces a plain-language week-by-week recovery guide.
@@ -32,7 +32,7 @@ Dependencies:
     - dischargeiq.utils.scorer.fk_check
     - dischargeiq/prompts/agent4_system_prompt.txt
 
-BLOCKED BY: DIS-9 (Agents 1-3 confirmed end-to-end) must be done first.
+BLOCKED BY: Agents 1–3 must be confirmed end-to-end first.
 """
 
 import csv
@@ -93,7 +93,7 @@ def _get_client() -> Any:
         Timeout is provider-aware: 180s on OpenRouter/Ollama and 60s on
         Anthropic/OpenAI.
     """
-    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
+    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
     require_provider_api_key(provider)
     timeout = 180.0 if provider in {"openrouter", "ollama"} else 60.0
     if provider == "openrouter":
@@ -151,6 +151,8 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
         - procedures_performed  (list[str], optional): Procedures done during stay.
           Included when present so the LLM can tailor recovery milestones
           (e.g. hip replacement recovery differs from medical management alone).
+        - activity_restrictions / dietary_restrictions (optional): Passed when
+          present so the recovery guide reflects document restrictions in plain language.
 
     Args:
         extraction: Validated ExtractionOutput from Agent 1.
@@ -170,6 +172,11 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
             f"Activity restrictions: {', '.join(extraction.activity_restrictions)}"
         )
 
+    if extraction.dietary_restrictions:
+        lines.append(
+            f"Dietary restrictions: {', '.join(extraction.dietary_restrictions)}"
+        )
+
     return "\n".join(lines)
 
 
@@ -178,7 +185,7 @@ def _log_fk_score(document_id: str, fk_result: dict) -> None:
     Append an Agent 4 FK score result to dischargeiq/evaluation/fk_log.csv.
 
     Creates the file with a header row if it does not already exist.
-    Per DIS-16 acceptance criteria — all Agent 4 FK scores must be logged.
+    All Agent 4 FK scores must be logged.
 
     Args:
         document_id: Source document identifier (e.g. "heart_failure_01.pdf").
@@ -251,7 +258,7 @@ def run_recovery_agent(
 
     logger.info("Agent 4 request — document: '%s'", document_id)
 
-    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
+    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
     client = _get_client()
 
     if provider != "anthropic":
@@ -289,7 +296,7 @@ def run_recovery_agent(
             raise
         recovery_text = response.content[0].text.strip()
 
-    # FK check — required by DIS-16 acceptance criteria.
+    # FK check.
     fk_result = fk_check(recovery_text)
     _log_fk_score(document_id, fk_result)
 

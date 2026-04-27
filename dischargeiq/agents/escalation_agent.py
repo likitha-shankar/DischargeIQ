@@ -1,8 +1,8 @@
 """
 agents/escalation_agent.py
 
-Agent 5 — Escalation / Warning-Sign Agent (DIS-22). Safety-critical.
-Owner: Suchithra | Sprint 2 Week 4
+Agent 5 — Escalation / Warning-Sign Agent. Safety-critical.
+Owner: Likitha
 
 Consumes Agent 1's ExtractionOutput and produces a three-tier decision
 tree that tells the patient when to call 911, when to go to the ER
@@ -14,6 +14,10 @@ header strings without updating the UI renderer at the same time.
 
 Every output is FK-scored via utils.scorer.fk_check() and logged to
 dischargeiq/evaluation/fk_log.csv. Target: FK grade <= 6.0.
+
+LLM provider is resolved from LLM_PROVIDER / LLM_MODEL in .env via the same
+multi-provider pattern as agents 3–4: native Anthropic client or OpenAI-
+compatible clients for openrouter / openai / ollama (see _get_client()).
 
 Data contract:
     Input:  dischargeiq.models.extraction.ExtractionOutput (from Agent 1)
@@ -30,13 +34,14 @@ Data contract:
                 passes   (bool)  — True if fk_grade <= 6.0
 
 Dependencies:
-    - anthropic          (pip install anthropic)
-    - ANTHROPIC_API_KEY  set in .env or environment
+    - anthropic, openai  (provider-specific clients per LLM_PROVIDER)
+    - dischargeiq.utils.llm_client (call_chat_with_fallback,
+      require_provider_api_key, DEFAULT_ANTHROPIC_MODEL)
     - dischargeiq.models.extraction.ExtractionOutput
     - dischargeiq.utils.scorer.fk_check
     - dischargeiq/prompts/agent5_system_prompt.txt
 
-BLOCKED BY: DIS-16 (Agent 4) must be landed before Agent 5 is wired
+BLOCKED BY: Agent 4 must be landed before Agent 5 is wired
 into the orchestrator.
 """
 
@@ -101,7 +106,7 @@ def _get_client() -> Any:
         Timeout is provider-aware: 180s on OpenRouter/Ollama and 60s on
         Anthropic/OpenAI.
     """
-    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
+    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
     require_provider_api_key(provider)
     timeout = 180.0 if provider in {"openrouter", "ollama"} else 60.0
     if provider == "openrouter":
@@ -216,7 +221,7 @@ def _log_fk_score(document_id: str, fk_result: dict) -> None:
     Append an Agent 5 FK score result to dischargeiq/evaluation/fk_log.csv.
 
     Creates the file with a header row if it does not already exist.
-    Per DIS-22 acceptance criteria — all Agent 5 FK scores must be logged.
+    All Agent 5 FK scores must be logged.
 
     Args:
         document_id: Source document identifier (e.g. "heart_failure_01.pdf").
@@ -257,11 +262,15 @@ def run_escalation_agent(
     """
     Agent 5: Generate the three-tier escalation decision tree.
 
-    Sends Agent 1's extraction data to Claude with the Agent 5 safety
-    prompt, then scores the output with fk_check() and logs the score.
+    Sends Agent 1's extraction data to the configured LLM with the Agent 5
+    safety prompt, then scores the output with fk_check() and logs the score.
     Output structure is fixed by agent5_system_prompt.txt and parsed by
     the Streamlit renderer — never change tier header strings without
     updating the UI.
+
+    Provider and model are resolved from LLM_PROVIDER / LLM_MODEL in .env via
+    _get_client() (Anthropic native or OpenAI-compatible for openrouter, openai,
+    ollama).
 
     Data contract:
         Input:  ExtractionOutput from Agent 1.
@@ -301,7 +310,7 @@ def run_escalation_agent(
         len(extraction.red_flag_symptoms or []),
     )
 
-    provider = os.environ.get("LLM_PROVIDER", "openrouter").lower()
+    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
     client = _get_client()
 
     if provider != "anthropic":
@@ -339,7 +348,7 @@ def run_escalation_agent(
             raise
         escalation_text = response.content[0].text.strip()
 
-    # FK check — required by DIS-22 acceptance criteria. Safety output must
+    # FK check. Safety output must
     # be legible at a 6th-grade reading level; a failing score means the
     # prompt needs tightening, not a silent retry.
     fk_result = fk_check(escalation_text)

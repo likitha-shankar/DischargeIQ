@@ -1,10 +1,15 @@
 """
-Flesch-Kincaid readability scorer for DischargeIQ.
-
-Every agent text output must pass through fk_check() before being returned.
-Target: FK grade <= 6.0 (6th grade reading level).
-
-Depends on: textstat.
+File: dischargeiq/utils/scorer.py
+Owner: Likitha Shankar
+Description: Production FK scoring for agent outputs — wraps textstat Flesch-Kincaid
+  grade and returns fk_grade plus passes flag against a default 6.0 threshold used across
+  Agents 2–5 (and related logging).
+Key functions/classes: fk_score, fk_check
+Edge cases handled:
+  - None documented (short or empty text may yield extreme scores; callers should validate).
+Dependencies: textstat (external).
+Called by: dischargeiq.agents.diagnosis_agent, medication_agent, recovery_agent,
+  escalation_agent, and any code importing fk_check for pipeline outputs.
 """
 
 import textstat
