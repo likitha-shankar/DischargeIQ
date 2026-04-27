@@ -1,9 +1,11 @@
 # Environment and secrets
 .env
+*.env
+!.env.example
 
 # Python build/cache artifacts
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.egg-info/
 dist/
@@ -16,18 +18,24 @@ venv/
 
 # OS/editor/runtime clutter
 .DS_Store
+Thumbs.db
 *.tmp
+*.swp
 logs/
 
-# Local tool metadata
-.claude
+# IDE / local tools
+.claude/
+.cursor/
+.vscode/
+.idea/
 
 # Xcode / Swift
 **/xcuserdata/
 **/*.xcuserstate
 
-# iOS app (on hold — local only)
+# Mobile apps (on hold — local only)
 ios/
+dischargeiq_mobile/
 
 # Runtime / local logs (never commit)
 *.log
