@@ -54,7 +54,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(_REPO_ROOT / ".env")
 
 _WHITELIST = {"complete", "complete_with_warnings", "partial"}
-_FK_GATE = 6.5
+_FK_GATE = 6.0
 _AGENT_KEYS = ("agent2", "agent3", "agent4", "agent5")
 _PER_FIXTURE_TIMEOUT_SECONDS = 300.0
 

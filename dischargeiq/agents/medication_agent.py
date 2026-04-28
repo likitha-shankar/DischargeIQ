@@ -377,17 +377,21 @@ def run_medication_agent(
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_message}],
             )
-        except anthropic.APIError as e:
-            logger.error("Agent 3 API call failed for '%s': %s", document_id, e)
+        except (anthropic.APIError, Exception) as e:
+            logger.error("Agent 3 Anthropic call failed for '%s': %s", document_id, e)
             raise
         # Guard: Anthropic occasionally returns an empty content array on
         # transient errors that don't raise.  Empty string flows through the
         # FK check below and surfaces as a normal empty-output failure.
         rationale_text = response.content[0].text.strip() if response.content else ""
 
-    # FK check on the combined output.
-    fk_result = fk_check(rationale_text)
-    _log_fk_score(document_id, fk_result)
+    # FK check on the combined output. Skip scoring when text is empty to
+    # avoid ValueError from fk_score() on degenerate input.
+    if rationale_text.strip():
+        fk_result = fk_check(rationale_text)
+        _log_fk_score(document_id, fk_result)
+    else:
+        fk_result = {"fk_grade": -1.0, "passes": False, "threshold": 6.0}
 
     if fk_result["passes"]:
         logger.info(

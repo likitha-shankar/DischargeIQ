@@ -503,17 +503,34 @@ def _inject_global_css() -> None:
     st.markdown(
         """
         <style>
-        /* Page background */
-        .stApp { background: #f8f9fa; }
+        /* ── Typography ─────────────────────────────────────────────────────── */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        html, body, .stApp, .stMarkdown, p, li, span, div, button, input {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ── Page background ─────────────────────────────────────────────────── */
+        .stApp {
+            background: linear-gradient(160deg, #f0fdf8 0%, #f8fafc 55%, #eef7f4 100%) !important;
+            background-attachment: fixed !important;
+        }
         .block-container {
             padding-top: 0.5rem !important;
-            padding-bottom: 1rem !important;
+            padding-bottom: 2rem !important;
             max-width: 100% !important;
         }
 
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
         /* Hide Streamlit's native top toolbar ("Deploy" button etc.) so
-           our teal app header is not covered by it. The native toolbar
-           sits at a higher z-index than our injected #diq-app-header. */
+           our teal app header is not covered by it. */
         header[data-testid="stHeader"] { display: none !important; }
 
         /* Clear vertical space for the 56px teal app header + ~40px tab
@@ -523,149 +540,196 @@ def _inject_global_css() -> None:
         /* Remove Streamlit's default top padding on columns */
         [data-testid="column"] { padding: 0 8px; }
 
-        /* Medication card */
-        .diq-med-card {
-            background: #fff;
-            border-radius: 8px;
-            border-left: 4px solid #6366F1;
-            padding: 12px 16px;
-            margin-bottom: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        /* ── Section title ───────────────────────────────────────────────────── */
+        .diq-section-title {
+            font-size: 1.18rem;
+            font-weight: 800;
+            color: #0A2A1F;
+            letter-spacing: -0.01em;
+            margin: 18px 0 14px;
+            padding-bottom: 10px;
+            position: relative;
+        }
+        .diq-section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 40px; height: 3px;
+            background: linear-gradient(90deg, #0F6E56, #1D9E75);
+            border-radius: 3px;
         }
 
-        /* Appointment row */
+        /* ── Medication card ─────────────────────────────────────────────────── */
+        .diq-med-card {
+            background: #ffffff;
+            border-radius: 14px;
+            border-left: 4px solid #6366F1;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
+            transition: box-shadow 0.2s ease, transform 0.15s ease;
+        }
+        .diq-med-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 8px 28px rgba(15,110,86,0.10);
+            transform: translateY(-1px);
+        }
+
+        /* ── Appointment row ─────────────────────────────────────────────────── */
         .diq-appt-row {
             display: flex;
             align-items: flex-start;
-            gap: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid #E5E7EB;
+            gap: 14px;
+            padding: 14px 16px;
+            background: #ffffff;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.04);
+            transition: box-shadow 0.2s ease;
+        }
+        .diq-appt-row:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 4px 16px rgba(15,110,86,0.08);
         }
         .diq-appt-dot {
             width: 10px; height: 10px;
             border-radius: 50%;
-            background: #1D9E75;
+            background: linear-gradient(135deg, #0F6E56, #1D9E75);
             flex-shrink: 0;
             margin-top: 5px;
+            box-shadow: 0 0 0 3px rgba(29,158,117,0.15);
         }
 
-        /* Warning card */
+        /* ── Warning card ────────────────────────────────────────────────────── */
         .diq-warning-card {
-            background: #FCEBEB;
-            border-radius: 8px;
-            padding: 14px 18px;
-            margin-bottom: 8px;
+            background: linear-gradient(135deg, #FFF5F5, #FEF2F2);
+            border-radius: 14px;
+            border: 1px solid rgba(220,38,38,0.12);
+            padding: 16px 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(220,38,38,0.06);
         }
         .diq-flag-row {
             display: flex;
             align-items: flex-start;
             gap: 10px;
-            padding: 6px 0;
+            padding: 7px 0;
         }
         .diq-flag-dot {
-            width: 10px; height: 10px;
+            width: 8px; height: 8px;
             border-radius: 50%;
-            background: #C0392B;
+            background: #DC2626;
             flex-shrink: 0;
-            margin-top: 5px;
+            margin-top: 6px;
+            box-shadow: 0 0 0 3px rgba(220,38,38,0.15);
         }
 
-        /* Section title */
-        .diq-section-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #1E293B;
-            letter-spacing: 0.01em;
-            margin: 14px 0 12px;
-            padding-bottom: 5px;
-            border-bottom: 2px solid #E2E8F0;
-        }
-
-        /* Medication status badge */
+        /* ── Medication status badge ─────────────────────────────────────────── */
         .diq-badge {
             display: inline-block;
-            padding: 2px 9px;
-            border-radius: 10px;
-            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.68rem;
             font-weight: 700;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
             color: #fff;
         }
 
-        /* Changed banner */
+        /* ── Changed banner ──────────────────────────────────────────────────── */
         .diq-changed-banner {
-            background: #FEF3C7;
+            background: linear-gradient(135deg, #FEF9C3, #FEF3C7);
             color: #92400E;
-            border-radius: 4px;
-            padding: 3px 8px;
-            font-size: 0.75rem;
-            margin-top: 5px;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin-top: 6px;
             display: inline-block;
+            border: 1px solid rgba(146,64,14,0.15);
         }
 
-        /* Diagnosis "at a glance" block (What Happened tab) */
+        /* ── Diagnosis "at a glance" block ───────────────────────────────────── */
         .diq-dx-label {
-            font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.08em; color: #64748B; margin: 14px 0 6px;
+            font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #64748B; margin: 16px 0 8px;
         }
         .diq-dx-row {
-            display: flex; align-items: center; gap: 10px;
-            padding: 5px 0; font-size: 0.92rem; color: #1E293B;
+            display: flex; align-items: center; gap: 12px;
+            padding: 7px 0; font-size: 0.93rem; color: #1E293B; font-weight: 500;
         }
         .diq-dx-badge {
             display: inline-block;
-            width: 18px; height: 8px;
-            background: #0F6E56; border-radius: 4px;
+            width: 4px; height: 20px;
+            background: linear-gradient(180deg, #0F6E56, #1D9E75);
+            border-radius: 3px;
             flex-shrink: 0;
         }
-        .diq-dx-sep { border: none; border-top: 1px solid #E5E7EB; margin: 16px 0; }
+        .diq-dx-sep {
+            border: none;
+            border-top: 1px solid #E5E7EB;
+            margin: 18px 0;
+        }
 
-        /* Citation debug label — tiny, unobtrusive page reference for dev use.
-           Shrink wrapper to inline so it doesn't span full column width. */
+        /* ── Citation chip (p.N) ─────────────────────────────────────────────── */
         div[data-testid="stButton"]:has(button[kind="secondary"]) {
             display: inline-flex !important;
             width: auto !important;
         }
         button[data-testid="baseButton-secondary"],
         button[kind="secondary"] {
-            padding: 0px 4px !important;
+            padding: 1px 6px !important;
             font-size: 0.6rem !important;
-            font-weight: 400 !important;
+            font-weight: 600 !important;
             line-height: 1.4 !important;
-            border-radius: 3px !important;
-            background: transparent !important;
-            color: #CBD5E1 !important;
-            border: 1px solid #E2E8F0 !important;
+            border-radius: 4px !important;
+            background: rgba(15,110,86,0.06) !important;
+            color: #0F6E56 !important;
+            border: 1px solid rgba(15,110,86,0.2) !important;
             min-height: 0 !important;
             height: auto !important;
             box-shadow: none !important;
+            transition: background 0.15s ease !important;
         }
         button[data-testid="baseButton-secondary"]:hover,
         button[kind="secondary"]:hover {
-            background: #F8FAFC !important;
-            color: #94A3B8 !important;
-            border-color: #CBD5E1 !important;
+            background: rgba(15,110,86,0.12) !important;
+            color: #0A5240 !important;
+            border-color: rgba(15,110,86,0.35) !important;
             box-shadow: none !important;
         }
 
-        /* Recovery section */
-        .diq-recovery-col { font-size: 0.9rem; color: #334155; line-height: 1.8; }
+        /* ── Recovery section ────────────────────────────────────────────────── */
+        .diq-recovery-col {
+            font-size: 0.9rem; color: #334155; line-height: 1.9;
+        }
         .diq-discharge-cond {
-            background: #F1F5F9;
-            border-radius: 6px;
-            padding: 8px 14px;
+            background: linear-gradient(135deg, #F1F5F9, #EFF6FF);
+            border-radius: 10px;
+            padding: 10px 16px;
             font-size: 0.85rem;
-            color: #64748B;
-            margin-top: 10px;
+            color: #475569;
+            margin-top: 12px;
+            border: 1px solid #E2E8F0;
         }
 
-        /* Hidden click-target buttons — used by _hidden_click_target().
-           Each hidden button is preceded by a <span class="diq-hidden-btn-slot">
-           marker; the adjacent-sibling :has() rule takes BOTH containers out
-           of the flex flow entirely (position: absolute) so the parent
-           stVerticalBlock's gap between children does not accumulate phantom
-           vertical space above the visible content. The button remains
-           clickable from JS via .click(). */
+        /* ── Download button ─────────────────────────────────────────────────── */
+        button[data-testid="baseButton-secondary"][kind="secondary"][data-testid*="download"],
+        div[data-testid="stDownloadButton"] button {
+            background: linear-gradient(135deg, #0F6E56, #1D9E75) !important;
+            color: #ffffff !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            font-size: 0.82rem !important;
+            padding: 8px 16px !important;
+            box-shadow: 0 2px 8px rgba(15,110,86,0.25) !important;
+            transition: opacity 0.2s ease !important;
+        }
+        div[data-testid="stDownloadButton"] button:hover {
+            opacity: 0.9 !important;
+            box-shadow: 0 4px 12px rgba(15,110,86,0.35) !important;
+        }
+
+        /* ── Hidden click-target buttons ─────────────────────────────────────── */
         div[data-testid="stElementContainer"]:has(.diq-hidden-btn-slot),
         div[data-testid="stElementContainer"]:has(.diq-hidden-btn-slot)
           + div[data-testid="stElementContainer"] {
@@ -679,11 +743,34 @@ def _inject_global_css() -> None:
             margin: 0 !important;
             padding: 0 !important;
         }
-        /* The button itself must still receive .click() from JS even though
-           it lives off-screen, so leave pointer-events enabled. */
         div[data-testid="stElementContainer"]:has(.diq-hidden-btn-slot)
           + div[data-testid="stElementContainer"] {
             pointer-events: auto !important;
+        }
+
+        /* ── Streamlit info/warning/error blocks ─────────────────────────────── */
+        div[data-testid="stAlert"] {
+            border-radius: 12px !important;
+            border: none !important;
+            font-size: 0.88rem !important;
+        }
+
+        /* ── Markdown prose inside results ───────────────────────────────────── */
+        .stMarkdown p {
+            font-size: 0.93rem;
+            line-height: 1.75;
+            color: #334155;
+        }
+        .stMarkdown li {
+            font-size: 0.91rem;
+            line-height: 1.7;
+            color: #334155;
+        }
+        .stMarkdown h3 {
+            font-size: 0.95rem !important;
+            font-weight: 700 !important;
+            color: #0A2A1F !important;
+            margin: 14px 0 6px !important;
         }
         </style>
         """,
@@ -1693,7 +1780,7 @@ def _render_section_diagnosis(result: dict) -> None:
     secondary = ext.get("secondary_diagnoses", [])
 
     st.markdown(
-        '<div class="diq-section-title">What Happened to You</div>',
+        '<div class="diq-section-title">🩺&nbsp; What Happened to You</div>',
         unsafe_allow_html=True,
     )
 
@@ -1897,7 +1984,7 @@ def _render_section_medications(result: dict) -> None:
     medications = ext.get("medications", [])
 
     st.markdown(
-        '<div class="diq-section-title">Your Medications</div>',
+        '<div class="diq-section-title">💊&nbsp; Your Medications</div>',
         unsafe_allow_html=True,
     )
 
@@ -2081,7 +2168,7 @@ def _render_section_appointments(result: dict) -> None:
     appointments = ext.get("follow_up_appointments", [])
 
     st.markdown(
-        '<div class="diq-section-title">Your Follow-Up Appointments</div>',
+        '<div class="diq-section-title">📅&nbsp; Your Follow-Up Appointments</div>',
         unsafe_allow_html=True,
     )
 
@@ -2273,7 +2360,7 @@ def _render_section_warning_signs(result: dict) -> None:
     escalation = _clean_str(result.get("escalation_guide", ""))
 
     st.markdown(
-        '<div class="diq-section-title">Warning Signs</div>',
+        '<div class="diq-section-title">🚨&nbsp; Warning Signs</div>',
         unsafe_allow_html=True,
     )
 
@@ -2344,7 +2431,7 @@ def _render_section_recovery(result: dict) -> None:
     condition = _clean_str(ext.get("discharge_condition"))
 
     st.markdown(
-        '<div class="diq-section-title">Recovery Notes</div>',
+        '<div class="diq-section-title">🗓️&nbsp; Recovery Notes</div>',
         unsafe_allow_html=True,
     )
 
@@ -2461,7 +2548,7 @@ def _render_section_simulator(result: dict) -> None:
         result: PipelineResponse dict containing optional 'patient_simulator' key.
     """
     st.markdown(
-        '<div class="diq-section-title">AI Patient Review</div>',
+        '<div class="diq-section-title">🤖&nbsp; AI Patient Review</div>',
         unsafe_allow_html=True,
     )
 
@@ -2495,8 +2582,11 @@ def _render_section_simulator(result: dict) -> None:
     )
 
     # ── Overall gap score ──────────────────────────────────────────────────────
-    gap_score = int(sim.get("overall_gap_score", 0))
-    summary    = _clean_str(sim.get("simulator_summary", ""))
+    try:
+        gap_score = max(0, min(10, int(float(sim.get("overall_gap_score", 0) or 0))))
+    except (TypeError, ValueError):
+        gap_score = 0
+    summary = _clean_str(sim.get("simulator_summary", ""))
 
     if gap_score <= 3:
         bar_color   = "#1D9E75"
@@ -3623,18 +3713,18 @@ def _render_upload_screen() -> None:
         toggle_icon    = "&#9728;"
         toggle_title   = "Switch to light mode"
     else:
-        bg             = "#FFFFFF"
-        card_bg        = "#F7FAF8"
+        bg             = "#FAFCFB"
+        card_bg        = "#FFFFFF"
         heading_col    = "#0A2A1F"
         italic_col     = "#0F6E56"
-        sub_col        = "#64748B"
-        badge_bg       = "#E1F5EE"
-        badge_text     = "#0F6E56"
-        badge_border   = "#9FD9C8"
-        zone_bg        = "#F7FAF8"
-        zone_border    = "#9FD9C8"
+        sub_col        = "#475569"
+        badge_bg       = "#E6F4EF"
+        badge_text     = "#0A5240"
+        badge_border   = "#A7D9CB"
+        zone_bg        = "#F4FBF8"
+        zone_border    = "#6FCFb0"
         nav_border     = "#E2E8F0"
-        card_border    = "#E1F5EE"
+        card_border    = "#DDF0E8"
         toggle_icon    = "&#9679;"
         toggle_title   = "Switch to dark mode"
 
@@ -3644,6 +3734,11 @@ def _render_upload_screen() -> None:
     st.markdown(
         f"""
         <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        html, body, .stApp, .stMarkdown, p, div, span, button {{
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+        }}
         .stApp {{ background: {bg} !important; }}
         section[data-testid="stMain"] {{
             padding-top: 0 !important;
@@ -3652,7 +3747,7 @@ def _render_upload_screen() -> None:
         .block-container {{
             padding-top: 0 !important;
             padding-bottom: 2rem !important;
-            max-width: 880px !important;
+            max-width: 900px !important;
             background: {bg} !important;
         }}
         div[data-testid="stDecoration"] {{ display: none !important; }}
@@ -3783,59 +3878,82 @@ def _render_upload_screen() -> None:
             st.error(upload_err)
             st.session_state[_S_UPLOAD_ERROR] = None
 
-        # Badge
+        # Badge — teal pill with subtle left-dot
         st.markdown(
             f"""
-            <div style="margin:36px 0 20px;text-align:center;">
-              <span style="display:inline-block;background:{badge_bg};color:{badge_text};
+            <div style="margin:40px 0 22px;text-align:center;">
+              <span style="display:inline-flex;align-items:center;gap:7px;
+                           background:{badge_bg};color:{badge_text};
                            border:1px solid {badge_border};border-radius:999px;
-                           padding:5px 16px;font-size:12px;font-weight:500;">
-                Your hospital discharge, simplified
+                           padding:6px 18px;font-size:12px;font-weight:600;
+                           box-shadow:0 1px 6px rgba(15,110,86,0.10);">
+                <span style="width:7px;height:7px;border-radius:50%;
+                             background:linear-gradient(135deg,#0F6E56,#1D9E75);
+                             display:inline-block;flex-shrink:0;"></span>
+                AI-powered · plain language · IIT Chicago CS 595
               </span>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        # Heading + subtext
+        # Heading + subtext — gradient underline on italic line, refined spacing
         st.markdown(
             f"""
-            <div style="text-align:center;margin-bottom:28px;">
-              <h1 style="font-size:38px;font-weight:800;color:{heading_col};
-                         margin:0;line-height:1.15;">Understand everything</h1>
-              <h1 style="font-size:38px;font-weight:800;font-style:italic;
-                         color:{italic_col};margin:0;line-height:1.2;">
+            <div style="text-align:center;margin-bottom:32px;">
+              <h1 style="font-size:40px;font-weight:800;color:{heading_col};
+                         margin:0;line-height:1.15;letter-spacing:-0.02em;">
+                Understand everything
+              </h1>
+              <h1 style="font-size:40px;font-weight:800;font-style:italic;
+                         background:linear-gradient(90deg,#0F6E56,#1D9E75 60%,#34D399);
+                         -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                         background-clip:text;margin:0;line-height:1.25;
+                         letter-spacing:-0.02em;">
                 the doctor just told you.
               </h1>
-              <p style="font-size:14px;color:{sub_col};margin:12px 0 0;line-height:1.6;">
-                Upload your PDF. Get plain answers. Go home ready.
+              <p style="font-size:15px;color:{sub_col};margin:14px 0 0;
+                        line-height:1.65;max-width:440px;margin-left:auto;margin-right:auto;">
+                Upload your discharge PDF. Get plain-language answers.<br>
+                Leave the hospital truly ready.
               </p>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        # 4 step cards
+        # 4 step cards — gradient icon pill, richer shadow, hover lift
         steps = [
-            ("01", "Your diagnosis", "In words a friend would use"),
-            ("02", "Your medications", "What each pill does &amp; why"),
-            ("03", "Warning signs", "When to call 911 vs your doctor"),
-            ("04", "Ask anything", "AI chat from your document"),
+            ("01", "Your diagnosis", "In words a friend would use",
+             "linear-gradient(135deg,#0F6E56,#1D9E75)"),
+            ("02", "Your medications", "What each pill does &amp; why",
+             "linear-gradient(135deg,#1D4ED8,#3B82F6)"),
+            ("03", "Warning signs", "When to call 911 vs your doctor",
+             "linear-gradient(135deg,#DC2626,#F87171)"),
+            ("04", "Ask anything", "AI chat from your document",
+             "linear-gradient(135deg,#7C3AED,#A78BFA)"),
         ]
         cards_inner = "".join(
             f"""<div style="flex:1;min-width:0;background:{card_bg};
-                             border:1px solid {card_border};border-radius:12px;
-                             padding:14px 12px;">
-                  <div style="font-size:11px;font-weight:700;color:#0F6E56;
-                               margin-bottom:4px;">{num}</div>
+                             border:1px solid {card_border};border-radius:16px;
+                             padding:16px 14px;
+                             box-shadow:0 1px 3px rgba(0,0,0,0.05),0 4px 14px rgba(0,0,0,0.07);
+                             transition:transform 0.18s ease,box-shadow 0.18s ease;"
+                  onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(0,0,0,0.11)'"
+                  onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05),0 4px 14px rgba(0,0,0,0.07)'">
+                  <div style="display:inline-flex;align-items:center;justify-content:center;
+                               width:28px;height:28px;border-radius:8px;background:{grad};
+                               margin-bottom:10px;">
+                    <span style="font-size:10px;font-weight:800;color:#fff;">{num}</span>
+                  </div>
                   <div style="font-size:13px;font-weight:700;color:{heading_col};
-                               margin-bottom:3px;">{title}</div>
-                  <div style="font-size:11px;color:{sub_col};">{sub}</div>
+                               margin-bottom:4px;line-height:1.3;">{title}</div>
+                  <div style="font-size:11px;color:{sub_col};line-height:1.4;">{sub}</div>
                 </div>"""
-            for num, title, sub in steps
+            for num, title, sub, grad in steps
         )
         st.markdown(
-            f'<div style="display:flex;gap:10px;margin-bottom:24px;">{cards_inner}</div>',
+            f'<div style="display:flex;gap:12px;margin-bottom:26px;">{cards_inner}</div>',
             unsafe_allow_html=True,
         )
 
@@ -3911,24 +4029,37 @@ def _render_upload_screen() -> None:
 body{{background:transparent;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}}
 #zone{{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:14px 18px;background:{zone_bg};
-  border:1.5px dashed {zone_border};border-radius:14px;
-  cursor:pointer;user-select:none;height:76px;
+  padding:16px 20px;background:{zone_bg};
+  border:2px dashed {zone_border};border-radius:18px;
+  cursor:pointer;user-select:none;min-height:82px;
+  transition:border-color 0.2s ease,background 0.2s ease;
+  box-shadow:0 2px 12px rgba(15,110,86,0.06);
 }}
-.left{{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}}
-.badge{{width:38px;height:38px;background:{badge_bg};border-radius:10px;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;}}
+#zone:hover{{
+  border-color:#0F6E56;background:rgba(15,110,86,0.04);
+}}
+.left{{display:flex;align-items:center;gap:14px;flex:1;min-width:0;}}
+.badge{{width:42px;height:42px;
+  background:linear-gradient(135deg,#0F6E56,#1D9E75);
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:0 3px 10px rgba(15,110,86,0.25);}}
 .txt{{flex:1;min-width:0;}}
-.title{{font-size:14px;font-weight:600;color:{heading_col};
+.title{{font-size:14px;font-weight:700;color:{heading_col};
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}}
-.sub{{font-size:11px;color:{sub_col};margin-top:2px;}}
+.sub{{font-size:11.5px;color:{sub_col};margin-top:3px;}}
 #gs{{
-  flex-shrink:0;padding:10px 22px;background:#0F6E56;color:#fff;
-  border:none;border-radius:10px;font-size:13px;font-weight:600;
+  flex-shrink:0;padding:11px 24px;
+  background:linear-gradient(135deg,#0F6E56,#1D9E75);color:#fff;
+  border:none;border-radius:12px;font-size:13px;font-weight:700;
   cursor:pointer;white-space:nowrap;
+  box-shadow:0 3px 12px rgba(15,110,86,0.30);
+  transition:opacity 0.18s ease,box-shadow 0.18s ease;
 }}
+#gs:hover{{opacity:0.9;box-shadow:0 5px 18px rgba(15,110,86,0.38);}}
 #gs:disabled{{background:{badge_bg};color:#0F6E56;
-  border:1.5px solid {zone_border};cursor:default;opacity:.65;}}
+  border:1.5px solid {zone_border};cursor:default;opacity:.6;
+  box-shadow:none;}}
 </style>
 <script>
 (function(){{

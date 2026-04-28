@@ -22,9 +22,9 @@ from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
-# Anthropic default: dated Haiku (cheapest tier). Undated aliases can 404.
+# Anthropic default: dated Haiku 4.5 (cheapest tier). Undated aliases can 404.
 # For higher-quality eval / demos, set LLM_MODEL=claude-sonnet-4-20250514 in .env.
-DEFAULT_ANTHROPIC_MODEL = "claude-3-5-haiku-20241022"
+DEFAULT_ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 
 # Default configuration per provider.
 # Add a new provider here — no agent code needs to change.

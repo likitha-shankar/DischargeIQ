@@ -48,6 +48,7 @@ into the orchestrator.
 import csv
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -343,19 +344,38 @@ def run_escalation_agent(
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_message}],
             )
-        except anthropic.APIError as e:
-            logger.error("Agent 5 API call failed for '%s': %s", document_id, e)
+        except (anthropic.APIError, Exception) as e:
+            logger.error("Agent 5 Anthropic call failed for '%s': %s", document_id, e)
             raise
         # Guard: Anthropic occasionally returns an empty content array on
         # transient errors that don't raise.  Empty string flows through the
         # FK check below and surfaces as a normal empty-output failure.
         escalation_text = response.content[0].text.strip() if response.content else ""
 
-    # FK check. Safety output must
-    # be legible at a 6th-grade reading level; a failing score means the
-    # prompt needs tightening, not a silent retry.
-    fk_result = fk_check(escalation_text)
-    _log_fk_score(document_id, fk_result)
+    # Runtime ambiguity check — agent5_system_prompt.txt forbids these phrases,
+    # but we log a warning if the LLM slips one through so operators can catch it.
+    _AMBIGUOUS_PATTERNS = [
+        r"\bmay need to\b", r"\bmight need to\b", r"\bcould need\b",
+        r"\bconsider calling\b", r"\bconsider going\b", r"\byou may want to\b",
+        r"\bperhaps\b", r"\bif possible\b",
+    ]
+    for pattern in _AMBIGUOUS_PATTERNS:
+        if re.search(pattern, escalation_text, re.IGNORECASE):
+            logger.warning(
+                "Agent 5 AMBIGUITY '%s': output contains forbidden phrase matching '%s'. "
+                "Review agent5_system_prompt.txt.",
+                document_id,
+                pattern,
+            )
+
+    # FK check. Safety output must be legible at a 6th-grade reading level;
+    # a failing score means the prompt needs tightening, not a silent retry.
+    # Guard against empty text — fk_score() raises ValueError on empty input.
+    if escalation_text.strip():
+        fk_result = fk_check(escalation_text)
+        _log_fk_score(document_id, fk_result)
+    else:
+        fk_result = {"fk_grade": -1.0, "passes": False, "threshold": 6.0}
 
     if fk_result["passes"]:
         logger.info(

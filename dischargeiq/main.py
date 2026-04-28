@@ -664,6 +664,13 @@ async def chat(request: ChatRequest):
         message,
     )
 
+    if not request.message.strip():
+        return ChatResponse(
+            reply="Please type a question and I'll do my best to help.",
+            source_page=None,
+            from_document=False,
+        )
+
     system_prompt = _build_chat_system_prompt(request.pipeline_context)
 
     try:

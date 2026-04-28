@@ -71,6 +71,8 @@ WRITING RULES:
 - Count your words before writing each sentence. If over 12, cut it.
 - Never use "hypoglycemia" — write "blood sugar too low" instead.
 - Never use "hyperglycemia" or "ketoacidosis" — write "blood sugar too high" instead.
+- Prefer words with 1-2 syllables. Replace: "significant" → "bad", "deteriorate" → "get worse", "medication" → "medicine", "physician" → "doctor", "symptoms" → "signs", "immediately" → "right now", "difficulty" → "trouble", "infection" → "infection" (OK — 3 syllables but common), "condition" → "problem".
+- If a word has 3+ syllables and a simpler word exists, use the simpler word.
 
 OUTPUT FORMAT — follow this exactly:
 - Plain text only. No markdown. No asterisks. No bold markers. No headers with #.

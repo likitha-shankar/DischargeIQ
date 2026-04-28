@@ -73,12 +73,12 @@ FORMAT — use this exactly for each question. No deviations:
 
 Q: [the patient's question in plain language]
 ANSWERED: YES or NO
-GAP: [one clear sentence explaining what is missing or unclear — write N/A if ANSWERED is YES]
+GAP: [one short plain-English sentence, max 12 words, explaining what is missing — write N/A if ANSWERED is YES. Use simple words. No medical jargon.]
 SEVERITY: critical or moderate or minor
 
 After all questions, write on its own line:
 OVERALL_GAP_SCORE: [a single integer from 0 to 10]
-SUMMARY: [2-3 sentences: who would struggle most with this document and the single biggest gap that could cause harm]
+SUMMARY: [2-3 short sentences: who would struggle most and the biggest gap. Write at a 6th grade level. Max 12 words per sentence. No medical jargon.]
 
 GAP SCORE CALIBRATION (reference only — do not include this table in your output):
 - 8-10: Critical safety information is missing. A patient going home with this is at real risk of a medical error.

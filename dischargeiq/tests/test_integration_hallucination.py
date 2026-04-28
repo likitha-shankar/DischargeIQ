@@ -45,7 +45,10 @@ if str(_REPO_ROOT) not in sys.path:
 from dotenv import load_dotenv  # noqa: E402
 load_dotenv(_REPO_ROOT / ".env")
 
-from deepdiff import DeepDiff  # noqa: E402
+try:  # noqa: E402
+    from deepdiff import DeepDiff
+except ModuleNotFoundError:
+    DeepDiff = None  # type: ignore[assignment,misc]
 from reportlab.lib.pagesizes import LETTER  # noqa: E402
 from reportlab.lib.styles import getSampleStyleSheet  # noqa: E402
 from reportlab.platypus import (  # noqa: E402
@@ -920,15 +923,16 @@ def run_case(profile: Profile, index: int, total: int) -> dict:
     result["status"] = "FAIL" if result["hallucinations"] > 0 else "PASS"
 
     # Debug diff for the log file only — keeps stdout compact.
-    try:
-        logger.debug(
-            "DeepDiff for %s: %s",
-            profile.name,
-            DeepDiff(profile.ground_truth, extraction, ignore_order=True,
-                     significant_digits=2).to_json()[:4000],
-        )
-    except Exception:  # noqa: BLE001
-        pass
+    if DeepDiff is not None:
+        try:
+            logger.debug(
+                "DeepDiff for %s: %s",
+                profile.name,
+                DeepDiff(profile.ground_truth, extraction, ignore_order=True,
+                         significant_digits=2).to_json()[:4000],
+            )
+        except Exception:  # noqa: BLE001
+            pass
 
     return result
 
@@ -1554,3 +1558,104 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Pytest-discoverable tests
+# Run: pytest -m slow dischargeiq/tests/test_integration_hallucination.py
+# ──────────────────────────────────────────────────────────────────────────────
+
+import pytest  # noqa: E402 — kept at bottom to preserve script-mode import order
+
+
+def _profile_ids() -> list[str]:
+    """Return profile names for pytest parametrize IDs."""
+    return [p.name for p in _profiles()]
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("profile", _profiles(), ids=_profile_ids())
+def test_hallucination_gate_per_profile(profile: "Profile") -> None:
+    """
+    Assert Agent 1 produces zero hallucinations for a single discharge profile.
+
+    Hard gate: hallucinations must be exactly 0 for every profile. A hallucination
+    is a field value present in the extraction output that is not supported by the
+    source document text. Even one hallucination blocks the pipeline.
+
+    Soft gate: omissions must be ≤ 3 total across all profiles. This test enforces
+    the hard gate per profile; the soft gate is checked in the aggregate test below.
+
+    Args:
+        profile: One Profile from _profiles(), injected by parametrize.
+    """
+    provider_key_env = {
+        "anthropic": "ANTHROPIC_API_KEY",
+        "openrouter": "OPENROUTER_API_KEY",
+        "openai": "OPENAI_API_KEY",
+    }
+    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    required_key = provider_key_env.get(provider)
+    if required_key and not os.environ.get(required_key, "").strip():
+        pytest.skip(f"{required_key} not set — skipping live LLM call.")
+
+    result = run_case(profile, index=1, total=1)
+
+    assert result["status"] != "ERROR", (
+        f"Pipeline ERROR on profile '{profile.name}': {result.get('error')}"
+    )
+    assert result["hallucinations"] == 0, (
+        f"Profile '{profile.name}': {result['hallucinations']} hallucination(s) found.\n"
+        + "\n".join(
+            f"  [{i.kind}] {i.field}: {i.detail}"
+            for i in result.get("issues", [])
+            if getattr(i, "kind", i if isinstance(i, str) else "") == "HALLUCINATION"
+            or (isinstance(i, str) and "HALLUCINATION" in i)
+        )
+        or "\n".join(f"  {issue}" for issue in result.get("issues", []))
+    )
+
+
+@pytest.mark.slow
+def test_omission_soft_gate_all_profiles() -> None:
+    """
+    Assert total omissions across all 8 profiles is ≤ 3.
+
+    Omissions are fields present in the ground truth but missing from extraction.
+    Up to 3 omissions across all profiles is acceptable (soft gate). More than 3
+    means Agent 1 is systematically under-extracting and the prompt needs revision.
+
+    This test runs all profiles sequentially and aggregates the count. It is
+    separate from test_hallucination_gate_per_profile so a soft-gate failure
+    does not block the per-profile hallucination results from appearing in output.
+    """
+    provider_key_env = {
+        "anthropic": "ANTHROPIC_API_KEY",
+        "openrouter": "OPENROUTER_API_KEY",
+        "openai": "OPENAI_API_KEY",
+    }
+    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    required_key = provider_key_env.get(provider)
+    if required_key and not os.environ.get(required_key, "").strip():
+        pytest.skip(f"{required_key} not set — skipping live LLM call.")
+
+    profiles = _profiles()
+    total_omissions = 0
+    error_names: list[str] = []
+
+    for index, profile in enumerate(profiles, start=1):
+        try:
+            result = run_case(profile, index=index, total=len(profiles))
+            total_omissions += result.get("omissions", 0)
+            if result["status"] == "ERROR":
+                error_names.append(profile.name)
+        except Exception as exc:  # noqa: BLE001
+            error_names.append(f"{profile.name} (crash: {exc})")
+
+    assert not error_names, (
+        f"Profiles errored during omission gate: {error_names}"
+    )
+    assert total_omissions <= 3, (
+        f"Soft gate FAIL: {total_omissions} total omissions across {len(profiles)} profiles "
+        f"(limit is 3). Agent 1 prompt needs revision."
+    )

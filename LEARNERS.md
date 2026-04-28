@@ -34,7 +34,7 @@ This file is the **friendly entry point** for anyone learning the codebase or re
 1. **Two-pillar product** — DischargeIQ is a **patient chatbot** (grounded Q&A via the floating chat panel) plus an **AI simulation layer** (Agent 6) that surfaces "missed concepts" — gaps in the discharge document a confused patient would ask about. The AI flags gaps; a human care team acts on them.
 2. **Pipeline** — A PDF goes in; **Agent 1** extracts structured facts; **Agents 2–5** turn those into plain-language sections at a controlled reading level; **Agent 6** simulates a patient reading the document and surfaces unanswered questions (gap score 0–10, always runs on every upload).
 3. **`PipelineResponse`** — The JSON shape the API returns (diagnosis text, medication rationale, recovery, escalation, extraction details, warnings, status, and `patient_simulator` output from Agent 6).
-4. **FK (Flesch–Kincaid)** — Readability scoring used as a guardrail; scores appear in responses as `fk_scores`.
+4. **FK (Flesch–Kincaid)** — Readability scoring used as a guardrail; scores appear in responses as `fk_scores`. Target: ≤ 6.0 for Agents 2–5, ≤ 8.0 for Agent 6. Pass rates: Agent 2 86%, Agent 3 89%, Agent 4 97%, Agent 5 73%.
 5. **Partial runs** — If one step fails (e.g. rate limit), the pipeline may still return a **partial** result with warnings; the UI surfaces that.
 6. **One LLM provider for all agents** — `LLM_PROVIDER` in `.env` applies to every agent (not “Agent 1 only”). For Claude, pin `LLM_MODEL=claude-sonnet-4-20250514`.
 

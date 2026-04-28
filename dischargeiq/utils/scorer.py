@@ -24,7 +24,16 @@ def fk_score(text: str) -> float:
 
     Returns:
         float: The FK grade level (lower is simpler).
+
+    Raises:
+        ValueError: If text is None, empty, or whitespace-only — textstat
+            returns undefined/extreme values for degenerate input.
     """
+    if not text or not text.strip():
+        raise ValueError(
+            "Cannot score empty or whitespace-only text. "
+            "Ensure the agent produced output before calling fk_score()."
+        )
     return textstat.flesch_kincaid_grade(text)
 
 

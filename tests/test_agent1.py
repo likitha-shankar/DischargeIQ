@@ -1,20 +1,23 @@
 """
 File: tests/test_agent1.py
 Owner: Likitha Shankar
-Description: Standalone Agent 1 regression runner over test-data/ and stress-test PDFs —
-  extracts text, calls run_extraction_agent, and scores each file against primary_diagnosis,
-  medication, and follow-up presence rules with pass tallies (uses LLM via project client).
-Key functions/classes: run_tests, per-PDF validation helpers
+Description: Agent 1 regression suite — pytest-discoverable slow tests that enforce the
+  8/10 hard gate across the original synthetic PDFs, plus a stress-test batch. Also
+  contains a standalone main() for manual runs with per-file progress output.
+Key functions/classes: test_hard_gate_original_set, test_stress_batch, _evaluate_document
 Edge cases handled:
   - Sleep between calls for provider rate limits; continues suite after individual failures.
+  - Hard gate asserted via pytest.fail(), not just printed.
 Dependencies: dischargeiq.agents.extraction_agent, pathlib, dotenv-loaded env
-Called by: Manual: ``python tests/test_agent1.py`` or ``python -m tests.test_agent1`` from repo root.
+Called by: ``pytest -m slow tests/test_agent1.py`` or ``python tests/test_agent1.py``.
 """
 
 import os
 import sys
 import time
 from pathlib import Path
+
+import pytest
 
 # Repo root — package ``dischargeiq`` is importable when running this file directly.
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -35,10 +38,11 @@ _STRESS_DATA_DIR = _REPO_ROOT / "test-data" / "stress-test"
 # Minimum passing documents from the original 10 to clear the hard gate.
 _HARD_GATE_THRESHOLD = 8
 
-# Seconds to wait between API calls to stay under the Gemini free-tier RPM
-# limit. gemini-2.5-flash free tier = 5 RPM, so we need 12s+ between calls.
-# 15s gives comfortable headroom. 10 calls = ~2.5 min total idle time.
-_INTER_CALL_DELAY_SECONDS = 15
+# Seconds to wait between API calls to stay within Anthropic free-tier limits.
+# Binding constraint: 10,000 input tokens/min. Agent 1 sends ~5,300 tokens per
+# call (4,700-token system prompt + ~600-token PDF text). At 35 s gaps:
+# 60/35 ≈ 1.7 calls/min × 5,300 = 9,010 tokens/min — safely under the limit.
+_INTER_CALL_DELAY_SECONDS = 35
 
 
 def _evaluate_document(pdf_path: Path) -> dict:
@@ -203,3 +207,88 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Pytest-discoverable tests
+# Run: pytest -m slow tests/test_agent1.py
+# ──────────────────────────────────────────────────────────────────────────────
+
+@pytest.mark.slow
+def test_hard_gate_original_set() -> None:
+    """
+    Assert Agent 1 passes on at least 8/10 original synthetic PDFs.
+
+    This is the hard gate that must clear before Agent 2 development begins.
+    Failure exits non-zero so CI blocks automatically.
+
+    Each PDF is evaluated for:
+        - primary_diagnosis present and non-empty
+        - at least one medication extracted
+        - at least one follow-up appointment extracted
+    """
+    pdf_files = sorted(_TEST_DATA_DIR.glob("*.pdf"))
+    assert pdf_files, f"No PDFs found in {_TEST_DATA_DIR} — check test-data/ directory."
+
+    results = []
+    for index, pdf_path in enumerate(pdf_files):
+        if index > 0:
+            time.sleep(_INTER_CALL_DELAY_SECONDS)
+        results.append(_evaluate_document(pdf_path))
+
+    passed = [r for r in results if r["passed"]]
+    failed = [r for r in results if not r["passed"]]
+
+    summary_lines = [f"Agent 1 hard gate: {len(passed)}/{len(results)} passed"]
+    for r in failed:
+        summary_lines.append(
+            f"  FAIL {r['filename']}: diag={r['primary_diagnosis']!r} "
+            f"meds={r['medication_count']} followups={r['followup_count']} "
+            f"err={r['error']}"
+        )
+
+    assert len(passed) >= _HARD_GATE_THRESHOLD, (
+        f"HARD GATE NOT CLEARED — {len(passed)}/{len(results)} passed "
+        f"(need {_HARD_GATE_THRESHOLD}).\n" + "\n".join(summary_lines)
+    )
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("pdf_path", sorted((_REPO_ROOT / "test-data").glob("*.pdf")))
+def test_agent1_extracts_diagnosis(pdf_path: Path) -> None:
+    """
+    Assert Agent 1 extracts a non-empty primary_diagnosis for each PDF.
+
+    Parametrized so each document appears as a separate test case in pytest
+    output, making it easy to spot which specific file fails.
+
+    Args:
+        pdf_path: One PDF from test-data/, injected by parametrize.
+    """
+    result = _evaluate_document(pdf_path)
+    assert result["primary_diagnosis"].strip(), (
+        f"{pdf_path.name}: primary_diagnosis was empty or None. "
+        f"Error: {result['error']}"
+    )
+
+
+@pytest.mark.slow
+def test_stress_batch_no_crashes() -> None:
+    """
+    Assert Agent 1 does not crash on any stress-test PDF.
+
+    Stress PDFs are edge-case documents (messy layout, tables, OCR-like).
+    This test does not enforce a pass threshold — it only verifies the agent
+    returns without an unhandled exception for every file.
+    """
+    stress_files = sorted(_STRESS_DATA_DIR.glob("messy_*.pdf"))
+    if not stress_files:
+        pytest.skip(f"No stress PDFs found in {_STRESS_DATA_DIR}")
+
+    for index, pdf_path in enumerate(stress_files):
+        if index > 0:
+            time.sleep(_INTER_CALL_DELAY_SECONDS)
+        result = _evaluate_document(pdf_path)
+        assert result["error"] is None or "Parse error" in (result["error"] or ""), (
+            f"{pdf_path.name}: Agent 1 crashed with unexpected error: {result['error']}"
+        )

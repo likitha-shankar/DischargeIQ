@@ -55,5 +55,5 @@ class PipelineResponse(BaseModel):
     escalation_guide: str
     fk_scores: dict
     extraction_warnings: list
-    pipeline_status: str  # "complete" | "complete_with_warnings" | "partial"
+    pipeline_status: Literal["complete", "complete_with_warnings", "partial"]
     patient_simulator: Optional[PatientSimulatorOutput] = None
