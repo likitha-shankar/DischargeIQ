@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 
 /// In-memory pipeline result and last upload metadata (cleared when app closes).
