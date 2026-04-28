@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
-/// API base URL — override with `--dart-define=API_BASE=http://...`
+/// API base URL — override at build time with `--dart-define=API_BASE=http://...`
+///
+/// Real-device demo: flutter run --dart-define=API_BASE=http://104.194.97.253:8000
+/// Phone and laptop must be on the same Wi-Fi. FastAPI must be running (start.bat).
 class ApiConfig {
+  // LAN IP of the demo laptop. Update if the IP changes (run `ipconfig` to check).
+  static const _lanIp = '104.194.97.253';
+
   static String get baseUrl {
     const fromDefine = String.fromEnvironment('API_BASE');
     if (fromDefine.isNotEmpty) return fromDefine;
-    // Web runs in desktop/mobile browser on localhost.
     if (kIsWeb) return 'http://localhost:8000';
-    // Android emulator host loopback.
+    // Real Android device uses the laptop's LAN IP.
+    // Emulator would use 10.0.2.2 — pass via --dart-define if testing in emulator.
     if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:8000';
+      return 'http://$_lanIp:8000';
     }
-    // iOS simulator / desktop default.
     return 'http://localhost:8000';
   }
 }
