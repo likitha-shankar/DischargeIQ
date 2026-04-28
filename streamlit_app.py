@@ -1377,7 +1377,7 @@ def _render_tab_bar(active_tab: str) -> None:
     """
 
     tab_items_html = "".join(
-        f'<button class="diq-tab{" active" if k == active_tab else ""}" '
+        f'<button id="diq-tab-{k}" class="diq-tab{" active" if k == active_tab else ""}" '
         f'data-tab-key="{k}" type="button">{label}</button>'
         for k, label in _TABS
     )
@@ -3746,15 +3746,15 @@ def _inject_guided_tour() -> None:
     if sessionStorage key 'diq_tour_done' is not set. ESC, X button, and
     overlay click all dismiss correctly via Driver.js internals. Tour shows
     once per browser session; the header "Take tour" button sets
-    _S_TOUR_REPLAY which we consume here to wipe the sessionStorage flag,
-    remove cached Driver.js tags, and force-restart the tour.
+    _S_TOUR_REPLAY which we consume here to wipe the sessionStorage flag
+    and force-restart the tour.
+
+    CSS is embedded entirely in the injected <style> tag — we do not depend
+    on the external driver.css CDN link, which was the root cause of the
+    missing navigation buttons (the footer layout rules never loaded).
     """
     force_replay = bool(st.session_state.get(_S_TOUR_REPLAY, False))
     if force_replay:
-        # Consume the one-shot flag so a tab switch later doesn't re-trigger
-        # the tour. The placeholder __DIQ_FORCE_REPLAY__ in the JS below is
-        # replaced with the literal "true"/"false" so the same iframe both
-        # tears down any prior Driver.js DOM nodes and re-injects the tour.
         st.session_state[_S_TOUR_REPLAY] = False
         logger.info("Take Tour: force_replay=True consumed, injecting tour")
     force_replay_literal = "true" if force_replay else "false"
@@ -3765,27 +3765,16 @@ def _inject_guided_tour() -> None:
   var win  = window.parent;
   var FORCE_REPLAY = __DIQ_FORCE_REPLAY__;
 
-  // Verbose logging during Take-Tour debugging. Always emits when the tour
-  // iframe runs so we can trace the full chain from click forwarding to
-  // driverObj.drive() in the browser console without setting any flag.
   function log() {
     try { console.log.apply(console, ['[diq tour]'].concat([].slice.call(arguments))); }
     catch(e) {}
   }
-  log('iframe IIFE running, FORCE_REPLAY=' + __DIQ_FORCE_REPLAY__);
+  log('iframe IIFE running, FORCE_REPLAY=' + FORCE_REPLAY);
 
   if (FORCE_REPLAY) {
-    // The user clicked "Take tour": clear the one-shot completion flag so
-    // the auto-skip guard below doesn't fire. We do NOT remove the
-    // <script> tag — re-injecting it for the same URL is unreliable
-    // (browsers cache the file and skip re-execution, leaving us with a
-    // stale Driver instance). Instead we reuse the already-loaded library
-    // via ensureDriverLoaded() below.
     try { win.sessionStorage.removeItem('diq_tour_done'); } catch(e) {}
   }
 
-  // Skip auto-start if already completed this browser session — but only
-  // when the user did NOT click "Take tour".
   try {
     if (!FORCE_REPLAY && win.sessionStorage.getItem('diq_tour_done') === '1') {
       log('skip — sessionStorage flag set, FORCE_REPLAY=false');
@@ -3793,10 +3782,16 @@ def _inject_guided_tour() -> None:
     }
   } catch(e) {}
 
-  // ── Asset injection (idempotent) ─────────────────────────────────────────
-  // Each helper checks whether its element already exists in the parent
-  // document before appending. After the first tour run the CSS, the theme
-  // overrides, and the script tag stay in the parent DOM and are re-used.
+  // ── CSS (two layers, both idempotent) ────────────────────────────────────
+  // Layer 1 — ensureCss(): loads the CDN driver.css which provides the
+  //   critical base rules Driver.js needs to position the popover correctly
+  //   (position:fixed, z-index, arrow geometry, stage highlight).  Without
+  //   this the popover renders as an invisible collapsed element even though
+  //   the dark overlay appears (overlay position is set by JS inline styles).
+  // Layer 2 — ensureStyles(): applied after driver.css so our !important
+  //   rules win on theme properties.  This layer also adds the footer and
+  //   nav-button display:flex rules that driver.css v1.3.1 omits, which was
+  //   the original cause of the missing Next/Back buttons.
   function ensureCss() {
     if (pdoc.getElementById('diq-driver-css')) return;
     var link = pdoc.createElement('link');
@@ -3806,45 +3801,100 @@ def _inject_guided_tour() -> None:
     pdoc.head.appendChild(link);
   }
 
-  function ensureThemeStyles() {
-    if (pdoc.getElementById('diq-driver-custom-css')) return;
+  function ensureStyles() {
+    if (pdoc.getElementById('diq-driver-styles')) return;
     var style = pdoc.createElement('style');
-    style.id = 'diq-driver-custom-css';
+    style.id = 'diq-driver-styles';
     style.textContent = [
-      '.driver-popover{background:white!important;border-radius:16px!important;',
+      // Overlay colour — overrides driver.css default black
+      '.driver-overlay{background:rgba(4,52,44,0.75)!important;}',
+
+      // Popover theme
+      '.driver-popover{background:#fff!important;border-radius:16px!important;',
       'border:1.5px solid #9FD9C8!important;',
-      'box-shadow:0 12px 40px rgba(4,52,44,0.2)!important;',
-      'padding:20px 22px!important;max-width:300px!important;',
+      'box-shadow:0 12px 40px rgba(4,52,44,0.22)!important;',
+      'padding:20px 22px!important;max-width:320px!important;min-width:240px!important;',
+      'box-sizing:border-box!important;',
       'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;}',
-      '.driver-popover-title{font-size:15px!important;font-weight:600!important;',
-      'color:#0A2A1F!important;margin-bottom:6px!important;}',
-      '.driver-popover-description{font-size:13px!important;color:#64748B!important;',
-      'line-height:1.6!important;}',
-      '.driver-popover-progress-text{font-size:11px!important;color:#0F6E56!important;',
-      'font-weight:500!important;}',
-      '.driver-popover-next-btn{background:#0F6E56!important;color:white!important;',
-      'border:none!important;border-radius:8px!important;padding:8px 18px!important;',
-      'font-size:12px!important;font-weight:500!important;cursor:pointer!important;}',
-      '.driver-popover-next-btn:hover{background:#085041!important;}',
-      '.driver-popover-prev-btn{background:transparent!important;color:#64748B!important;',
-      'border:none!important;font-size:12px!important;cursor:pointer!important;',
-      'padding:8px 12px!important;}',
-      '.driver-popover-close-btn{color:#94A3B8!important;font-size:18px!important;',
-      'cursor:pointer!important;}',
+
+      // Header (title + close side-by-side)
+      '.driver-popover-header{display:flex!important;align-items:flex-start!important;',
+      'justify-content:space-between!important;gap:8px!important;margin-bottom:8px!important;}',
+
+      // Title
+      '.driver-popover-title{font-size:15px!important;font-weight:700!important;',
+      'color:#0A2A1F!important;line-height:1.4!important;flex:1!important;',
+      'margin:0!important;padding:0!important;}',
+
+      // Close button
+      '.driver-popover-close-btn{background:none!important;border:none!important;',
+      'cursor:pointer!important;font-size:18px!important;color:#94A3B8!important;',
+      'padding:0!important;line-height:1!important;flex-shrink:0!important;}',
       '.driver-popover-close-btn:hover{color:#0A2A1F!important;}',
-      '.driver-overlay{background:rgba(4,52,44,0.72)!important;}'
+
+      // Description
+      '.driver-popover-description{font-size:13px!important;color:#64748B!important;',
+      'line-height:1.6!important;margin:0!important;padding:0!important;}',
+
+      // Footer — display:flex was absent from driver.css v1.3.1, causing
+      // the navigation buttons to render with zero height (invisible).
+      '.driver-popover-footer{display:flex!important;align-items:center!important;',
+      'justify-content:space-between!important;margin-top:14px!important;gap:8px!important;}',
+
+      // Progress text ("Step 2 of 9") — nowrap keeps it on one line
+      '.driver-popover-progress-text{font-size:11px!important;color:#0F6E56!important;',
+      'font-weight:500!important;flex:1!important;white-space:nowrap!important;}',
+
+      // Nav button container — also requires explicit flex
+      '.driver-popover-navigation-btns{display:flex!important;align-items:center!important;',
+      'gap:6px!important;flex-shrink:0!important;}',
+
+      // Back button — font-size:0 hides ALL text Driver.js writes (including
+      // the "← Previous" flash during step transitions). The ::after pseudo-
+      // element shows our label instantly via CSS, with no JS timing dependency.
+      '.driver-popover-prev-btn{background:transparent!important;',
+      'border:none!important;font-size:0!important;cursor:pointer!important;',
+      'padding:7px 12px!important;border-radius:7px!important;',
+      'display:inline-flex!important;align-items:center!important;}',
+      '.driver-popover-prev-btn:hover{background:#F1F5F9!important;}',
+      '.driver-popover-prev-btn::after{content:"Back"!important;',
+      'font-size:12px!important;color:#64748B!important;',
+      'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;',
+      'font-weight:400!important;}',
+
+      // Next / Done button — same font-size:0 + ::after trick.
+      // JS sets data-diq-done on the last step so CSS can switch "Next"→"Done".
+      '.driver-popover-next-btn{background:#0F6E56!important;',
+      'border:none!important;border-radius:8px!important;padding:7px 16px!important;',
+      'font-size:0!important;cursor:pointer!important;',
+      'display:inline-flex!important;align-items:center!important;}',
+      '.driver-popover-next-btn:hover{background:#085041!important;}',
+      '.driver-popover-next-btn::after{content:"Next"!important;',
+      'font-size:12px!important;color:#fff!important;',
+      'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;',
+      'font-weight:500!important;',
+      '-webkit-font-smoothing:antialiased!important;',
+      '-moz-osx-font-smoothing:grayscale!important;}',
+      '.driver-popover-next-btn[data-diq-done]::after{content:"Done"!important;}',
+
+      // Disabled state (first/last step)
+      '.driver-popover-btn-disabled{opacity:0.35!important;pointer-events:none!important;}',
+
+      // Responsive width — never overflow narrow viewports
+      '.driver-popover{max-width:min(320px,calc(100vw - 32px))!important;}',
+
+      // Welcome step: CSS-centered so it stays put on zoom/resize.
+      // Driver.js sets top/left as inline px values calculated at startup;
+      // these !important rules override those inline values so the floating
+      // (anchor-less) popover is always viewport-centered regardless of zoom.
+      '.driver-popover.diq-welcome-popover{',
+      'top:50%!important;left:50%!important;',
+      'transform:translate(-50%,-50%)!important;}',
     ].join('');
     pdoc.head.appendChild(style);
   }
 
   function driverLoaded() {
-    // The v1.3.1 IIFE bundle exposes the driver function TWO levels deep:
-    //   window.driver = {} (placeholder)
-    //   window.driver.js = the IIFE module
-    //   window.driver.js.driver = the function we want
-    // Earlier v1.x IIFEs used window.driver.driver directly, and even older
-    // builds used window.driver as a function.  All three checks stay so the
-    // resolver survives a CDN URL bump.
     return !!(
       (win.driver && win.driver.js && typeof win.driver.js.driver === 'function') ||
       (win.driver && typeof win.driver === 'object' && typeof win.driver.driver === 'function') ||
@@ -3854,23 +3904,18 @@ def _inject_guided_tour() -> None:
   }
 
   function ensureDriverLoaded(cb) {
-    // 1) Library already loaded — reuse immediately. This is the path taken
-    //    when the user clicks "Take tour" after the initial auto-tour.
     if (driverLoaded()) {
       log('reusing already-loaded library');
       return cb();
     }
-    // 2) Script tag exists but library hasn't finished loading — wait.
     if (pdoc.getElementById('diq-driver-script')) {
       log('script tag exists, polling for window.driver');
       var t = setInterval(function() {
         if (driverLoaded()) { clearInterval(t); cb(); }
       }, 80);
-      // Give up after 5 s so we don't poll forever on a CDN failure.
-      setTimeout(function() { clearInterval(t); }, 5000);
+      setTimeout(function() { clearInterval(t); }, 6000);
       return;
     }
-    // 3) First-ever load — append the script tag and wait for onload.
     log('first load — injecting script');
     var script = pdoc.createElement('script');
     script.id  = 'diq-driver-script';
@@ -3884,31 +3929,27 @@ def _inject_guided_tour() -> None:
   }
 
   ensureCss();
-  ensureThemeStyles();
-  log('css and theme injected; waiting 600ms before driver load');
-  // Small delay before the first ensureDriverLoaded call so Streamlit has
-  // finished mounting the tab bar / chat panel that the tour anchors to.
+  ensureStyles();
+  log('css injected; waiting 700ms for tab bar and chat panel to mount');
   setTimeout(function() {
-    log('600ms timeout fired; calling ensureDriverLoaded');
+    log('delay done; calling ensureDriverLoaded');
     ensureDriverLoaded(function() {
-      log('driver loaded callback fired; starting tour');
+      log('driver ready; starting tour');
       startTour();
     });
-  }, 600);
+  }, 700);
 
   function startTour() {
     log('startTour() entered; resolving driver global');
-    // Resolve the correct global for Driver.js v1.x IIFE bundle.  Checked in
-    // priority order — the v1.3.1 path wins for the jsDelivr URL we serve.
     var driverFn = null;
     if (win.driver && win.driver.js && typeof win.driver.js.driver === 'function') {
-      driverFn = win.driver.js.driver;  // v1.3.1 IIFE: window.driver.js.driver
+      driverFn = win.driver.js.driver;
       log('driver resolved via win.driver.js.driver');
     } else if (win.driver && typeof win.driver === 'object' && typeof win.driver.driver === 'function') {
-      driverFn = win.driver.driver;     // earlier v1.x IIFE: { driver: fn }
+      driverFn = win.driver.driver;
       log('driver resolved via win.driver.driver');
     } else if (typeof win.driver === 'function') {
-      driverFn = win.driver;             // older API
+      driverFn = win.driver;
       log('driver resolved via win.driver');
     } else if (win.Driver && typeof win.Driver === 'function') {
       driverFn = win.Driver;
@@ -3926,7 +3967,19 @@ def _inject_guided_tour() -> None:
       return;
     }
 
-    var driverObj = driverFn({
+    // driverObj declared first so the resize closure can reference it.
+    var driverObj = null;
+
+    // Refresh Driver.js positioning when the viewport changes (zoom / resize).
+    function onResize() {
+      try {
+        if (driverObj && typeof driverObj.refresh === 'function') {
+          driverObj.refresh();
+        }
+      } catch(e) {}
+    }
+
+    driverObj = driverFn({
       animate:              true,
       smoothScroll:         true,
       allowClose:           true,
@@ -3934,67 +3987,125 @@ def _inject_guided_tour() -> None:
       showProgress:         true,
       progressText:         'Step {{current}} of {{total}}',
       showButtons:          ['next', 'previous', 'close'],
-      nextBtnText:          'Next →',
-      prevBtnText:          '← Back',
-      doneBtnText:          'Finish ✓',
-      onDestroyed: function() { markDone(); },
+      // Button labels are now rendered by CSS ::after (immune to Driver.js
+      // text writes). onHighlighted only needs to toggle data-diq-done on
+      // the last step so the CSS switches "Next" → "Done".
+      onHighlighted: function(element, step, opts) {
+        var total  = (opts && opts.config && opts.config.steps) ? opts.config.steps.length : 0;
+        var idx    = (opts && opts.state && typeof opts.state.activeIndex === 'number')
+                      ? opts.state.activeIndex : -1;
+        var isLast = total > 0 && idx === total - 1;
+        var nextBtn = pdoc.querySelector('.driver-popover-next-btn');
+        if (nextBtn) {
+          if (isLast) nextBtn.setAttribute('data-diq-done', '');
+          else        nextBtn.removeAttribute('data-diq-done');
+        }
+      },
+      onDestroyed: function() {
+        markDone();
+        win.removeEventListener('resize', onResize);
+      },
       steps: steps
     });
 
+    win.addEventListener('resize', onResize);
     driverObj.drive();
   }
 
   function buildSteps(pdoc) {
-    // Build the step list at run-time so we can drop steps whose anchor is
-    // missing on the current screen (e.g. no chat panel injected yet, or no
-    // citation chips in the active section). Driver.js throws when a
-    // selector resolves to null, so we filter with elementExists() first.
+    // Steps are filtered at runtime so Driver.js never throws on a missing
+    // element (e.g. chat panel not yet mounted).  Steps without an element
+    // are always included (they show as centered floating popovers).
     function elementExists(sel) {
-      return !!pdoc.querySelector(sel);
+      try { return !!pdoc.querySelector(sel); } catch(e) { return false; }
     }
 
     var steps = [
+      // ── Welcome ──────────────────────────────────────────────────────────
       {
         popover: {
-          title:       'Welcome to DischargeIQ',
-          description: 'Five quick steps walk you through the layout. Press <kbd>Esc</kbd> or × any time to skip.',
-          align:       'center'
+          title:        'Welcome to DischargeIQ',
+          description:  'Your discharge results are ready. Let us walk you through each section.',
+          align:        'center',
+          popoverClass: 'diq-welcome-popover'
+        }
+      },
+
+      // ── Six tabs, one by one ─────────────────────────────────────────────
+      {
+        element: '#diq-tab-diagnosis',
+        popover: {
+          title:       'What happened',
+          description: 'A plain-English explanation of your diagnosis — no medical jargon.',
+          side:        'bottom',
+          align:       'start'
         }
       },
       {
-        element: '#diq-app-header .diq-pill',
+        element: '#diq-tab-medications',
         popover: {
-          title:       'Extraction quality',
-          description: 'Verified means every key field was found in your PDF. Verified* means a non-critical field was missing — hover for details. Incomplete means an agent failed; treat the output cautiously and confirm with your care team.',
+          title:       'Medications',
+          description: 'What each medicine is for, your dose, and how long to take it.',
+          side:        'bottom',
+          align:       'start'
+        }
+      },
+      {
+        element: '#diq-tab-appointments',
+        popover: {
+          title:       'Appointments',
+          description: 'Your upcoming follow-up visits, sorted by date so nothing gets missed.',
+          side:        'bottom',
+          align:       'start'
+        }
+      },
+      {
+        element: '#diq-tab-warnings',
+        popover: {
+          title:       'Warning signs',
+          description: 'Three clear levels: when to call your doctor, go to urgent care, or call 911.',
+          side:        'bottom',
+          align:       'start'
+        }
+      },
+      {
+        element: '#diq-tab-recovery',
+        popover: {
+          title:       'Recovery',
+          description: 'Your week-by-week plan for getting back to normal life.',
+          side:        'bottom',
+          align:       'start'
+        }
+      },
+      {
+        element: '#diq-tab-simulator',
+        popover: {
+          title:       'AI Review',
+          description: 'Questions your document may not fully answer — bring these to your care team.',
           side:        'bottom',
           align:       'end'
         }
       },
-      {
-        element: '#diq-tab-bar',
-        popover: {
-          title:       'Five sections to explore',
-          description: 'What happened · Medications · Appointments · Warning signs · Recovery. Click any tab to switch — your chat history stays open on the right.',
-          side:        'bottom',
-          align:       'center'
-        }
-      },
-      {
-        element: '#diq-view-pdf-btn',
-        popover: {
-          title:       'Trust but verify',
-          description: 'Every fact links back to the original PDF. Click <strong>View original document</strong> here, or any <span style="background:#CCFBF1;color:#0F766E;padding:1px 6px;border-radius:6px;font-size:11px;">p.N</span> chip in the content, to see the source page.',
-          side:        'bottom',
-          align:       'end'
-        }
-      },
+
+      // ── Chat panel ───────────────────────────────────────────────────────
       {
         element: '#diq-chat-panel',
         popover: {
-          title:       'Ask anything',
-          description: 'Type any question. Answers come from your document; if the AI uses general knowledge it will say so explicitly so you can tell the two apart.',
+          title:       'Chat — ask anything',
+          description: 'Type any question about your discharge and get an answer grounded in your document.',
           side:        'left',
           align:       'start'
+        }
+      },
+
+      // ── Source PDF ───────────────────────────────────────────────────────
+      {
+        element: '#diq-view-pdf-btn',
+        popover: {
+          title:       'View your original document',
+          description: 'Every fact links back to the PDF. Click any page reference to verify the source.',
+          side:        'bottom',
+          align:       'end'
         }
       }
     ];
