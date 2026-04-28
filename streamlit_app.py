@@ -87,6 +87,7 @@ _S_STAGED_PDF_NAME = "staged_pdf_name"    # Filename stored before rerun for Pas
 _S_UPLOAD_ERROR = "upload_error"          # One-shot error message shown on upload screen.
 _S_TOUR_REPLAY = "tour_replay_pending"    # One-shot flag — force the guided tour to start.
 _S_PDF_MODAL_NONCE = "pdf_modal_nonce"    # Bumped each time the PDF modal is opened.
+_S_LANDING_DONE = "landing_intro_done"    # Cinematic landing intro completed for this Streamlit session.
 
 # DOM element ids we inject into window.parent.document.  Shared by the
 # one-shot refresh cleanup and the "Upload new" cleanup so both stay in sync.
@@ -149,6 +150,7 @@ for _key, _default in [
     (_S_UPLOAD_ERROR, None),
     (_S_TOUR_REPLAY, False),
     (_S_PDF_MODAL_NONCE, 0),
+    (_S_LANDING_DONE, False),
 ]:
     if _key not in st.session_state:
         st.session_state[_key] = _default
@@ -2796,6 +2798,14 @@ def _render_chat_widget(result: dict) -> None:
       }
       #diq-chat-bubble.diq-visible { display: flex; }
       #diq-chat-bubble:hover { transform: scale(1.06); }
+
+      /* Push the Streamlit main section right so content never slides under
+         the chat panel. --diq-chat-padding is set on <html> by syncMainPadding()
+         so it persists across React rerenders (inline styles on stMain are wiped
+         whenever Streamlit reruns). Default 0px = no padding when minimized. */
+      section[data-testid="stMain"] {
+        padding-right: var(--diq-chat-padding, 0px) !important;
+      }
     """
 
     panel_body_html = f"""
@@ -2872,8 +2882,6 @@ def _render_chat_widget(result: dict) -> None:
   root.innerHTML = {json.dumps(panel_body_html)};
   pdoc.body.appendChild(root);
 
-  // Push Streamlit main content left so it doesn't hide under the panel.
-  var mainSection = pdoc.querySelector('section[data-testid="stMain"]');
   var panel = pdoc.getElementById('diq-chat-panel');
   var bubble = pdoc.getElementById('diq-chat-bubble');
 
@@ -2902,12 +2910,14 @@ def _render_chat_widget(result: dict) -> None:
   }}
 
   function syncMainPadding() {{
-    if (!mainSection) return;
+    // Set --diq-chat-padding on <html> rather than an inline style on stMain.
+    // <html> is never replaced by React rerenders, so the value survives every
+    // Streamlit rerun; the CSS rule in panel_css reads it via var().
     if (panel && !panel.classList.contains('diq-hidden')) {{
-      var w = panel.getBoundingClientRect().width;
-      mainSection.style.paddingRight = (w + 16) + 'px';
+      var w = panel.getBoundingClientRect().width || DEFAULT_W;
+      pdoc.documentElement.style.setProperty('--diq-chat-padding', (w + 16) + 'px');
     }} else {{
-      mainSection.style.paddingRight = '';
+      pdoc.documentElement.style.setProperty('--diq-chat-padding', '0px');
     }}
   }}
 
@@ -3187,6 +3197,387 @@ def _render_chat_widget(result: dict) -> None:
 </head><body style="margin:0;padding:0;background:transparent;"></body></html>"""
 
     st.components.v1.html(widget_html, height=1, scrolling=False)
+
+
+# ── Landing intro (cinematic) ─────────────────────────────────────────────────
+
+
+def _landing_intro_html() -> str:
+    """
+    Return the complete HTML document for the cinematic landing intro.
+
+    Animation timeline (ms relative to script start):
+       300  "HELPING" small-caps eyebrow fades in
+       850  "patients" rises in
+      1250  "understand"
+      1650  "everything"
+      2050  "the doctor"
+      2500  italic teal "just told them."
+      4500  phrase block fades out (600 ms)
+      4700  logo container fades in; "Discharge" typewriter starts (~90 ms / char)
+      ~5510 typewriter completes
+      ~5750 "IQ" snaps in; caret hides simultaneously (no caret jump)
+      ~6100 subtitle "Your discharge, simplified." fades in
+      7400  vignette + skip fade out
+      7800  logo fades out (~400 ms)
+      8300  dark stage fades to opacity 0 (~700 ms); bg stays dark green
+      9100  hidden advance button clicked → Streamlit rerun → upload screen
+
+    Persistence:
+      None. Plays on every fresh Streamlit session. Cmd-R allocates a new
+      ws session which resets _S_LANDING_DONE → False, so the cinematic
+      naturally replays on every reload (matching how product demos are
+      typically shown). No browser-storage gating.
+
+    Advance mechanism:
+      Locates the hidden Streamlit button rendered by _hidden_click_target
+      with sentinel '__diq_landing_done__' and calls .click() on it. The
+      click triggers a Streamlit rerun, _S_LANDING_DONE flips to True, and
+      the next render reaches _render_upload_screen() instead of this
+      iframe.
+
+      tryClick() polls every 100 ms for up to 6 s in case the parent React
+      tree hasn't mounted the hidden button yet when advance() fires (a
+      real race seen on first load — without retry the iframe was leaving
+      the user staring at a blank dark-green page).
+
+    Visual continuity:
+      The end-of-cinematic fades the logo then fades the entire dark stage
+      to opacity 0. advance() fires once the stage is invisible, so the
+      iframe unmount reveals the upload screen without any visible jump.
+
+    Returns:
+        Complete <!DOCTYPE html> document. No Python interpolation, so a
+        plain triple-quoted string is used (no f-string brace doubling).
+    """
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    width:100%;height:100%;overflow:hidden;background:#04342C;
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    color:#E6EFE9;
+  }
+
+  /* Stage — fades to opacity 0 after logo exits, so the dark green
+     background is never replaced with white; the upload screen reveals
+     beneath it once the iframe is invisible. cubic-bezier is iOS easeOut. */
+  #stage{
+    position:fixed;inset:0;background:#04342C;
+    display:flex;align-items:center;justify-content:center;
+    transition:opacity 700ms cubic-bezier(.32,.72,0,1);
+  }
+  #stage.gone{ opacity:0; pointer-events:none; }
+
+  #vignette{
+    position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at center,
+      rgba(15,110,86,0.22) 0%, rgba(0,0,0,0.0) 55%);
+    transition:opacity 700ms cubic-bezier(.32,.72,0,1);
+  }
+  #vignette.gone{ opacity:0; }
+
+  #skip{
+    position:absolute;top:22px;right:24px;
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.18);
+    color:rgba(255,255,255,0.55);
+    font-size:11px;font-weight:500;letter-spacing:0.6px;
+    text-transform:uppercase;
+    padding:6px 14px;border-radius:999px;cursor:pointer;
+    transition:color .2s, border-color .2s, opacity .45s ease;
+    z-index:5;font-family:'Inter',sans-serif;
+  }
+  #skip:hover{
+    color:rgba(255,255,255,0.92);
+    border-color:rgba(255,255,255,0.42);
+  }
+  #skip.gone{ opacity:0; pointer-events:none; }
+
+  /* Phrase block ---------------------------------------------------------- */
+  #phrase{
+    position:relative;text-align:center;
+    transition:opacity 600ms cubic-bezier(.32,.72,0,1);
+  }
+  #phrase.gone{ opacity:0; }
+
+  /* "HELPING" eyebrow — small caps label, intentionally smaller to read as
+     a category line rather than a body line. */
+  .helping{
+    font-family:'Inter',sans-serif;
+    font-size:12px;font-weight:500;letter-spacing:5.5px;
+    color:rgba(190,210,200,0.55);
+    margin-bottom:24px;
+    opacity:0;transform:translateY(6px);
+    transition:opacity 700ms cubic-bezier(.32,.72,0,1),
+               transform 700ms cubic-bezier(.32,.72,0,1);
+  }
+
+  /* Body lines — five lines, all uniform 56px, single line-height, identical
+     visual weight (italic uses 600 instead of 500 to compensate for the
+     visual shrinkage italic Cormorant renders at the same point size). */
+  .line{
+    font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    font-size:56px;font-weight:500;line-height:1.14;
+    letter-spacing:-0.005em;color:#E6EFE9;
+    opacity:0;transform:translateY(16px);
+    transition:opacity 800ms cubic-bezier(.32,.72,0,1),
+               transform 800ms cubic-bezier(.32,.72,0,1);
+  }
+  .line.italic{
+    font-style:italic;
+    font-weight:600;
+    color:#5DCAA5;
+    margin-top:8px;
+  }
+  .show{ opacity:1 !important; transform:translateY(0) !important; }
+
+  /* Logo block ------------------------------------------------------------ */
+  #logo{
+    position:absolute;text-align:center;
+    opacity:0;transition:opacity 600ms cubic-bezier(.32,.72,0,1);
+  }
+  #logo.show{ opacity:1; }
+  #logo.gone{ opacity:0; }
+
+  /* Flexbox row keeps Discharge | caret | IQ on a shared baseline so the
+     caret always sits flush at the right edge of the typed letters,
+     regardless of how many letters have been typed so far. */
+  .wordmark-row{
+    display:flex;align-items:baseline;justify-content:center;
+    line-height:1;
+  }
+  .wordmark{
+    font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    font-size:78px;font-weight:600;letter-spacing:-1.5px;
+    color:#1FA47F;
+    display:inline-block;
+  }
+
+  /* IQ stays display:none until snap-in. opacity:0 alone wouldn't work
+     because the span would still reserve width and push the caret off
+     the right edge of "Discharge" while typing. */
+  #iq{ display:none; }
+  #iq.show{ display:inline-block; }
+
+  /* Caret sits between Discharge and IQ — flush against the typed text. */
+  #caret{
+    display:inline-block;width:3px;height:0.7em;
+    background:#1FA47F;margin:0 2px 0 3px;
+    align-self:center;
+    animation:blink 720ms step-start infinite;
+  }
+  #caret.gone{ display:none; }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .subtitle{
+    font-family:'Inter',sans-serif;
+    font-size:12px;font-weight:400;letter-spacing:1.4px;
+    color:rgba(190,210,200,0.5);
+    margin-top:24px;text-transform:uppercase;
+    opacity:0;transition:opacity 800ms cubic-bezier(.32,.72,0,1);
+  }
+  .subtitle.show{ opacity:1; }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <div id="vignette"></div>
+    <button id="skip" type="button">Skip</button>
+
+    <div id="phrase">
+      <div class="helping" id="w-helping">HELPING</div>
+      <div class="line"           id="w-1">patients</div>
+      <div class="line"           id="w-2">understand</div>
+      <div class="line"           id="w-3">everything</div>
+      <div class="line"           id="w-4">the doctor</div>
+      <div class="line italic"    id="w-5">just told them.</div>
+    </div>
+
+    <div id="logo">
+      <div class="wordmark-row">
+        <span class="wordmark" id="discharge"></span><span id="caret"></span><span class="wordmark" id="iq">IQ</span>
+      </div>
+      <div class="subtitle" id="subtitle">Your discharge, simplified.</div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var advanced = false;
+
+  // 1. Expand iframe to full viewport + suppress Streamlit chrome ---------
+  function expand(){
+    var f = window.frameElement;
+    if (f) {
+      var s = f.style;
+      s.position = 'fixed'; s.inset = '0';
+      s.width = '100vw'; s.height = '100vh';
+      s.zIndex = '9999';
+      s.border = 'none'; s.margin = '0'; s.padding = '0';
+    }
+    try {
+      var pdoc = window.parent.document;
+      if (!pdoc.getElementById('diq-landing-parent-style')) {
+        var el = pdoc.createElement('style');
+        el.id = 'diq-landing-parent-style';
+        el.textContent =
+          'header[data-testid="stHeader"]{display:none!important}' +
+          'footer{display:none!important}' +
+          'div[data-testid="stDecoration"]{display:none!important}' +
+          'section[data-testid="stMain"]{padding:0!important}';
+        pdoc.head.appendChild(el);
+      }
+    } catch(e) {}
+  }
+  expand();
+  window.addEventListener('load', expand);
+
+  // 2. Advance to upload screen via the hidden Streamlit button -----------
+  // Polls every 100 ms for up to 6 s in case the parent React tree hasn't
+  // mounted the hidden button yet (it hadn't on first load — without this
+  // retry the iframe was leaving the user staring at a blank dark page).
+  function advance(){
+    if (advanced) return;
+    advanced = true;
+    var attempts = 0;
+    function tryClick(){
+      try {
+        var pdoc = window.parent.document;
+        var marker = pdoc.querySelector('span[data-diq-slot="__diq_landing_done__"]');
+        if (marker) {
+          var slot = marker.closest('div[data-testid="stElementContainer"]');
+          if (slot) {
+            var next = slot.nextElementSibling;
+            if (next) {
+              var btn = next.querySelector('button');
+              if (btn) { btn.click(); return; }
+            }
+          }
+        }
+      } catch(e) {}
+      if (++attempts < 60) setTimeout(tryClick, 100);
+    }
+    tryClick();
+  }
+
+  // 3. Skip button binding ------------------------------------------------
+  // Logo fades first (400 ms), then the dark stage fades to opacity 0
+  // (700 ms), then advance fires. Mirrors the natural completion path.
+  function bindSkip(){
+    var skip = document.getElementById('skip');
+    if (!skip) return;
+    skip.addEventListener('click', function(){
+      skip.classList.add('gone');
+      hide('vignette');
+      hide('phrase');
+      hide('logo');
+      var stage = document.getElementById('stage');
+      if (stage) {
+        setTimeout(function(){ stage.classList.add('gone'); }, 400);
+      }
+      setTimeout(advance, 1200);
+    });
+  }
+
+  // 4. Animation helpers --------------------------------------------------
+  function show(id){ var el = document.getElementById(id); if (el) el.classList.add('show'); }
+  function hide(id){ var el = document.getElementById(id); if (el) el.classList.add('gone'); }
+
+  function typewriter(id, word, perChar, doneCb){
+    var el = document.getElementById(id);
+    if (!el) { if (doneCb) doneCb(); return; }
+    var i = 0;
+    var t = setInterval(function(){
+      i += 1;
+      el.textContent = word.slice(0, i);
+      if (i >= word.length) {
+        clearInterval(t);
+        if (doneCb) doneCb();
+      }
+    }, perChar);
+  }
+
+  // 5. Animation timeline -------------------------------------------------
+  function runTimeline(){
+    // Phase A — phrase build (deliberate cadence, 400-450 ms between lines)
+    setTimeout(function(){ show('w-helping'); },  300);
+    setTimeout(function(){ show('w-1'); },        850);
+    setTimeout(function(){ show('w-2'); },       1250);
+    setTimeout(function(){ show('w-3'); },       1650);
+    setTimeout(function(){ show('w-4'); },       2050);
+    setTimeout(function(){ show('w-5'); },       2500);
+
+    // Phase B — phrase fades out (after ~2 s dwell on the full block)
+    setTimeout(function(){ hide('phrase'); },    4500);
+
+    // Phase C/D — logo typewriter, IQ snap (caret hides at the same
+    // instant so there's no caret-jump artifact), subtitle reveal.
+    setTimeout(function(){
+      var logo = document.getElementById('logo');
+      if (logo) logo.classList.add('show');
+      typewriter('discharge', 'Discharge', 90, function(){
+        setTimeout(function(){
+          show('iq');
+          hide('caret');
+          setTimeout(function(){ show('subtitle'); }, 350);
+        }, 240);
+      });
+    }, 4700);
+
+    // Phase E — graceful exit. Four beats:
+    //   7400  fade decorations (vignette, skip)
+    //   7800  logo fades out (~400 ms CSS transition on #logo)
+    //   8300  dark stage fades to opacity 0 (~700 ms); bg stays dark green
+    //   9100  advance() — stage is invisible, iframe unmount is seamless.
+    setTimeout(function(){
+      hide('vignette');
+      hide('skip');
+    },                                            7400);
+    setTimeout(function(){
+      hide('logo');
+    },                                            7800);
+    setTimeout(function(){
+      var stage = document.getElementById('stage');
+      if (stage) stage.classList.add('gone');
+    },                                            8300);
+    setTimeout(advance,                           9100);
+  }
+
+  bindSkip();
+  runTimeline();
+})();
+</script>
+</body>
+</html>"""
+
+
+def _render_landing_intro() -> None:
+    """
+    Render the cinematic landing intro screen.
+
+    Renders a hidden Streamlit button (sentinel '__diq_landing_done__') and
+    the full-viewport iframe defined by _landing_intro_html(). The iframe
+    JS clicks the hidden button when the animation completes (or when the
+    user presses Skip), which flips _S_LANDING_DONE=True and reruns into
+    the upload screen.
+
+    Gated by main() — runs once per Streamlit session. Cmd-R allocates a
+    fresh session which resets _S_LANDING_DONE, so the cinematic naturally
+    replays on every page reload. No sessionStorage gating is used.
+    """
+    if _hidden_click_target("__diq_landing_done__", key="landing_done_btn"):
+        st.session_state[_S_LANDING_DONE] = True
+        st.rerun()
+
+    st.components.v1.html(_landing_intro_html(), height=200, scrolling=False)
 
 
 # ── Upload screen (Design M) ──────────────────────────────────────────────────
@@ -3749,9 +4140,12 @@ def _inject_guided_tour() -> None:
     _S_TOUR_REPLAY which we consume here to wipe the sessionStorage flag
     and force-restart the tour.
 
-    CSS is embedded entirely in the injected <style> tag — we do not depend
-    on the external driver.css CDN link, which was the root cause of the
-    missing navigation buttons (the footer layout rules never loaded).
+    Styling uses two layered sources (see ensureCss() and ensureStyles()):
+    the CDN driver.css provides base positioning/arrow geometry, and an
+    inline <style> tag injected on top supplies the !important theme rules
+    and the explicit display:flex declarations that driver.css v1.3.1 omits
+    on the footer and nav-button containers — without that override the
+    Next/Back buttons render with zero height (the original bug).
     """
     force_replay = bool(st.session_state.get(_S_TOUR_REPLAY, False))
     if force_replay:
@@ -4226,7 +4620,9 @@ def main() -> None:
     """
     Main entry point for the Streamlit app.
 
-    Routes between three states:
+    Routes between four states:
+      0. Landing intro    — first visit each tab session; cinematic plays
+                            once then advances to the upload screen.
       1. Summary screen   — result is in session state (_S_RESULT is set).
       2. Loading Pass 2   — _S_LOADING_SHOWN is True; bytes are staged and the
                             two-pass animation runner blocks on _call_analyze().
@@ -4241,6 +4637,15 @@ def main() -> None:
     _clear_browser_session_on_fresh_load()
 
     _inject_global_css()
+
+    # Cinematic landing intro — runs in front of the upload screen the first
+    # time a Streamlit session is seen. _S_LANDING_DONE resets when Streamlit
+    # allocates a new ws session (e.g. on Cmd-R), but the iframe checks
+    # window.sessionStorage['_diq_intro_seen'] and short-circuits if that
+    # flag is set, so the animation only actually plays on a true new tab.
+    if not st.session_state.get(_S_LANDING_DONE, False):
+        _render_landing_intro()
+        return  # nothing else renders while the intro is on screen
 
     if st.session_state[_S_RESULT] is not None:
         _render_summary_screen()
