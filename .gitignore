@@ -34,8 +34,7 @@ logs/
 **/*.xcuserstate
 
 # Mobile apps (on hold — local only)
-ios/
-dischargeiq_mobile/
+/ios/
 
 # Runtime / local logs (never commit)
 *.log
