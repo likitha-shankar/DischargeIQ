@@ -115,11 +115,18 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
               children: [
                 KeyedSubtree(
                   key: TourKeys.diagnosis,
-                  child: _RichTextSection(text: '${r['diagnosis_explanation'] ?? ''}'),
+                  child: _DiagnosisBody(
+                    explanation: '${r['diagnosis_explanation'] ?? ''}',
+                    extraction: r['extraction'],
+                  ),
                 ),
                 KeyedSubtree(
                   key: TourKeys.medications,
-                  child: _MedicationsBody(text: '${r['medication_rationale'] ?? ''}'),
+                  child: _MedicationsBody(
+                    rationaleText: '${r['medication_rationale'] ?? ''}',
+                    extraction: r['extraction'],
+                    simulator: r['patient_simulator'],
+                  ),
                 ),
                 KeyedSubtree(
                   key: TourKeys.appointments,
@@ -127,9 +134,16 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
                 ),
                 KeyedSubtree(
                   key: TourKeys.warnings,
-                  child: _WarningsBody(text: '${r['escalation_guide'] ?? ''}'),
+                  child: _WarningsBody(
+                    escalationText: '${r['escalation_guide'] ?? ''}',
+                    extraction: r['extraction'],
+                    simulator: r['patient_simulator'],
+                  ),
                 ),
-                _RichTextSection(text: '${r['recovery_trajectory'] ?? ''}'),
+                _RecoveryBody(
+                  trajectory: '${r['recovery_trajectory'] ?? ''}',
+                  extraction: r['extraction'],
+                ),
                 KeyedSubtree(
                   key: TourKeys.dischargeCheck,
                   child: _DischargeCheckBody(simulator: r['patient_simulator']),
@@ -642,98 +656,805 @@ class _AnsweredConceptsExpanderState extends State<_AnsweredConceptsExpander> {
   }
 }
 
-class _MedicationsBody extends StatelessWidget {
-  const _MedicationsBody({required this.text});
-  final String text;
+/// Diagnosis tab — "At a glance" badges + Agent 2 explanation text.
+class _DiagnosisBody extends StatelessWidget {
+  const _DiagnosisBody({required this.explanation, required this.extraction});
+  final String explanation;
+  final dynamic extraction;
 
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final chunks = text
-        .split(RegExp(r'\n\s*\n'))
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    return ListView.builder(
+    final ext = extraction is Map ? extraction as Map : <dynamic, dynamic>{};
+    final primaryDx = '${ext['primary_diagnosis'] ?? ''}';
+    final rawSec = ext['secondary_diagnoses'];
+    final secList = rawSec is List
+        ? rawSec.map((e) => '$e').where((e) => e.isNotEmpty).toList()
+        : <String>[];
+
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      itemCount: chunks.length,
-      itemBuilder: (context, i) {
-        final lines = chunks[i].split('\n');
-        final title = lines.isNotEmpty ? lines.first.replaceAll(':', '').trim() : 'Medication';
-        final body = lines.length > 1 ? lines.sublist(1).join('\n').trim() : chunks[i];
-        return Card(
-          color: dark ? kCardDark : kCardLight,
-          margin: const EdgeInsets.only(bottom: 10),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 6),
-                Text(body, style: TextStyle(color: dark ? kTextSecondaryDark : kTextSecondaryLight)),
-              ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (primaryDx.isNotEmpty || secList.isNotEmpty) ...[
+            if (primaryDx.isNotEmpty) ...[
+              _DxLabel(label: 'Your main condition', dark: dark),
+              const SizedBox(height: 4),
+              _DxBadgeRow(text: primaryDx, dark: dark),
+            ],
+            if (secList.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              _DxLabel(label: 'Other conditions treated', dark: dark),
+              const SizedBox(height: 4),
+              ...secList.map((dx) => _DxBadgeRow(text: dx, dark: dark)),
+            ],
+            const SizedBox(height: 12),
+            Divider(color: dark ? kBorderDark : kBorderLight),
+            const SizedBox(height: 12),
+          ],
+          Text(
+            explanation.isEmpty ? 'No explanation available.' : explanation,
+            style: TextStyle(
+              fontSize: 15,
+              height: 1.5,
+              color: dark ? kTextPrimaryDark : kTextPrimaryLight,
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }
 
-class _WarningsBody extends StatelessWidget {
-  const _WarningsBody({required this.text});
+class _DxLabel extends StatelessWidget {
+  const _DxLabel({required this.label, required this.dark});
+  final String label;
+  final bool dark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label.toUpperCase(),
+      style: TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.8,
+        color: dark ? kTextSecondaryDark : kTextSecondaryLight,
+      ),
+    );
+  }
+}
+
+class _DxBadgeRow extends StatelessWidget {
+  const _DxBadgeRow({required this.text, required this.dark});
   final String text;
+  final bool dark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 18,
+            height: 8,
+            decoration: BoxDecoration(
+              color: dark ? kTealLight : kTeal,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Medications tab — per-drug cards with status badge + expandable rationale.
+class _MedicationsBody extends StatelessWidget {
+  const _MedicationsBody({
+    required this.rationaleText,
+    required this.extraction,
+    required this.simulator,
+  });
+  final String rationaleText;
+  final dynamic extraction;
+  final dynamic simulator;
+
+  static const _borderColor = {
+    'new': kMedNew,
+    'changed': kMedChanged,
+    'continued': kMedContinued,
+    'discontinued': kMedDiscontinued,
+  };
+
+  static const _badgeLabel = {
+    'new': 'NEW',
+    'changed': 'CHANGED',
+    'continued': 'CONTINUED',
+    'discontinued': 'STOPPED',
+  };
+
+  Map<String, String> _parseRationale(String text) {
+    final blocks = <String, String>{};
+    for (final block in text.split(RegExp(r'\n\s*\n'))) {
+      final trimmed = block.trim();
+      if (trimmed.isEmpty) continue;
+      final nl = trimmed.indexOf('\n');
+      if (nl < 0) continue;
+      var header = trimmed.substring(0, nl).trim();
+      final body = trimmed.substring(nl + 1).trim();
+      if (!header.endsWith(':') || body.isEmpty) continue;
+      header = header.replaceAll(RegExp(r' [—-] stopping:?$', caseSensitive: false), '').replaceAll(':', '').trim();
+      if (header.isNotEmpty) blocks[header.toLowerCase()] = body;
+    }
+    return blocks;
+  }
+
+  String? _findRationale(String name, Map<String, String> blocks) {
+    final needle = name.trim().toLowerCase();
+    if (blocks.containsKey(needle)) return blocks[needle];
+    for (final key in blocks.keys) {
+      if (key.startsWith(needle) || needle.startsWith(key)) return blocks[key];
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final src = text.toUpperCase();
-    final t1 = _extractTier(text, 'CALL 911 IMMEDIATELY', 'GO TO THE ER TODAY');
-    final t2 = _extractTier(text, 'GO TO THE ER TODAY', 'CALL YOUR DOCTOR');
-    final t3 = _extractTier(text, 'CALL YOUR DOCTOR', null);
+    final ext = extraction is Map ? extraction as Map : <dynamic, dynamic>{};
+    final meds = ext['medications'];
+    final medList = meds is List ? meds.whereType<Map>().toList() : <Map>[];
+    final rationale = _parseRationale(rationaleText);
 
-    Widget tier(String title, String body, Color fg, Color bg) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: dark ? fg.withValues(alpha: 0.18) : bg,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: fg.withValues(alpha: dark ? 0.45 : 0.35)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: TextStyle(fontWeight: FontWeight.w700, color: fg)),
-            const SizedBox(height: 6),
-            Text(body.trim(), style: TextStyle(color: dark ? kTextPrimaryDark : kTextPrimaryLight)),
-          ],
-        ),
-      );
-    }
-
-    if (!src.contains('CALL 911') && !src.contains('ER') && !src.contains('CALL YOUR DOCTOR')) {
-      return _RichTextSection(text: text);
-    }
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        tier('CALL 911 IMMEDIATELY', t1, kTier1, kTier1Bg),
-        tier('GO TO THE ER TODAY', t2, kTier2, kTier2Bg),
-        tier('CALL YOUR DOCTOR', t3, kTier3, kTier3Bg),
+        _GapCallout(
+          simulator: simulator,
+          keywords: const ['medication', 'medicine', 'drug', 'dose', 'pill', 'tablet', 'inhaler', 'insulin', 'prescription'],
+          dark: dark,
+        ),
+        if (medList.isEmpty)
+          Text(
+            'No medications found in this document.',
+            style: TextStyle(color: dark ? kTextSecondaryDark : kTextSecondaryLight),
+          )
+        else
+          ...medList.asMap().entries.map((e) {
+            final med = e.value;
+            final name = '${med['name'] ?? 'Unknown'}';
+            final status = '${med['status'] ?? ''}'.toLowerCase();
+            final dose = '${med['dose'] ?? ''}';
+            final freq = '${med['frequency'] ?? ''}';
+            final duration = '${med['duration'] ?? ''}';
+            final details = [dose, freq, duration].where((s) => s.isNotEmpty).join(' · ');
+            final borderCol = _borderColor[status] ?? kTextHintLight;
+            final badgeTxt = _badgeLabel[status] ?? '';
+            final rationaleBody = _findRationale(name, rationale);
+            return _MedCard(
+              name: name,
+              details: details,
+              status: status,
+              borderColor: borderCol,
+              badgeText: badgeTxt,
+              rationale: rationaleBody,
+              dark: dark,
+            );
+          }),
       ],
     );
   }
 }
 
-String _extractTier(String text, String start, String? next) {
+class _MedCard extends StatefulWidget {
+  const _MedCard({
+    required this.name,
+    required this.details,
+    required this.status,
+    required this.borderColor,
+    required this.badgeText,
+    required this.rationale,
+    required this.dark,
+  });
+  final String name;
+  final String details;
+  final String status;
+  final Color borderColor;
+  final String badgeText;
+  final String? rationale;
+  final bool dark;
+
+  @override
+  State<_MedCard> createState() => _MedCardState();
+}
+
+class _MedCardState extends State<_MedCard> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: widget.dark ? kCardDark : kCardLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border(left: BorderSide(color: widget.borderColor, width: 4)),
+        boxShadow: widget.dark
+            ? null
+            : [const BoxShadow(color: Color(0x0A000000), blurRadius: 4, offset: Offset(0, 1))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          color: widget.dark ? kTextPrimaryDark : kTextPrimaryLight,
+                        ),
+                      ),
+                      if (widget.details.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          widget.details,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: widget.dark ? kTextSecondaryDark : kTextSecondaryLight,
+                          ),
+                        ),
+                      ],
+                      if (widget.status == 'changed') ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'Changed from previous prescription',
+                            style: TextStyle(fontSize: 10, color: Color(0xFF92400E)),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (widget.badgeText.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: widget.borderColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      widget.badgeText,
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (widget.rationale != null) ...[
+            InkWell(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(8),
+                bottomRight: Radius.circular(8),
+              ),
+              onTap: () => setState(() => _expanded = !_expanded),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    Text(
+                      _expanded ? 'Hide explanation' : 'Why you\'re taking this',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: widget.dark ? kTealGlow : kTeal,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      _expanded ? Icons.expand_less : Icons.expand_more,
+                      size: 14,
+                      color: widget.dark ? kTealGlow : kTeal,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (_expanded)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                child: Text(
+                  widget.rationale!,
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.5,
+                    color: widget.dark ? kTextSecondaryDark : kTextSecondaryLight,
+                  ),
+                ),
+              ),
+          ] else
+            const SizedBox(height: 10),
+        ],
+      ),
+    );
+  }
+}
+
+/// Warning Signs tab — red-flag bullet list + 3-tier escalation cards with bullets.
+class _WarningsBody extends StatelessWidget {
+  const _WarningsBody({
+    required this.escalationText,
+    required this.extraction,
+    required this.simulator,
+  });
+  final String escalationText;
+  final dynamic extraction;
+  final dynamic simulator;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final ext = extraction is Map ? extraction as Map : <dynamic, dynamic>{};
+    final rawFlags = ext['red_flag_symptoms'];
+    final flags = rawFlags is List
+        ? rawFlags.map((e) => '$e').where((e) => e.isNotEmpty).toList()
+        : <String>[];
+    final src = escalationText.toUpperCase();
+    final hasTiers = src.contains('CALL 911') || src.contains('ER TODAY') || src.contains('CALL YOUR DOCTOR');
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Safety notice
+        Container(
+          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: dark ? kTier1.withValues(alpha: 0.15) : kTier1Bg,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: kTier1.withValues(alpha: 0.3)),
+          ),
+          child: Text(
+            'This guide is AI-generated. Call your care team to confirm what needs emergency care for your situation.',
+            style: TextStyle(fontSize: 12, color: dark ? kTier1 : const Color(0xFF7F1D1D)),
+          ),
+        ),
+
+        _GapCallout(
+          simulator: simulator,
+          keywords: const ['symptom', 'emergency', '911', 'er ', 'warning', 'sign', 'fever', 'pain', 'breathe', 'bleeding'],
+          dark: dark,
+        ),
+
+        // Red-flag bullets from extraction
+        if (flags.isNotEmpty) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: dark ? kTier1.withValues(alpha: 0.12) : const Color(0xFFFCEBEB),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Go to the ER or call 911 if you have:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: dark ? kTier1 : const Color(0xFF7F1D1D),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...flags.map(
+                  (f) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.only(top: 5, right: 10),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFC0392B),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            f,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: dark ? kTextPrimaryDark : const Color(0xFF7F1D1D),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+
+        // 3-tier escalation cards
+        if (hasTiers) ...[
+          if (flags.isNotEmpty) Divider(color: dark ? kBorderDark : kBorderLight),
+          const SizedBox(height: 8),
+          _EscalationTier(
+            title: 'CALL 911 IMMEDIATELY',
+            body: _extractTierBullets(escalationText, 'CALL 911 IMMEDIATELY', 'GO TO THE ER TODAY'),
+            fg: kTier1,
+            bg: kTier1Bg,
+            dark: dark,
+          ),
+          _EscalationTier(
+            title: 'GO TO THE ER TODAY',
+            body: _extractTierBullets(escalationText, 'GO TO THE ER TODAY', 'CALL YOUR DOCTOR'),
+            fg: kTier2,
+            bg: kTier2Bg,
+            dark: dark,
+          ),
+          _EscalationTier(
+            title: 'CALL YOUR DOCTOR',
+            body: _extractTierBullets(escalationText, 'CALL YOUR DOCTOR', null),
+            fg: kTier3,
+            bg: kTier3Bg,
+            dark: dark,
+          ),
+        ] else if (!hasTiers && escalationText.isNotEmpty)
+          Text(
+            escalationText,
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.5,
+              color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _EscalationTier extends StatelessWidget {
+  const _EscalationTier({
+    required this.title,
+    required this.body,
+    required this.fg,
+    required this.bg,
+    required this.dark,
+  });
+  final String title;
+  final List<String> body;
+  final Color fg;
+  final Color bg;
+  final bool dark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: dark ? fg.withValues(alpha: 0.18) : bg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: fg.withValues(alpha: dark ? 0.45 : 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: fg)),
+          const SizedBox(height: 8),
+          ...body.map(
+            (line) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    margin: const EdgeInsets.only(top: 6, right: 8),
+                    decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
+                  ),
+                  Expanded(
+                    child: Text(
+                      line,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.4,
+                        color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Recovery tab — activity/dietary restrictions + discharge condition + timeline.
+class _RecoveryBody extends StatelessWidget {
+  const _RecoveryBody({required this.trajectory, required this.extraction});
+  final String trajectory;
+  final dynamic extraction;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final ext = extraction is Map ? extraction as Map : <dynamic, dynamic>{};
+    final rawActivity = ext['activity_restrictions'];
+    final rawDietary = ext['dietary_restrictions'];
+    final condition = '${ext['discharge_condition'] ?? ''}';
+    final activity = rawActivity is List
+        ? rawActivity.map((e) => '$e').where((e) => e.isNotEmpty).toList()
+        : <String>[];
+    final dietary = rawDietary is List
+        ? rawDietary.map((e) => '$e').where((e) => e.isNotEmpty).toList()
+        : <String>[];
+
+    final hasRestrictions = activity.isNotEmpty || dietary.isNotEmpty || condition.isNotEmpty;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (hasRestrictions) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _RestrictionColumn(
+                    label: 'Activity',
+                    items: activity,
+                    dark: dark,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _RestrictionColumn(
+                    label: 'Diet',
+                    items: dietary,
+                    dark: dark,
+                  ),
+                ),
+              ],
+            ),
+            if (condition.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: dark ? kTeal.withValues(alpha: 0.15) : kTealPale,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+                    ),
+                    children: [
+                      const TextSpan(text: 'Condition at discharge: ', style: TextStyle(fontWeight: FontWeight.w600)),
+                      TextSpan(text: condition),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            Divider(color: dark ? kBorderDark : kBorderLight, height: 28),
+          ],
+          Text(
+            'Your recovery timeline',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            trajectory.isEmpty ? 'No recovery timeline available.' : trajectory,
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.6,
+              color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RestrictionColumn extends StatelessWidget {
+  const _RestrictionColumn({required this.label, required this.items, required this.dark});
+  final String label;
+  final List<String> items;
+  final bool dark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: dark ? kCardDark : kCardLight,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: dark ? kBorderDark : kBorderLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: dark ? kTealGlow : kTeal,
+            ),
+          ),
+          const SizedBox(height: 6),
+          if (items.isEmpty)
+            Text(
+              'None listed.',
+              style: TextStyle(
+                fontSize: 12,
+                color: dark ? kTextHintDark : kTextHintLight,
+              ),
+            )
+          else
+            ...items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6, right: 6),
+                      child: Container(
+                        width: 5,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: dark ? kTealGlow : kTeal,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        item,
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.4,
+                          color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Inline Agent 6 gap callout shown on Medications and Warning Signs tabs.
+class _GapCallout extends StatelessWidget {
+  const _GapCallout({required this.simulator, required this.keywords, required this.dark});
+  final dynamic simulator;
+  final List<String> keywords;
+  final bool dark;
+
+  @override
+  Widget build(BuildContext context) {
+    if (simulator is! Map) return const SizedBox.shrink();
+    final sim = simulator as Map;
+    final concepts = sim['missed_concepts'];
+    if (concepts is! List) return const SizedBox.shrink();
+    final relevant = concepts.whereType<Map>().where((c) {
+      if (c['answered_by_doc'] == true) return false;
+      final sev = '${c['severity'] ?? ''}';
+      if (sev != 'critical' && sev != 'moderate') return false;
+      final text = ('${c['question'] ?? ''} ${c['gap_summary'] ?? ''}').toLowerCase();
+      return keywords.any(text.contains);
+    }).take(3).toList();
+    if (relevant.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: dark ? const Color(0xFF78350F).withValues(alpha: 0.2) : const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFFCD34D).withValues(alpha: dark ? 0.4 : 1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'AI Review flagged ${relevant.length} unanswered question${relevant.length == 1 ? '' : 's'} in this area',
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF78350F)),
+          ),
+          const SizedBox(height: 4),
+          ...relevant.map(
+            (c) => Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                '• ${c['question'] ?? ''}',
+                style: const TextStyle(fontSize: 12, color: Color(0xFF92400E)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'See the Discharge Check tab for full details.',
+            style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Color(0xFFB45309)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+List<String> _extractTierBullets(String text, String start, String? next) {
   final up = text.toUpperCase();
   final s = up.indexOf(start.toUpperCase());
-  if (s < 0) return '';
+  if (s < 0) return [];
   final end = next == null ? text.length : up.indexOf(next.toUpperCase(), s + start.length);
-  if (end < 0) return text.substring(s + start.length).trim();
-  return text.substring(s + start.length, end).trim();
+  final raw = end < 0
+      ? text.substring(s + start.length).trim()
+      : text.substring(s + start.length, end).trim();
+  if (raw.isEmpty) return [];
+  return raw
+      .split('\n')
+      .map((l) => l.replaceFirst(RegExp(r'^[•\-\*]\s*'), '').trim())
+      .where((l) => l.isNotEmpty)
+      .toList();
 }
 
 class _AppointmentsBody extends StatelessWidget {
