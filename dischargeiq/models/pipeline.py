@@ -24,12 +24,30 @@ class MissedConcept(BaseModel):
     severity: Literal["critical", "moderate", "minor"]
 
 
+class CaregiverQuestion(BaseModel):
+    """
+    A small set of questions the patient should ask their caregiver about
+    one specific extracted item — e.g. one medication, one appointment, or
+    one red-flag symptom. Surfaced inline next to that item in the UI so
+    the patient can act on the gap without scrolling to the AI Review tab.
+    """
+
+    item_type: Literal[
+        "medication", "appointment", "warning_sign", "diagnosis", "diet_activity"
+    ]
+    item_label: str            # Human-readable identifier (drug name, provider, etc.)
+    questions: list[str]       # 1-3 short, plain-language questions
+
+
 class PatientSimulatorOutput(BaseModel):
     missed_concepts: list[MissedConcept]
     overall_gap_score: int
     simulator_summary: str
     fk_grade: float
     passes: bool
+    # Per-item caregiver questions. Defaults to [] so existing pipelines and
+    # any Agent 6 LLM responses missing the new block remain valid.
+    caregiver_questions: list[CaregiverQuestion] = []
 
 
 class PipelineResponse(BaseModel):

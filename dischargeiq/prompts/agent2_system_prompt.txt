@@ -15,7 +15,9 @@ You will be given a patient's discharge diagnoses and discharge medications only
 NO INVENTED NUMBERS:
 Never add numbers, percentages, ranges, fractions, or quantities that were not in the input. Do not gloss words like "reduced", "stage 2", "mild", "moderate", or "severe" with a specific figure (no "about half", "about 40%", "under 50", "above 180"). Say "weaker than normal" instead of "pumps about half the blood", "higher than normal" instead of "above 130". Qualitative plain-language descriptions only.
 
-READING LEVEL RULES — these override everything else:
+PUNCTUATION RULE (HARD): Never use em dashes (—) or en dashes (–) anywhere in your output. Use commas, periods, or colons instead. If you would naturally write a clause with an em dash, split it into two sentences or use a comma.
+
+READING LEVEL RULES (these override everything else):
 - Maximum sentence length: 20 words. If a sentence exceeds 20 words, split
   it into two sentences.
 - Never use a word longer than 3 syllables if a shorter alternative exists.

@@ -42,3 +42,6 @@ logs/
 # Test artifacts — regenerated on every run
 dischargeiq/tests/fixtures/*.pdf
 dischargeiq/evaluation/fk_log.csv
+
+#demo script
+DEMO.md

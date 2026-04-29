@@ -226,7 +226,7 @@ html,body{
   width:100%;height:100%;
   background:#F5F4F1;
   display:flex;align-items:center;justify-content:center;
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-family:Calibri,'Carlito','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
 }
 /* keyframes */
 @keyframes diq-walk{0%{left:74px;opacity:1}65%{left:200px;opacity:1}85%{left:218px;opacity:.5}100%{left:230px;opacity:0}}
@@ -504,12 +504,22 @@ def _inject_global_css() -> None:
         """
         <style>
         /* ── Typography ─────────────────────────────────────────────────────── */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        /* Project-wide font is Calibri, with web-safe fallbacks. Calibri is
+           shipped on Windows; "Carlito" is the open-source Calibri-metric-
+           compatible font available via Google Fonts so non-Windows users
+           (Mac, Linux, Chromebook) still see the same letter shapes and
+           spacing. Final fallbacks are system humanist sans-serifs. */
+        @import url('https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
-        html, body, .stApp, .stMarkdown, p, li, span, div, button, input {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+        html, body, .stApp, .stMarkdown, p, li, span, div, button, input,
+        h1, h2, h3, h4, h5, h6, label, textarea, select {
+            font-family: Calibri, 'Carlito', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif !important;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+        }
+        p, li, span, div, button, input, label, textarea, select {
+            font-size: 1.05rem;
+            line-height: 1.55;
         }
 
         /* ── Page background ─────────────────────────────────────────────────── */
@@ -534,11 +544,191 @@ def _inject_global_css() -> None:
         header[data-testid="stHeader"] { display: none !important; }
 
         /* Clear vertical space for the 56px teal app header + ~40px tab
-           bar that live outside stMain in window.parent.document. */
-        section[data-testid="stMain"] { padding-top: 104px !important; }
+           bar that live outside stMain in window.parent.document.
+           Trimmed from 104px to 92px to bring section content closer
+           to the tab bar (was visibly too generous). */
+        section[data-testid="stMain"] { padding-top: 92px !important; }
+
+        /* Streamlit's default block-container adds ~6rem of top padding
+           even after the stMain override; collapse it so the tab bar
+           sits right above the section title. */
+        section[data-testid="stMain"] .block-container {
+            padding-top: 0.5rem !important;
+        }
 
         /* Remove Streamlit's default top padding on columns */
         [data-testid="column"] { padding: 0 8px; }
+
+        /* ── Custom collapsible details ────────────────────────────────────
+           We use native HTML5 <details> for static expandable content (e.g.
+           the medication rationale, "Questions answered" list). This bypasses
+           Streamlit 1.56's broken Material Symbols chevron entirely. The
+           summary draws its own CSS triangle that rotates 90° when open. */
+        details.diq-html-details {
+            background: #ffffff;
+            border: 1px solid #E2E8F0;
+            border-radius: 10px;
+            margin: 6px 0 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        details.diq-html-details > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 10px 14px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #1E293B;
+            display: flex;
+            align-items: center;
+            user-select: none;
+        }
+        details.diq-html-details > summary::-webkit-details-marker {
+            display: none;
+        }
+        details.diq-html-details > summary::before {
+            content: "";
+            display: inline-block;
+            width: 0; height: 0;
+            border-left: 6px solid #475569;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            margin-right: 10px;
+            transition: transform 0.18s ease;
+            flex-shrink: 0;
+        }
+        details.diq-html-details[open] > summary::before {
+            transform: rotate(90deg);
+        }
+        details.diq-html-details > .diq-html-details-body {
+            padding: 4px 16px 14px;
+            font-size: 0.88rem;
+            color: #334155;
+            line-height: 1.55;
+            border-top: 1px solid #F1F5F9;
+        }
+        details.diq-html-details > .diq-html-details-body p { margin: 0 0 0.5em; }
+        details.diq-html-details > .diq-html-details-body ul { margin: 0.25em 0; padding-left: 18px; }
+        details.diq-html-details > .diq-html-details-body li { margin-bottom: 3px; }
+
+        /* ── Citation chip styling ─────────────────────────────────────────
+           Streamlit puts each widget's key onto its container as a class
+           (e.g. `st-key-cite_med_0`). All citation buttons use keys that
+           start with `cite_`, so this selector targets ONLY citation
+           buttons and leaves other Streamlit buttons (toggles, primary
+           CTAs) untouched. */
+        /* ── Verify-extraction expander — match diq-html-details style ──────────
+           st.expander renders as a native <details> element. We override its
+           default Streamlit styling so it looks identical to the medication
+           rationale toggle (diq-html-details): white card, grey border,
+           rounded corners, bold summary text, separator line on body. */
+        [data-testid="stExpander"] details {
+            background: #ffffff !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 10px !important;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+            margin: 6px 0 12px !important;
+        }
+        [data-testid="stExpander"] details summary {
+            padding: 10px 14px !important;
+            font-size: 0.88rem !important;
+            font-weight: 600 !important;
+            color: #1E293B !important;
+            list-style: none !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        [data-testid="stExpander"] details summary::-webkit-details-marker {
+            display: none !important;
+        }
+        [data-testid="stExpander"] details summary [data-testid="stExpanderToggleIcon"],
+        [data-testid="stExpander"] details summary [data-testid="stIconMaterial"],
+        [data-testid="stExpander"] details summary svg {
+            display: none !important;
+        }
+        [data-testid="stExpander"] details summary::before {
+            content: "";
+            display: inline-block;
+            width: 0; height: 0;
+            border-left: 6px solid #475569;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+            margin-right: 5px;
+            transition: transform 0.18s ease;
+            flex-shrink: 0;
+        }
+        [data-testid="stExpander"] details[open] summary::before {
+            transform: rotate(90deg);
+        }
+        [data-testid="stExpander"] details[open] > div {
+            border-top: 1px solid #F1F5F9 !important;
+            padding: 0 16px 14px !important;
+        }
+        [data-testid="stExpander"] details[open] > div > div:first-child,
+        [data-testid="stExpander"] details[open] [data-testid="stVerticalBlock"]:first-child,
+        [data-testid="stExpander"] details[open] > div > div:first-child > div:first-child {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        [data-testid="stExpander"] details[open] p:first-child,
+        [data-testid="stExpander"] details[open] small:first-child {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+
+        [class*="st-key-cite_"] button {
+            padding: 1px 10px !important;
+            font-size: 0.72rem !important;
+            font-weight: 500 !important;
+            color: #64748B !important;
+            background: #F8FAFC !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 999px !important;
+            min-height: 22px !important;
+            height: 22px !important;
+            box-shadow: none !important;
+            line-height: 1 !important;
+        }
+        [class*="st-key-cite_"] button:hover {
+            background: #F1F5F9 !important;
+            color: #0F6E56 !important;
+            border-color: #9FD9C8 !important;
+        }
+
+        /* ── Agent text markdown headers — keep them in scale ───────────────
+           Agent 2's diagnosis explanation often emits # / ## / ### markdown
+           headers which Streamlit renders at h1/h2/h3 default sizes (way too
+           large next to our section title). Cap them so they read as
+           sub-headings, not page-spanning banners.
+
+           IMPORTANT: scoped via `:not([style])` so the rule only matches
+           headers that have NO inline style — i.e. the ones generated by
+           plain `st.markdown("# header")` from agent text. The upload-screen
+           hero ("Understand everything" / "the doctor just told you.") uses
+           inline style="font-size:40px" and is correctly skipped. */
+        section[data-testid="stMain"] [data-testid="stMarkdownContainer"] h1:not([style]) {
+            font-size: 1.15rem !important;
+            font-weight: 700 !important;
+            margin: 14px 0 6px !important;
+            color: #0A2A1F !important;
+        }
+        section[data-testid="stMain"] [data-testid="stMarkdownContainer"] h2:not([style]) {
+            font-size: 1.02rem !important;
+            font-weight: 700 !important;
+            margin: 12px 0 4px !important;
+            color: #0F6E56 !important;
+        }
+        section[data-testid="stMain"] [data-testid="stMarkdownContainer"] h3:not([style]) {
+            font-size: 0.95rem !important;
+            font-weight: 600 !important;
+            margin: 10px 0 4px !important;
+            color: #1E293B !important;
+        }
+        section[data-testid="stMain"] [data-testid="stMarkdownContainer"] h4:not([style]) {
+            font-size: 0.92rem !important;
+            font-weight: 600 !important;
+            margin: 8px 0 4px !important;
+            color: #334155 !important;
+        }
 
         /* ── Section title ───────────────────────────────────────────────────── */
         .diq-section-title {
@@ -546,8 +736,8 @@ def _inject_global_css() -> None:
             font-weight: 800;
             color: #0A2A1F;
             letter-spacing: -0.01em;
-            margin: 18px 0 14px;
-            padding-bottom: 10px;
+            margin: 4px 0 12px;
+            padding-bottom: 8px;
             position: relative;
         }
         .diq-section-title::after {
@@ -596,6 +786,133 @@ def _inject_global_css() -> None:
             flex-shrink: 0;
             margin-top: 5px;
             box-shadow: 0 0 0 3px rgba(29,158,117,0.15);
+        }
+
+        /* ── Inline caregiver questions (embedded inside card, no extra chrome) ── */
+        .diq-caregiver-questions-inline {
+            background: #F0F9FF;
+            border-left: 3px solid #0EA5E9;
+            border-radius: 4px;
+            padding: 8px 10px;
+            margin-top: 10px;
+        }
+        .diq-caregiver-questions-inline ul {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 0.82rem;
+            color: #0C4A6E;
+        }
+        .diq-caregiver-questions-inline li {
+            margin-bottom: 3px;
+            line-height: 1.35;
+        }
+
+        /* ── Recovery week cards ─────────────────────────────────────────────── */
+        .diq-week-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffff;
+            border-radius: 14px 14px 0 0;
+            border-left: 4px solid #1D9E75;
+            padding: 12px 18px 8px;
+            margin-top: 14px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 14px rgba(15,110,86,0.08);
+        }
+        .diq-week-badge {
+            min-width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #0F6E56, #1D9E75);
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(15,110,86,0.25);
+            flex-shrink: 0;
+        }
+        .diq-week-header {
+            font-size: 1.0rem;
+            font-weight: 700;
+            color: #0A2A1F;
+            letter-spacing: -0.01em;
+        }
+        .diq-week-body {
+            background: #ffffff;
+            border-radius: 0 0 14px 14px;
+            border-left: 4px solid #1D9E75;
+            padding: 4px 22px 14px 66px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #1E293B;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 14px rgba(15,110,86,0.08);
+        }
+        .diq-week-body p { margin: 0 0 0.4em; }
+        .diq-week-body ul {
+            margin: 4px 0 4px 0;
+            padding-left: 0;
+            list-style: none;
+        }
+        .diq-week-body li {
+            margin-bottom: 6px;
+            padding-left: 18px;
+            position: relative;
+        }
+        .diq-week-body li::before {
+            content: "";
+            position: absolute;
+            left: 4px;
+            top: 0.5em;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #1D9E75;
+            box-shadow: 0 0 0 2px rgba(29,158,117,0.18);
+        }
+        .diq-week-outro {
+            background: linear-gradient(135deg, #F0FDF9, #E8F8F1);
+            border: 1px solid rgba(29,158,117,0.25);
+            border-radius: 14px;
+            padding: 14px 20px;
+            margin-top: 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(15,110,86,0.06);
+        }
+        .diq-week-outro-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #0F6E56;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 4px;
+        }
+        .diq-week-outro-body {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #0A2A1F;
+        }
+        .diq-week-outro-body ul {
+            margin: 4px 0;
+            padding-left: 0;
+            list-style: none;
+        }
+        .diq-week-outro-body li {
+            margin-bottom: 5px;
+            padding-left: 18px;
+            position: relative;
+        }
+        .diq-week-outro-body li::before {
+            content: "";
+            position: absolute;
+            left: 4px;
+            top: 0.5em;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #0F6E56;
+            box-shadow: 0 0 0 2px rgba(15,110,86,0.18);
         }
 
         /* ── Warning card ────────────────────────────────────────────────────── */
@@ -886,6 +1203,113 @@ def _strip_html_tags(text: str) -> str:
     return re.sub(r"<[^>]+>", "", text).strip()
 
 
+def _simple_md_to_html(text: str) -> str:
+    """
+    Convert a small subset of markdown (paragraphs, bullets, **bold**) to
+    inline HTML so we can embed agent text inside an HTML container that
+    Streamlit renders in a single st.markdown call.
+
+    Why this exists: Streamlit emits each `st.markdown(..., unsafe_allow_html=True)`
+    call into its own `[data-testid="stMarkdownContainer"]` div. That means an
+    open `<details>` or `<div>` tag in one call CANNOT contain content
+    rendered by a later call - the orphan content leaks below the closed
+    container. To put markdown-formatted agent text inside a styled card,
+    we have to convert the markdown to HTML ourselves and inline it inside
+    the wrapper, so the whole thing fits in one st.markdown call.
+
+    Supported syntax:
+      - Lines beginning with "- " or "* " - rendered as <li> inside a <ul>.
+      - Blank line - paragraph break (closes the current <p> and any open list).
+      - Inline **bold** - wrapped in <strong>.
+      - Anything else - joined into a <p> paragraph.
+
+    Args:
+        text: Plain markdown text from an agent (recovery body, rationale).
+
+    Returns:
+        str: Inline HTML safe to embed inside another HTML block.
+    """
+    if not text:
+        return ""
+
+    # Escape HTML special characters first; the markdown patterns we care
+    # about (-, *, **) are not affected by html.escape().
+    escaped = html.escape(text)
+
+    lines = escaped.strip().split("\n")
+    html_parts: list[str] = []
+    para_lines: list[str] = []
+    in_list = False
+
+    def flush_paragraph() -> None:
+        if para_lines:
+            joined = " ".join(line.strip() for line in para_lines).strip()
+            if joined:
+                html_parts.append(f"<p>{joined}</p>")
+            para_lines.clear()
+
+    def close_list() -> None:
+        nonlocal in_list
+        if in_list:
+            html_parts.append("</ul>")
+            in_list = False
+
+    def open_list() -> None:
+        nonlocal in_list
+        if not in_list:
+            html_parts.append("<ul>")
+            in_list = True
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            flush_paragraph()
+            close_list()
+            continue
+        if stripped.startswith("- ") or stripped.startswith("* "):
+            flush_paragraph()
+            open_list()
+            item = stripped[2:].strip()
+            html_parts.append(f"<li>{item}</li>")
+            continue
+        # Non-list, non-blank line: starts or continues a paragraph.
+        close_list()
+        para_lines.append(stripped)
+
+    flush_paragraph()
+    close_list()
+
+    out = "".join(html_parts)
+    # Inline **bold** -> <strong>. Run after escaping so any literal asterisks
+    # in the source text would have stayed as plain "*" (not part of an
+    # escape sequence) and still match this pattern.
+    out = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", out)
+    return out
+
+
+def _strip_em_dashes(text: str) -> str:
+    """
+    Replace em dashes (—) and en dashes (–) with simple hyphens so the UI
+    never shows them. Per project preference, em dashes are not used
+    anywhere in user-facing text.
+
+    The mapping deliberately preserves dash structure (em dash → hyphen
+    with surrounding spaces) rather than collapsing to a comma. This
+    keeps the Agent 3 medication parser's " - stopping:" marker matchable
+    after sanitization, and reads naturally in prose. Runs on every
+    LLM-sourced string before it reaches the DOM.
+    """
+    if not text:
+        return text
+    out = text.replace(" — ", " - ")
+    out = out.replace(" —", " -")
+    out = out.replace("— ", "- ")
+    out = out.replace("—", "-")
+    # En dash: replace with hyphen for things like number ranges.
+    out = out.replace("–", "-")
+    return out
+
+
 def _clean_str(value: object) -> str:
     """
     Coerce any value to a plain-text string with HTML tags stripped.
@@ -893,7 +1317,9 @@ def _clean_str(value: object) -> str:
     Applied to every LLM-sourced string before it is embedded inside a
     Streamlit unsafe_allow_html=True markdown block so that stray HTML
     markup in the model output cannot break layout or render as visible
-    tag text. None, empty strings, and non-string values all return "".
+    tag text. Also strips em/en dashes so the UI never shows them
+    regardless of whether the LLM honored the prompt-level instruction.
+    None, empty strings, and non-string values all return "".
 
     Args:
         value: Any value from an extraction / agent dict.
@@ -903,7 +1329,7 @@ def _clean_str(value: object) -> str:
     """
     if value is None or value == "":
         return ""
-    return _strip_html_tags(str(value))
+    return _strip_em_dashes(_strip_html_tags(str(value)))
 
 
 def _empty_generation_message(result: dict, section_label: str) -> None:
@@ -916,7 +1342,7 @@ def _empty_generation_message(result: dict, section_label: str) -> None:
         st.warning(
             f"{section_label} could not be generated. "
             "The AI service may be busy, rate-limited, or misconfigured "
-            "(check .env API keys). This is not medical advice — contact your "
+            "(check .env API keys). This is not medical advice. Contact your "
             "care team or emergency services for urgent symptoms."
         )
     else:
@@ -945,13 +1371,13 @@ def _build_summary_pdf_bytes(result: dict) -> bytes:
     pdf.set_font("Helvetica", size=10)
 
     pdf.set_font("Helvetica", "B", 14)
-    pdf.multi_cell(0, 8, txt=_pdf_safe_txt("DischargeIQ — Plain-language summary"))
+    pdf.multi_cell(0, 8, txt=_pdf_safe_txt("DischargeIQ: Plain-language summary"))
     pdf.set_font("Helvetica", "", 9)
     pdf.multi_cell(
         0,
         4,
         txt=_pdf_safe_txt(
-            "AI-generated for education only — not medical advice. "
+            "AI-generated for education only. Not medical advice. "
             "Confirm all instructions and warning signs with your care team "
             "before relying on this document."
         ),
@@ -987,7 +1413,7 @@ def _build_summary_pdf_bytes(result: dict) -> bytes:
         _clean_str(result.get("recovery_trajectory", "")),
     )
     add_section(
-        "4. Warning signs — when to get help",
+        "4. Warning signs: when to get help",
         _clean_str(result.get("escalation_guide", "")),
     )
 
@@ -1039,12 +1465,15 @@ def _hidden_click_target(label: str, key: str) -> bool:
 
 def _citation_button(page: int, source_text: str, key_suffix: str) -> bool:
     """
-    Render a small teal citation chip labelled "p.N".
+    Render a small subtle citation chip labelled "Page N" that opens the
+    source PDF modal at the cited page on click.
 
-    On click, stores a pending-citation record in session state so the
-    next rerun injects the PDF modal overlay at the cited page. The
-    record is cleared immediately after injection to prevent the modal
-    from re-opening on subsequent reruns.
+    Label changed from the cryptic "p.N" to "Page N" so first-time users
+    understand it's a page reference. Streamlit puts the widget key on the
+    container as a CSS class (e.g. `st-key-cite_med_0`); the global CSS
+    rule `[class*="st-key-cite_"] button` picks up these buttons specifically
+    and applies subtle chip styling without affecting other Streamlit
+    buttons. No marker element is injected, so column layouts stay intact.
 
     Args:
         page:        1-indexed page number from the source span.
@@ -1054,7 +1483,11 @@ def _citation_button(page: int, source_text: str, key_suffix: str) -> bool:
     Returns:
         bool: True if the button was clicked in this run.
     """
-    clicked = st.button(f"p.{page}", key=f"cite_{key_suffix}", type="secondary")
+    clicked = st.button(
+        f"Page {page}",
+        key=f"cite_{key_suffix}",
+        type="secondary",
+    )
     if clicked:
         st.session_state[_S_PENDING_CITATION] = {
             "page": page,
@@ -1606,7 +2039,7 @@ def _inject_pdf_modal(
         embed_b64 = base64.b64encode(raw).decode("ascii")
 
     if not pdf_session_id and not embed_b64:
-        st.warning("PDF not available for this session — please re-upload the document.")
+        st.warning("PDF not available for this session. Please re-upload the document.")
         return
 
     iframe_src = f"{_API_BASE}/pdf/{pdf_session_id}#page={page}" if pdf_session_id else ""
@@ -1775,7 +2208,7 @@ def _render_section_diagnosis(result: dict) -> None:
         result: PipelineResponse dict.
     """
     ext = result.get("extraction", {})
-    explanation = (result.get("diagnosis_explanation") or "").strip()
+    explanation = _strip_em_dashes((result.get("diagnosis_explanation") or "").strip())
     source = ext.get("primary_diagnosis_source")
     secondary = ext.get("secondary_diagnoses", [])
 
@@ -1914,13 +2347,27 @@ def _find_rationale_for_med(med_name: str, blocks: dict[str, dict]) -> dict | No
     return None
 
 
-def _render_medication_card(med: dict, card_index: int) -> None:
+def _render_medication_card(
+    med: dict,
+    card_index: int,
+    result: dict | None = None,
+    rationale_block: dict | None = None,
+) -> None:
     """
-    Render a single medication card with status badge and citation chip.
+    Render a single medication card with status badge, caregiver questions,
+    and the "Why you're taking this" toggle — all inside one bordered surface.
+
+    The caregiver questions (from Agent 6) and the rationale toggle are
+    embedded as inline HTML inside the card div so Streamlit renders them
+    in a single st.markdown call, preventing content from leaking outside
+    the card container.
 
     Args:
-        med:        Medication dict from ExtractionOutput.
-        card_index: Zero-based index for unique widget keys.
+        med:            Medication dict from ExtractionOutput.
+        card_index:     Zero-based index for unique widget keys.
+        result:         PipelineResponse dict, for caregiver question lookup.
+        rationale_block: Pre-matched rationale dict from _find_rationale_for_med,
+                         or None when no rationale text was found.
     """
     name = _clean_str(med.get("name")) or "Unknown"
     dose = _clean_str(med.get("dose"))
@@ -1946,22 +2393,47 @@ def _render_medication_card(med: dict, card_index: int) -> None:
         "</div>"
     ) if status == "changed" else ""
 
+    # Build inline caregiver questions HTML (empty string if none match).
+    questions_html = ""
+    if result is not None:
+        questions_html = _caregiver_questions_inline_html(
+            result,
+            item_type="medication",
+            label_candidates=[med.get("name", "") or ""],
+        )
+
+    # Build inline <details> rationale toggle (empty string when no block).
+    details_toggle_html = ""
+    if rationale_block:
+        toggle_label = (
+            "Why your doctor stopped this"
+            if rationale_block.get("stopping")
+            else "Why you're taking this and what to expect"
+        )
+        body_html = _simple_md_to_html(rationale_block.get("text", "") or "")
+        details_toggle_html = (
+            f'<details class="diq-html-details">'
+            f'<summary>{_clean_str(toggle_label)}</summary>'
+            f'<div class="diq-html-details-body">{body_html}</div>'
+            f'</details>'
+        )
+
+    badge_html = (
+        f"<span class='diq-badge' style='background:{badge_color};'>{badge_label}</span>"
+        if badge_label else ""
+    )
+
     st.markdown(
-        f"""
-        <div class="diq-med-card" style="border-left-color:{border_color};">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-                <span style="font-weight:700;font-size:0.95rem;color:#1E293B;">
-                    {name}
-                </span>
-                {"<span class='diq-badge' style='background:" + badge_color + ";'>"
-                 + badge_label + "</span>" if badge_label else ""}
-            </div>
-            <div style="font-size:0.82rem;color:#64748B;margin-top:2px;">
-                {details}
-            </div>
-            {changed_banner}
-        </div>
-        """,
+        f'<div class="diq-med-card" style="border-left-color:{border_color};">'
+        f'<div style="display:flex;align-items:center;justify-content:space-between;">'
+        f'<span style="font-weight:700;font-size:0.95rem;color:#1E293B;">{name}</span>'
+        f'{badge_html}'
+        f'</div>'
+        f'<div style="font-size:0.82rem;color:#64748B;margin-top:2px;">{details}</div>'
+        f'{changed_banner}'
+        f'{questions_html}'
+        f'{details_toggle_html}'
+        f'</div>',
         unsafe_allow_html=True,
     )
 
@@ -1999,23 +2471,14 @@ def _render_section_medications(result: dict) -> None:
         return
 
     rationale_blocks = _parse_medication_rationale(
-        result.get("medication_rationale", "")
+        _strip_em_dashes(result.get("medication_rationale", ""))
     )
 
     for idx, med in enumerate(medications):
-        _render_medication_card(med, idx)
-
+        # Look up the rationale block here so it can be passed into the card
+        # renderer and embedded inline inside the same bordered container.
         block = _find_rationale_for_med(med.get("name", ""), rationale_blocks)
-        if not block:
-            continue
-
-        label = (
-            "Why your doctor stopped this"
-            if block.get("stopping")
-            else "Why you're taking this and what to expect"
-        )
-        with st.expander(label):
-            st.markdown(block.get("text", ""))
+        _render_medication_card(med, idx, result=result, rationale_block=block)
 
     rationale_raw = (result.get("medication_rationale") or "").strip()
     if medications and not rationale_raw:
@@ -2025,9 +2488,17 @@ def _render_section_medications(result: dict) -> None:
 
 # ── Section: Appointments ────────────────────────────────────────────────────
 
-def _render_appointment_row(appt: dict, row_index: int) -> None:
+def _render_appointment_row(
+    appt: dict,
+    row_index: int,
+    result: dict | None = None,
+) -> None:
     """
     Render a single follow-up appointment row.
+
+    Caregiver questions from Agent 6 are embedded inline inside the same
+    bordered card so the patient sees them as part of the appointment detail
+    rather than a floating block below it.
 
     Every string field is run through _clean_str() before being embedded
     into the unsafe_allow_html markdown block — this is the defensive
@@ -2037,6 +2508,7 @@ def _render_appointment_row(appt: dict, row_index: int) -> None:
     Args:
         appt:      FollowUpAppointment dict from ExtractionOutput.
         row_index: Zero-based index for unique widget keys.
+        result:    PipelineResponse dict, for caregiver question lookup.
     """
     provider = _clean_str(appt.get("provider"))
     specialty = _clean_str(appt.get("specialty"))
@@ -2098,10 +2570,22 @@ def _render_appointment_row(appt: dict, row_index: int) -> None:
         inner_parts.append(details_html)
     inner_html = "".join(inner_parts)
 
+    # Build inline caregiver questions HTML (empty string if none match).
+    questions_html = ""
+    if result is not None:
+        questions_html = _caregiver_questions_inline_html(
+            result,
+            item_type="appointment",
+            label_candidates=[
+                appt.get("provider", "") or "",
+                appt.get("specialty", "") or "",
+            ],
+        )
+
     st.markdown(
         '<div class="diq-appt-row">'
         '<div class="diq-appt-dot"></div>'
-        f'<div style="flex:1;">{inner_html}</div>'
+        f'<div style="flex:1;">{inner_html}{questions_html}</div>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -2178,7 +2662,8 @@ def _render_section_appointments(result: dict) -> None:
 
     sorted_appointments = sorted(appointments, key=_appointment_sort_key)
     for idx, appt in enumerate(sorted_appointments):
-        _render_appointment_row(appt, idx)
+        # Caregiver questions are now embedded inside the appointment card.
+        _render_appointment_row(appt, idx, result=result)
 
 
 # ── Section: Warning signs ───────────────────────────────────────────────────
@@ -2382,20 +2867,30 @@ def _render_section_warning_signs(result: dict) -> None:
         return
 
     if flags:
-        flag_rows_html = "".join(
-            f'<div class="diq-flag-row">'
-            f'<div class="diq-flag-dot"></div>'
-            f'<div style="font-size:0.9rem;color:#7F1D1D;">{_clean_str(flag)}</div>'
-            f'</div>'
-            for flag in flags
-        )
+        # Build each flag row followed immediately by its caregiver questions
+        # — all inside the same red-tinted warning card so they render as one
+        # bordered surface rather than a stacked second card per flag.
+        flag_blocks_html = ""
+        for flag in flags:
+            flag_row = (
+                f'<div class="diq-flag-row">'
+                f'<div class="diq-flag-dot"></div>'
+                f'<div style="font-size:0.9rem;color:#7F1D1D;">{_clean_str(flag)}</div>'
+                f'</div>'
+            )
+            inline_q = _caregiver_questions_inline_html(
+                result,
+                item_type="warning_sign",
+                label_candidates=[flag or ""],
+            )
+            flag_blocks_html += flag_row + inline_q
 
         st.markdown(
             '<div class="diq-warning-card">'
             '<div style="font-weight:700;font-size:0.9rem;color:#7F1D1D;margin-bottom:8px;">'
             "Go to the ER or call 911 if you have:"
             "</div>"
-            f"{flag_rows_html}"
+            f"{flag_blocks_html}"
             "</div>",
             unsafe_allow_html=True,
         )
@@ -2469,13 +2964,144 @@ def _render_section_recovery(result: dict) -> None:
             unsafe_allow_html=True,
         )
 
-    trajectory = (result.get("recovery_trajectory") or "").strip()
+    trajectory = _strip_em_dashes((result.get("recovery_trajectory") or "").strip())
     st.markdown("---")
     st.markdown("#### Your recovery timeline")
+    # Plain-language scope note. The timeline is a per-week summary of Agent
+    # 4's narrative; the verbatim activity, diet, and condition rules from
+    # the discharge document already render in the boxes above this section,
+    # and the "Verify what the AI extracted" expander on the AI Review tab
+    # shows the full structured extraction with citations.
+    st.markdown(
+        '<div style="background:#F0FDF9;border:1px solid rgba(29,158,117,0.25);'
+        'border-radius:8px;padding:8px 12px;margin:6px 0 14px;'
+        'font-size:0.82rem;color:#0F4C3A;">'
+        'This is a plain-language summary of what to expect each week. '
+        'Your full activity and diet rules are in the boxes above. '
+        'For the exact wording from your discharge document, open '
+        '<b>Verify what the AI extracted</b> on the <b>AI Review</b> tab '
+        'or click any <b>Page N</b> chip (the page number from your discharge document) to jump to that page.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
     if trajectory:
-        st.markdown(trajectory)
+        _render_recovery_trajectory(trajectory)
     else:
         _empty_generation_message(result, "Your recovery timeline")
+
+
+_WEEK_HEADER_RE = re.compile(
+    r"\*\*\s*(Week\s+[0-9]+(?:\s*[-–]\s*[0-9]+)?\s*:?)\s*\*\*",
+    flags=re.IGNORECASE,
+)
+_OUTRO_HEADER_RE = re.compile(
+    r"\*\*\s*(When\s+to\s+expect\s+improvement\s*:?)\s*\*\*",
+    flags=re.IGNORECASE,
+)
+
+
+def _parse_recovery_trajectory(text: str) -> tuple[list[dict], str]:
+    """
+    Split Agent 4's recovery trajectory into per-week sections plus the
+    closing "When to expect improvement" paragraph.
+
+    Agent 4's prompt fixes the format as bold headers like **Week 1:**,
+    **Week 2:**, **Week 3-4:**, and a final **When to expect improvement:**.
+    This parser is defensive: it tolerates spacing variations, missing
+    colons, and the occasional rogue bullet so the recovery tab never
+    blanks just because the LLM reformatted slightly.
+
+    Args:
+        text: The recovery_trajectory string from PipelineResponse.
+
+    Returns:
+        Tuple (weeks, outro):
+            weeks: list of {"header": "Week N:", "body": "..."} dicts in
+                   document order. body has the original line breaks
+                   preserved so per-week markdown still renders cleanly.
+            outro: the closing "When to expect improvement" paragraph,
+                   without its bold header (renderer adds its own).
+                   Empty string when absent.
+    """
+    if not text:
+        return [], ""
+
+    # Pull off the outro paragraph first so its body doesn't get absorbed
+    # into the last week section.
+    outro = ""
+    outro_match = _OUTRO_HEADER_RE.search(text)
+    if outro_match:
+        outro = text[outro_match.end():].strip()
+        text = text[: outro_match.start()].strip()
+
+    weeks: list[dict] = []
+    matches = list(_WEEK_HEADER_RE.finditer(text))
+    if not matches:
+        # No structured week headers — fall back to a single block.
+        if text.strip():
+            weeks.append({"header": "Recovery", "body": text.strip()})
+        return weeks, outro
+
+    for idx, match in enumerate(matches):
+        header_raw = match.group(1).strip()
+        if not header_raw.endswith(":"):
+            header_raw = f"{header_raw}:"
+        body_start = match.end()
+        body_end = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
+        body = text[body_start:body_end].strip()
+        weeks.append({"header": header_raw, "body": body})
+
+    return weeks, outro
+
+
+def _render_recovery_trajectory(trajectory: str) -> None:
+    """
+    Render Agent 4's recovery trajectory as colour-cycled per-week cards
+    plus a final summary banner for "When to expect improvement".
+
+    Cards reduce the wall-of-text effect that prose paragraphs produced
+    while preserving every sentence Agent 4 emitted. Each card:
+        - Shows a teal-numbered badge on the left ("W1", "W2", ...).
+        - Lays out the week body at a comfortable 1.55 line height.
+        - Stacks vertically with consistent spacing.
+
+    If the trajectory text doesn't match the expected week format, the
+    parser falls back to a single block so we never lose content.
+    """
+    weeks, outro = _parse_recovery_trajectory(trajectory)
+
+    if not weeks and not outro:
+        # Last resort: render the raw text. Better to show prose than nothing.
+        st.markdown(trajectory)
+        return
+
+    for idx, week in enumerate(weeks, start=1):
+        header = _clean_str(week["header"])
+        # Convert week body markdown to inline HTML so the whole card
+        # (header card + body) lives in ONE st.markdown call. Two calls
+        # would leak the body content outside the green-bordered card
+        # because Streamlit puts each markdown call in its own DOM div.
+        body_html = _simple_md_to_html(week["body"].strip())
+        st.markdown(
+            f'<div class="diq-week-card">'
+            f'<div class="diq-week-badge">W{idx}</div>'
+            f'<div class="diq-week-header">{header}</div>'
+            f'</div>'
+            f'<div class="diq-week-body">{body_html}</div>',
+            unsafe_allow_html=True,
+        )
+
+    if outro:
+        # Same single-call pattern for the outro card. Bullets in `outro`
+        # are now valid markdown, so we pre-convert to HTML and embed.
+        outro_html = _simple_md_to_html(outro)
+        st.markdown(
+            f'<div class="diq-week-outro">'
+            f'<div class="diq-week-outro-label">When to expect improvement</div>'
+            f'<div class="diq-week-outro-body">{outro_html}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
 
 # ── Agent 6 cross-tab gap callout ────────────────────────────────────────────
@@ -2527,6 +3153,149 @@ def _render_agent6_gap_callout(result: dict, topic_keywords: list[str]) -> None:
     )
 
 
+def _match_caregiver_questions(
+    result: dict,
+    item_type: str,
+    label_candidates: list[str],
+) -> list[str]:
+    """
+    Return the deduplicated list of caregiver question strings for one item.
+
+    Shared matching logic used by both the standalone renderer and the
+    inline HTML builder so the two paths always show the same questions.
+
+    Args:
+        result:           PipelineResponse dict.
+        item_type:        Agent 6 item_type string ("medication", "appointment", etc.)
+        label_candidates: Strings fuzzy-matched (substring) against item_label.
+
+    Returns:
+        List of plain question strings (already cleaned), capped at 3.
+        Empty list when nothing matches or patient_simulator is absent.
+    """
+    sim = result.get("patient_simulator")
+    if not sim:
+        return []
+    questions = sim.get("caregiver_questions") or []
+    if not questions:
+        return []
+
+    cleaned_candidates = [
+        c.lower().strip() for c in label_candidates if c and c.strip()
+    ]
+    if not cleaned_candidates:
+        return []
+
+    import re as _re
+
+    def _label_tokens(s: str) -> list[str]:
+        # All alpha runs of length >= 4 — meaningful words like specialty
+        # names, provider surnames. Filters out "Dr", "Mr", middle initials.
+        return [w for w in _re.findall(r'[a-z]+', s.lower()) if len(w) >= 4]
+
+    matching: list[dict] = []
+    for entry in questions:
+        if entry.get("item_type") != item_type:
+            continue
+        entry_label = (entry.get("item_label") or "").lower().strip()
+        if not entry_label:
+            continue
+        # Fast path: whole-string substring (works when labels align exactly).
+        if any(cand in entry_label or entry_label in cand
+               for cand in cleaned_candidates):
+            matching.append(entry)
+            continue
+        # Token fallback: any meaningful word from a candidate found in the
+        # entry_label. Handles middle initials ("Dr. M. Okonkwo" → "okonkwo")
+        # and slash-separated specialties ("Pulmonology/Cardiology" → each word).
+        cand_tokens = [t for c in cleaned_candidates for t in _label_tokens(c)]
+        if cand_tokens and any(tok in entry_label for tok in cand_tokens):
+            matching.append(entry)
+
+    all_questions: list[str] = []
+    seen: set[str] = set()
+    for entry in matching:
+        for q in entry.get("questions") or []:
+            qq = _clean_str(q)
+            if qq and qq.lower() not in seen:
+                seen.add(qq.lower())
+                all_questions.append(qq)
+
+    return all_questions[:3]
+
+
+def _caregiver_questions_inline_html(
+    result: dict,
+    item_type: str,
+    label_candidates: list[str],
+) -> str:
+    """
+    Return the "ASK YOUR CARE TEAM" block as an HTML string for embedding
+    inside a card's <div> in a single st.markdown call.
+
+    Returns an empty string when no matching questions exist so the caller
+    can interpolate unconditionally without emitting an empty div.
+
+    Args:
+        result:           PipelineResponse dict.
+        item_type:        Agent 6 item_type string.
+        label_candidates: Strings matched against item_label.
+
+    Returns:
+        HTML string or "".
+    """
+    all_questions = _match_caregiver_questions(result, item_type, label_candidates)
+    if not all_questions:
+        return ""
+
+    items_html = "".join(
+        f'<li>{q}</li>'
+        for q in all_questions
+    )
+    return (
+        '<div class="diq-caregiver-questions-inline">'
+        '<div style="font-size:0.72rem;font-weight:700;color:#075985;'
+        'text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">'
+        '💬 Ask your care team</div>'
+        f'<ul>{items_html}</ul>'
+        '</div>'
+    )
+
+
+def _render_caregiver_questions_for_item(
+    result: dict,
+    item_type: str,
+    label_candidates: list[str],
+) -> None:
+    """
+    Render a small "Ask your caregiver" block under one extracted item.
+
+    Looks up Agent 6's per-item caregiver questions
+    (`patient_simulator.caregiver_questions`) and renders any whose
+    `item_type` matches and whose `item_label` fuzzy-matches one of the
+    provided candidates (substring, lowercased).
+
+    The block is intentionally compact — patients see it inline next to the
+    relevant card so they can act on the gap item-by-item, per the
+    professor's demo feedback that questions should attach to "each one"
+    rather than only living in a global review tab.
+
+    Args:
+        result:           PipelineResponse dict.
+        item_type:        One of "medication", "appointment", "warning_sign",
+                          "diagnosis", or "diet_activity" — must match the
+                          Agent 6 schema.
+        label_candidates: Strings that should match (substring,
+                          case-insensitive) against the LLM's item_label.
+                          For a medication this is typically [name];
+                          for an appointment, [provider, specialty];
+                          for a warning sign, [flag_text].
+    """
+    html_block = _caregiver_questions_inline_html(result, item_type, label_candidates)
+    if html_block:
+        st.markdown(html_block, unsafe_allow_html=True)
+
+
 # ── Section: AI Patient Simulator (Agent 6) ──────────────────────────────────
 
 _SIM_SEVERITY_COLORS = {
@@ -2534,6 +3303,229 @@ _SIM_SEVERITY_COLORS = {
     "moderate": ("#78350F", "#FEF3C7", "#FCD34D"),
     "minor":    ("#1E3A5F", "#EFF6FF", "#BFDBFE"),
 }
+
+
+def _render_extraction_verification(result: dict) -> None:
+    """
+    Render the "Verify what the AI extracted" expander.
+
+    Surfaces the structured Agent 1 extraction so the patient or caregiver
+    can spot-check that the data underlying every other tab is correct.
+    For each populated field we show a ✅ when a SourceSpan citation is
+    available (Agent 1 grounded the field in a verbatim PDF quote) and a
+    ⚠️ when the field exists but has no provenance.
+
+    The expander lives inside the AI Review tab so the "AI quality" framing
+    is centralized — patients have one place to evaluate whether to trust
+    what the system pulled.
+
+    Args:
+        result: PipelineResponse dict.
+    """
+    ext = result.get("extraction") or {}
+    extraction_warnings = result.get("extraction_warnings") or []
+
+    with st.expander("🔍  Verify what the AI extracted", expanded=False):
+        st.caption(
+            "Spot-check what the AI pulled from your discharge document. "
+            "Click the page number on any row to see the original text. "
+            "If anything looks wrong, ask your care team before following the "
+            "AI's advice."
+        )
+
+        if extraction_warnings:
+            warn_html = "".join(
+                f'<li style="margin-bottom:2px;">{_clean_str(str(w))}</li>'
+                for w in extraction_warnings
+            )
+            st.markdown(
+                f'<div style="background:#FEF3C7;border:1px solid #FCD34D;'
+                f'border-radius:6px;padding:8px 12px;margin-bottom:10px;">'
+                f'<div style="font-size:0.78rem;font-weight:700;color:#78350F;'
+                f'margin-bottom:4px;">Extraction warnings</div>'
+                f'<ul style="margin:0;padding-left:18px;font-size:0.8rem;'
+                f'color:#92400E;">{warn_html}</ul></div>',
+                unsafe_allow_html=True,
+            )
+
+        _render_verification_scalar_rows(ext)
+        _render_verification_medications(ext)
+        _render_verification_appointments(ext)
+        _render_verification_simple_lists(ext)
+
+
+def _verification_scalar_row(
+    field_label: str,
+    value: str | None,
+    source: dict | None,
+    key_suffix: str,
+) -> None:
+    """
+    Render one extracted-field row inside the verification expander.
+
+    Layout: bold label, the extracted value, a ✅/⚠️ icon for whether a
+    SourceSpan was attached, and (when a span is present) a citation chip
+    that opens the PDF modal at the cited page.
+    """
+    cleaned_value = _clean_str(value) or "-"
+    has_source = bool(source and source.get("page"))
+    icon = "✅" if has_source else "⚠️"
+    icon_tooltip = (
+        "Grounded in a verbatim PDF quote"
+        if has_source
+        else "No source citation. Verify with caregiver."
+    )
+
+    cols = st.columns([1.2, 2.8, 0.4, 0.6])
+    with cols[0]:
+        st.markdown(
+            f'<div style="font-size:0.82rem;color:#475569;font-weight:600;">'
+            f'{_clean_str(field_label)}</div>',
+            unsafe_allow_html=True,
+        )
+    with cols[1]:
+        st.markdown(
+            f'<div style="font-size:0.85rem;color:#1E293B;">{cleaned_value}</div>',
+            unsafe_allow_html=True,
+        )
+    with cols[2]:
+        st.markdown(
+            f'<div title="{icon_tooltip}" style="font-size:0.95rem;">{icon}</div>',
+            unsafe_allow_html=True,
+        )
+    with cols[3]:
+        if has_source:
+            _citation_button(
+                source["page"],
+                source.get("text", ""),
+                key_suffix=f"verify_{key_suffix}",
+            )
+
+
+def _render_verification_scalar_rows(ext: dict) -> None:
+    """Render top-level scalar fields with their ✅/⚠️ verification status."""
+    st.markdown(
+        '<div style="font-size:0.78rem;font-weight:700;color:#475569;'
+        'text-transform:uppercase;letter-spacing:0.05em;margin-top:8px;'
+        'margin-bottom:6px;">Document Details</div>',
+        unsafe_allow_html=True,
+    )
+    _verification_scalar_row(
+        "Patient name", ext.get("patient_name"), None, "patient_name"
+    )
+    _verification_scalar_row(
+        "Discharge date", ext.get("discharge_date"), None, "discharge_date"
+    )
+    _verification_scalar_row(
+        "Primary diagnosis",
+        ext.get("primary_diagnosis"),
+        ext.get("primary_diagnosis_source"),
+        "primary_dx",
+    )
+    _verification_scalar_row(
+        "Discharge condition",
+        ext.get("discharge_condition"),
+        None,
+        "discharge_cond",
+    )
+
+
+def _render_verification_medications(ext: dict) -> None:
+    """Render extracted medications with per-row source citation status."""
+    medications = ext.get("medications") or []
+    if not medications:
+        return
+    st.markdown(
+        '<div style="font-size:0.78rem;font-weight:700;color:#475569;'
+        'text-transform:uppercase;letter-spacing:0.05em;margin-top:14px;'
+        'margin-bottom:6px;">Medications</div>',
+        unsafe_allow_html=True,
+    )
+    for idx, med in enumerate(medications):
+        details = " · ".join(
+            x for x in (
+                _clean_str(med.get("dose")),
+                _clean_str(med.get("frequency")),
+                _clean_str(med.get("status")),
+            ) if x
+        )
+        value = _clean_str(med.get("name") or "")
+        if details:
+            value = f"{value} ({details})" if value else details
+        _verification_scalar_row(
+            f"Med {idx + 1}",
+            value,
+            med.get("source"),
+            f"med_{idx}",
+        )
+
+
+def _render_verification_appointments(ext: dict) -> None:
+    """Render extracted follow-up appointments with source citation status."""
+    appts = ext.get("follow_up_appointments") or []
+    if not appts:
+        return
+    st.markdown(
+        '<div style="font-size:0.78rem;font-weight:700;color:#475569;'
+        'text-transform:uppercase;letter-spacing:0.05em;margin-top:14px;'
+        'margin-bottom:6px;">Follow-up Appointments</div>',
+        unsafe_allow_html=True,
+    )
+    for idx, appt in enumerate(appts):
+        bits = [
+            _clean_str(appt.get("provider")),
+            _clean_str(appt.get("specialty")),
+            _clean_str(appt.get("date")),
+            _clean_str(appt.get("reason")),
+        ]
+        value = " · ".join(b for b in bits if b)
+        _verification_scalar_row(
+            f"Appt {idx + 1}",
+            value,
+            appt.get("source"),
+            f"appt_{idx}",
+        )
+
+
+def _render_verification_simple_lists(ext: dict) -> None:
+    """
+    Render the unprovenanced list fields. SourceSpan is not currently
+    captured for these fields by Agent 1's schema, so they always render
+    with a ⚠️ icon and no citation chip — caregiver verification still
+    matters here, just without a one-click jump.
+    """
+    sections = (
+        ("Secondary diagnoses",   ext.get("secondary_diagnoses")),
+        ("Procedures performed",  ext.get("procedures_performed")),
+        ("Activity restrictions", ext.get("activity_restrictions")),
+        ("Dietary restrictions",  ext.get("dietary_restrictions")),
+        ("Red-flag symptoms",     ext.get("red_flag_symptoms")),
+    )
+    has_any = any(items for _, items in sections)
+    if not has_any:
+        return
+
+    st.markdown(
+        '<div style="font-size:0.78rem;font-weight:700;color:#475569;'
+        'text-transform:uppercase;letter-spacing:0.05em;margin-top:14px;'
+        'margin-bottom:6px;">Lists (no source citation)</div>',
+        unsafe_allow_html=True,
+    )
+    for label, items in sections:
+        items = items or []
+        if not items:
+            continue
+        bullets = "".join(
+            f'<li style="margin-bottom:2px;">{_clean_str(str(it))}</li>'
+            for it in items
+        )
+        st.markdown(
+            f'<div style="font-size:0.82rem;color:#1E293B;margin-bottom:10px;">'
+            f'<span style="font-weight:600;color:#475569;">{label}:</span>'
+            f'<ul style="margin:4px 0 0 0;padding-left:20px;color:#1E293B;">'
+            f'{bullets}</ul></div>',
+            unsafe_allow_html=True,
+        )
 
 
 def _render_section_simulator(result: dict) -> None:
@@ -2581,6 +3573,12 @@ def _render_section_simulator(result: dict) -> None:
         unsafe_allow_html=True,
     )
 
+    # ── Extraction verification ────────────────────────────────────────────────
+    # Lets the user spot-check what Agent 1 pulled from the PDF before they
+    # trust the agent-generated explanations. Lives in the AI Review tab so
+    # all "AI quality" framing stays in one place.
+    _render_extraction_verification(result)
+
     # ── Overall gap score ──────────────────────────────────────────────────────
     try:
         gap_score = max(0, min(10, int(float(sim.get("overall_gap_score", 0) or 0))))
@@ -2590,13 +3588,13 @@ def _render_section_simulator(result: dict) -> None:
 
     if gap_score <= 3:
         bar_color   = "#1D9E75"
-        score_label = "Low gap — document covers most patient needs"
+        score_label = "Low gap. Document covers most patient needs."
     elif gap_score <= 6:
         bar_color   = "#D97706"
-        score_label = "Moderate gap — patient likely has unanswered questions"
+        score_label = "Moderate gap. Patient likely has unanswered questions."
     else:
         bar_color   = "#C0392B"
-        score_label = "High gap — critical information may be missing"
+        score_label = "High gap. Critical information may be missing."
 
     bar_pct = gap_score * 10
     st.markdown(
@@ -2696,15 +3694,24 @@ def _render_section_simulator(result: dict) -> None:
         st.components.v1.html(build_copy_button_html(gaps), height=48, scrolling=False)
 
     if answered:
-        with st.expander(f"Questions the document answered ({len(answered)})", expanded=False):
-            for concept in answered:
-                q = _clean_str(concept.get("question", ""))
-                st.markdown(
-                    f'<div style="font-size:0.85rem;color:#64748B;padding:5px 0;'
-                    f'border-bottom:1px solid #F1F5F9;">'
-                    f'<span style="color:#1D9E75;margin-right:6px;">✓</span>{q}</div>',
-                    unsafe_allow_html=True,
-                )
+        # Native HTML <details> to avoid Streamlit's broken chevron icon.
+        # The list of answered questions is plain HTML so the whole block
+        # can live inside one st.markdown call.
+        rows_html = "".join(
+            f'<div style="font-size:0.85rem;color:#64748B;padding:5px 0;'
+            f'border-bottom:1px solid #F1F5F9;">'
+            f'<span style="color:#1D9E75;margin-right:6px;">✓</span>'
+            f'{_clean_str(concept.get("question", ""))}</div>'
+            for concept in answered
+        )
+        st.markdown(
+            f'<details class="diq-html-details">'
+            f'<summary>Questions the document answered ({len(answered)})</summary>'
+            f'<div class="diq-html-details-body">'
+            f'{rows_html}'
+            f'</div></details>',
+            unsafe_allow_html=True,
+        )
 
 
 # ── Section dispatch ─────────────────────────────────────────────────────────
@@ -3347,12 +4354,12 @@ def _landing_intro_html() -> str:
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{
     width:100%;height:100%;overflow:hidden;background:#04342C;
-    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-family:Calibri,'Carlito','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
     color:#E6EFE9;
   }
 
@@ -3383,7 +4390,7 @@ def _landing_intro_html() -> str:
     text-transform:uppercase;
     padding:6px 14px;border-radius:999px;cursor:pointer;
     transition:color .2s, border-color .2s, opacity .45s ease;
-    z-index:5;font-family:'Inter',sans-serif;
+    z-index:5;font-family:Calibri,'Carlito','Segoe UI',sans-serif;
   }
   #skip:hover{
     color:rgba(255,255,255,0.92);
@@ -3401,7 +4408,7 @@ def _landing_intro_html() -> str:
   /* "HELPING" eyebrow — small caps label, intentionally smaller to read as
      a category line rather than a body line. */
   .helping{
-    font-family:'Inter',sans-serif;
+    font-family:Calibri,'Carlito','Segoe UI',sans-serif;
     font-size:12px;font-weight:500;letter-spacing:5.5px;
     color:rgba(190,210,200,0.55);
     margin-bottom:24px;
@@ -3414,7 +4421,7 @@ def _landing_intro_html() -> str:
      visual weight (italic uses 600 instead of 500 to compensate for the
      visual shrinkage italic Cormorant renders at the same point size). */
   .line{
-    font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    font-family:Calibri,'Carlito','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
     font-size:56px;font-weight:500;line-height:1.14;
     letter-spacing:-0.005em;color:#E6EFE9;
     opacity:0;transform:translateY(16px);
@@ -3445,7 +4452,7 @@ def _landing_intro_html() -> str:
     line-height:1;
   }
   .wordmark{
-    font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    font-family:Calibri,'Carlito','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
     font-size:78px;font-weight:600;letter-spacing:-1.5px;
     color:#1FA47F;
     display:inline-block;
@@ -3468,7 +4475,7 @@ def _landing_intro_html() -> str:
   @keyframes blink{ 50%{ opacity:0; } }
 
   .subtitle{
-    font-family:'Inter',sans-serif;
+    font-family:Calibri,'Carlito','Segoe UI',sans-serif;
     font-size:12px;font-weight:400;letter-spacing:1.4px;
     color:rgba(190,210,200,0.5);
     margin-top:24px;text-transform:uppercase;
@@ -3698,18 +4705,25 @@ def _render_upload_screen() -> None:
 
     # ── Color tokens ──────────────────────────────────────────────────────────
     if dark:
-        bg             = "#04342C"
-        card_bg        = "rgba(15,110,86,0.15)"
-        heading_col    = "#FFFFFF"
+        # Project-brand dark theme. Background is a deep green-charcoal
+        # tuned to match the project's #0F6E56 / #1D9E75 brand greens
+        # without going as saturated as the original #04342C (which over-
+        # tinted everything green) or as cool as a blue slate (which
+        # clashed with the rest of the UI). Cards and chrome use subtle
+        # green-shifted dark tints rather than blue-greys so the whole
+        # page reads as one palette family.
+        bg             = "#0B1F1A"
+        card_bg        = "rgba(15,110,86,0.18)"
+        heading_col    = "#F0FDF9"
         italic_col     = "#5DCAA5"
-        sub_col        = "rgba(157,225,203,0.65)"
-        badge_bg       = "rgba(15,110,86,0.4)"
-        badge_text     = "#9FE1CB"
-        badge_border   = "rgba(157,225,203,0.4)"
-        zone_bg        = "rgba(15,110,86,0.1)"
-        zone_border    = "rgba(157,225,203,0.3)"
-        nav_border     = "rgba(157,225,203,0.12)"
-        card_border    = "rgba(157,225,203,0.15)"
+        sub_col        = "rgba(190,225,212,0.78)"
+        badge_bg       = "rgba(15,110,86,0.32)"
+        badge_text     = "#A7E5CF"
+        badge_border   = "rgba(157,225,203,0.40)"
+        zone_bg        = "rgba(15,110,86,0.12)"
+        zone_border    = "rgba(157,225,203,0.32)"
+        nav_border     = "rgba(157,225,203,0.18)"
+        card_border    = "rgba(157,225,203,0.20)"
         toggle_icon    = "&#9728;"
         toggle_title   = "Switch to light mode"
     else:
@@ -3736,13 +4750,18 @@ def _render_upload_screen() -> None:
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         html, body, .stApp, .stMarkdown, p, div, span, button {{
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+            font-family: Calibri, 'Carlito', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif !important;
             -webkit-font-smoothing: antialiased;
         }}
-        .stApp {{ background: {bg} !important; }}
+        /* Apply the upload-page background to html and body too so the
+           viewport never shows Streamlit's default off-white peeking
+           below the upload card on tall screens. */
+        html, body {{ background: {bg} !important; min-height: 100vh; }}
+        .stApp {{ background: {bg} !important; min-height: 100vh; }}
         section[data-testid="stMain"] {{
             padding-top: 0 !important;
             background: {bg} !important;
+            min-height: 100vh;
         }}
         .block-container {{
             padding-top: 0 !important;
@@ -3822,7 +4841,7 @@ def _render_upload_screen() -> None:
 }})();
 </script></head>
 <body style="margin:0;padding:0;background:transparent;
-             font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+             font-family:Calibri,'Carlito','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;">
 <nav style="display:flex;align-items:center;justify-content:space-between;
             padding:14px 24px;border-bottom:1px solid {nav_border};
             background:{bg};box-sizing:border-box;width:100%;">
@@ -3967,29 +4986,53 @@ def _render_upload_screen() -> None:
         _uploader_counter = st.session_state.get("_diq_uploader_counter", 0)
         _uploader_key = f"diq_uploader_widget_v{_uploader_counter}"
         st.markdown('<span class="diq-uploader-slot"></span>', unsafe_allow_html=True)
+        # NOTE: We deliberately do NOT pass `type=["pdf"]` here. Streamlit's
+        # built-in type filter shows its rejection message INSIDE the file
+        # uploader widget, which we hide off-screen. Letting all files
+        # through and validating in Python below means non-PDF uploads
+        # surface as a visible st.error() at the top of the page.
         uploaded_file = st.file_uploader(
             "Upload your discharge PDF",
-            type=["pdf"],
             key=_uploader_key,
             label_visibility="collapsed",
         )
 
         if uploaded_file is not None:
-            # Enforce the same 20 MB cap the iframe used to enforce client-side.
-            # Larger files would still be accepted by the backend (50 MB cap)
-            # but the chat round-trip and PDF embed get sluggish above 20 MB.
-            if uploaded_file.size > 20 * 1024 * 1024:
+            uploaded_name = (uploaded_file.name or "").strip()
+            uploaded_lower = uploaded_name.lower()
+            uploaded_bytes = uploaded_file.getvalue()
+            # Belt-and-suspenders type check. Streamlit's `type=["pdf"]`
+            # filters at the OS picker, but a determined user can rename a
+            # non-PDF or drop one into the picker via "All files". We also
+            # peek at the magic bytes ("%PDF-") so a renamed image / docx
+            # doesn't make it past this guard.
+            magic_ok = uploaded_bytes[:5] == b"%PDF-"
+            ext_ok = uploaded_lower.endswith(".pdf")
+            if not ext_ok or not magic_ok:
+                st.session_state[_S_STAGED_PDF_BYTES] = None
+                st.session_state[_S_STAGED_PDF_NAME] = "document.pdf"
+                st.session_state[_S_UPLOAD_ERROR] = (
+                    "Only PDF files are allowed. The file you uploaded "
+                    f"({uploaded_name or 'unknown'}) is not a valid PDF. "
+                    "Please choose a .pdf file and try again."
+                )
+                # Force a fresh widget so the rejected file disappears.
+                st.session_state["_diq_uploader_counter"] = _uploader_counter + 1
+                st.rerun()
+            elif uploaded_file.size > 20 * 1024 * 1024:
+                # Enforce the same 20 MB cap the iframe used to enforce
+                # client-side. Larger files would still be accepted by the
+                # backend (50 MB cap) but chat and PDF embed get sluggish.
                 st.session_state[_S_STAGED_PDF_BYTES] = None
                 st.session_state[_S_STAGED_PDF_NAME] = "document.pdf"
                 st.session_state[_S_UPLOAD_ERROR] = (
                     "That PDF is larger than 20 MB. Please compress it and try again."
                 )
-                # Force a fresh widget so the oversize file disappears from the UI.
                 st.session_state["_diq_uploader_counter"] = _uploader_counter + 1
                 st.rerun()
             else:
-                st.session_state[_S_STAGED_PDF_BYTES] = uploaded_file.getvalue()
-                st.session_state[_S_STAGED_PDF_NAME] = uploaded_file.name
+                st.session_state[_S_STAGED_PDF_BYTES] = uploaded_bytes
+                st.session_state[_S_STAGED_PDF_NAME] = uploaded_name
 
         # Pass 1 — clicked by the iframe when the user hits "Get started →".
         if _hidden_click_target("__diq_file_ready__", key="file_ready_btn"):
@@ -4026,7 +5069,7 @@ def _render_upload_screen() -> None:
 <meta charset="UTF-8">
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
-body{{background:transparent;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}}
+body{{background:transparent;font-family:Calibri,'Carlito','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;}}
 #zone{{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:16px 20px;background:{zone_bg};
@@ -4142,7 +5185,10 @@ body{{background:transparent;font-family:-apple-system,BlinkMacSystemFont,'Segoe
 </div>
 </body>
 </html>"""
-        st.components.v1.html(zone_html, height=80, scrolling=False)
+        # Iframe must be tall enough to show the full dashed rounded border:
+        # zone min-height (82) + 2× zone vertical padding (16) + a few px buffer
+        # so the bottom row of dashes and the rounded corners aren't clipped.
+        st.components.v1.html(zone_html, height=120, scrolling=False)
 
         # Privacy note
         st.markdown(
@@ -4243,7 +5289,7 @@ def _run_analysis_with_loading() -> None:
             "Analyze returned %d for '%s': %s", api_err.status, pdf_name, api_err.message
         )
         if api_err.status == 413:
-            _fail("That PDF is too large. The limit is 50 MB — try compressing it.")
+            _fail("That PDF is too large. The limit is 50 MB. Try compressing it.")
         elif api_err.status == 415:
             _fail("That file doesn't look like a PDF. Please upload a PDF discharge summary.")
         elif api_err.status == 504:
@@ -4340,7 +5386,7 @@ def _inject_guided_tour() -> None:
       'box-shadow:0 12px 40px rgba(4,52,44,0.22)!important;',
       'padding:20px 22px!important;max-width:320px!important;min-width:240px!important;',
       'box-sizing:border-box!important;',
-      'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;}',
+      'font-family:Calibri,"Carlito","Segoe UI",-apple-system,BlinkMacSystemFont,sans-serif!important;}',
 
       // Header (title + close side-by-side)
       '.driver-popover-header{display:flex!important;align-items:flex-start!important;',
@@ -4384,7 +5430,7 @@ def _inject_guided_tour() -> None:
       '.driver-popover-prev-btn:hover{background:#F1F5F9!important;}',
       '.driver-popover-prev-btn::after{content:"Back"!important;',
       'font-size:12px!important;color:#64748B!important;',
-      'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;',
+      'font-family:Calibri,"Carlito","Segoe UI",-apple-system,BlinkMacSystemFont,sans-serif!important;',
       'font-weight:400!important;}',
 
       // Next / Done button — same font-size:0 + ::after trick.
@@ -4396,7 +5442,7 @@ def _inject_guided_tour() -> None:
       '.driver-popover-next-btn:hover{background:#085041!important;}',
       '.driver-popover-next-btn::after{content:"Next"!important;',
       'font-size:12px!important;color:#fff!important;',
-      'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;',
+      'font-family:Calibri,"Carlito","Segoe UI",-apple-system,BlinkMacSystemFont,sans-serif!important;',
       'font-weight:500!important;',
       '-webkit-font-smoothing:antialiased!important;',
       '-moz-osx-font-smoothing:grayscale!important;}',

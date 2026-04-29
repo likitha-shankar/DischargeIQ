@@ -41,6 +41,7 @@ invoked from evaluation or orchestration paths after extraction succeeds.
 from __future__ import annotations
 
 import csv
+import json
 import logging
 import os
 import re
@@ -49,16 +50,25 @@ from typing import Literal
 
 import textstat
 from openai import APIError, OpenAI
+from pydantic import ValidationError
 
 from dischargeiq.models.extraction import ExtractionOutput
-from dischargeiq.models.pipeline import MissedConcept, PatientSimulatorOutput
+from dischargeiq.models.pipeline import (
+    CaregiverQuestion,
+    MissedConcept,
+    PatientSimulatorOutput,
+)
 from dischargeiq.utils.llm_client import call_chat_with_fallback, get_llm_client
 
 logger = logging.getLogger(__name__)
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 
-_MAX_TOKENS = 1200
+# Bumped from 1200 to 1800 to leave headroom for the ITEM_QUESTIONS_JSON
+# block — Agent 6 now emits 6-8 Q-blocks plus a per-item caregiver-question
+# array (one entry per medication/appointment/warning sign). 1800 stays well
+# inside Anthropic Haiku's per-call budget.
+_MAX_TOKENS = 1800
 _PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 _FK_LOG_PATH = Path(__file__).parent.parent / "evaluation" / "fk_log.csv"
 _FK_THRESHOLD = 8.0
@@ -69,6 +79,7 @@ _FALLBACK_OUTPUT = PatientSimulatorOutput(
     simulator_summary="",
     fk_grade=0.0,
     passes=False,
+    caregiver_questions=[],
 )
 
 
@@ -395,6 +406,122 @@ def _log_fk_row(document_id: str, fk_grade: float, passes: bool) -> None:
         logger.warning("Agent 6 FK log write failed for '%s': %s", document_id, exc)
 
 
+_ITEM_QUESTIONS_HEADER = re.compile(r"(?im)^\s*ITEM_QUESTIONS_JSON\s*:\s*$")
+
+
+def _extract_item_questions_array(raw: str) -> str | None:
+    """
+    Locate the JSON array that follows the ITEM_QUESTIONS_JSON: header in the
+    raw LLM output. Returns the substring containing the array text, or None
+    if no array is found.
+
+    Uses bracket counting (not a regex) so nested brackets inside string
+    values do not break the match. Search starts at the first '[' after the
+    header label and walks forward until the matching closing ']'.
+    """
+    if not raw:
+        return None
+    header_match = _ITEM_QUESTIONS_HEADER.search(raw)
+    if not header_match:
+        return None
+    start = raw.find("[", header_match.end())
+    if start == -1:
+        return None
+    depth = 0
+    in_string = False
+    escape = False
+    for i in range(start, len(raw)):
+        ch = raw[i]
+        if escape:
+            escape = False
+            continue
+        if ch == "\\":
+            escape = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if ch == "[":
+            depth += 1
+        elif ch == "]":
+            depth -= 1
+            if depth == 0:
+                return raw[start : i + 1]
+    return None
+
+
+def _parse_item_questions_json(raw: str, document_id: str) -> list[CaregiverQuestion]:
+    """
+    Parse the ITEM_QUESTIONS_JSON: block emitted by Agent 6.
+
+    Locates the JSON array that follows the header, runs json.loads, and
+    validates each entry against the CaregiverQuestion model. Invalid entries
+    are skipped; total parse failure returns an empty list. The function
+    never raises — Agent 6's per-item questions are an enhancement, not a
+    safety-critical field.
+
+    Args:
+        raw:         Raw LLM text (pre-normalization).
+        document_id: Source document label, used only for log breadcrumbs.
+
+    Returns:
+        list[CaregiverQuestion]: Validated entries; possibly empty.
+    """
+    array_text = _extract_item_questions_array(raw)
+    if array_text is None:
+        logger.info(
+            "agent6 item_questions: no ITEM_QUESTIONS_JSON block found for '%s'",
+            document_id,
+        )
+        return []
+    try:
+        decoded = json.loads(array_text)
+    except json.JSONDecodeError as exc:
+        logger.warning(
+            "agent6 item_questions JSON decode failed for '%s': %s",
+            document_id,
+            exc,
+        )
+        return []
+    if not isinstance(decoded, list):
+        logger.warning(
+            "agent6 item_questions: top-level JSON is not a list for '%s'",
+            document_id,
+        )
+        return []
+    out: list[CaregiverQuestion] = []
+    for entry in decoded:
+        if not isinstance(entry, dict):
+            continue
+        try:
+            out.append(CaregiverQuestion(**entry))
+        except (ValidationError, TypeError) as exc:
+            logger.debug(
+                "agent6 item_questions: skipping invalid entry for '%s': %s",
+                document_id,
+                exc,
+            )
+            continue
+    return out
+
+
+def _strip_item_questions_block(text: str) -> str:
+    """
+    Remove the ITEM_QUESTIONS_JSON: header and its trailing JSON array from a
+    text body before the existing OVERALL_GAP_SCORE / SUMMARY parsers run.
+
+    The current SUMMARY regex is greedy — without this strip, the SUMMARY
+    field would absorb the entire JSON array and the parser would emit a
+    summary containing raw JSON.
+    """
+    header_match = _ITEM_QUESTIONS_HEADER.search(text)
+    if not header_match:
+        return text
+    return text[: header_match.start()].rstrip()
+
+
 def _parse_simulator_response(
     raw: str, extraction: ExtractionOutput, document_id: str
 ) -> PatientSimulatorOutput:
@@ -403,9 +530,24 @@ def _parse_simulator_response(
 
     Computes fk_grade via textstat on gap summaries + simulator summary.
     Appends fk_log row. Raises ValueError if fewer than 2 questions parsed.
+
+    Also extracts the optional ITEM_QUESTIONS_JSON: block (per-item caregiver
+    questions). The JSON block is parsed from the raw LLM text first so
+    bracket structure is preserved, then stripped from the cleaned text before
+    the legacy SUMMARY/OVERALL_GAP_SCORE parsers run.
     """
     _ = extraction  # Reserved for future validation against extraction scope.
+
+    # Per-item caregiver questions are extracted from the RAW text (not the
+    # normalized text) because _normalize_agent6_raw strips leading bullet
+    # characters and could mangle indented JSON in pathological cases.
+    caregiver_questions = _parse_item_questions_json(raw, document_id)
+
     cleaned = _normalize_agent6_raw(raw)
+    # Strip the JSON block from the cleaned text so the greedy SUMMARY regex
+    # below cannot absorb the JSON array as part of the summary string.
+    cleaned = _strip_item_questions_block(cleaned)
+
     q_body = _split_q_body_from_cleaned(cleaned)
     concepts = _concepts_from_q_body(q_body)
     if len(concepts) < 2:
@@ -423,6 +565,7 @@ def _parse_simulator_response(
         simulator_summary=summary,
         fk_grade=fk_grade,
         passes=passes,
+        caregiver_questions=caregiver_questions,
     )
     _log_fk_row(document_id, fk_grade, passes)
     return out
@@ -530,6 +673,10 @@ def run_patient_simulator_agent(
                 salvaged_score = max(0, min(10, int(mo.group(1))))
             except ValueError:
                 pass
+        # Attempt to salvage the per-item caregiver questions even when
+        # Q-block parsing fails — the JSON block is independently parseable
+        # and may still be valid.
+        salvaged_questions = _parse_item_questions_json(raw, document_id)
         logger.warning(
             "agent6_patient_simulator parse failed for '%s' (%s) — returning partial fallback",
             document_id,
@@ -541,6 +688,7 @@ def run_patient_simulator_agent(
             simulator_summary="",
             fk_grade=0.0,
             passes=False,
+            caregiver_questions=salvaged_questions,
         )
 
     out = out.model_copy(update={"missed_concepts": list(out.missed_concepts)})
