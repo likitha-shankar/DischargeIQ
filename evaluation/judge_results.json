@@ -1,0 +1,202 @@
+[
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "hf_01",
+    "diagnosis": "heart failure",
+    "fk_grade": 6.0
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "hf_02",
+    "diagnosis": "heart failure",
+    "fk_grade": 7.2
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "copd_01",
+    "diagnosis": "COPD",
+    "fk_grade": 7.3
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "copd_02",
+    "diagnosis": "COPD",
+    "fk_grade": 7.3
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "diabetes_01",
+    "diagnosis": "diabetes",
+    "fk_grade": 7.9
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "diabetes_02",
+    "diagnosis": "diabetes",
+    "fk_grade": 7.4
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "hip_01",
+    "diagnosis": "hip replacement",
+    "fk_grade": 7.8
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "hip_02",
+    "diagnosis": "hip replacement",
+    "fk_grade": 6.0
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "surgical_01",
+    "diagnosis": "surgical case",
+    "fk_grade": 6.8
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "surgical_02",
+    "diagnosis": "surgical case",
+    "fk_grade": 6.2
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "hf_03",
+    "diagnosis": "heart failure",
+    "fk_grade": 6.0
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "hf_04",
+    "diagnosis": "heart failure",
+    "fk_grade": 6.1
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "copd_03",
+    "diagnosis": "COPD",
+    "fk_grade": 7.8
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "copd_04",
+    "diagnosis": "COPD",
+    "fk_grade": 7.8
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "diabetes_03",
+    "diagnosis": "diabetes",
+    "fk_grade": 5.7
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "diabetes_04",
+    "diagnosis": "diabetes",
+    "fk_grade": 7.6
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "hip_03",
+    "diagnosis": "hip replacement",
+    "fk_grade": 6.0
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "hip_04",
+    "diagnosis": "hip replacement",
+    "fk_grade": 7.5
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "surgical_03",
+    "diagnosis": "surgical case",
+    "fk_grade": 7.5
+  },
+  {
+    "clinical_accuracy": 5,
+    "plain_language": 5,
+    "completeness": 5,
+    "actionability": 5,
+    "safety": "pass",
+    "id": "surgical_04",
+    "diagnosis": "surgical case",
+    "fk_grade": 7.1
+  }
+]
