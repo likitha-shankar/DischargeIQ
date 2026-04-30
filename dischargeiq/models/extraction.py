@@ -57,13 +57,16 @@ class ExtractionOutput(BaseModel):
     must be null (for Optional fields) or [] (for List fields).
     Agent 1 must NEVER fabricate or infer values.
 
-    Source span fields (primary_diagnosis_source, and source on each Medication
-    and FollowUpAppointment) are Optional and default to None for backward
-    compatibility — existing tests and downstream agents are unaffected.
+    Source span fields (patient_name_source, discharge_date_source,
+    discharge_condition_source, primary_diagnosis_source, and source on each
+    Medication and FollowUpAppointment) are Optional and default to None for
+    backward compatibility — existing tests and downstream agents are unaffected.
     """
 
     patient_name: Optional[str] = None
+    patient_name_source: Optional[SourceSpan] = None          # provenance for patient_name
     discharge_date: Optional[str] = None
+    discharge_date_source: Optional[SourceSpan] = None        # provenance for discharge_date
     primary_diagnosis: str
     primary_diagnosis_source: Optional[SourceSpan] = None
     secondary_diagnoses: List[str] = []
@@ -74,4 +77,5 @@ class ExtractionOutput(BaseModel):
     dietary_restrictions: List[str] = []
     red_flag_symptoms: List[str] = []
     discharge_condition: Optional[str] = None
+    discharge_condition_source: Optional[SourceSpan] = None   # provenance for discharge_condition
     extraction_warnings: List[str] = []

@@ -395,8 +395,16 @@ _SCHEMA_BLOCK = """
 Return a single JSON object with these fields (no extra keys, no commentary):
 
 {
-  "patient_name":             string or null,
-  "discharge_date":           string or null  (e.g. "2024-03-15"),
+  "patient_name": string or null,
+  "patient_name_source": {
+    "page": integer (1-indexed page number where the patient name appears),
+    "text": "the exact line from the PDF that states the patient name"
+  } or null if patient name not found,
+  "discharge_date": string or null  (e.g. "2024-03-15"),
+  "discharge_date_source": {
+    "page": integer (1-indexed page number where the discharge date appears),
+    "text": "the exact line from the PDF that states the discharge date"
+  } or null if discharge date not found,
   "primary_diagnosis":        string          (REQUIRED — never null),
   "primary_diagnosis_source": {
     "page": integer (1-indexed page number where the diagnosis appears),
@@ -432,7 +440,11 @@ Return a single JSON object with these fields (no extra keys, no commentary):
   "activity_restrictions":  array of strings ([] if none),
   "dietary_restrictions":   array of strings ([] if none),
   "red_flag_symptoms":      array of strings ([] if none),
-  "discharge_condition":    string or null,
+  "discharge_condition": string or null,
+  "discharge_condition_source": {
+    "page": integer (1-indexed page number where the discharge condition is stated),
+    "text": "the exact sentence from the PDF that describes the discharge condition"
+  } or null if discharge condition not found,
   "extraction_warnings":    array of strings ([] if none)
 }
 """

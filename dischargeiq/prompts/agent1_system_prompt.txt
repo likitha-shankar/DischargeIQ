@@ -27,10 +27,11 @@ GENERAL RULES:
   T2DM -> Type 2 Diabetes Mellitus, HTN -> Hypertension.
 
 SOURCE SPAN RULES:
-- For every medication, follow_up_appointment, and the
-  primary_diagnosis, you must include a source field containing
-  the exact text from the document that supports that value,
-  and the page number (1-indexed) where it appears.
+- For every medication, follow_up_appointment, primary_diagnosis,
+  patient_name, discharge_date, and discharge_condition, you must
+  include a source field (or _source field for scalar values) containing
+  the exact text from the document that supports that value, and the
+  page number (1-indexed) where it appears.
 - source.text must be a verbatim quote from the document —
   do not paraphrase or summarize it.
 - source.text should be the shortest passage that fully supports
@@ -42,6 +43,19 @@ SOURCE SPAN RULES:
   to null rather than fabricating it.
 - Never invent a source. If the text is not in the document,
   source is null.
+
+SOURCE SPAN EXAMPLES FOR SCALAR FIELDS:
+  Patient name on page 1:
+    "patient_name": "Jane Doe",
+    "patient_name_source": {"page": 1, "text": "Patient: Jane Doe DOB: 04/12/1952"}
+
+  Discharge date on page 1:
+    "discharge_date": "2024-03-15",
+    "discharge_date_source": {"page": 1, "text": "Date of Discharge: March 15, 2024"}
+
+  Discharge condition on page 2:
+    "discharge_condition": "Stable",
+    "discharge_condition_source": {"page": 2, "text": "Patient discharged in stable condition."}
 
 MEDICATION DOSE FIELD RULES:
 - For inhalers, nebulizers, metered-dose devices, nasal sprays,

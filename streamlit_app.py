@@ -3354,6 +3354,37 @@ def _render_extraction_verification(result: dict) -> None:
         _render_verification_simple_lists(ext)
 
 
+def _field_icon_status(
+    value: str | None,
+    source: dict | None,
+) -> tuple[str, bool, str]:
+    """
+    Compute the verification icon, has_source flag, and tooltip for a field row.
+
+    Separated from the Streamlit renderer so it can be unit-tested without
+    instantiating Streamlit. Called by _verification_scalar_row.
+
+    Args:
+        value: The extracted string value, or None if not found.
+        source: A dict with at least a "page" int key, or None if uncited.
+
+    Returns:
+        Tuple of (icon, has_source, tooltip):
+            icon: "✅" when value is present; "⚠️" when value is missing.
+            has_source: True only when source dict exists and contains "page".
+            tooltip: Human-readable string shown on hover.
+    """
+    cleaned = _clean_str(value) or "-"
+    has_value = cleaned != "-"
+    has_source = bool(source and source.get("page"))
+
+    if not has_value:
+        return "⚠️", False, "No value extracted. Verify with caregiver."
+    if has_source:
+        return "✅", True, "Grounded in a verbatim PDF quote"
+    return "✅", False, "Value extracted — no clickable page link available"
+
+
 def _verification_scalar_row(
     field_label: str,
     value: str | None,
@@ -3366,15 +3397,14 @@ def _verification_scalar_row(
     Layout: bold label, the extracted value, a ✅/⚠️ icon for whether a
     SourceSpan was attached, and (when a span is present) a citation chip
     that opens the PDF modal at the cited page.
+
+    Icon rules (via _field_icon_status):
+      - Value present + source present  → ✅ + "Page N" chip
+      - Value present + source missing  → ✅, no chip, no warning
+      - Value missing entirely          → ⚠️, no chip
     """
     cleaned_value = _clean_str(value) or "-"
-    has_source = bool(source and source.get("page"))
-    icon = "✅" if has_source else "⚠️"
-    icon_tooltip = (
-        "Grounded in a verbatim PDF quote"
-        if has_source
-        else "No source citation. Verify with caregiver."
-    )
+    icon, has_source, icon_tooltip = _field_icon_status(value, source)
 
     cols = st.columns([1.2, 2.8, 0.4, 0.6])
     with cols[0]:
@@ -3411,10 +3441,16 @@ def _render_verification_scalar_rows(ext: dict) -> None:
         unsafe_allow_html=True,
     )
     _verification_scalar_row(
-        "Patient name", ext.get("patient_name"), None, "patient_name"
+        "Patient name",
+        ext.get("patient_name"),
+        ext.get("patient_name_source"),
+        "patient_name",
     )
     _verification_scalar_row(
-        "Discharge date", ext.get("discharge_date"), None, "discharge_date"
+        "Discharge date",
+        ext.get("discharge_date"),
+        ext.get("discharge_date_source"),
+        "discharge_date",
     )
     _verification_scalar_row(
         "Primary diagnosis",
@@ -3425,7 +3461,7 @@ def _render_verification_scalar_rows(ext: dict) -> None:
     _verification_scalar_row(
         "Discharge condition",
         ext.get("discharge_condition"),
-        None,
+        ext.get("discharge_condition_source"),
         "discharge_cond",
     )
 
