@@ -3544,7 +3544,7 @@ def _render_verification_simple_lists(ext: dict) -> None:
     st.markdown(
         '<div style="font-size:0.78rem;font-weight:700;color:#475569;'
         'text-transform:uppercase;letter-spacing:0.05em;margin-top:14px;'
-        'margin-bottom:6px;">Lists (no source citation)</div>',
+        'margin-bottom:6px;">Additional Information</div>',
         unsafe_allow_html=True,
     )
     for label, items in sections:
