@@ -5460,7 +5460,7 @@ def _inject_guided_tour() -> None:
       // the "← Previous" flash during step transitions). The ::after pseudo-
       // element shows our label instantly via CSS, with no JS timing dependency.
       '.driver-popover-prev-btn{background:transparent!important;',
-      'border:none!important;font-size:0!important;cursor:pointer!important;',
+      'border:none!important;font-size:0!important;color:transparent!important;cursor:pointer!important;',
       'padding:7px 12px!important;border-radius:7px!important;',
       'display:inline-flex!important;align-items:center!important;}',
       '.driver-popover-prev-btn:hover{background:#F1F5F9!important;}',
@@ -5473,7 +5473,7 @@ def _inject_guided_tour() -> None:
       // JS sets data-diq-done on the last step so CSS can switch "Next"→"Done".
       '.driver-popover-next-btn{background:#0F6E56!important;',
       'border:none!important;border-radius:8px!important;padding:7px 16px!important;',
-      'font-size:0!important;cursor:pointer!important;',
+      'font-size:0!important;color:transparent!important;cursor:pointer!important;',
       'display:inline-flex!important;align-items:center!important;}',
       '.driver-popover-next-btn:hover{background:#085041!important;}',
       '.driver-popover-next-btn::after{content:"Next"!important;',

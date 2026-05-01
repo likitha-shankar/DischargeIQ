@@ -146,26 +146,38 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
     """
     Build the user message sent to the LLM from Agent 1's ExtractionOutput.
 
+    Passes every PDF-derived field relevant to recovery so the agent is
+    grounded in the document rather than generic clinical knowledge.
+
     Data contract:
-        - primary_diagnosis     (str, required): The patient's main diagnosis.
-        - procedures_performed  (list[str], optional): Procedures done during stay.
-          Included when present so the LLM can tailor recovery milestones
-          (e.g. hip replacement recovery differs from medical management alone).
-        - activity_restrictions / dietary_restrictions (optional): Passed when
-          present so the recovery guide reflects document restrictions in plain language.
+        - primary_diagnosis      (str, required)
+        - secondary_diagnoses    (list[str], optional)
+        - procedures_performed   (list[str], optional)
+        - activity_restrictions  (list[str], optional)
+        - dietary_restrictions   (list[str], optional)
+        - red_flag_symptoms      (list[str], optional): Warn the patient when to call.
+        - discharge_condition    (str, optional): Patient's state at discharge.
 
     Args:
-        extraction: Validated ExtractionOutput from Agent 1.
+        extraction: Validated ExtractionOutput from Agent 1 (scoped for Agent 4).
 
     Returns:
         str: Formatted user message ready for the LLM API call.
     """
     lines = [f"Primary diagnosis: {extraction.primary_diagnosis}"]
 
+    if extraction.secondary_diagnoses:
+        lines.append(
+            f"Secondary diagnoses: {', '.join(extraction.secondary_diagnoses)}"
+        )
+
     if extraction.procedures_performed:
         lines.append(
             f"Procedures performed: {', '.join(extraction.procedures_performed)}"
         )
+
+    if extraction.discharge_condition:
+        lines.append(f"Condition at discharge: {extraction.discharge_condition}")
 
     if extraction.activity_restrictions:
         lines.append(
@@ -175,6 +187,11 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
     if extraction.dietary_restrictions:
         lines.append(
             f"Dietary restrictions: {', '.join(extraction.dietary_restrictions)}"
+        )
+
+    if extraction.red_flag_symptoms:
+        lines.append(
+            f"Red flag symptoms from discharge summary: {', '.join(extraction.red_flag_symptoms)}"
         )
 
     return "\n".join(lines)

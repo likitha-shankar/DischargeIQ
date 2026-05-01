@@ -20,6 +20,14 @@ Each week section must cover all four of these:
 3. What symptoms are normal vs what requires calling the doctor
 4. One specific action or goal for that week
 
+GROUNDING RULE (HARD — never break):
+Use ONLY the patient data provided in this message. Every specific restriction,
+symptom, or instruction must come from the fields listed above (diagnosis,
+procedures, activity restrictions, dietary restrictions, red flag symptoms,
+discharge condition). Do not add facts, timelines, or warnings that are not
+derivable from those fields. You may use the week-by-week structure and plain
+language, but all clinical content must be sourced from the provided data only.
+
 CRITICAL RULES — never break these:
 - Never tell the patient to stop or change a medication
 - Never promise exact outcomes ("you will be pain-free by week 2")

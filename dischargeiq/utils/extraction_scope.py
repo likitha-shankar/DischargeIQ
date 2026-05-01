@@ -53,18 +53,14 @@ def scope_for_agent3(extraction: ExtractionOutput) -> ExtractionOutput:
 
 
 def scope_for_agent4(extraction: ExtractionOutput) -> ExtractionOutput:
-    """Recovery: diagnosis, procedures, activity restrictions only."""
+    """Recovery: diagnosis, procedures, restrictions, red flags, and discharge condition."""
     return extraction.model_copy(
         update={
             "patient_name": None,
             "discharge_date": None,
             "primary_diagnosis_source": None,
-            "secondary_diagnoses": [],
             "medications": [],
             "follow_up_appointments": [],
-            "dietary_restrictions": [],
-            "red_flag_symptoms": [],
-            "discharge_condition": None,
             "extraction_warnings": [],
         }
     )
