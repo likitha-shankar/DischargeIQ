@@ -1,13 +1,16 @@
 # `evaluation/` — readability telemetry
 
-Append-only log of Flesch-Kincaid scores from every Agent 2 run. Used
-to track reading-level drift over time.
+Append-only log of Flesch-Kincaid scores from agent runs. Used to
+track reading-level drift over time across Agents 2–6.
 
 ## Files
 
-- `fk_log.csv` — one row per Agent 2 invocation. Columns:
+- `fk_log.csv` — one row per agent invocation. Columns:
   `timestamp, document_id, fk_grade, passes, threshold`.
-  Written by `utils.scorer._log_fk_score()`. Do not edit by hand.
+  Written by each agent's own `_log_fk_score()` function
+  (in `diagnosis_agent.py`, `medication_agent.py`, `recovery_agent.py`,
+  `escalation_agent.py`, `patient_simulator_agent.py`).
+  Do not edit by hand.
 
 ## Inspecting
 

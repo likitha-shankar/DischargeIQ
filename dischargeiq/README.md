@@ -9,16 +9,16 @@ FastAPI backend + multi-agent pipeline. All production code lives here.
 
 ## Subpackages
 
-| Folder        | What it does                                                  |
-|---------------|---------------------------------------------------------------|
-| `agents/`     | LLM-powered agents (Agent 1 extraction, Agent 2 diagnosis)    |
-| `pipeline/`   | Orchestrator that wires the agents into a single pipeline     |
-| `models/`     | Pydantic schemas (`ExtractionOutput`, `PipelineResponse`)     |
-| `prompts/`    | System prompts used by each agent and the LLM judge           |
-| `utils/`      | Shared helpers (LLM client, FK scorer, logger, warnings)      |
-| `db/`         | PostgreSQL schema + write helpers (not yet wired into main)   |
-| `evaluation/` | FK readability log written to on every Agent 2 run            |
-| `tests/`      | Integration/hallucination test suite and PDF fixtures         |
+| Folder        | What it does                                                                          |
+|---------------|---------------------------------------------------------------------------------------|
+| `agents/`     | LLM-powered agents (Agents 1–6: extraction, diagnosis, medication, recovery, escalation, patient simulator) |
+| `pipeline/`   | Orchestrator that wires all six agents into a single pipeline                         |
+| `models/`     | Pydantic schemas (`ExtractionOutput`, `PipelineResponse`, `PatientSimulatorOutput`)   |
+| `prompts/`    | System prompts used by each agent and the LLM judge                                   |
+| `utils/`      | Shared helpers (LLM client, FK scorer, logger, warnings, extraction scope, HTML builder) |
+| `db/`         | PostgreSQL schema + async write helpers (wired into orchestrator via `save_discharge_history`) |
+| `evaluation/` | FK readability log — one row appended per agent run by each agent's `_log_fk_score`  |
+| `tests/`      | Integration/hallucination test suite and PDF fixtures                                 |
 
 ## Import paths
 

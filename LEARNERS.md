@@ -19,7 +19,7 @@ This file is the **friendly entry point** for anyone learning the codebase or re
 |------|------------|--------|
 | **Backend** | FastAPI app, `/analyze` PDF upload, multi-agent pipeline | Core path implemented; depends on `.env` keys and provider quotas |
 | **Agents 1–6** | Extract → 4 education sections + FK checks + AI patient simulator | Implemented under `dischargeiq/agents/` and `dischargeiq/pipeline/` |
-| **Web UI** | Streamlit dashboard — 6 tabs (What Happened, Medications, Appointments, Warning Signs, Recovery, AI Review) | Run via `./start.sh` → http://127.0.0.1:8501 |
+| **Web UI** | Streamlit dashboard — 6 tabs (What happened, Medications, Appointments, Warning signs, Recovery, AI Review) | Run via `./start.sh` → http://127.0.0.1:8501 |
 | **API** | Uvicorn | Default http://127.0.0.1:8000 |
 | **Tests** | Integration / smoke tests | See `README.md` and `dischargeiq/tests/` |
 | **iOS app** | SwiftUI client (was planned for `ios/`) | **On hold**; `ios/` is in `.gitignore` (local-only until revived) |

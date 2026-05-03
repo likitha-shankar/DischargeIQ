@@ -45,3 +45,21 @@ dischargeiq/evaluation/fk_log.csv
 
 #demo script
 DEMO.md
+.Rhistory
+
+# Virtual environment variants
+env/
+
+# Test coverage artifacts
+.coverage
+htmlcov/
+
+# Nested egg-info (e.g. if package installed with pip install -e .)
+**/*.egg-info/
+
+# Flutter / Dart build artifacts (dischargeiq_mobile/ — on hold, local only)
+dischargeiq_mobile/build/
+dischargeiq_mobile/.dart_tool/
+dischargeiq_mobile/.flutter-plugins
+dischargeiq_mobile/.flutter-plugins-dependencies
+dischargeiq_mobile/pubspec.lock

@@ -92,8 +92,8 @@ dischargeiq/
 ├── evaluation/        FK logs, cost estimates, judge results
 └── docs/              Extraction schema reference
 tests/             Root-level integration runners + tests/manual/ smoke scripts
-streamlit_app.py   6-tab Streamlit dashboard (What Happened / Medications /
-                   Appointments / Warning Signs / Recovery / AI Review)
+streamlit_app.py   6-tab Streamlit dashboard (What happened / Medications /
+                   Appointments / Warning signs / Recovery / AI Review)
 start.sh / .bat    One-command startup scripts
 requirements.txt   Pinned dependencies
 .env.example       Env template — copy to .env and fill in keys

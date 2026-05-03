@@ -12,7 +12,11 @@ do not hard-code prompt text in Python.
   rules, NO INVENTED NUMBERS rule.
 - `agent3_system_prompt.txt` — Agent 3 (medications).
 - `agent4_system_prompt.txt` — Agent 4 (recovery).
-- `agent5_system_prompt.txt` — Agent 5 (escalation).
+- `agent5_system_prompt.txt` — Agent 5 (escalation). Tier headers are
+  fixed strings; do not change them without updating `streamlit_app.py`.
+- `agent6_system_prompt.txt` — Agent 6 (patient simulator). Instructs
+  the LLM to act as a confused patient and identify gaps in the discharge
+  document. Output is parsed into `MissedConcept` rows with severity levels.
 - `llm_judge_prompt.txt` — Judge prompt used by the hallucination
   test suite to audit Agent 2 output for fabrication.
 

@@ -1,0 +1,21 @@
+# Flutter / Dart
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+*.g.dart
+
+# Keep pubspec.lock committed for reproducible app builds unless the team decides otherwise.
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+
+# Android
+android/.gradle/
+android/local.properties
+
+# IDE (local)
+.idea/
+*.iml

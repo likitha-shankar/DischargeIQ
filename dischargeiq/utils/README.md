@@ -10,14 +10,24 @@ FastAPI layer. Keep utilities small and side-effect-free.
   or `ollama` based on `LLM_PROVIDER` in `.env`. One entry point —
   do not instantiate provider SDKs directly elsewhere.
 - `scorer.py` — `fk_score(text)` and `fk_check(text, threshold=6.0)`.
-  Wraps `textstat` and appends each Agent 2 score to
-  `evaluation/fk_log.csv`.
+  Wraps `textstat` and returns an FK grade + pass flag. Does not write
+  to any log file — FK logging happens inside each agent's own
+  `_log_fk_score()` function.
+- `extraction_scope.py` — `scope_for_agent2/3/4/5(extraction)`.
+  Builds a narrowed copy of `ExtractionOutput` for each downstream agent
+  so the LLM prompt only sees fields that agent is allowed to read.
+  Reduces token cost and hallucination surface.
 - `warnings.py` — `assess_extraction_completeness(extraction)`.
   Returns a list of human-readable warnings when Agent 1's output
   is incomplete (missing follow-ups, no restrictions, etc.).
 - `logger.py` — `configure_logging()`. Sets up rotating file + console
   handlers writing to `logs/session_<ts>.log`. Call once at app
   start-up from `main.py`.
+- `questions_html.py` — `build_questions_section_html(gaps)` and
+  `build_copy_button_html()`. Pure HTML builder for the "Questions to
+  bring to your care team" block rendered in the AI Review tab.
+  HTML-escapes all user-visible content. Kept separate from
+  `streamlit_app.py` to allow unit testing without the Streamlit runtime.
 
 ## Using
 
