@@ -4185,7 +4185,10 @@ def _render_chat_widget(result: dict) -> None:
         if (!inOl) {{ html += '<ol>'; inOl = true; }}
         html += '<li>' + renderInline(ol[1]) + '</li>';
       }} else if (blank) {{
-        closeList();
+        /* blank lines between list items must not close the list —
+           LLM output often puts a blank line after each numbered item,
+           which would restart the <ol> counter at 1 for every entry */
+        if (!inUl && !inOl) {{ html += ''; }}
       }} else {{
         closeList();
         html += '<p>' + renderInline(line) + '</p>';
@@ -4945,28 +4948,29 @@ def _render_upload_screen() -> None:
                 <span style="width:7px;height:7px;border-radius:50%;
                              background:linear-gradient(135deg,#0F6E56,#1D9E75);
                              display:inline-block;flex-shrink:0;"></span>
-                AI-powered · plain language · IIT Chicago CS 595
+                AI-powered · plain language
               </span>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        # Heading + subtext — gradient underline on italic line, refined spacing
+        # Heading + subtext — use <div> not <h1> so the agent-text h1 cap rule
+        # in _inject_global_css() never interferes with the hero font size.
         st.markdown(
             f"""
             <div style="text-align:center;margin-bottom:32px;">
-              <h1 style="font-size:40px;font-weight:800;color:{heading_col};
-                         margin:0;line-height:1.15;letter-spacing:-0.02em;">
+              <div style="font-size:40px;font-weight:800;color:{heading_col};
+                          margin:0;line-height:1.15;letter-spacing:-0.02em;">
                 Understand everything
-              </h1>
-              <h1 style="font-size:40px;font-weight:800;font-style:italic;
-                         background:linear-gradient(90deg,#0F6E56,#1D9E75 60%,#34D399);
-                         -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-                         background-clip:text;margin:0;line-height:1.25;
-                         letter-spacing:-0.02em;">
+              </div>
+              <div style="font-size:40px;font-weight:800;font-style:italic;
+                          background:linear-gradient(90deg,#0F6E56,#1D9E75 60%,#34D399);
+                          -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                          background-clip:text;margin:0;line-height:1.25;
+                          letter-spacing:-0.02em;">
                 the doctor just told you.
-              </h1>
+              </div>
               <p style="font-size:15px;color:{sub_col};margin:14px 0 0;
                         line-height:1.65;max-width:440px;margin-left:auto;margin-right:auto;">
                 Upload your discharge PDF. Get plain-language answers.<br>
@@ -4977,16 +4981,16 @@ def _render_upload_screen() -> None:
             unsafe_allow_html=True,
         )
 
-        # 4 step cards — gradient icon pill, richer shadow, hover lift
+        # 4 step cards — workflow steps (upload → agents → summaries → gap finder)
         steps = [
-            ("01", "Your diagnosis", "In words a friend would use",
+            ("01", "Upload your PDF", "Drag &amp; drop to get started",
              "linear-gradient(135deg,#0F6E56,#1D9E75)"),
-            ("02", "Your medications", "What each pill does &amp; why",
+            ("02", "6 agents analyze", "~30 seconds, no manual work",
              "linear-gradient(135deg,#1D4ED8,#3B82F6)"),
-            ("03", "Warning signs", "When to call 911 vs your doctor",
-             "linear-gradient(135deg,#DC2626,#F87171)"),
-            ("04", "Ask anything", "AI chat from your document",
+            ("03", "Plain summaries", "Meds, recovery, appointments &amp; more",
              "linear-gradient(135deg,#7C3AED,#A78BFA)"),
+            ("04", "AI finds the gaps", "Spots what&apos;s missing from your doc",
+             "linear-gradient(135deg,#DC2626,#F87171)"),
         ]
         cards_inner = "".join(
             f"""<div style="flex:1;min-width:0;background:{card_bg};
