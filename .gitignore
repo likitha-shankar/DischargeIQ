@@ -63,3 +63,25 @@ dischargeiq_mobile/.dart_tool/
 dischargeiq_mobile/.flutter-plugins
 dischargeiq_mobile/.flutter-plugins-dependencies
 dischargeiq_mobile/pubspec.lock
+
+# Claude Flow tool artifacts
+.claude-flow/
+
+# Video and archive artifacts
+*.mp4
+*.zip
+
+# Design mockup / prototype files (not tracked source)
+design-canvas.jsx
+ios-frame.jsx
+mobile-screens.jsx
+
+# Presentation exports
+presentation.html
+presentation.md
+"DischargeIQ Mobile.html"
+DischargeIQ\ Mobile.html
+
+# Research and handoff documents
+SHADOW_STUDY.md
+THERACARE_HANDOFF.md

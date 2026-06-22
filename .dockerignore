@@ -1,0 +1,42 @@
+.venv
+venv
+env
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.git
+.gitignore
+.DS_Store
+.env
+*.env
+!.env.example
+logs
+*.log
+.claude
+.cursor
+.vscode
+.idea
+ios
+dischargeiq_mobile
+node_modules
+htmlcov
+.coverage
+test-data
+dischargeiq/tests/fixtures/*.pdf
+presentation.html
+presentation.md
+DEMO.md
+*.backup
+google-cloud-sdk
+google-cloud-cli-darwin-arm.tar.gz
+# Media / design assets — never needed inside the container (65MB+ saved)
+*.mp4
+*.zip
+*.pptx
+*.jsx
+DischargeIQ Mobile.html
+# Frontend engine node_modules (engine ships as a built bundle, not sources)
+frontend/explainer/engine/node_modules
+.claude-flow
+.streamlit/secrets.toml

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>DischargeIQ — Anatomy Explainer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #1a1a1a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      color: #f0ede8;
+    }
+
+    /* ── Root layout ── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* ── Title bar ── */
+    #title-bar {
+      flex: 0 0 auto;
+      padding: 10px 16px 6px;
+      background: rgba(20,20,20,0.85);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      z-index: 10;
+    }
+    #title-bar h1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      color: #f0ede8;
+    }
+    #title-bar p {
+      font-size: 11px;
+      color: #a09890;
+      margin-top: 1px;
+    }
+
+    /* ── 3D canvas area ── */
+    #canvas-container {
+      flex: 1 1 auto;
+      position: relative;
+      overflow: hidden;
+      background: #1a1a1a;
+    }
+    #explainer-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ── Gesture hint overlay ── */
+    #gesture-hint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.55);
+      border-radius: 20px;
+      padding: 10px 18px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.85);
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      z-index: 5;
+      text-align: center;
+    }
+    #gesture-hint.hidden { opacity: 0; }
+
+    /* ── Label callout (shown on tap/click) ── */
+    #label-callout {
+      position: absolute;
+      display: none;
+      background: rgba(18,18,18,0.92);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #f0ede8;
+      pointer-events: auto;
+      z-index: 20;
+      max-width: 180px;
+      backdrop-filter: blur(6px);
+    }
+    #label-callout .label-name {
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+    #label-callout .label-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    #label-callout button {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 6px;
+      color: #f0ede8;
+      font-size: 11px;
+      padding: 3px 8px;
+      cursor: pointer;
+    }
+    #label-callout button:hover { background: rgba(255,255,255,0.2); }
+
+    /* ── Caption and play bar ── */
+    #playbar {
+      flex: 0 0 auto;
+      padding: 8px 16px;
+      background: rgba(20,20,20,0.9);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      z-index: 10;
+    }
+    #caption-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #d8d4cf;
+      min-height: 38px;
+      margin-bottom: 8px;
+    }
+    #progress-bar-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #play-pause-btn {
+      background: rgba(255,255,255,0.12);
+      border: none;
+      border-radius: 8px;
+      color: #f0ede8;
+      font-size: 16px;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    #play-pause-btn:hover { background: rgba(255,255,255,0.22); }
+    #progress-track {
+      flex: 1;
+      height: 3px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    #progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #7eb8f7;
+      border-radius: 2px;
+      transition: width 0.1s linear;
+    }
+    #panel-counter {
+      font-size: 11px;
+      color: #807870;
+      flex-shrink: 0;
+    }
+
+    /* ── Safety lines (verbatim hospital quotes) ── */
+    #safety-lines {
+      display: none;
+      padding: 10px 16px;
+      background: rgba(255, 245, 220, 0.06);
+      border-top: 1px solid rgba(255, 220, 100, 0.2);
+    }
+    #safety-lines .safety-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #c8a84b;
+      margin-bottom: 6px;
+    }
+    #safety-lines blockquote {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 13px;
+      font-style: italic;
+      color: #e8dfc0;
+      line-height: 1.6;
+      border-left: 2px solid #c8a84b;
+      padding-left: 10px;
+      margin: 4px 0;
+    }
+
+    /* ── Grounding footer (always visible) ── */
+    #grounding-footer {
+      flex: 0 0 auto;
+      padding: 6px 16px;
+      background: rgba(15,15,15,0.95);
+      font-size: 10px;
+      color: #605850;
+      text-align: center;
+      line-height: 1.4;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* ── Text-only fallback panel ── */
+    #text-fallback {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      padding: 24px 20px;
+      background: #1e1e1e;
+      overflow-y: auto;
+      z-index: 3;
+    }
+    #text-fallback h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #f0ede8;
+      margin-bottom: 12px;
+    }
+    #text-fallback p {
+      font-size: 14px;
+      color: #c8c4bf;
+      line-height: 1.6;
+    }
+
+    /* ── Loading spinner ── */
+    #loading-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(26,26,26,0.85);
+      z-index: 4;
+    }
+    #loading-overlay.hidden { display: none; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #7eb8f7;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="title-bar">
+      <h1 id="explainer-title">Loading…</h1>
+      <p id="explainer-subtitle"></p>
+    </div>
+
+    <div id="canvas-container">
+      <canvas id="explainer-canvas"></canvas>
+
+      <div id="gesture-hint">Drag to rotate &nbsp;·&nbsp; Pinch to zoom</div>
+
+      <div id="label-callout" role="tooltip" aria-live="polite">
+        <div class="label-name" id="label-name-text"></div>
+        <div class="label-actions">
+          <button id="label-speak-btn" title="Read aloud" aria-label="Read aloud">🔊</button>
+          <button id="label-close-btn" title="Dismiss" aria-label="Dismiss">✕</button>
+        </div>
+      </div>
+
+      <div id="text-fallback">
+        <h2 id="fallback-title">Anatomy View Unavailable</h2>
+        <p id="fallback-body"></p>
+      </div>
+
+      <div id="loading-overlay">
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+    <div id="safety-lines">
+      <div class="safety-label">From your hospital paperwork — exact words</div>
+      <div id="safety-lines-content"></div>
+    </div>
+
+    <div id="playbar">
+      <div id="caption-text"></div>
+      <div id="progress-bar-container">
+        <button id="play-pause-btn" aria-label="Play or pause">▶</button>
+        <div id="progress-track"><div id="progress-fill"></div></div>
+        <span id="panel-counter"></span>
+      </div>
+    </div>
+
+    <div id="grounding-footer" id="footer-text">
+      This explanation is based on your discharge papers and has been reviewed by a clinician.
+      It is not medical advice. Always follow your care team's instructions.
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

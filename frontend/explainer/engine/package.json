@@ -1,0 +1,18 @@
+{
+  "name": "dischargeiq-anatomy-explainer",
+  "version": "1.0.0",
+  "description": "Self-hosted 3D anatomy explainer for DischargeIQ. Runs in Streamlit iframe or Flutter WebView from one build.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.168.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}
