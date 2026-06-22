@@ -39,7 +39,7 @@ discharge documents.
 
 ## Current project status (detailed) — for AI assistants
 
-**Last reviewed:** April 2026. Treat this section as the source of truth for
+**Last reviewed:** June 2026. Treat this section as the source of truth for
 “what is happening now.” Older sections below (e.g. dated milestones) may be stale.
 
 ### Where the product stands
@@ -51,6 +51,11 @@ discharge documents.
 - **Primary surface for demos:** **Streamlit** (`streamlit_app.py`), started by
   `./start.sh` (or `start.bat` on Windows). Default URL: http://127.0.0.1:8501.
 - **Backend:** FastAPI in `dischargeiq/main.py`, typically http://127.0.0.1:8000.
+- **Hosted deployment (verified June 2026):** Cloud Run at
+  https://dischargeiq-1015692703359.us-central1.run.app — nginx multiplexes
+  one container: `/api/*` → FastAPI, everything else → Streamlit. Backend
+  health check is `GET /api/health` (plain `/health` returns Streamlit HTML).
+  Deployed from outside the repo (no URL reference in source by design).
 - **Failure mode:** The pipeline is designed to return **`pipeline_status` of
   `"complete"`, `"complete_with_warnings"`, or `"partial"`** (not to crash on bad PDFs or
   LLM failures). `"partial"` runs may occur when an agent fails, rate limits hit (429),
@@ -60,20 +65,25 @@ discharge documents.
 ### LLM and environment configuration
 
 - **Single provider for all agents:** Every agent reads **`LLM_PROVIDER`**
-  (default **`anthropic`**) via `get_llm_client()` in `dischargeiq/utils/llm_client.py`
-  (Agent 1 / Agent 2) or `_get_client()` in agents 3–5. There is **no** split where
-  only one agent uses a different backend—switching `.env` switches **every** agent.
-  Default Anthropic model is **Haiku** (`claude-3-5-haiku-20241022`, cheapest tier);
-  set **`LLM_MODEL=claude-sonnet-4-20250514`** for higher-quality batch evaluation (higher cost).
-- **Anthropic model IDs:** Use **dated** ids. Undated aliases can **404**. Default Haiku
-  is pinned in `llm_client.py`; override with `LLM_MODEL` in `.env` (e.g. Sonnet above).
-- Keys per `.env.example`: `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, **`ANTHROPIC_API_KEY`**
-  (required when `LLM_PROVIDER=anthropic`), optional `OLLAMA_BASE_URL`. Missing keys
-  raise **`ValueError`** with a clear message from `require_provider_api_key()` rather
-  than a raw **`KeyError`**.
+  (default **`gemini`** as of June 2026) via shared helpers in `dischargeiq/utils/llm_client.py`.
+  Agents 1, 2, 6 use `get_llm_client()` (OpenAI-compat client for all providers).
+  Agents 3–5 use `get_native_agent_client(provider)` — returns native `anthropic.Anthropic`
+  on the `anthropic` path and the OpenAI-compat client for all other providers (gemini,
+  openrouter, openai, ollama). There is **no** split where only one agent uses a different
+  backend — switching `LLM_PROVIDER` in `.env` switches **every** agent.
+- **Default provider: Gemini.** Default model: `gemini-2.5-flash-lite`. Override with
+  `LLM_MODEL=gemini-2.5-flash` for higher quality. For Anthropic: set
+  `LLM_PROVIDER=anthropic` and `LLM_MODEL=claude-haiku-4-5-20251001` (cheapest) or
+  `claude-sonnet-4-20250514` for eval. **Always use dated Anthropic model IDs** — undated
+  aliases can **404**.
+- **Primary key: `GOOGLE_API_KEY`** (required when `LLM_PROVIDER=gemini`). Also available:
+  `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, optional `OLLAMA_BASE_URL`.
+  Missing keys raise **`ValueError`** with a clear message from `require_provider_api_key()`
+  rather than a raw **`KeyError`**.
 - **`DATABASE_URL`** supports Neon PostgreSQL (history / persistence) where wired;
   local development may work without DB for core `/analyze` paths—confirm in code
-  paths if debugging save failures.
+  paths if debugging save failures. DB pool is now long-lived (created at startup via
+  FastAPI lifespan, closed at shutdown) — no longer created per request.
 
 ### HTTP API (FastAPI)
 
@@ -97,8 +107,9 @@ discharge documents.
   The entire **`ios/`** directory is listed in **`.gitignore`** so it stays
   **local-only** until the team turns it back on. Do not assume teammates have
   `ios/` in their clone from Git.
-- **Flutter app (`dischargeiq_mobile/`):** Also on hold and gitignored. Same
-  principle — local-only until the team decides to revive it.
+- **Flutter app (`dischargeiq_mobile/`):** On hold, but the source IS tracked
+  in Git (~92 files). Only build artifacts (`build/`, `.dart_tool/`,
+  `pubspec.lock`, plugin files) are gitignored. Verified June 2026.
 
 ### Testing
 
@@ -123,13 +134,19 @@ Additional scripts and stress runners are documented in **`README.md`**.
 
 - **OpenRouter free tier / rate limits:** Frequent **429** responses; pipeline may
   go **partial** or retry per `llm_client.py`.
-- **Multi-key setup:** New contributors often forget one of `OPENROUTER_*` /
-  `OPENAI_*` / `ANTHROPIC_*` depending on which path they test.
-- **No mobile apps in Git:** `ios/` (SwiftUI) and `dischargeiq_mobile/` (Flutter)
-  are both gitignored and local-only until the team revives them.
-- **No automatic LLM cross-failover:** If `anthropic` is down, agents 2–5 paths
-  fail together; the API still returns **partial** with empty sections. Streamlit
-  now shows **section-level warnings**; a full provider fallback is not wired.
+- **Multi-key setup:** Default provider is now **Gemini** — new contributors need
+  `GOOGLE_API_KEY`. If using Anthropic instead, set `LLM_PROVIDER=anthropic` and
+  `ANTHROPIC_API_KEY`. OpenRouter/OpenAI paths also available.
+- **In-memory PDF store is process-local:** `_pdf_store` and `_simulator_store` in
+  `main.py` are per-process `OrderedDict`s. Under Cloud Run with `max-instances > 1`,
+  a `GET /pdf/{session_id}` may land on a different instance than the `POST /analyze`
+  that stored it, returning 404. Long-term fix requires GCS or Redis — not yet wired.
+- **Mobile apps frozen:** `ios/` (SwiftUI) is gitignored and local-only.
+  `dischargeiq_mobile/` (Flutter) source is tracked in Git but development is
+  frozen; only its build artifacts are gitignored.
+- **No automatic LLM cross-failover:** If the active provider is down, agents 2–5
+  fail together and the API returns **partial** with empty sections. Streamlit shows
+  section-level warnings; a full provider fallback is not wired.
 
 ## Team (Plan B assignments)
 
@@ -142,9 +159,10 @@ Additional scripts and stress runners are documented in **`README.md`**.
 ## Tech stack
 
 - Backend: FastAPI + Python 3.11+
-- LLM: Configurable — all agents share `LLM_PROVIDER` (OpenAI-compatible client
-  and/or native Anthropic SDK in agents 3–5 when `LLM_PROVIDER=anthropic`).
-  Default Sonnet id for Anthropic path: `claude-sonnet-4-20250514` (see `llm_client.py`).
+- LLM: Configurable — all agents share `LLM_PROVIDER` (default: **gemini**).
+  Agents 1/2/6 use OpenAI-compat client via `get_llm_client()`. Agents 3–5 use
+  `get_native_agent_client()` — native Anthropic SDK on `anthropic` path, OpenAI-compat
+  on all others. Default Gemini model: `gemini-2.5-flash-lite` (see `llm_client.py`).
 - Database: Neon PostgreSQL (asyncpg)
 - Frontend: Streamlit (MVP) or React
 - PDF parsing: pdfplumber
@@ -156,7 +174,7 @@ Additional scripts and stress runners are documented in **`README.md`**.
 dischargeiq/
 ├── main.py                    # FastAPI entry point
 ├── requirements.txt
-├── .env.example               # ANTHROPIC_API_KEY= and DATABASE_URL=
+├── .env.example               # GOOGLE_API_KEY= (primary), ANTHROPIC_API_KEY=, DATABASE_URL=
 ├── .gitignore                 # must include .env
 ├── agents/
 │   ├── extraction_agent.py         # Agent 1 — structured extraction
@@ -169,7 +187,8 @@ dischargeiq/
 │   ├── extraction.py          # Pydantic ExtractionOutput model
 │   └── pipeline.py            # Pydantic PipelineResponse + PatientSimulatorOutput
 ├── pipeline/
-│   └── orchestrator.py        # Async orchestrator — wires all 6 agents
+│   └── orchestrator.py        # Async orchestrator — wires all 6 agents;
+│                              #   Agents 2–5 run in parallel via asyncio.gather
 ├── prompts/
 │   ├── agent1_system_prompt.txt
 │   ├── agent2_system_prompt.txt
@@ -179,8 +198,9 @@ dischargeiq/
 │   ├── agent6_system_prompt.txt
 │   └── llm_judge_prompt.txt
 ├── utils/
-│   ├── scorer.py              # fk_score() and fk_check()
-│   ├── llm_client.py          # get_llm_client(), call_chat_with_fallback()
+│   ├── scorer.py              # fk_score(), fk_check(), log_fk_score() (thread-safe CSV write)
+│   ├── llm_client.py          # get_llm_client(), get_native_agent_client(), load_agent_prompt(),
+│   │                          #   call_chat_with_fallback()
 │   ├── extraction_scope.py    # Field scoping per agent
 │   ├── logger.py              # Shared logger config
 │   └── warnings.py            # assess_extraction_completeness()
@@ -298,19 +318,14 @@ All agents are tested against these 5 conditions:
 
 ## FK scorer utility
 ```python
-# utils/scorer.py
-import textstat
+# utils/scorer.py — three public functions
 
-def fk_score(text: str) -> float:
-    return textstat.flesch_kincaid_grade(text)
-
-def fk_check(text: str, threshold: float = 6.0) -> dict:
-    score = fk_score(text)
-    return {
-        "fk_grade": round(score, 2),
-        "passes": score <= threshold,
-        "threshold": threshold
-    }
+def fk_score(text: str) -> float: ...          # raw FK grade via textstat
+def fk_check(text: str, threshold: float = 6.0) -> dict: ...  # {fk_grade, passes, threshold}
+def log_fk_score(document_id: str, agent: str, fk_result: dict) -> None: ...
+    # Appends one row to evaluation/fk_log.csv under threading.Lock.
+    # agent examples: "agent3_medication", "agent4_recovery", "agent5_escalation"
+    # All agents 3–5 call log_fk_score() — do NOT write CSV logic in agent files.
 ```
 
 Call fk_check() on every agent text output. If score > 6.0, the system
