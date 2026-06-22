@@ -15,7 +15,7 @@ import pytest
 
 from fastapi import HTTPException
 
-from dischargeiq.main import _validate_uploaded_pdf
+from dischargeiq.api.routes.analyze import validate_uploaded_pdf as _validate_uploaded_pdf
 from dischargeiq.models.extraction import ExtractionOutput
 from dischargeiq.utils.llm_client import require_provider_api_key
 from dischargeiq.utils.warnings import assess_extraction_completeness
@@ -48,7 +48,7 @@ def test_analyze_rejects_bad_pdf_magic_bytes() -> None:
 
 def test_analyze_rejects_oversized_pdf(monkeypatch) -> None:
     """Validation helper raises 413 when payload exceeds size cap."""
-    monkeypatch.setattr("dischargeiq.main._MAX_FILE_SIZE_BYTES", 10)
+    monkeypatch.setattr("dischargeiq.api.routes.analyze._MAX_FILE_SIZE_BYTES", 10)
     with pytest.raises(HTTPException) as exc:
         _validate_uploaded_pdf("big.pdf", b"%PDF-1234567890")
     assert exc.value.status_code == 413

@@ -22,7 +22,7 @@ from fastapi.testclient import TestClient
 
 from dischargeiq.main import app
 
-_MOCK_LLM = "dischargeiq.main.get_llm_client"
+_MOCK_LLM = "dischargeiq.services.chat.get_llm_client"
 
 # ── Test client ────────────────────────────────────────────────────────────────
 
