@@ -23,19 +23,25 @@ from dischargeiq.models.extraction import (
     ExtractionOutput, Medication, FollowUpAppointment,
 )
 
-_MOCK_CLIENT_TARGET = "dischargeiq.agents.recovery_agent._get_client"
+_MOCK_CLIENT_TARGET = "dischargeiq.agents.recovery_agent.get_native_agent_client"
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 
-def _fake_client(reply_text: str) -> MagicMock:
-    """MagicMock client whose .messages.create returns a fake Anthropic response."""
+@pytest.fixture(autouse=True)
+def _anthropic_provider(monkeypatch):
+    """Force LLM_PROVIDER=anthropic so the agent takes the .messages.create() path."""
+    monkeypatch.setenv("LLM_PROVIDER", "anthropic")
+
+
+def _fake_client(reply_text: str) -> tuple:
+    """Return (client, model) matching the get_native_agent_client() return signature."""
     client = MagicMock()
     client.messages.create.return_value = SimpleNamespace(
         content=[SimpleNamespace(text=reply_text)]
     )
-    return client
+    return (client, "test-model")
 
 
 def _surgical_extraction() -> ExtractionOutput:
@@ -100,7 +106,7 @@ def test_empty_anthropic_content_returns_empty_text_no_crash():
     extraction = _surgical_extraction()
     client = MagicMock()
     client.messages.create.return_value = SimpleNamespace(content=[])
-    with patch(_MOCK_CLIENT_TARGET, return_value=client):
+    with patch(_MOCK_CLIENT_TARGET, return_value=(client, "test-model")):
         result = recovery_agent.run_recovery_agent(extraction, document_id="empty.pdf")
 
     assert result["text"] == ""

@@ -24,10 +24,16 @@ import pytest
 from dischargeiq.agents import medication_agent
 from dischargeiq.models.extraction import ExtractionOutput, Medication
 
-_MOCK_CLIENT_TARGET = "dischargeiq.agents.medication_agent._get_client"
+_MOCK_CLIENT_TARGET = "dischargeiq.agents.medication_agent.get_native_agent_client"
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+
+
+@pytest.fixture(autouse=True)
+def _anthropic_provider(monkeypatch):
+    """Force LLM_PROVIDER=anthropic so the agent takes the .messages.create() path."""
+    monkeypatch.setenv("LLM_PROVIDER", "anthropic")
 
 
 def _fake_anthropic_response(text: str):
@@ -35,11 +41,11 @@ def _fake_anthropic_response(text: str):
     return SimpleNamespace(content=[SimpleNamespace(text=text)])
 
 
-def _fake_client(reply_text: str) -> MagicMock:
-    """Return a MagicMock client whose .messages.create() returns reply_text."""
+def _fake_client(reply_text: str) -> tuple:
+    """Return (client, model) matching the get_native_agent_client() return signature."""
     client = MagicMock()
     client.messages.create.return_value = _fake_anthropic_response(reply_text)
-    return client
+    return (client, "test-model")
 
 
 def _heart_failure_extraction() -> ExtractionOutput:
@@ -144,7 +150,7 @@ def test_empty_anthropic_content_returns_empty_text_no_crash():
     extraction = _heart_failure_extraction()
     client = MagicMock()
     client.messages.create.return_value = SimpleNamespace(content=[])
-    with patch(_MOCK_CLIENT_TARGET, return_value=client):
+    with patch(_MOCK_CLIENT_TARGET, return_value=(client, "test-model")):
         result = medication_agent.run_medication_agent(extraction, document_id="empty.pdf")
 
     assert result["text"] == ""
