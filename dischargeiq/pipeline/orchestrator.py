@@ -27,7 +27,8 @@ from typing import Callable
 
 from dischargeiq.agents.diagnosis_agent import run_diagnosis_agent
 from dischargeiq.agents.escalation_agent import run_escalation_agent
-from dischargeiq.agents.extraction_agent import extract_text_from_pdf, run_extraction_agent
+from dischargeiq.agents.extraction_agent import run_extraction_agent
+from dischargeiq.ingest import extract_document_text
 from dischargeiq.agents.patient_simulator_agent import run_patient_simulator_agent
 from dischargeiq.agents.medication_agent import run_medication_agent
 from dischargeiq.agents.recovery_agent import run_recovery_agent
@@ -103,9 +104,15 @@ async def _save_history_with_retries(
     extraction: ExtractionOutput,
     fk_scores: dict,
     pipeline_status: str,
+    pool=None,
 ) -> None:
     """
     Persist one discharge_history row with short retries for transient outages.
+
+    When `pool` is provided (the long-lived lifespan pool from main.py), it is
+    used directly and never closed here — the caller owns its lifecycle. When
+    `pool` is None, a short-lived pool is created from `database_url` and closed
+    after use (legacy / test path).
 
     Args:
         database_url: Database connection string from DATABASE_URL.
@@ -114,6 +121,8 @@ async def _save_history_with_retries(
         extraction: Agent 1 extraction payload.
         fk_scores: Aggregated FK score dict for agents 2-5.
         pipeline_status: Final pipeline status string.
+        pool: Optional pre-existing asyncpg pool. When provided, avoids per-upload
+              pool creation overhead (~100-200 ms per request).
 
     Raises:
         Exception: Re-raises the final persistence error after retries.
@@ -122,8 +131,7 @@ async def _save_history_with_retries(
     last_error: Exception | None = None
     for attempt in range(1, max_attempts + 1):
         try:
-            pool = await get_db_pool(database_url)
-            try:
+            if pool is not None:
                 await save_discharge_history(
                     pool=pool,
                     session_id=session_id,
@@ -132,9 +140,20 @@ async def _save_history_with_retries(
                     fk_scores=fk_scores,
                     pipeline_status=pipeline_status,
                 )
-                return
-            finally:
-                await pool.close()
+            else:
+                owned_pool = await get_db_pool(database_url)
+                try:
+                    await save_discharge_history(
+                        pool=owned_pool,
+                        session_id=session_id,
+                        document_hash=document_hash,
+                        extraction=extraction,
+                        fk_scores=fk_scores,
+                        pipeline_status=pipeline_status,
+                    )
+                finally:
+                    await owned_pool.close()
+            return
         except Exception as exc:
             last_error = exc
             if attempt < max_attempts:
@@ -193,15 +212,30 @@ async def run_pipeline(
     pdf_path: str,
     session_id: str | None = None,
     on_progress: Callable[[int, str, str], None] | None = None,
+    document_hash: str | None = None,
+    db_pool=None,
 ) -> PipelineResponse:
     """
     Public entry point — wraps _run_pipeline_internal in a 300-second
     wall-clock timeout so a stuck LLM call cannot hang the API worker
     forever. On timeout, asyncio.TimeoutError is allowed to propagate;
     main.py translates it to an HTTP 504 for the client.
+
+    Args:
+        pdf_path:      Absolute path to a temporary PDF written by the API layer.
+        session_id:    Optional session identifier propagated to the DB row.
+        on_progress:   Optional callback fired after each agent completes.
+        document_hash: SHA-256 hex digest of the PDF bytes, computed in main.py
+                       from the in-memory upload before the tmpfile is written.
+                       Avoids a second disk read inside the pipeline. When None,
+                       the hash is computed from disk (legacy / test path).
+        db_pool:       Optional long-lived asyncpg pool from main.py lifespan
+                       context. When provided, avoids creating and closing a new
+                       pool on every upload. When None, a short-lived pool is
+                       created from DATABASE_URL (legacy / test path).
     """
     return await asyncio.wait_for(
-        _run_pipeline_internal(pdf_path, session_id, on_progress),
+        _run_pipeline_internal(pdf_path, session_id, on_progress, document_hash, db_pool),
         timeout=_PIPELINE_TIMEOUT_SECONDS,
     )
 
@@ -210,6 +244,8 @@ async def _run_pipeline_internal(
     pdf_path: str,
     session_id: str | None = None,
     on_progress: Callable[[int, str, str], None] | None = None,
+    document_hash: str | None = None,
+    db_pool=None,
 ) -> PipelineResponse:
     """
     Run the multi-agent discharge pipeline on a PDF file path.
@@ -224,14 +260,22 @@ async def _run_pipeline_internal(
     cross-field confusion. Never change ExtractionOutput field names without
     full team sign-off.
 
+    Agents 2–5 are independent (all read Agent 1 output only) and run in
+    parallel via asyncio.gather. return_exceptions=True means a failed agent
+    comes back as an Exception object; each result is checked with isinstance
+    so pipeline_status="partial" is set and empty string returned instead of
+    passing an Exception where callers expect a dict.
+
     On any agent failure the pipeline sets pipeline_status="partial" and
     returns whatever was successfully extracted — it never raises to the
     caller (except for the wall-clock timeout enforced by run_pipeline).
 
     Args:
-        pdf_path: Absolute path to a temporary PDF written by the API layer.
-        session_id: Optional session identifier propagated to the DB row;
-                    a fresh UUID is generated when omitted.
+        pdf_path:      Absolute path to a temporary PDF written by the API layer.
+        session_id:    Optional session identifier propagated to the DB row;
+                       a fresh UUID is generated when omitted.
+        document_hash: Pre-computed SHA-256 hex digest from main.py (avoids
+                       re-reading the tmpfile). Falls back to disk read when None.
 
     Returns:
         PipelineResponse: Aggregated outputs. pipeline_status is "complete"
@@ -259,8 +303,18 @@ async def _run_pipeline_internal(
         # frozen even though the pipeline is making progress. asyncio.to_thread
         # offloads each blocking call to the default thread pool so the
         # event loop can keep serving /progress in real time.
-        pdf_text = await asyncio.to_thread(extract_text_from_pdf, pdf_path)
+        # Ingest layer (DIS-O1): extract_document_text routes digital PDFs
+        # through the proven pdfplumber path today and will route scanned /
+        # photographed documents through OCR in later increments. The
+        # orchestrator only ever consumes IngestResult.text, so the routing
+        # decision stays invisible here.
+        ingest_result = await asyncio.to_thread(extract_document_text, pdf_path)
+        pdf_text = ingest_result.text
         extraction = await asyncio.to_thread(run_extraction_agent, pdf_text)
+        # Surface ingest warnings (e.g. future OCR confidence banners) on the
+        # same channel as extraction warnings so the UI needs no new wiring.
+        if ingest_result.warnings:
+            extraction.extraction_warnings.extend(ingest_result.warnings)
         pipeline_status = "complete"
         logger.info("Agent 1 complete — primary_diagnosis: '%s'", extraction.primary_diagnosis)
     except Exception as exc:
@@ -324,149 +378,97 @@ async def _run_pipeline_internal(
         None, "", "Extraction failed"
     )
 
+    # Short label used as document_id in agent logs and FK CSV rows.
+    # The full /tmp/... path was noisy and leaked ephemeral filenames.
+    doc_id = os.path.basename(pdf_path)
+
     fk_scores: dict = {}
-
-    # ── Agent 2 — Diagnosis Explanation ─────────────────────────────────────
-    # Accepts ExtractionOutput from Agent 1.
-    # Returns dict with keys: text, fk_grade, passes.
-    # Runs whenever Agent 1 produced a real diagnosis — independent of whether
-    # the completeness check downgraded pipeline_status to "partial". A document
-    # can be incomplete (missing follow-ups, activity restrictions, etc.) and
-    # still have a valid diagnosis worth explaining to the patient.
     diagnosis_explanation = ""
-
-    if agent1_succeeded:
-        try:
-            if on_progress is not None:
-                on_progress(2, "Diagnosis", "Understanding your diagnosis...")
-            # Explicitly strip inpatient-only fields before handing the
-            # extraction to Agent 2. procedures_performed contains IV drugs
-            # and imaging findings from the hospital stay that the patient
-            # was NOT discharged on — letting Agent 2 see them caused the
-            # explanation text to invent treatments (e.g. "X-ray showed
-            # your lungs were swollen", "methylprednisolone"). Agent 2
-            # should reason only about the discharge diagnoses and the
-            # discharge medication list; anything else is inpatient
-            # context, not patient-facing discharge education.
-            agent2_input = scope_for_agent2(
-                extraction.model_copy(update={"procedures_performed": []})
-            )
-            agent2_result = await asyncio.to_thread(
-                run_diagnosis_agent,
-                extraction=agent2_input,
-                document_id=pdf_path,
-            )
-            diagnosis_explanation = agent2_result["text"]
-            fk_scores["agent2"] = {
-                "fk_grade": agent2_result["fk_grade"],
-                "passes": agent2_result["passes"],
-            }
-            logger.info(
-                "Agent 2 complete — FK grade: %.2f, passes: %s",
-                agent2_result["fk_grade"],
-                agent2_result["passes"],
-            )
-        except Exception as exc:
-            logger.error("Agent 2 failed for %s: %s", pdf_path, exc)
-            diagnosis_explanation = ""
-            pipeline_status = "partial"
-
-    # ── Agent 3 — Medication Rationale ───────────────────────────────────────
-    # Data contract: receives the full ExtractionOutput from Agent 1.
-    # Returns dict with keys: text, fk_grade, passes.
     medication_rationale = ""
-
-    if agent1_succeeded:
-        try:
-            if on_progress is not None:
-                on_progress(3, "Medication", "Analyzing your medications...")
-            # Harvest cross-section safety language (do-not-stop, stroke
-            # signs, 911 callouts) from the full PDF text so Agent 3 can
-            # reproduce warnings that live outside the medication list
-            # itself. Empty string when nothing matches — handled inside
-            # run_medication_agent as "no extra block".
-            safety_ctx = _extract_safety_context(pdf_text)
-            agent3_result = await asyncio.to_thread(
-                run_medication_agent,
-                extraction=scope_for_agent3(extraction),
-                document_id=pdf_path,
-                safety_context=safety_ctx,
-            )
-            medication_rationale = agent3_result["text"]
-            fk_scores["agent3"] = {
-                "fk_grade": agent3_result["fk_grade"],
-                "passes": agent3_result["passes"],
-            }
-            logger.info(
-                "Agent 3 complete — FK grade: %.2f, passes: %s",
-                agent3_result["fk_grade"],
-                agent3_result["passes"],
-            )
-        except Exception as exc:
-            logger.error("Agent 3 failed for %s: %s", pdf_path, exc)
-            medication_rationale = ""
-            pipeline_status = "partial"
-
-    # ── Agent 4 — Recovery Trajectory ────────────────────────────────────────
-    # Data contract: receives the full ExtractionOutput from Agent 1.
-    # Returns dict with keys: text, fk_grade, passes.
     recovery_trajectory = ""
-
-    if agent1_succeeded:
-        try:
-            if on_progress is not None:
-                on_progress(4, "Recovery", "Building your recovery plan...")
-            agent4_result = await asyncio.to_thread(
-                run_recovery_agent,
-                extraction=scope_for_agent4(extraction),
-                document_id=pdf_path,
-            )
-            recovery_trajectory = agent4_result["text"]
-            fk_scores["agent4"] = {
-                "fk_grade": agent4_result["fk_grade"],
-                "passes": agent4_result["passes"],
-            }
-            logger.info(
-                "Agent 4 complete — FK grade: %.2f, passes: %s",
-                agent4_result["fk_grade"],
-                agent4_result["passes"],
-            )
-        except Exception as exc:
-            logger.error("Agent 4 failed for %s: %s", pdf_path, exc)
-            recovery_trajectory = ""
-            pipeline_status = "partial"
-
-    # ── Agent 5 — Escalation / warning-signs decision tree ──────────────────
-    # Data contract: receives the full ExtractionOutput from Agent 1.
-    # Returns dict with keys: text, fk_grade, passes.
-    # Safety-critical — never let an Agent 5 exception crash the pipeline,
-    # but record it as partial so the caller knows the decision tree is
-    # missing from the response.
     escalation_guide = ""
 
+    # ── Agents 2–5 — parallel ────────────────────────────────────────────────
+    # All four are independent: each reads only Agent 1's ExtractionOutput.
+    # asyncio.gather(return_exceptions=True) runs them concurrently in the
+    # default thread pool (each is a blocking LLM call wrapped in to_thread).
+    # Dropped wall-clock time: ~60s sequential → ~15s parallel at p95.
+    #
+    # IMPORTANT: return_exceptions=True means a failed agent returns an
+    # Exception *object* in the results list rather than raising. Each result
+    # is checked with isinstance before unpacking — passing an Exception where
+    # downstream code expects a dict would be a silent data-corruption bug.
+    #
+    # FK log thread safety: log_fk_score() in utils/scorer.py holds
+    # _fk_log_lock around CSV writes, so concurrent agents cannot interleave
+    # header rows. Priority 3 (lock) was implemented before Priority 2
+    # (parallelism) to avoid introducing the race inside a single upload.
     if agent1_succeeded:
-        try:
-            if on_progress is not None:
-                on_progress(5, "Escalation", "Checking warning signs...")
-            agent5_result = await asyncio.to_thread(
+        if on_progress is not None:
+            on_progress(2, "Agents", "Analyzing your discharge summary...")
+
+        # Harvest cross-section safety language once — shared by Agent 3.
+        safety_ctx = _extract_safety_context(pdf_text)
+
+        # Agent 2 input: strip inpatient-only procedures_performed so the
+        # explanation doesn't invent in-hospital treatments as discharge advice.
+        agent2_input = scope_for_agent2(
+            extraction.model_copy(update={"procedures_performed": []})
+        )
+
+        raw_results = await asyncio.gather(
+            asyncio.to_thread(
+                run_diagnosis_agent,
+                extraction=agent2_input,
+                document_id=doc_id,
+            ),
+            asyncio.to_thread(
+                run_medication_agent,
+                extraction=scope_for_agent3(extraction),
+                document_id=doc_id,
+                safety_context=safety_ctx,
+            ),
+            asyncio.to_thread(
+                run_recovery_agent,
+                extraction=scope_for_agent4(extraction),
+                document_id=doc_id,
+            ),
+            asyncio.to_thread(
                 run_escalation_agent,
                 extraction=scope_for_agent5(extraction),
-                document_id=pdf_path,
-            )
-            escalation_guide = agent5_result["text"]
-            fk_scores["agent5"] = {
-                "fk_grade": agent5_result["fk_grade"],
-                "passes": agent5_result["passes"],
-            }
-            logger.info(
-                "Agent 5 complete — FK grade: %.2f, passes: %s",
-                agent5_result["fk_grade"],
-                agent5_result["passes"],
-            )
-        except Exception as exc:
-            logger.error("Agent 5 failed for %s: %s", pdf_path, exc)
-            escalation_guide = ""
-            pipeline_status = "partial"
+                document_id=doc_id,
+            ),
+            return_exceptions=True,
+        )
+
+        _agent_labels = ["Agent 2", "Agent 3", "Agent 4", "Agent 5"]
+        _fk_keys = ["agent2", "agent3", "agent4", "agent5"]
+        _agent_results: list = []
+        for i, result in enumerate(raw_results):
+            if isinstance(result, Exception):
+                logger.error(
+                    "%s failed for %s: %s", _agent_labels[i], doc_id, result
+                )
+                _agent_results.append(None)
+                pipeline_status = "partial"
+            else:
+                fk_scores[_fk_keys[i]] = {
+                    "fk_grade": result["fk_grade"],
+                    "passes": result["passes"],
+                }
+                logger.info(
+                    "%s complete — FK grade: %.2f, passes: %s",
+                    _agent_labels[i],
+                    result["fk_grade"],
+                    result["passes"],
+                )
+                _agent_results.append(result)
+
+        diag_r, med_r, rec_r, esc_r = _agent_results
+        diagnosis_explanation = diag_r["text"] if diag_r else ""
+        medication_rationale = med_r["text"] if med_r else ""
+        recovery_trajectory = rec_r["text"] if rec_r else ""
+        escalation_guide = esc_r["text"] if esc_r else ""
 
     # ── Agent 6 — AI patient simulator (non-fatal) ──────────────────────────
     # Surfaces "missed concepts" — questions a confused patient would ask that
@@ -479,12 +481,12 @@ async def _run_pipeline_internal(
             if on_progress is not None:
                 on_progress(6, "Simulator", "Running discharge quality check...")
             logger.info(
-                "Agent 6 (patient simulator) starting for '%s'", pdf_path
+                "Agent 6 (patient simulator) starting for '%s'", doc_id
             )
             patient_simulator_result = await asyncio.to_thread(
                 run_patient_simulator_agent,
                 extraction=extraction,
-                document_id=pdf_path,
+                document_id=doc_id,
             )
             missed_n = sum(
                 1
@@ -533,8 +535,12 @@ async def _run_pipeline_internal(
     # schema drift must never crash the pipeline or block the UI response.
     db_session_id = session_id or str(uuid.uuid4())
     try:
-        with open(pdf_path, "rb") as pdf_file:
-            document_hash = hashlib.sha256(pdf_file.read()).hexdigest()
+        # Use the pre-computed hash passed from main.py (avoids re-reading the
+        # tmpfile). Fall back to disk read on legacy / test paths where the
+        # caller does not supply the hash (e.g. stress scripts, slow corpus tests).
+        if document_hash is None:
+            with open(pdf_path, "rb") as pdf_file:
+                document_hash = hashlib.sha256(pdf_file.read()).hexdigest()
         database_url = os.getenv("DATABASE_URL")
         if not database_url:
             raise RuntimeError("DATABASE_URL not set")
@@ -545,6 +551,7 @@ async def _run_pipeline_internal(
             extraction=extraction,
             fk_scores=fk_scores,
             pipeline_status=pipeline_status,
+            pool=db_pool,
         )
         logger.info(
             "Discharge history saved — session: %s", db_session_id
