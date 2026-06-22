@@ -1590,11 +1590,12 @@ def test_hallucination_gate_per_profile(profile: "Profile") -> None:
         profile: One Profile from _profiles(), injected by parametrize.
     """
     provider_key_env = {
+        "gemini": "GOOGLE_API_KEY",
         "anthropic": "ANTHROPIC_API_KEY",
         "openrouter": "OPENROUTER_API_KEY",
         "openai": "OPENAI_API_KEY",
     }
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     required_key = provider_key_env.get(provider)
     if required_key and not os.environ.get(required_key, "").strip():
         pytest.skip(f"{required_key} not set — skipping live LLM call.")
@@ -1630,11 +1631,12 @@ def test_omission_soft_gate_all_profiles() -> None:
     does not block the per-profile hallucination results from appearing in output.
     """
     provider_key_env = {
+        "gemini": "GOOGLE_API_KEY",
         "anthropic": "ANTHROPIC_API_KEY",
         "openrouter": "OPENROUTER_API_KEY",
         "openai": "OPENAI_API_KEY",
     }
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     required_key = provider_key_env.get(provider)
     if required_key and not os.environ.get(required_key, "").strip():
         pytest.skip(f"{required_key} not set — skipping live LLM call.")

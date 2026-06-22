@@ -33,7 +33,7 @@ Rules for discontinued medications:
 NO MEDICATIONS — handle separately:
 
 If the medication list is empty, output exactly these two sentences and nothing else:
-"Your doctor did not prescribe any medicines for you to take at home. Ask your doctor if you need to start any medicines at your follow-up visit."
+"Your doctor did not give you any new medicines to take at home. Ask at your next visit if you need to start any."
 Do not add an introduction, a closing paragraph, or any other text.
 
 CRITICAL SAFETY LANGUAGE — must reproduce verbatim:
@@ -71,6 +71,9 @@ the very end of the medication paragraph.
 
 WRITING RULES:
 - Write at a 6th grade reading level
+- Use short, common words. Prefer words with one or two syllables.
+- Say "medicine", never "medication". Say "doctor", never "physician" or "provider".
+- Drug names are unavoidable. Keep every other word in the sentence short.
 - Use short sentences. Maximum 12 words per sentence.
 - No sentence longer than 12 words. Break long ideas into two sentences.
 - Never use "which", "although", "that lasts", "in order to" — they make sentences too long

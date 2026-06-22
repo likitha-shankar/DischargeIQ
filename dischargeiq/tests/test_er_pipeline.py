@@ -23,6 +23,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from dischargeiq.ingest import IngestResult
 from dischargeiq.models.extraction import ExtractionOutput, FollowUpAppointment, Medication
 from dischargeiq.models.pipeline import PatientSimulatorOutput, PipelineResponse
 from dischargeiq.pipeline import orchestrator
@@ -30,7 +31,7 @@ from dischargeiq.pipeline import orchestrator
 # ── Mock targets ───────────────────────────────────────────────────────────────
 # Patch at the orchestrator's import namespace so asyncio.to_thread
 # picks up the mock rather than the real function.
-_MOCK_EXTRACT_TEXT    = "dischargeiq.pipeline.orchestrator.extract_text_from_pdf"
+_MOCK_EXTRACT_TEXT    = "dischargeiq.pipeline.orchestrator.extract_document_text"
 _MOCK_RUN_EXTRACTION  = "dischargeiq.pipeline.orchestrator.run_extraction_agent"
 _MOCK_RUN_DIAGNOSIS   = "dischargeiq.pipeline.orchestrator.run_diagnosis_agent"
 _MOCK_RUN_MEDICATION  = "dischargeiq.pipeline.orchestrator.run_medication_agent"
@@ -114,7 +115,14 @@ def _run_pipeline(pdf_path: str = "er_test.pdf") -> PipelineResponse:
 def _er_patches(extraction: ExtractionOutput):
     """Return a list of patch context managers for a full mocked pipeline run."""
     return [
-        patch(_MOCK_EXTRACT_TEXT, return_value="ER discharge text — minimal content"),
+        patch(
+            _MOCK_EXTRACT_TEXT,
+            return_value=IngestResult(
+                text="ER discharge text — minimal content",
+                source="digital_pdf",
+                page_count=1,
+            ),
+        ),
         patch(_MOCK_RUN_EXTRACTION, return_value=extraction),
         patch(_MOCK_RUN_DIAGNOSIS,  return_value=_agent_text_result("You had a minor injury that was repaired.")),
         patch(_MOCK_RUN_MEDICATION, return_value=_agent_text_result("Take ibuprofen for pain as needed.")),

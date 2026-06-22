@@ -3,15 +3,29 @@ import 'package:flutter/foundation.dart';
 
 /// API base URL — override at build time with `--dart-define=API_BASE=http://...`
 ///
-/// Real-device demo: flutter run --dart-define=API_BASE=http://104.194.97.253:8000
-/// Phone and laptop must be on the same Wi-Fi. FastAPI must be running (start.bat).
+/// Resolution order:
+///   1. --dart-define=API_BASE (always wins, debug and release)
+///   2. Release builds default to the hosted Cloud Run backend. The nginx
+///      proxy there routes only `/api/*` to FastAPI, so the base includes
+///      the `/api` prefix — endpoints are appended as `/analyze`, `/chat`.
+///   3. Debug builds default to a local FastAPI (no `/api` prefix — local
+///      uvicorn serves routes at the root).
+///
+/// Local real-device demo: flutter run --dart-define=API_BASE=http://<laptop-lan-ip>:8000
+/// Phone and laptop must be on the same Wi-Fi. FastAPI must be running (start.sh).
 class ApiConfig {
+  // Hosted backend (Cloud Run, verified June 2026). `/api` prefix required.
+  static const _cloudRunBase =
+      'https://dischargeiq-1015692703359.us-central1.run.app/api';
+
   // LAN IP of the demo laptop. Update if the IP changes (run `ipconfig` to check).
   static const _lanIp = '104.194.97.253';
 
   static String get baseUrl {
     const fromDefine = String.fromEnvironment('API_BASE');
     if (fromDefine.isNotEmpty) return fromDefine;
+    // Release builds must work on any network, so they talk to Cloud Run.
+    if (kReleaseMode) return _cloudRunBase;
     if (kIsWeb) return 'http://localhost:8000';
     // Real Android device uses the laptop's LAN IP.
     // Emulator would use 10.0.2.2 — pass via --dart-define if testing in emulator.

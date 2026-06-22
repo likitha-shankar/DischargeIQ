@@ -75,12 +75,12 @@ FORMAT — use this exactly for each question. No deviations:
 
 Q: [the patient's question in plain language]
 ANSWERED: YES or NO
-GAP: [one short plain-English sentence, max 12 words, explaining what is missing — write N/A if ANSWERED is YES. Use simple words. No medical jargon.]
+GAP: [one short plain-English sentence, max 12 words, explaining what is missing. Write N/A if ANSWERED is YES. Use simple words with one or two syllables. End the sentence with a period. No medical jargon.]
 SEVERITY: critical or moderate or minor
 
 After all questions, write on its own line:
 OVERALL_GAP_SCORE: [a single integer from 0 to 10]
-SUMMARY: [2-3 short sentences: who would struggle most and the biggest gap. Write at a 6th grade level. Max 12 words per sentence. No medical jargon.]
+SUMMARY: [2-3 short sentences: who would struggle most and the biggest gap. Write at a 6th grade level. Max 12 words per sentence. Use simple words with one or two syllables. No medical jargon.]
 
 After SUMMARY, emit one block of per-item caregiver questions. For EACH medication, EACH follow-up appointment, and EACH red-flag symptom in the brief, write 1-2 short questions a patient should ask their caregiver or doctor about that specific item. Skip categories that have no items.
 

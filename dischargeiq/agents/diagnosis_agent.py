@@ -147,7 +147,7 @@ def _call_llm(
         ValueError: If the provider returns a response with no content
                     (e.g. content filter blocked the completion).
     """
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     try:
         return call_chat_with_fallback(
             client=client,

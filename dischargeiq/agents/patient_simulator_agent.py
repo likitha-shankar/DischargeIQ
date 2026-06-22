@@ -366,14 +366,37 @@ def _split_q_body_from_cleaned(cleaned: str) -> str:
     return cleaned[: m.start()].strip()
 
 
+def _ensure_terminal_period(fragment: str) -> str:
+    """
+    Append a period to a text fragment that lacks terminal punctuation.
+
+    Gap summaries come from labelled GAP: lines and the model frequently
+    omits the trailing period. Joining unterminated fragments with spaces
+    makes textstat see one enormous sentence, which inflates the
+    words-per-sentence term of Flesch-Kincaid and fails outputs that are
+    actually plain. Normalising punctuation here keeps the FK score a
+    measure of the language, not of the label formatting.
+
+    Args:
+        fragment: A single gap summary or the simulator summary.
+
+    Returns:
+        The stripped fragment, guaranteed to end in '.', '!' or '?'.
+    """
+    stripped = fragment.strip()
+    if stripped and stripped[-1] not in ".!?":
+        return stripped + "."
+    return stripped
+
+
 def _text_for_fk(concepts: list[MissedConcept], simulator_summary: str) -> str:
     """Concatenate gap texts and summary for Flesch-Kincaid."""
     gaps = [
-        c.gap_summary
+        _ensure_terminal_period(c.gap_summary)
         for c in concepts
         if c.gap_summary and c.gap_summary.strip().upper() != "N/A"
     ]
-    joined = " ".join(gaps + [simulator_summary]).strip()
+    joined = " ".join(gaps + [_ensure_terminal_period(simulator_summary)]).strip()
     return joined if joined else "."
 
 
@@ -579,7 +602,7 @@ def _call_llm(
     document_id: str,
 ) -> str:
     """Invoke shared chat helper for Agent 6."""
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     return call_chat_with_fallback(
         client=client,
         model_name=model_name,

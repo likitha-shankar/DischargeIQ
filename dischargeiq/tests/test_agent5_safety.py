@@ -86,8 +86,9 @@ _HF_EXTRACTION = ExtractionOutput(
 
 def _provider_key_present() -> bool:
     """Return True if at least one LLM provider key is configured."""
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     key_map = {
+        "gemini": "GOOGLE_API_KEY",
         "anthropic": "ANTHROPIC_API_KEY",
         "openrouter": "OPENROUTER_API_KEY",
         "openai": "OPENAI_API_KEY",

@@ -543,7 +543,7 @@ def _call_llm(system_prompt: str, pdf_text: str) -> str:
         KeyError: If the required API key env var for the chosen provider is missing.
     """
     client, model_name = _get_llm_client()
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     user_message = _build_user_message(pdf_text)
     try:
         return call_chat_with_fallback(
