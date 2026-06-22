@@ -1,0 +1,89 @@
+# nginx reverse proxy for DischargeIQ on Cloud Run.
+# Multiplexes Streamlit (UI) and FastAPI (API) onto a single $PORT.
+#
+# Routes:
+#   /api/*        -> FastAPI on 127.0.0.1:${BACKEND_PORT} (prefix stripped)
+#   everything    -> Streamlit on 127.0.0.1:${STREAMLIT_PORT} (with WebSocket upgrade
+#                    so Streamlit's /_stcore/stream works)
+#
+# Rendered by envsubst at container start so ${PORT}, ${BACKEND_PORT},
+# ${STREAMLIT_PORT} pick up Cloud Run's injected values.
+
+worker_processes 1;
+events { worker_connections 1024; }
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    sendfile       on;
+    tcp_nopush     on;
+    keepalive_timeout 75s;
+
+    # Match FastAPI's per-upload limit (see /analyze in dischargeiq/main.py).
+    client_max_body_size 50m;
+
+    # Long-running pipelines: cap matches Cloud Run --timeout 600s.
+    proxy_connect_timeout 60s;
+    proxy_send_timeout    600s;
+    proxy_read_timeout    600s;
+
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+    }
+
+    server {
+        listen ${PORT} default_server;
+        server_name _;
+
+        # ── Security headers ──────────────────────────────────────────────────
+        # HSTS: Cloud Run always terminates TLS at the load balancer, so the
+        # header is meaningful even though nginx listens on plain HTTP internally.
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        # CSP: Streamlit requires unsafe-inline for its own scripts and styles.
+        # The directive here covers the nginx layer (error pages, etc.); FastAPI
+        # and Streamlit add their own per-response headers via middleware.
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'" always;
+        # Prevent browsers from sending unnecessary permissions.
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+
+        # Strip /api prefix and forward to FastAPI.
+        location /api/ {
+            proxy_pass http://127.0.0.1:${BACKEND_PORT}/;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # Streamlit WebSocket endpoint — needs HTTP/1.1 + Upgrade headers.
+        location /_stcore/stream {
+            proxy_pass http://127.0.0.1:${STREAMLIT_PORT};
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_read_timeout 86400s;
+        }
+
+        # Everything else -> Streamlit.
+        location / {
+            proxy_pass http://127.0.0.1:${STREAMLIT_PORT};
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
