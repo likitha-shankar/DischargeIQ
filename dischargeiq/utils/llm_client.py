@@ -2,7 +2,7 @@
 File: dischargeiq/utils/llm_client.py
 Owner: Likitha Shankar
 Description: Central LLM routing — builds an OpenAI-compatible client for anthropic,
-  openrouter, openai, or ollama from LLM_PROVIDER/LLM_MODEL and validates API keys with
+  openrouter, openai, ollama, or gemini from LLM_PROVIDER/LLM_MODEL and validates API keys with
   clear ValueError messages. call_chat_with_fallback adds OpenRouter-only retries for
   empty completions, developer-instruction role merge, and 429 backoff.
 Key functions/classes: require_provider_api_key, get_llm_client, call_chat_with_fallback
@@ -14,11 +14,19 @@ Called by: dischargeiq.agents.extraction_agent, diagnosis_agent, patient_simulat
   dischargeiq.main (/chat), dischargeiq.tests.test_api_guardrails, test_resilience_hardening.
 """
 
+import functools
 import logging
 import os
 import time
+from pathlib import Path
 
 from openai import OpenAI
+
+# Cache LLM clients by provider string — building OpenAI() constructs a
+# connection pool internally. Under parallel asyncio.gather (4 agents per upload),
+# four concurrent constructions are wasteful. The client is thread-safe and
+# config is static at runtime, so caching per provider is safe.
+_client_cache: dict[str, tuple] = {}
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +46,16 @@ _PROVIDER_DEFAULTS: dict[str, dict] = {
         "base_url": "https://api.openai.com/v1",
         "api_key_env": "OPENAI_API_KEY",
         "default_model": "gpt-4o-mini",
+    },
+    "gemini": {
+        # Google Gemini exposes an OpenAI-compatible chat completions endpoint.
+        # Auth uses GOOGLE_API_KEY. The system role is supported, so the shared
+        # OpenAI SDK client works unchanged for Agents 1, 2, 6 and /chat. The
+        # model name is read from LLM_MODEL — the default below is only a
+        # fallback when LLM_MODEL is unset.
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "api_key_env": "GOOGLE_API_KEY",
+        "default_model": "gemini-2.5-flash-lite",
     },
     "anthropic": {
         # Anthropic exposes an OpenAI-compatible chat completions endpoint at
@@ -76,8 +94,8 @@ def require_provider_api_key(provider: str) -> None:
         raise ValueError(
             f"Missing API key for LLM_PROVIDER={provider!r}. "
             f"Set {env_name} in your .env (see .env.example). "
-            f"For Claude on all agents use LLM_PROVIDER=anthropic and "
-            f"LLM_MODEL={DEFAULT_ANTHROPIC_MODEL!r}."
+            f"For Gemini on all agents use LLM_PROVIDER=gemini and GOOGLE_API_KEY. "
+            f"For Claude use LLM_PROVIDER=anthropic and LLM_MODEL={DEFAULT_ANTHROPIC_MODEL!r}."
         )
 
 
@@ -85,7 +103,7 @@ def get_llm_client() -> tuple[OpenAI, str]:
     """
     Build an OpenAI-compatible client and resolve the model name from env vars.
 
-    Reads LLM_PROVIDER (default: anthropic) to select the backend, then
+    Reads LLM_PROVIDER (default: gemini) to select the backend, then
     reads the provider-specific API key and base URL. LLM_MODEL overrides the
     provider default model when set.
 
@@ -95,7 +113,7 @@ def get_llm_client() -> tuple[OpenAI, str]:
     Raises:
         ValueError: If LLM_PROVIDER is invalid or the required API key is missing.
     """
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
 
     if provider not in _PROVIDER_DEFAULTS:
         supported = ", ".join(_PROVIDER_DEFAULTS)
@@ -121,19 +139,93 @@ def get_llm_client() -> tuple[OpenAI, str]:
         base_url = config["base_url"]
 
     model_name = os.environ.get("LLM_MODEL", config["default_model"])
+
+    if provider in _client_cache:
+        return _client_cache[provider]
+
     # OpenRouter free-tier and local Ollama models can take 90–120s+ to first
-    # token. Anthropic/OpenAI direct typically return faster.
+    # token. Anthropic/OpenAI/Gemini direct typically return faster, so they
+    # fall into the 60s timeout below (gemini is intentionally not in the
+    # slow-provider set).
     timeout = 180.0 if provider in {"openrouter", "ollama"} else 60.0
     logger.debug(
         "LLM provider: %s | model: %s | base_url: %s | timeout: %.1fs",
         provider, model_name, base_url, timeout,
     )
-    return OpenAI(
+    result = OpenAI(
         base_url=base_url,
         api_key=api_key,
         timeout=timeout,
         max_retries=1,
     ), model_name
+    _client_cache[provider] = result
+    return result
+
+
+@functools.lru_cache(maxsize=None)
+def load_agent_prompt(prompt_filename: str) -> str:
+    """
+    Load a system prompt from dischargeiq/prompts/<prompt_filename>.
+
+    Result is cached indefinitely — prompt files are static assets that do not
+    change while the server is running. First call reads from disk; subsequent
+    calls (across all agents and uploads) return the cached string with zero I/O.
+
+    Replaces the per-agent _load_system_prompt() copies that were identical
+    across agents 3–5 (and agents 1–2 had similar inline logic).
+
+    Args:
+        prompt_filename: Filename of the prompt, e.g. "agent3_system_prompt.txt".
+
+    Returns:
+        str: Full prompt text, whitespace-stripped.
+
+    Raises:
+        FileNotFoundError: If the file does not exist at the expected path.
+    """
+    path = Path(__file__).parent.parent / "prompts" / prompt_filename
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Agent prompt not found: {path}. "
+            "Ensure the file exists under dischargeiq/prompts/."
+        )
+    return path.read_text(encoding="utf-8").strip()
+
+
+def get_native_agent_client(provider: str) -> tuple:
+    """
+    Return (client, model_name) for agents that need native Anthropic SDK on the
+    anthropic path and the shared OpenAI-compat client for all other providers.
+
+    Agents 3–5 call messages.create() on the anthropic path (native SDK required)
+    and chat.completions.create() on all other paths (OpenAI-compat client from
+    get_llm_client()). This single function replaces the three identical _get_client()
+    copies that previously lived in medication_agent, recovery_agent, and
+    escalation_agent. Timeout (60s) and max_retries (1) match the values those
+    copies had for the anthropic branch — confirmed identical before consolidation.
+
+    Args:
+        provider: Lowercase LLM_PROVIDER value (e.g. "gemini", "anthropic").
+
+    Returns:
+        tuple: (client, model_name). Client type depends on provider:
+               anthropic → anthropic.Anthropic; all others → openai.OpenAI.
+
+    Raises:
+        ValueError: If provider is unsupported or its API key is missing.
+        ImportError: If provider is "anthropic" but the anthropic package is absent.
+    """
+    if provider == "anthropic":
+        import anthropic as _anthropic  # lazy import — not needed on Gemini path
+        require_provider_api_key("anthropic")
+        model = os.environ.get("LLM_MODEL", DEFAULT_ANTHROPIC_MODEL)
+        client = _anthropic.Anthropic(
+            api_key=os.environ["ANTHROPIC_API_KEY"].strip(),
+            timeout=60.0,
+            max_retries=1,
+        )
+        return client, model
+    return get_llm_client()
 
 
 def _is_openrouter_developer_instruction_error(exc: Exception) -> bool:

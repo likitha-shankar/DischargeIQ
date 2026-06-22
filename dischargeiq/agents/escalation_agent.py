@@ -15,9 +15,9 @@ header strings without updating the UI renderer at the same time.
 Every output is FK-scored via utils.scorer.fk_check() and logged to
 dischargeiq/evaluation/fk_log.csv. Target: FK grade <= 6.0.
 
-LLM provider is resolved from LLM_PROVIDER / LLM_MODEL in .env via the same
-multi-provider pattern as agents 3–4: native Anthropic client or OpenAI-
-compatible clients for openrouter / openai / ollama (see _get_client()).
+LLM provider is resolved from LLM_PROVIDER / LLM_MODEL in .env via
+get_native_agent_client(): native Anthropic client or OpenAI-compatible
+clients for gemini / openrouter / openai / ollama.
 
 Data contract:
     Input:  dischargeiq.models.extraction.ExtractionOutput (from Agent 1)
@@ -34,127 +34,44 @@ Data contract:
                 passes   (bool)  — True if fk_grade <= 6.0
 
 Dependencies:
-    - anthropic, openai  (provider-specific clients per LLM_PROVIDER)
-    - dischargeiq.utils.llm_client (call_chat_with_fallback,
-      require_provider_api_key, DEFAULT_ANTHROPIC_MODEL)
+    - anthropic          (used on anthropic provider path only)
+    - dischargeiq.utils.llm_client (load_agent_prompt, get_native_agent_client,
+                                    call_chat_with_fallback, DEFAULT_ANTHROPIC_MODEL)
+    - dischargeiq.utils.scorer (fk_check, log_fk_score)
     - dischargeiq.models.extraction.ExtractionOutput
-    - dischargeiq.utils.scorer.fk_check
     - dischargeiq/prompts/agent5_system_prompt.txt
 
-BLOCKED BY: Agent 4 must be landed before Agent 5 is wired
-into the orchestrator.
+BLOCKED BY: Agent 4 must be landed before Agent 5 is wired into the orchestrator.
 """
 
-import csv
 import logging
 import os
 import re
-from pathlib import Path
-from typing import Any
 
 import anthropic
-from openai import OpenAI
 
 from dischargeiq.models.extraction import ExtractionOutput
 from dischargeiq.utils.llm_client import (
     DEFAULT_ANTHROPIC_MODEL,
     call_chat_with_fallback,
-    require_provider_api_key,
+    get_native_agent_client,
+    load_agent_prompt,
 )
-from dischargeiq.utils.scorer import fk_check
+from dischargeiq.utils.scorer import fk_check, log_fk_score
 
 logger = logging.getLogger(__name__)
 
-# ── Configuration ──────────────────────────────────────────────────────────────
-
-_MODEL = DEFAULT_ANTHROPIC_MODEL
-
-# 1000 tokens is ample for a structured three-tier guide. The output is
-# deliberately short — 3 tier headers + ~3-6 bullets per tier × 1-2 short
-# sentences per bullet. Raising this cap would only serve runaway output.
 _MAX_TOKENS = 1000
 
-# Paths resolved relative to this file so they work regardless of cwd.
-_PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
-_FK_LOG_PATH = Path(__file__).parent.parent / "evaluation" / "fk_log.csv"
-
-
-# ── Internal helpers ───────────────────────────────────────────────────────────
-
-
-def _get_client() -> Any:
-    """
-    Return an LLM client based on the LLM_PROVIDER environment setting.
-
-    Supported providers:
-        - anthropic  -> anthropic.Anthropic (default)
-        - openrouter -> openai.OpenAI with OpenRouter base_url
-        - openai     -> openai.OpenAI with api.openai.com base_url
-        - ollama     -> openai.OpenAI with local Ollama base_url
-
-    Constructing the client at module import time would capture an empty
-    ANTHROPIC_API_KEY when this module is imported before .env is loaded
-    (e.g. via `from dischargeiq.pipeline.orchestrator import run_pipeline`
-    at the top of main.py, which executes before main.py's load_dotenv).
-
-    Returns:
-        Any: Configured client instance for the selected provider.
-
-    Raises:
-        ValueError: If provider-specific API credentials are missing.
-
-    Note:
-        Timeout is provider-aware: 180s on OpenRouter/Ollama and 60s on
-        Anthropic/OpenAI.
-    """
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
-    require_provider_api_key(provider)
-    timeout = 180.0 if provider in {"openrouter", "ollama"} else 60.0
-    if provider == "openrouter":
-        return OpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=os.environ["OPENROUTER_API_KEY"].strip(),
-            timeout=timeout,
-            max_retries=1,
-        )
-    if provider == "openai":
-        return OpenAI(
-            base_url="https://api.openai.com/v1",
-            api_key=os.environ["OPENAI_API_KEY"].strip(),
-            timeout=timeout,
-            max_retries=1,
-        )
-    if provider == "ollama":
-        return OpenAI(
-            base_url=os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
-            api_key="ollama",
-            timeout=timeout,
-            max_retries=1,
-        )
-    return anthropic.Anthropic(
-        api_key=os.environ["ANTHROPIC_API_KEY"].strip(),
-        timeout=timeout,
-        max_retries=1,
-    )
-
-
-def _load_system_prompt() -> str:
-    """
-    Load the Agent 5 system prompt from dischargeiq/prompts/agent5_system_prompt.txt.
-
-    Returns:
-        str: The full system prompt text, whitespace-stripped.
-
-    Raises:
-        FileNotFoundError: If the prompt file does not exist at the expected path.
-    """
-    prompt_path = _PROMPTS_DIR / "agent5_system_prompt.txt"
-    if not prompt_path.exists():
-        raise FileNotFoundError(
-            f"Agent 5 system prompt not found at: {prompt_path}. "
-            "Ensure dischargeiq/prompts/agent5_system_prompt.txt exists."
-        )
-    return prompt_path.read_text(encoding="utf-8").strip()
+# Compiled once at import time; was rebuilt inside run_escalation_agent() on
+# every call. agent5_system_prompt.txt forbids these phrases; we log a warning
+# when the LLM emits one so operators can catch regression before eval day.
+_AMBIGUOUS_PATTERN = re.compile(
+    r"\bmay need to\b|\bmight need to\b|\bcould need\b"
+    r"|\bconsider calling\b|\bconsider going\b|\byou may want to\b"
+    r"|\bperhaps\b|\bif possible\b",
+    re.IGNORECASE,
+)
 
 
 def _build_user_message(extraction: ExtractionOutput) -> str:
@@ -217,45 +134,6 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
     return "\n".join(lines)
 
 
-def _log_fk_score(document_id: str, fk_result: dict) -> None:
-    """
-    Append an Agent 5 FK score result to dischargeiq/evaluation/fk_log.csv.
-
-    Creates the file with a header row if it does not already exist.
-    All Agent 5 FK scores must be logged.
-
-    Args:
-        document_id: Source document identifier (e.g. "heart_failure_01.pdf").
-        fk_result:   Dict returned by fk_check() — keys: fk_grade, passes, threshold.
-    """
-    _FK_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    write_header = not _FK_LOG_PATH.exists()
-
-    try:
-        with open(_FK_LOG_PATH, "a", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(
-                f,
-                fieldnames=["document_id", "agent", "fk_grade", "passes", "threshold"],
-            )
-            if write_header:
-                writer.writeheader()
-            writer.writerow({
-                "document_id": document_id,
-                "agent": "agent5_escalation",
-                "fk_grade": fk_result["fk_grade"],
-                "passes": fk_result["passes"],
-                "threshold": fk_result["threshold"],
-            })
-    except OSError as e:
-        # FK logging is non-critical — a disk error must never break the
-        # pipeline's primary job of returning the escalation guide to the
-        # patient.
-        logger.warning("Could not write FK log for '%s': %s", document_id, e)
-
-
-# ── Public API ─────────────────────────────────────────────────────────────────
-
-
 def run_escalation_agent(
     extraction: ExtractionOutput,
     document_id: str = "unknown",
@@ -270,8 +148,8 @@ def run_escalation_agent(
     updating the UI.
 
     Provider and model are resolved from LLM_PROVIDER / LLM_MODEL in .env via
-    _get_client() (Anthropic native or OpenAI-compatible for openrouter, openai,
-    ollama).
+    get_native_agent_client() (Anthropic native or OpenAI-compatible for
+    gemini, openrouter, openai, ollama).
 
     Data contract:
         Input:  ExtractionOutput from Agent 1.
@@ -293,8 +171,8 @@ def run_escalation_agent(
 
     Raises:
         ValueError: If primary_diagnosis is missing from Agent 1 output.
-        anthropic.APIError: If the Anthropic API call fails on the Anthropic path.
-        Exception: If the OpenRouter API call fails.
+        anthropic.APIError: If the Anthropic API call fails on the anthropic path.
+        Exception: If the provider API call fails on non-anthropic paths.
     """
     if not extraction.primary_diagnosis:
         raise ValueError(
@@ -302,7 +180,7 @@ def run_escalation_agent(
             f"Field is empty for document '{document_id}'."
         )
 
-    system_prompt = _load_system_prompt()
+    system_prompt = load_agent_prompt("agent5_system_prompt.txt")
     user_message = _build_user_message(extraction)
 
     logger.info(
@@ -311,16 +189,10 @@ def run_escalation_agent(
         len(extraction.red_flag_symptoms or []),
     )
 
-    provider = os.environ.get("LLM_PROVIDER", "anthropic").lower()
-    client = _get_client()
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
+    client, model = get_native_agent_client(provider)
 
     if provider != "anthropic":
-        default_model = {
-            "openrouter": "openrouter/free",
-            "openai": "gpt-4o-mini",
-            "ollama": "qwen2.5:7b",
-        }.get(provider, "openrouter/free")
-        model = os.environ.get("LLM_MODEL", default_model)
         try:
             escalation_text = call_chat_with_fallback(
                 client=client,
@@ -333,10 +205,9 @@ def run_escalation_agent(
                 document_id=document_id,
             )
         except Exception as e:
-            logger.error("Agent 5 OpenRouter call failed for '%s': %s", document_id, e)
+            logger.error("Agent 5 %s call failed for '%s': %s", provider, document_id, e)
             raise
     else:
-        model = os.environ.get("LLM_MODEL", DEFAULT_ANTHROPIC_MODEL)
         try:
             response = client.messages.create(
                 model=model,
@@ -344,36 +215,25 @@ def run_escalation_agent(
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_message}],
             )
-        except (anthropic.APIError, Exception) as e:
+        except anthropic.APIError as e:
             logger.error("Agent 5 Anthropic call failed for '%s': %s", document_id, e)
             raise
         # Guard: Anthropic occasionally returns an empty content array on
-        # transient errors that don't raise.  Empty string flows through the
-        # FK check below and surfaces as a normal empty-output failure.
+        # transient errors that don't raise.
         escalation_text = response.content[0].text.strip() if response.content else ""
 
     # Runtime ambiguity check — agent5_system_prompt.txt forbids these phrases,
     # but we log a warning if the LLM slips one through so operators can catch it.
-    _AMBIGUOUS_PATTERNS = [
-        r"\bmay need to\b", r"\bmight need to\b", r"\bcould need\b",
-        r"\bconsider calling\b", r"\bconsider going\b", r"\byou may want to\b",
-        r"\bperhaps\b", r"\bif possible\b",
-    ]
-    for pattern in _AMBIGUOUS_PATTERNS:
-        if re.search(pattern, escalation_text, re.IGNORECASE):
-            logger.warning(
-                "Agent 5 AMBIGUITY '%s': output contains forbidden phrase matching '%s'. "
-                "Review agent5_system_prompt.txt.",
-                document_id,
-                pattern,
-            )
+    if _AMBIGUOUS_PATTERN.search(escalation_text):
+        logger.warning(
+            "Agent 5 AMBIGUITY '%s': output contains a forbidden hedging phrase. "
+            "Review agent5_system_prompt.txt.",
+            document_id,
+        )
 
-    # FK check. Safety output must be legible at a 6th-grade reading level;
-    # a failing score means the prompt needs tightening, not a silent retry.
-    # Guard against empty text — fk_score() raises ValueError on empty input.
     if escalation_text.strip():
         fk_result = fk_check(escalation_text)
-        _log_fk_score(document_id, fk_result)
+        log_fk_score(document_id, "agent5_escalation", fk_result)
     else:
         fk_result = {"fk_grade": -1.0, "passes": False, "threshold": 6.0}
 
