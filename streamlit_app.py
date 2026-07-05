@@ -52,6 +52,7 @@ from dotenv import load_dotenv
 
 from dischargeiq.utils.logger import configure_logging
 from dischargeiq.utils.questions_html import build_copy_button_html, build_questions_section_html
+from ui.quiz_tab import render_quiz_tab
 
 load_dotenv(dotenv_path=".env")
 configure_logging()
@@ -106,6 +107,7 @@ _TABS = [
     ("appointments", "Appointments"),
     ("warnings", "Warning signs"),
     ("recovery", "Recovery"),
+    ("quiz", "Test yourself"),
     ("simulator", "AI Review"),
 ]
 
@@ -3752,12 +3754,22 @@ def _render_section_simulator(result: dict) -> None:
 
 # ── Section dispatch ─────────────────────────────────────────────────────────
 
+def _render_section_quiz(result: dict) -> None:
+    """Teach-back quiz tab — delegates to ui/quiz_tab.py (Sprint 3, Task 3.2)."""
+    render_quiz_tab(
+        result,
+        session_id=st.session_state.get(_S_PDF_SESSION_ID) or str(uuid.uuid4()),
+        api_base=_API_BASE,
+    )
+
+
 _SECTION_RENDERERS = {
     "diagnosis":    _render_section_diagnosis,
     "medications":  _render_section_medications,
     "appointments": _render_section_appointments,
     "warnings":     _render_section_warning_signs,
     "recovery":     _render_section_recovery,
+    "quiz":         _render_section_quiz,
     "simulator":    _render_section_simulator,
 }
 
