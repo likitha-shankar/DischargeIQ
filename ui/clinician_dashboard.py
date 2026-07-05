@@ -1,0 +1,335 @@
+"""
+File: ui/clinician_dashboard.py
+Owner: Likitha Shankar
+Description: Streamlit clinician dashboard (Sprint 3, Task 3.3) — a separate,
+  clinician-facing surface (not a patient tab) showing anonymized session
+  activity, per-session comprehension deltas from the teach-back quiz, and
+  flagged knowledge gaps (domains patients still miss AFTER the learning
+  cards). Reads Neon directly — point DATABASE_URL_RO at a read replica so
+  analytics never touch transactional performance; falls back to DATABASE_URL.
+Key functions/classes: main, _fetch_rows, _build_session_table, _domain_miss_rates
+Edge cases handled:
+  - No DATABASE_URL configured → clear setup message, no stack trace.
+  - Tables missing (fresh DB) → treated as zero rows, not an error.
+  - Sessions with a quiz but no post phase (abandoned) → shown, delta blank.
+Dependencies: streamlit, asyncpg, pandas (ships with streamlit), python-dotenv.
+Called by: `streamlit run ui/clinician_dashboard.py --server.port 8502`
+  (self-contained on purpose — no dischargeiq imports, so it runs anywhere
+  the two env vars reach the database).
+"""
+
+import asyncio
+import json
+import logging
+import os
+
+import asyncpg
+import pandas as pd
+import streamlit as st
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=".env")
+logger = logging.getLogger(__name__)
+
+# Patient-facing labels for the five quiz domains (mirrors ui/quiz_tab.py).
+_DOMAIN_LABELS = {
+    "diagnosis": "What happened",
+    "medications": "Medications",
+    "follow_up": "Follow-up visits",
+    "activity": "Activity & diet",
+    "red_flags": "Warning signs",
+}
+
+# Comprehension-lift target band from the work plan (13% baseline -> 50-70%).
+_TARGET_LOW, _TARGET_HIGH = 50, 70
+
+
+async def _fetch_rows(db_url: str) -> tuple[list, list]:
+    """
+    Fetch discharge sessions and quiz scores in one short-lived connection.
+
+    A single one-shot connection (not a pool) is deliberate: the dashboard is
+    a low-traffic analytics read against a replica, and Streamlit reruns are
+    cached for 60s below, so pooling would add state for no benefit.
+
+    Args:
+        db_url: Postgres connection string (read replica preferred).
+
+    Returns:
+        (history_rows, quiz_rows) as lists of asyncpg Records. A missing
+        table (fresh database) yields an empty list for that side.
+
+    Raises:
+        asyncpg.PostgresError: On connection/auth failures (caught by caller).
+    """
+    conn = await asyncpg.connect(db_url)
+    try:
+        async def _safe(query: str) -> list:
+            # Fresh deployments create tables lazily on first write, so a
+            # missing table just means "no data yet" — never an error page.
+            try:
+                return await conn.fetch(query)
+            except asyncpg.UndefinedTableError:
+                return []
+
+        history = await _safe(
+            """
+            SELECT session_id, document_hash, primary_diagnosis,
+                   pipeline_status, created_at
+            FROM discharge_history
+            ORDER BY created_at DESC
+            LIMIT 500
+            """
+        )
+        quiz = await _safe(
+            """
+            SELECT session_id, phase, percent, domain_scores, created_at
+            FROM quiz_scores
+            ORDER BY created_at ASC
+            LIMIT 5000
+            """
+        )
+        return history, quiz
+    finally:
+        await conn.close()
+
+
+@st.cache_data(ttl=60, show_spinner="Loading analytics…")
+def _load_data(db_url: str) -> tuple[list[dict], list[dict]]:
+    """
+    Cached wrapper around _fetch_rows, converted to plain dicts.
+
+    Streamlit reruns the whole script on every interaction; the 60s TTL keeps
+    replica load at ~1 query/minute regardless of clicking.
+
+    Args:
+        db_url: Postgres connection string (cache key).
+
+    Returns:
+        (history, quiz) as lists of plain dicts (asyncpg Records don't pickle
+        for Streamlit's cache).
+    """
+    history, quiz = asyncio.run(_fetch_rows(db_url))
+    return [dict(r) for r in history], [dict(r) for r in quiz]
+
+
+def _quiz_by_session(quiz: list[dict]) -> dict[str, dict]:
+    """
+    Reduce quiz rows to one record per session: honest baseline + final post.
+
+    Protocol match with dischargeiq/db/quiz.py: the FIRST pre row is the
+    baseline (retakes are inflated by exposure); the LAST post row is the
+    outcome (mastery-path retakes count — they reflect what the patient
+    finally knows).
+
+    Args:
+        quiz: quiz_scores rows sorted ascending by created_at.
+
+    Returns:
+        {session_id: {"pre": float|None, "post": float|None,
+                      "post_domains": dict|None}}
+    """
+    sessions: dict[str, dict] = {}
+    for row in quiz:
+        entry = sessions.setdefault(
+            row["session_id"], {"pre": None, "post": None, "post_domains": None}
+        )
+        domains = row["domain_scores"]
+        if isinstance(domains, str):  # asyncpg returns JSONB as str by default
+            try:
+                domains = json.loads(domains)
+            except json.JSONDecodeError:
+                logger.warning("unparseable domain_scores for %s", row["session_id"])
+                domains = None
+        if row["phase"] == "pre" and entry["pre"] is None:
+            entry["pre"] = float(row["percent"])
+        elif row["phase"] == "post":
+            entry["post"] = float(row["percent"])
+            entry["post_domains"] = domains
+    return sessions
+
+
+def _domain_miss_rates(quiz: list[dict], phase: str) -> dict[str, float]:
+    """
+    Aggregate miss rate per quiz domain across all sessions for one phase.
+
+    Args:
+        quiz: quiz_scores rows.
+        phase: "pre" (baseline gaps) or "post" (persistent, flagged gaps).
+
+    Returns:
+        {domain_label: missed_fraction 0..1} for domains with any data.
+    """
+    missed: dict[str, int] = {}
+    total: dict[str, int] = {}
+    for row in quiz:
+        if row["phase"] != phase:
+            continue
+        domains = row["domain_scores"]
+        if isinstance(domains, str):
+            try:
+                domains = json.loads(domains)
+            except json.JSONDecodeError:
+                continue
+        for domain, counts in (domains or {}).items():
+            label = _DOMAIN_LABELS.get(domain, domain)
+            total[label] = total.get(label, 0) + counts.get("total", 0)
+            missed[label] = missed.get(label, 0) + (
+                counts.get("total", 0) - counts.get("correct", 0)
+            )
+    return {d: missed[d] / total[d] for d in total if total[d] > 0}
+
+
+def _build_session_table(history: list[dict], quiz_sessions: dict[str, dict]) -> pd.DataFrame:
+    """
+    Join discharge sessions with their quiz outcomes into a display frame.
+
+    Anonymization contract: only truncated random session ids and document
+    hashes leave the database — discharge_history stores no patient names,
+    and quiz_scores stores no question or answer text.
+
+    Args:
+        history: discharge_history rows (newest first).
+        quiz_sessions: output of _quiz_by_session.
+
+    Returns:
+        DataFrame with one row per analyzed document.
+    """
+    rows = []
+    for h in history:
+        q = quiz_sessions.get(h["session_id"], {})
+        pre, post = q.get("pre"), q.get("post")
+        delta = (post - pre) if (pre is not None and post is not None) else None
+        rows.append(
+            {
+                "Session": h["session_id"][:8],
+                "Document": (h["document_hash"] or "")[:8],
+                "Diagnosis": h["primary_diagnosis"] or "—",
+                "Pipeline": h["pipeline_status"] or "—",
+                "Baseline %": pre,
+                "Post %": post,
+                "Lift (pts)": delta,
+                "Analyzed": h["created_at"],
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _render_metrics(df: pd.DataFrame, quiz_sessions: dict[str, dict]) -> None:
+    """Render the headline stat tiles: volume, baseline, outcome, lift."""
+    completed = [
+        s for s in quiz_sessions.values() if s["pre"] is not None and s["post"] is not None
+    ]
+    avg_pre = sum(s["pre"] for s in completed) / len(completed) if completed else None
+    avg_post = sum(s["post"] for s in completed) / len(completed) if completed else None
+    avg_lift = (avg_post - avg_pre) if completed else None
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Documents analyzed", len(df))
+    c2.metric("Completed quiz loops", len(completed))
+    c3.metric("Avg baseline", f"{avg_pre:.0f}%" if avg_pre is not None else "—")
+    c4.metric(
+        "Avg after teaching",
+        f"{avg_post:.0f}%" if avg_post is not None else "—",
+        delta=f"{avg_lift:+.0f} pts" if avg_lift is not None else None,
+    )
+    if avg_post is not None:
+        on_target = _TARGET_LOW <= avg_post <= 100
+        st.caption(
+            f"Work-plan target: {_TARGET_LOW}–{_TARGET_HIGH}% comprehension after "
+            f"teaching (from ~13% literature baseline). "
+            + ("✅ On target." if on_target else "⚠️ Below target band.")
+        )
+
+
+def _render_flagged_gaps(quiz: list[dict]) -> None:
+    """
+    Render the flagged-gaps section: domains still missed AFTER teaching.
+
+    A post-phase miss is the actionable signal for a care team — the app
+    taught the topic and the patient still got it wrong.
+    """
+    st.subheader("Flagged knowledge gaps")
+    post_miss = _domain_miss_rates(quiz, "post")
+    pre_miss = _domain_miss_rates(quiz, "pre")
+    if not pre_miss and not post_miss:
+        st.info("No quiz data yet — gaps appear once patients take the teach-back quiz.")
+        return
+
+    flagged = {d: rate for d, rate in post_miss.items() if rate > 0}
+    if flagged:
+        worst = sorted(flagged.items(), key=lambda kv: kv[1], reverse=True)
+        st.warning(
+            "Still missed after teaching: "
+            + ", ".join(f"**{d}** ({rate:.0%})" for d, rate in worst)
+        )
+    else:
+        st.success("No domain is being missed after teaching.")
+
+    # One axis, one comparison: miss rate per domain, before vs after teaching.
+    domains = sorted(set(pre_miss) | set(post_miss))
+    chart_df = pd.DataFrame(
+        {
+            "Missed at baseline": [pre_miss.get(d, 0.0) for d in domains],
+            "Missed after teaching": [post_miss.get(d, 0.0) for d in domains],
+        },
+        index=domains,
+    )
+    st.bar_chart(chart_df, horizontal=True)
+    st.caption("Fraction of quiz questions missed per domain, across all sessions.")
+
+
+def main() -> None:
+    """Page entry point: config check, data load, metrics, gaps, session table."""
+    st.set_page_config(page_title="DischargeIQ — Clinician Dashboard", page_icon="🩺", layout="wide")
+    st.title("🩺 Clinician Dashboard")
+    st.caption(
+        "Anonymized teach-back analytics. Sessions are random ids — no names, "
+        "no document text, no quiz answer text is ever stored. Gaps flagged "
+        "here are discussion prompts for the care team, not diagnoses."
+    )
+
+    db_url = os.getenv("DATABASE_URL_RO") or os.getenv("DATABASE_URL")
+    if not db_url:
+        st.error(
+            "No database configured. Set `DATABASE_URL_RO` (Neon read replica, "
+            "preferred for analytics) or `DATABASE_URL` in `.env`."
+        )
+        return
+    if not os.getenv("DATABASE_URL_RO"):
+        st.caption("ℹ️ Using the primary DATABASE_URL — set DATABASE_URL_RO to a read replica in production.")
+
+    try:
+        history, quiz = _load_data(db_url)
+    except (asyncpg.PostgresError, OSError) as exc:
+        logger.error("dashboard DB load failed: %s", exc)
+        st.error(f"Could not reach the database: {exc}")
+        return
+
+    quiz_sessions = _quiz_by_session(quiz)
+    df = _build_session_table(history, quiz_sessions)
+
+    _render_metrics(df, quiz_sessions)
+    st.divider()
+    _render_flagged_gaps(quiz)
+    st.divider()
+
+    st.subheader("Sessions")
+    if df.empty:
+        st.info("No analyzed documents yet.")
+    else:
+        st.dataframe(
+            df,
+            width="stretch",
+            hide_index=True,
+            column_config={
+                "Baseline %": st.column_config.NumberColumn(format="%.0f%%"),
+                "Post %": st.column_config.NumberColumn(format="%.0f%%"),
+                "Lift (pts)": st.column_config.NumberColumn(format="%+.0f"),
+                "Analyzed": st.column_config.DatetimeColumn(format="MMM D, HH:mm"),
+            },
+        )
+    st.button("Refresh", on_click=_load_data.clear)
+
+
+main()
