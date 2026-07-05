@@ -81,12 +81,16 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 # ── Rate limiting ─────────────────────────────────────────────────────────────
 
 # Limits per endpoint:
-#   /analyze: expensive (4-6 LLM calls, up to 30s). Cap at 5 req/min per IP.
-#   /chat:    cheap (1 LLM call, ~2s). Cap at 30 req/min per IP.
+#   /analyze:       expensive (4-6 LLM calls, up to 30s). Cap at 5 req/min per IP.
+#   /chat:          cheap (1 LLM call, ~2s). Cap at 30 req/min per IP.
+#   /quiz/generate: 1 LLM call but larger output. Cap at 10 req/min per IP.
+#   /quiz/score:    pure computation + one DB write. Cap at 30 req/min per IP.
 # Window: sliding 60-second window using a simple token-replenishment approach.
 _RATE_LIMITS: dict[str, tuple[int, float]] = {
     "/analyze": (5, 60.0),    # max_requests, window_seconds
     "/chat": (30, 60.0),
+    "/quiz/generate": (10, 60.0),
+    "/quiz/score": (30, 60.0),
 }
 
 _rate_lock = threading.Lock()

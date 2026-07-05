@@ -8,9 +8,11 @@ concerns (Optional fields, response shape) do not bleed into the pipeline
 data contracts.
 """
 
-from typing import Optional
+from typing import Literal, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from dischargeiq.models.quiz import QuizQuestion
 
 
 class ChatRequest(BaseModel):
@@ -45,3 +47,68 @@ class ChatResponse(BaseModel):
     reply: str
     source_page: Optional[int] = None
     from_document: bool = True
+
+
+class QuizGenerateRequest(BaseModel):
+    """
+    Request body for POST /quiz/generate.
+
+    Fields:
+        session_id: Client session identifier (same one used by /chat).
+        extraction: The `extraction` field of the PipelineResponse the client
+                    already holds. Sent by the client (like /chat's
+                    pipeline_context) so quiz generation is stateless and safe
+                    under Cloud Run multi-instance routing.
+    """
+
+    session_id: str
+    extraction: dict
+
+
+class QuizGenerateResponse(BaseModel):
+    """Response body for POST /quiz/generate — the frozen question set."""
+
+    session_id: str
+    questions: list[QuizQuestion]
+    fk_grade: float
+
+
+class QuizQuestionKey(BaseModel):
+    """Minimal grading key for one question (domain + correct option index)."""
+
+    domain: str
+    correct_index: int = Field(ge=0, le=3)
+
+
+class QuizScoreRequest(BaseModel):
+    """
+    Request body for POST /quiz/score.
+
+    The client sends back the grading key it received from /quiz/generate plus
+    the patient's answers, in presentation order. answers uses -1 for skipped.
+    Stateless by design — no server-side quiz storage required.
+    """
+
+    session_id: str
+    phase: Literal["pre", "post"]
+    question_keys: list[QuizQuestionKey] = Field(min_length=1, max_length=10)
+    answers: list[int]
+
+
+class QuizScoreResponse(BaseModel):
+    """
+    Response body for POST /quiz/score.
+
+    comprehension_delta is populated only on post phases when a stored pre
+    score exists (needs DATABASE_URL); otherwise the client computes the delta
+    from the two scores it already has.
+    """
+
+    session_id: str
+    phase: str
+    score: int
+    total: int
+    percent: float
+    domain_scores: dict[str, dict[str, int]]
+    failed_domains: list[str]
+    comprehension_delta: Optional[float] = None
