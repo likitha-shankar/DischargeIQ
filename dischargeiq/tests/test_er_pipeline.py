@@ -19,6 +19,7 @@ Called by: pytest (testpaths = dischargeiq/tests per pytest.ini).
 import asyncio
 import json
 from types import SimpleNamespace
+from contextlib import ExitStack
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -32,6 +33,7 @@ from dischargeiq.pipeline import orchestrator
 # Patch at the orchestrator's import namespace so asyncio.to_thread
 # picks up the mock rather than the real function.
 _MOCK_EXTRACT_TEXT    = "dischargeiq.pipeline.orchestrator.extract_document_text"
+_MOCK_RUN_ROUTER      = "dischargeiq.pipeline.orchestrator.run_router_agent"
 _MOCK_RUN_EXTRACTION  = "dischargeiq.pipeline.orchestrator.run_extraction_agent"
 _MOCK_RUN_DIAGNOSIS   = "dischargeiq.pipeline.orchestrator.run_diagnosis_agent"
 _MOCK_RUN_MEDICATION  = "dischargeiq.pipeline.orchestrator.run_medication_agent"
@@ -112,7 +114,7 @@ def _run_pipeline(pdf_path: str = "er_test.pdf") -> PipelineResponse:
 # ── Shared patch context for both ER tests ─────────────────────────────────────
 
 
-def _er_patches(extraction: ExtractionOutput):
+def _er_patches(extraction: ExtractionOutput, simulator_output: PatientSimulatorOutput | None = None):
     """Return a list of patch context managers for a full mocked pipeline run."""
     return [
         patch(
@@ -123,12 +125,23 @@ def _er_patches(extraction: ExtractionOutput):
                 page_count=1,
             ),
         ),
+        # Router must be mocked or these tests make live LLM calls and the
+        # router may (correctly) reject minimal synthetic ER text.
+        patch(
+            _MOCK_RUN_ROUTER,
+            return_value={
+                "document_type": "unknown",
+                "confidence": 0.9,
+                "should_process": True,
+                "reason": "mocked",
+            },
+        ),
         patch(_MOCK_RUN_EXTRACTION, return_value=extraction),
         patch(_MOCK_RUN_DIAGNOSIS,  return_value=_agent_text_result("You had a minor injury that was repaired.")),
         patch(_MOCK_RUN_MEDICATION, return_value=_agent_text_result("Take ibuprofen for pain as needed.")),
         patch(_MOCK_RUN_RECOVERY,   return_value=_agent_text_result("Keep wound clean and dry for 24 hours.")),
         patch(_MOCK_RUN_ESCALATION, return_value=_agent_text_result("Go to the ER if the wound looks infected.")),
-        patch(_MOCK_RUN_SIMULATOR,  return_value=_minimal_simulator_output()),
+        patch(_MOCK_RUN_SIMULATOR,  return_value=simulator_output or _minimal_simulator_output()),
         patch(_MOCK_SAVE_HISTORY,   new_callable=AsyncMock),
     ]
 
@@ -144,7 +157,9 @@ def test_laceration_er_pipeline_is_not_partial():
     extraction = _laceration_extraction()
     patches = _er_patches(extraction)
 
-    with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7]:
+    with ExitStack() as stack:
+        for p in patches:
+            stack.enter_context(p)
         result = _run_pipeline("er_laceration_01.pdf")
 
     assert result.pipeline_status in ("complete", "complete_with_warnings"), (
@@ -163,7 +178,9 @@ def test_asthma_er_pipeline_is_not_partial():
     extraction = _asthma_extraction()
     patches = _er_patches(extraction)
 
-    with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7]:
+    with ExitStack() as stack:
+        for p in patches:
+            stack.enter_context(p)
         result = _run_pipeline("er_asthma_01.pdf")
 
     assert result.pipeline_status in ("complete", "complete_with_warnings"), (
@@ -192,7 +209,9 @@ def test_er_pipeline_with_empty_medications_does_not_partial():
     )
     patches = _er_patches(extraction)
 
-    with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7]:
+    with ExitStack() as stack:
+        for p in patches:
+            stack.enter_context(p)
         result = _run_pipeline("er_contusion.pdf")
 
     assert result.pipeline_status in ("complete", "complete_with_warnings"), (
@@ -214,11 +233,12 @@ def test_er_pipeline_simulator_fallback_does_not_partial():
         passes=False,
     )
     extraction = _laceration_extraction()
-    patches = _er_patches(extraction)
-    # Override the simulator patch with one that returns the empty fallback.
-    patches[6] = patch(_MOCK_RUN_SIMULATOR, return_value=empty_sim)
+    # Simulator override: returns the empty fallback instead of the minimal output.
+    patches = _er_patches(extraction, simulator_output=empty_sim)
 
-    with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7]:
+    with ExitStack() as stack:
+        for p in patches:
+            stack.enter_context(p)
         result = _run_pipeline("er_laceration_fallback.pdf")
 
     assert result.pipeline_status in ("complete", "complete_with_warnings"), (

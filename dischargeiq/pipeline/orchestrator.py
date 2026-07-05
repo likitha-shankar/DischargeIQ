@@ -26,6 +26,7 @@ from datetime import datetime
 from typing import Callable
 
 from dischargeiq.agents.diagnosis_agent import run_diagnosis_agent
+from dischargeiq.agents.router_agent import run_router_agent
 from dischargeiq.agents.escalation_agent import run_escalation_agent
 from dischargeiq.agents.extraction_agent import run_extraction_agent
 from dischargeiq.ingest import extract_document_text
@@ -285,6 +286,43 @@ async def _run_pipeline_internal(
     """
     pipeline_start = time.monotonic()
     logger.info("Pipeline start — document: %s", pdf_path)
+
+    # ── Router / Supervisor — document classification ────────────────────────
+    # Classifies document type (heart_failure, copd, etc.) and gates obviously
+    # non-discharge documents before any expensive agent calls run.
+    # Always non-fatal: router failures fall back to should_process=True so a
+    # real discharge summary is never silently dropped by a classifier error.
+    router_result = {"should_process": True}
+    # Pre-read raw text for the router (pdfplumber re-reads in Agent 1 — accepted
+    # cost; the router only needs the first ~2000 chars so it is negligible).
+    try:
+        if on_progress is not None:
+            on_progress(0, "Router", "Classifying document type...")
+        _ingest_for_router = await asyncio.to_thread(extract_document_text, pdf_path)
+        router_result = await asyncio.to_thread(run_router_agent, _ingest_for_router.text)
+        logger.info(
+            "Router: type=%s confidence=%.2f should_process=%s",
+            router_result["document_type"], router_result["confidence"], router_result["should_process"],
+        )
+    except Exception as exc:
+        logger.warning("Router agent failed (non-fatal, continuing): %s", exc)
+
+    if not router_result.get("should_process", True):
+        logger.warning(
+            "Router rejected document '%s': %s", pdf_path, router_result.get("reason", "")
+        )
+        return PipelineResponse(
+            extraction=ExtractionOutput(primary_diagnosis="Not a discharge document"),
+            diagnosis_explanation="",
+            medication_rationale="",
+            recovery_trajectory="",
+            escalation_guide="",
+            fk_scores={},
+            extraction_warnings=[
+                f"Document rejected by router: {router_result.get('reason', 'Not a discharge summary')}"
+            ],
+            pipeline_status="partial",
+        )
 
     # ── Agent 1 — Extraction ─────────────────────────────────────────────────
     if on_progress is not None:
