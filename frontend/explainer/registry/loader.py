@@ -1,13 +1,13 @@
 """
 File: frontend/explainer/registry/loader.py
-Component: Anatomy Explainer — Registry Loader
+Component: Anatomy Explainer - Registry Loader
 Description: Reads anatomy_registry.json from disk, validates every entry
   against the Pydantic v2 schema, builds id and condition-key indexes, and
   exposes a RegistryStore with O(1) lookups. This is the single gate through
   which all registry data must pass; nothing reaches the engine unvalidated.
 
 Key public API:
-  load_registry(manifest_path) -> RegistryStore   — call once at startup, cache result
+  load_registry(manifest_path) -> RegistryStore   - call once at startup, cache result
   RegistryStore.lookup_by_id(id) -> RegistryEntry | None
   RegistryStore.lookup_by_condition_key(key) -> RegistryEntry | None
 
@@ -91,7 +91,7 @@ def _validate_manifest(raw: dict) -> AnatomyRegistry:
         return AnatomyRegistry.model_validate(raw)
     except ValidationError as exc:
         logger.error(
-            "Registry manifest failed schema validation — %d error(s):\n%s",
+            "Registry manifest failed schema validation - %d error(s):\n%s",
             exc.error_count(),
             exc,
         )
@@ -103,7 +103,7 @@ def _build_id_index(entries: list[RegistryEntry]) -> dict[str, RegistryEntry]:
     Build a dict keyed by entry.id for O(1) id-based lookups.
 
     Raises ValueError immediately on a duplicate id. A duplicate id is a data
-    error — two entries cannot share a stable identifier — so silently keeping
+    error - two entries cannot share a stable identifier - so silently keeping
     one would hide a broken manifest. Fail-fast here forces the author to fix
     the manifest before any code can run against it.
 
@@ -133,7 +133,7 @@ def _build_condition_index(entries: list[RegistryEntry]) -> dict[str, RegistryEn
 
     Each entry may declare multiple condition_keys (synonyms). All are indexed.
     Normalisation: strip whitespace, lowercase. If two entries share a key the
-    second overwrites the first and a warning is logged — duplicate keys signal
+    second overwrites the first and a warning is logged - duplicate keys signal
     an authoring error that a human must resolve.
 
     Args:
@@ -241,7 +241,7 @@ def load_registry(manifest_path: Path = _MANIFEST_DEFAULT) -> RegistryStore:
     Read, validate, and index the anatomy registry manifest from disk.
 
     This is the primary public entry point. The result is a RegistryStore
-    ready for lookups. Callers must cache the result — do not call this
+    ready for lookups. Callers must cache the result - do not call this
     function on every request, as it performs file I/O and full Pydantic
     validation on every invocation.
 

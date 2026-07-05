@@ -1,5 +1,5 @@
 name: dischargeiq_mobile
-description: DischargeIQ patient app — Flutter client for discharge summaries.
+description: DischargeIQ patient app - Flutter client for discharge summaries.
 publish_to: "none"
 version: 1.0.0+1
 
@@ -15,7 +15,7 @@ dependencies:
   provider: ^6.1.2
   shared_preferences: ^2.2.2
   # Camera scan path (Sprint 2): capture via the system camera, recognize
-  # text on-device with ML Kit — the photo never leaves the phone.
+  # text on-device with ML Kit - the photo never leaves the phone.
   image_picker: ^1.1.2
   google_mlkit_text_recognition: ^0.15.0
 

@@ -1,14 +1,14 @@
-# `db/` — PostgreSQL persistence
+# `db/` - PostgreSQL persistence
 
 Neon Postgres schema and write helpers for discharge history. Currently
-**not wired into the pipeline** — the module exists as scaffolding for
+**not wired into the pipeline** - the module exists as scaffolding for
 future history/retrieval work.
 
 ## Files
 
-- `schema.sql` — `discharge_history` table definition. Apply once per
+- `schema.sql` - `discharge_history` table definition. Apply once per
   database: `psql "$DATABASE_URL" -f dischargeiq/db/schema.sql`.
-- `history.py` — async write helper `save_discharge_history(...)` built
+- `history.py` - async write helper `save_discharge_history(...)` built
   on `asyncpg`. No callers today.
 
 ## Setup

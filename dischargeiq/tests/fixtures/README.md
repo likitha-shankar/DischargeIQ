@@ -1,7 +1,7 @@
-# `fixtures/` — test PDFs
+# `fixtures/` - test PDFs
 
 Synthetic discharge documents used by the integration and stress
-suites. All fixtures are fictional — no real patient data.
+suites. All fixtures are fictional - no real patient data.
 
 ## Primary 8-case suite (hallucination gate)
 
@@ -39,4 +39,4 @@ python scripts/stress/generate_stress_fixtures.py   # regenerates fixture_09…1
 ```
 
 The primary 8-case fixtures are checked in as binary and not regenerated
-automatically — replace only via a reviewed commit.
+automatically - replace only via a reviewed commit.

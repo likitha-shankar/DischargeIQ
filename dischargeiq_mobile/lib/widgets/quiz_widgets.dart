@@ -3,7 +3,7 @@
 /// Reusable visual pieces for the teach-back quiz flow (Sprint 3):
 /// question card with tappable options, step progress bar, animated score
 /// ring, per-domain result chips, and the comprehension-lift banner.
-/// Pure presentation — all state lives in QuizScreen.
+/// Pure presentation - all state lives in QuizScreen.
 library;
 
 import 'package:dischargeiq_mobile/config.dart';
@@ -63,7 +63,7 @@ class QuizProgressBar extends StatelessWidget {
 
 /// One question with 4 tappable options.
 ///
-/// [revealCorrect] is false during the pre (baseline) phase — protocol §3a:
+/// [revealCorrect] is false during the pre (baseline) phase - protocol §3a:
 /// no feedback before the intervention, or the baseline teaches. In post
 /// phase, after selection the correct option turns green, a wrong pick turns
 /// red, and the explanation appears.
@@ -118,7 +118,7 @@ class QuestionCard extends StatelessWidget {
           _OptionTile(
             text: question.options[i],
             state: _optionState(i, showFeedback),
-            // Lock the answer once feedback is shown — no answer-shopping.
+            // Lock the answer once feedback is shown - no answer-shopping.
             onTap: showFeedback ? null : () => onSelect(i),
           ),
           const SizedBox(height: 10),
@@ -259,7 +259,7 @@ class ScoreRing extends StatelessWidget {
   }
 }
 
-/// Per-domain result chips — green when fully correct, amber otherwise.
+/// Per-domain result chips - green when fully correct, amber otherwise.
 class DomainChips extends StatelessWidget {
   const DomainChips({super.key, required this.result});
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # File: start.sh
 # Owner: Likitha Shankar
-# Description: macOS/Linux dev bootstrap — creates .venv if needed, installs
+# Description: macOS/Linux dev bootstrap - creates .venv if needed, installs
 #   requirements.txt, validates .env keys for the chosen LLM_PROVIDER, then starts
 #   uvicorn (8000), Streamlit (8501), and optionally Flutter web (55497) in background.
 # Usage: ./start.sh (from repo root, after chmod +x)
@@ -11,7 +11,7 @@
 #   waits only on backend+Streamlit so a failed Flutter start does not kill the stack;
 #   Ctrl-C runs cleanup on child PIDs.
 
-# DischargeIQ — one-command startup for macOS / Linux.
+# DischargeIQ - one-command startup for macOS / Linux.
 #
 # What this does:
 #   1. Creates .venv if missing and installs requirements.txt.
@@ -34,7 +34,7 @@ FLUTTER_WEB_PORT=55497
 
 banner() {
     echo "────────────────────────────────────────────────────────────"
-    echo " DischargeIQ — startup"
+    echo " DischargeIQ - startup"
     echo "────────────────────────────────────────────────────────────"
 }
 
@@ -97,11 +97,11 @@ if [ ! -f ".env" ]; then
         echo "════════════════════════════════════════════════════════════"
         echo " .env created from .env.example."
         echo ""
-        echo " ACTION REQUIRED — edit .env: set LLM_PROVIDER and the matching API key."
+        echo " ACTION REQUIRED - edit .env: set LLM_PROVIDER and the matching API key."
         echo "   All five agents use the same LLM_PROVIDER."
         echo ""
         echo " Typical keys (pick one path):"
-        echo "   • ANTHROPIC_API_KEY   (if LLM_PROVIDER=anthropic, default — optional LLM_MODEL, see .env.example)"
+        echo "   • ANTHROPIC_API_KEY   (if LLM_PROVIDER=anthropic, default - optional LLM_MODEL, see .env.example)"
         echo "   • OPENROUTER_API_KEY  (if LLM_PROVIDER=openrouter)"
         echo "   • OPENAI_API_KEY      (if LLM_PROVIDER=openai)"
         echo "   • (nothing)           (if LLM_PROVIDER=ollama, run locally)"
@@ -149,7 +149,7 @@ case "$LLM_PROVIDER" in
             MISSING+=("ANTHROPIC_API_KEY (LLM_PROVIDER=anthropic)")
         ;;
     ollama)
-        ;; # local — no key needed
+        ;; # local - no key needed
     *)
         echo "[start] WARNING: LLM_PROVIDER='$LLM_PROVIDER' is not recognised." >&2
         ;;
@@ -176,7 +176,7 @@ echo "[start] .env OK  (LLM_PROVIDER=$LLM_PROVIDER)"
 for port in "$BACKEND_PORT" "$FRONTEND_PORT"; do
     held=$(lsof -ti:"$port" 2>/dev/null | sort -u) || true
     if [ -n "$held" ]; then
-        echo "[start] Port $port busy — clearing stale process(es): $held"
+        echo "[start] Port $port busy - clearing stale process(es): $held"
         echo "$held" | xargs kill -9 2>/dev/null || true
         sleep 0.5
     fi
@@ -251,7 +251,7 @@ fi
 # immediately when Chrome/device is missing or the project fails to build.
 # If we waited on FLUTTER_PID, one failed Flutter start would tear down the
 # whole stack right after "Services running."
-# (Avoid `wait -n` — not available in macOS's default bash 3.2.)
+# (Avoid `wait -n` - not available in macOS's default bash 3.2.)
 while true; do
     kill -0 "$BACKEND_PID" 2>/dev/null || break
     kill -0 "$FRONTEND_PID" 2>/dev/null || break

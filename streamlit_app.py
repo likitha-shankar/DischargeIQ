@@ -1,7 +1,7 @@
 """
 File: streamlit_app.py
 Owner: Likitha Shankar
-Description: Streamlit frontend for DischargeIQ — renders the upload screen,
+Description: Streamlit frontend for DischargeIQ - renders the upload screen,
   drives the PDF analysis pipeline via POST /analyze to the FastAPI backend,
   and displays a 6-tab summary screen (What Happened, Medications, Appointments,
   Warning Signs, Recovery, AI Review). All persistent UI elements (header, tab
@@ -10,20 +10,20 @@ Description: Streamlit frontend for DischargeIQ — renders the upload screen,
   buttons whose clicks are forwarded from the visible parent-DOM UI via JS
   .click(), preserving Streamlit's native button state-management semantics.
 Key functions/classes:
-  _render_upload_screen        — upload zone, drag-and-drop, Get Started button
-  _render_summary_screen       — tab host, citation modal, beforeunload warning
-  _render_app_header           — sticky teal header with logo + action buttons
-  _render_tab_bar              — horizontal tab bar injected above main content
-  _inject_global_css           — shared CSS injected once per session
-  _pipeline_loading_visual_html — animated progress bar iframe during analysis
-  _render_section_diagnosis    — What Happened tab (Agent 2 output + DX badges)
-  _render_section_medications  — Medications tab (Agent 3 output + med cards)
-  _render_section_appointments — Appointments tab (sorted, with SVG calendar)
-  _render_section_warning_signs — Warning Signs tab (Agent 5 escalation tiers)
-  _render_section_recovery     — Recovery tab (Agent 4 timeline)
-  _render_section_simulator    — AI Review tab (Agent 6 gap score + concepts)
-  _citation_button             — p.N chip that opens PDF modal at source page
-  _render_appointment_row      — single appointment card with date + citation
+  _render_upload_screen        - upload zone, drag-and-drop, Get Started button
+  _render_summary_screen       - tab host, citation modal, beforeunload warning
+  _render_app_header           - sticky teal header with logo + action buttons
+  _render_tab_bar              - horizontal tab bar injected above main content
+  _inject_global_css           - shared CSS injected once per session
+  _pipeline_loading_visual_html - animated progress bar iframe during analysis
+  _render_section_diagnosis    - What Happened tab (Agent 2 output + DX badges)
+  _render_section_medications  - Medications tab (Agent 3 output + med cards)
+  _render_section_appointments - Appointments tab (sorted, with SVG calendar)
+  _render_section_warning_signs - Warning Signs tab (Agent 5 escalation tiers)
+  _render_section_recovery     - Recovery tab (Agent 4 timeline)
+  _render_section_simulator    - AI Review tab (Agent 6 gap score + concepts)
+  _citation_button             - p.N chip that opens PDF modal at source page
+  _render_appointment_row      - single appointment card with date + citation
 Edge cases handled:
   - pipeline_status partial/complete_with_warnings: section-level warning banners
   - Citation modal: opens PDF at correct page; clears pending state after one rerun
@@ -73,7 +73,7 @@ _MED_BORDER = {
     "discontinued": "#A32D2D",
 }
 
-# Session state keys — defined as constants to avoid typos across functions.
+# Session state keys - defined as constants to avoid typos across functions.
 _S_RESULT = "result"
 _S_PDF_BYTES = "pdf_bytes"
 _S_PDF_SESSION_ID = "pdf_session_id"
@@ -86,7 +86,7 @@ _S_UPLOAD_DARK = "upload_dark_mode"       # Light/dark toggle on upload page.
 _S_STAGED_PDF_BYTES = "staged_pdf_bytes"  # Bytes stored before rerun for Pass 2.
 _S_STAGED_PDF_NAME = "staged_pdf_name"    # Filename stored before rerun for Pass 2.
 _S_UPLOAD_ERROR = "upload_error"          # One-shot error message shown on upload screen.
-_S_TOUR_REPLAY = "tour_replay_pending"    # One-shot flag — force the guided tour to start.
+_S_TOUR_REPLAY = "tour_replay_pending"    # One-shot flag - force the guided tour to start.
 _S_PDF_MODAL_NONCE = "pdf_modal_nonce"    # Bumped each time the PDF modal is opened.
 _S_LANDING_DONE = "landing_intro_done"    # Cinematic landing intro completed for this Streamlit session.
 
@@ -100,7 +100,7 @@ _DIQ_PARENT_DOM_IDS = [
     "diq-chat-bubble",
 ]
 
-# Tab definitions — (key, human label). Order is render order.
+# Tab definitions - (key, human label). Order is render order.
 _TABS = [
     ("diagnosis", "What happened"),
     ("medications", "Medications"),
@@ -166,7 +166,7 @@ def _pipeline_loading_visual_html(progress_url: str) -> str:
     Return a complete HTML document for the loading takeover.
 
     Rendered via st.components.v1.html() so scripts execute. On load the JS
-    expands the iframe to cover the full browser viewport (Option A — full-page
+    expands the iframe to cover the full browser viewport (Option A - full-page
     takeover: white card centred on #F5F4F1). Avoids st.markdown() sanitisation
     which strips <style> and mangles nested elements inside containers.
 
@@ -328,10 +328,10 @@ html,body{
   var PROGRESS_URL = "__DIQ_PROGRESS_URL__";
   var TOTAL_STEPS  = 6;
   var POLL_MS      = 800;     // tick interval
-  var FETCH_MS     = 6000;    // per-fetch timeout — abort hung requests
+  var FETCH_MS     = 6000;    // per-fetch timeout - abort hung requests
   var WATCHDOG_MS  = 4000;    // swap to "server is busy" if no update lands
 
-  // Optional debug logging — append ?diqDebug=1 to the URL.
+  // Optional debug logging - append ?diqDebug=1 to the URL.
   var DEBUG = false;
   try { DEBUG = /[?&]diqDebug=1/.test(window.parent.location.search); } catch(e) {}
   function log() {
@@ -382,7 +382,7 @@ html,body{
       var realPct = (n / TOTAL_STEPS) * 100;
       targetPct = realPct;
       simPct = Math.max(simPct, realPct);  // never go backward
-      // Nudge will update width on the next 250 ms tick — avoids a hard jump
+      // Nudge will update width on the next 250 ms tick - avoids a hard jump
     }
     pills.forEach(function(p) {
       var step = parseInt(p.getAttribute('data-step'), 10);
@@ -419,11 +419,11 @@ html,body{
   function applyWatchdog() {
     // Fires when no successful poll has landed for WATCHDOG_MS. The bar stays
     // where it was; we just swap the status text so the user knows the UI
-    // hasn't frozen — the backend is busy on a long agent step.
+    // hasn't frozen - the backend is busy on a long agent step.
     if (watchdogActive) return;
     watchdogActive = true;
     statusEl.textContent =
-      'Server is busy — still analyzing your document…';
+      'Server is busy - still analyzing your document…';
     // Re-show the indeterminate shuttle so there's visible motion even when
     // the bar's deterministic width can't advance.
     if (!fillEl.classList.contains('indet')) {
@@ -460,7 +460,7 @@ html,body{
         return;
       }
       if (data.status === 'not_found') {
-        // Backend hasn't recorded progress yet — leave the indeterminate
+        // Backend hasn't recorded progress yet - leave the indeterminate
         // shuttle running and keep polling.
         return;
       }
@@ -470,7 +470,7 @@ html,body{
     } catch(e) {
       clearTimeout(fetchTimer);
       log('fetch error', e && e.name);
-      // Network blip / abort / CORS — try again on the next tick.
+      // Network blip / abort / CORS - try again on the next tick.
     } finally {
       if (inFlightController === controller) inFlightController = null;
     }
@@ -498,7 +498,7 @@ def _inject_global_css() -> None:
     the summary screen.
 
     The injected app header and tab bar live in window.parent.document
-    and carry their own scoped styles — this function only covers the
+    and carry their own scoped styles - this function only covers the
     Streamlit-rendered content inside stMain plus the hidden-button
     collapse trick used by header/tab-bar/reset interactions.
     """
@@ -618,7 +618,7 @@ def _inject_global_css() -> None:
            start with `cite_`, so this selector targets ONLY citation
            buttons and leaves other Streamlit buttons (toggles, primary
            CTAs) untouched. */
-        /* ── Verify-extraction expander — match diq-html-details style ──────────
+        /* ── Verify-extraction expander - match diq-html-details style ──────────
            st.expander renders as a native <details> element. We override its
            default Streamlit styling so it looks identical to the medication
            rationale toggle (diq-html-details): white card, grey border,
@@ -696,14 +696,14 @@ def _inject_global_css() -> None:
             border-color: #9FD9C8 !important;
         }
 
-        /* ── Agent text markdown headers — keep them in scale ───────────────
+        /* ── Agent text markdown headers - keep them in scale ───────────────
            Agent 2's diagnosis explanation often emits # / ## / ### markdown
            headers which Streamlit renders at h1/h2/h3 default sizes (way too
            large next to our section title). Cap them so they read as
            sub-headings, not page-spanning banners.
 
            IMPORTANT: scoped via `:not([style])` so the rule only matches
-           headers that have NO inline style — i.e. the ones generated by
+           headers that have NO inline style - i.e. the ones generated by
            plain `st.markdown("# header")` from agent text. The upload-screen
            hero ("Understand everything" / "the doctor just told you.") uses
            inline style="font-size:40px" and is correctly skipped. */
@@ -1291,7 +1291,7 @@ def _simple_md_to_html(text: str) -> str:
 
 def _strip_em_dashes(text: str) -> str:
     """
-    Replace em dashes (—) and en dashes (–) with simple hyphens so the UI
+    Replace em dashes (-) and en dashes (–) with simple hyphens so the UI
     never shows them. Per project preference, em dashes are not used
     anywhere in user-facing text.
 
@@ -1303,10 +1303,10 @@ def _strip_em_dashes(text: str) -> str:
     """
     if not text:
         return text
-    out = text.replace(" — ", " - ")
-    out = out.replace(" —", " -")
-    out = out.replace("— ", "- ")
-    out = out.replace("—", "-")
+    out = text.replace(" - ", " - ")
+    out = out.replace(" -", " -")
+    out = out.replace("- ", "- ")
+    out = out.replace("-", "-")
     # En dash: replace with hyphen for things like number ranges.
     out = out.replace("–", "-")
     return out
@@ -1337,7 +1337,7 @@ def _clean_str(value: object) -> str:
 def _empty_generation_message(result: dict, section_label: str) -> None:
     """
     When an agent section is blank, explain partial pipeline / config issues
-    instead of a bare caption — especially during provider outages or 429s.
+    instead of a bare caption - especially during provider outages or 429s.
     """
     status = (result.get("pipeline_status") or "").lower()
     if status == "partial":
@@ -1362,7 +1362,7 @@ def _build_summary_pdf_bytes(result: dict) -> bytes:
     """
     Build a simple take-home PDF from the current pipeline result (post-demo).
 
-    Uses fpdf2 (already in requirements.txt). Not a clinical record — patient
+    Uses fpdf2 (already in requirements.txt). Not a clinical record - patient
     education summary only.
     """
     from fpdf import FPDF
@@ -1448,7 +1448,7 @@ def _hidden_click_target(label: str, key: str) -> bool:
     CSS in _inject_global_css() collapses both the marker container and
     the button container to an invisible 1px dot. The button remains in
     the DOM and is programmatically clickable from parent-DOM JS via
-    `button.click()` — React's synthetic-event system picks that up and
+    `button.click()` - React's synthetic-event system picks that up and
     fires the normal onClick handler.
 
     Args:
@@ -1510,7 +1510,7 @@ def _reset_session() -> None:
     st.session_state[_S_STAGED_PDF_BYTES] = None
     st.session_state[_S_STAGED_PDF_NAME] = "document.pdf"
     st.session_state[_S_UPLOAD_ERROR] = None
-    # Bump the file_uploader's key suffix so the widget remounts empty —
+    # Bump the file_uploader's key suffix so the widget remounts empty -
     # otherwise the old upload would re-stage on the next render and the
     # zone would jump straight to "Ready to analyze" instead of a clean
     # upload prompt.
@@ -1597,8 +1597,8 @@ def _render_app_header(result: dict) -> None:
     Inject the teal sticky app header into window.parent.document.body.
 
     Layout:
-      Left  — "DischargeIQ" wordmark (15px white, weight 700).
-      Right — patient name, discharge date, verified/partial pill,
+      Left  - "DischargeIQ" wordmark (15px white, weight 700).
+      Right - patient name, discharge date, verified/partial pill,
               "View original document" text link, "Upload new" ghost button.
 
     All visible buttons in the injected header forward their clicks to
@@ -1631,7 +1631,7 @@ def _render_app_header(result: dict) -> None:
         pill_border = "rgba(255,255,255,0.5)"
         pill_fg = "#ffffff"
         pill_text = "Verified*"
-        # Native tooltip — shows the list of advisory gaps when the user
+        # Native tooltip - shows the list of advisory gaps when the user
         # hovers the pill so they know what is missing without cluttering
         # the bar.
         if advisory_warnings:
@@ -1829,7 +1829,7 @@ def _render_app_header(result: dict) -> None:
   }});
 
   // Logo click navigates to the "What Happened" tab by reusing the tab
-  // bar's hidden sentinel button — no extra Python button needed.
+  // bar's hidden sentinel button - no extra Python button needed.
   var brandEl = pdoc.querySelector('#diq-app-header .diq-brand');
   if (brandEl) {{
     brandEl.style.cursor = 'pointer';
@@ -1865,7 +1865,7 @@ def _render_tab_bar(active_tab: str) -> None:
         active_tab: Key of the currently active tab. Determines which
                     tab pill gets the .active modifier class.
     """
-    # Hidden click-target buttons — one per tab. Each sentinel encodes
+    # Hidden click-target buttons - one per tab. Each sentinel encodes
     # the tab key so JS can forward clicks by constructing the label
     # string at click time.
     for tab_key, _tab_label in _TABS:
@@ -2003,7 +2003,7 @@ def _render_tab_bar(active_tab: str) -> None:
 
 # ── PDF modal overlay ────────────────────────────────────────────────────────
 
-# In-browser embedding cap — keeps the injected HTML component reasonable;
+# In-browser embedding cap - keeps the injected HTML component reasonable;
 # above this size we fall back to GET /pdf/{id} only (needs a warm backend).
 _MAX_PDF_EMBED_BYTES = 4 * 1024 * 1024
 
@@ -2113,7 +2113,7 @@ def _inject_pdf_modal(
     server_url_literal = json.dumps(iframe_src)
 
     # Streamlit short-circuits st.components.v1.html when the HTML body matches
-    # the previous call at the same script position — the iframe is reused and
+    # the previous call at the same script position - the iframe is reused and
     # the injection script does NOT re-run, so opening the modal a second time
     # would silently do nothing. Bump and embed a per-open nonce as an HTML
     # comment so every call produces unique bytes and Streamlit forces a fresh
@@ -2189,7 +2189,7 @@ def _inject_pdf_modal(
   }}
   var closeBtn = pdoc.getElementById('diq-pdf-modal-close');
   if (closeBtn) closeBtn.addEventListener('click', closeModal);
-  // ESC closes the modal — listener is attached to the parent document so it
+  // ESC closes the modal - listener is attached to the parent document so it
   // fires regardless of which iframe currently has focus, and torn down by
   // closeModal() to prevent leaks across re-opens.
   pdoc.addEventListener('keydown', onKeydown);
@@ -2252,7 +2252,7 @@ def _render_section_diagnosis(result: dict) -> None:
         # Agent 2 emits markdown (headers wrapped in **bold**, bullet lists).
         # Passing the text directly to st.markdown() lets Streamlit's
         # CommonMark parser render it. Do NOT wrap the output in a raw
-        # <div> with unsafe_allow_html=True — CommonMark does not parse
+        # <div> with unsafe_allow_html=True - CommonMark does not parse
         # markdown inside block-level HTML, so **bold** would come through
         # as literal asterisks.
         st.markdown(explanation)
@@ -2280,7 +2280,7 @@ def _parse_medication_rationale(text: str) -> dict[str, dict]:
 
     Agent 3 emits one block per medication, blocks separated by a blank
     line. The first line of each block is "DrugName:" for normal meds or
-    "DrugName — stopping:" for discontinued meds. Remaining lines in the
+    "DrugName - stopping:" for discontinued meds. Remaining lines in the
     block are the patient-facing paragraph(s).
 
     Args:
@@ -2288,8 +2288,8 @@ def _parse_medication_rationale(text: str) -> dict[str, dict]:
 
     Returns:
         dict keyed by lowercased drug name. Each value is a dict with:
-            text     (str)  — the paragraph body, leading/trailing space trimmed
-            stopping (bool) — True for discontinued/stopped medications
+            text     (str)  - the paragraph body, leading/trailing space trimmed
+            stopping (bool) - True for discontinued/stopped medications
         Returns {} when text is empty or unparseable.
     """
     blocks: dict[str, dict] = {}
@@ -2300,16 +2300,16 @@ def _parse_medication_rationale(text: str) -> dict[str, dict]:
         block = raw_block.strip()
         if not block:
             continue
-        # First line is the header ("Name:" or "Name — stopping:"); rest is body.
+        # First line is the header ("Name:" or "Name - stopping:"); rest is body.
         head, _, body = block.partition("\n")
         body = body.strip()
         if not head.endswith(":") or not body:
             continue
         header = head[:-1].strip()
-        # Detect the discontinued variant — the prompt uses an em dash but
+        # Detect the discontinued variant - the prompt uses an em dash but
         # we accept a plain hyphen too in case the model substitutes one.
         is_stopping = False
-        for marker in (" — stopping", " - stopping"):
+        for marker in (" - stopping", " - stopping"):
             if header.lower().endswith(marker):
                 header = header[: -len(marker)].strip()
                 is_stopping = True
@@ -2334,7 +2334,7 @@ def _find_rationale_for_med(med_name: str, blocks: dict[str, dict]) -> dict | No
 
     Returns:
         The matching block dict (keys: text, stopping), or None when no
-        block matches — caller skips rendering silently in that case.
+        block matches - caller skips rendering silently in that case.
     """
     if not med_name or not blocks:
         return None
@@ -2357,7 +2357,7 @@ def _render_medication_card(
 ) -> None:
     """
     Render a single medication card with status badge, caregiver questions,
-    and the "Why you're taking this" toggle — all inside one bordered surface.
+    and the "Why you're taking this" toggle - all inside one bordered surface.
 
     The caregiver questions (from Agent 6) and the rationale toggle are
     embedded as inline HTML inside the card div so Streamlit renders them
@@ -2449,7 +2449,7 @@ def _render_medication_card(
 
 def _render_section_medications(result: dict) -> None:
     """
-    Render the medications tab — section title and one card per drug.
+    Render the medications tab - section title and one card per drug.
 
     Args:
         result: PipelineResponse dict.
@@ -2503,7 +2503,7 @@ def _render_appointment_row(
     rather than a floating block below it.
 
     Every string field is run through _clean_str() before being embedded
-    into the unsafe_allow_html markdown block — this is the defensive
+    into the unsafe_allow_html markdown block - this is the defensive
     fix for upstream LLM responses that occasionally return HTML-laden
     reason/notes fields.
 
@@ -2516,7 +2516,7 @@ def _render_appointment_row(
     specialty = _clean_str(appt.get("specialty"))
     reason = _clean_str(appt.get("reason"))
     # "notes" is not part of the canonical schema but some downstream
-    # pipelines do populate it — strip defensively in case it shows up.
+    # pipelines do populate it - strip defensively in case it shows up.
     notes = _clean_str(appt.get("notes"))
     raw_date = appt.get("date")
     date_display = _clean_str(_format_date(raw_date))
@@ -2556,7 +2556,7 @@ def _render_appointment_row(
 
     # Build the inner content as one concatenated HTML string with NO blank
     # lines. CommonMark treats a whitespace-only line as a block-terminator
-    # for Type-6 HTML blocks (anything starting with `<div>`, `<p>`, etc.) —
+    # for Type-6 HTML blocks (anything starting with `<div>`, `<p>`, etc.) -
     # so when timing_html or details_html was empty, the f-string produced a
     # blank line in the middle of the block, the parser switched back to
     # Markdown mode, and the trailing `</div>` closers (and any HTML inside
@@ -2605,10 +2605,10 @@ def _appointment_sort_key(appt: dict) -> tuple:
     Return a (priority, numeric_value) sort key for chronological ordering.
 
     Priority tiers:
-      0 — ISO calendar date (YYYY-MM-DD), sorted by date value
-      1 — relative phrase with a recognisable number ("in 7 days", "in 2 weeks")
-      2 — other non-empty date string (e.g. "as soon as possible")
-      3 — no date at all (null / empty)
+      0 - ISO calendar date (YYYY-MM-DD), sorted by date value
+      1 - relative phrase with a recognisable number ("in 7 days", "in 2 weeks")
+      2 - other non-empty date string (e.g. "as soon as possible")
+      3 - no date at all (null / empty)
 
     Within tier 1, relative offsets are normalised to days so that
     "in 3 days" < "in 2 weeks" < "in 2 months".
@@ -2626,7 +2626,7 @@ def _appointment_sort_key(appt: dict) -> tuple:
     except ValueError:
         pass
 
-    # Relative phrase — extract the first number and unit
+    # Relative phrase - extract the first number and unit
     m = _re.search(r"(\d+)[\s\-]*(?:to[\s\-]*\d+\s*)?day", date_str, _re.IGNORECASE)
     if m:
         return (1, int(m.group(1)))
@@ -2679,7 +2679,7 @@ _ESCALATION_TIER_HEADERS = (
     "CALL YOUR DOCTOR",
 )
 
-# Per-tier styling — (background, border, heading color, subtitle color,
+# Per-tier styling - (background, border, heading color, subtitle color,
 # bullet-text color, accent-dot color). Red for 911 (urgency), amber for
 # ER (caution), yellow for doctor (information). Colors deliberately mirror
 # the existing diq-warning-card palette so the tab doesn't clash visually.
@@ -2720,7 +2720,7 @@ def _parse_escalation_guide(text: str) -> list[dict]:
         ...
 
     Missing tiers, extra blank lines, and bullets that use "•" instead of
-    "-" are all tolerated — the function is defensive so a small Agent 5
+    "-" are all tolerated - the function is defensive so a small Agent 5
     format drift never blanks the whole tab.
 
     Args:
@@ -2729,9 +2729,9 @@ def _parse_escalation_guide(text: str) -> list[dict]:
     Returns:
         list[dict]: Zero to three tier dicts, in the order headers appeared.
                     Each dict has keys:
-                        header   (str) — exact header string (upper case)
-                        subtitle (str) — one-line sentence under the header
-                        bullets  (list[str]) — each bullet with the leading
+                        header   (str) - exact header string (upper case)
+                        subtitle (str) - one-line sentence under the header
+                        bullets  (list[str]) - each bullet with the leading
                                                 dash/space stripped
     """
     if not text:
@@ -2759,7 +2759,7 @@ def _parse_escalation_guide(text: str) -> list[dict]:
             continue
 
         if current is None:
-            # Preamble before the first header — ignore.
+            # Preamble before the first header - ignore.
             continue
 
         # Bullets use "- " or occasionally "• "; everything else under a
@@ -2772,7 +2772,7 @@ def _parse_escalation_guide(text: str) -> list[dict]:
             subtitle_pending = False
         else:
             # Defensive: treat stray lines as appended bullets rather than
-            # dropping them — a safety agent's words should not disappear.
+            # dropping them - a safety agent's words should not disappear.
             current["bullets"].append(stripped)
 
     if current is not None:
@@ -2788,7 +2788,7 @@ def _render_escalation_tier(block: dict) -> None:
     Args:
         block: Dict with keys header, subtitle, bullets (see
                _parse_escalation_guide). Header must be one of the
-               three known strings in _ESCALATION_TIER_STYLES — unknown
+               three known strings in _ESCALATION_TIER_STYLES - unknown
                headers are rendered in a neutral slate palette.
     """
     style = _ESCALATION_TIER_STYLES.get(block["header"], {
@@ -2830,14 +2830,14 @@ def _render_escalation_tier(block: dict) -> None:
 
 def _render_section_warning_signs(result: dict) -> None:
     """
-    Render the warning-signs tab — the flat red-flag list from Agent 1
+    Render the warning-signs tab - the flat red-flag list from Agent 1
     stays at the top as a quick reference, followed by the Agent 5
     three-tier escalation guide (911 / ER / call doctor) rendered as
     colour-coded cards.
 
     No citation chips here per safety-spec: the patient should not need
     to interact with the content to read it. Agent 5 output is parsed
-    defensively — format drift must not blank the tab.
+    defensively - format drift must not blank the tab.
 
     Args:
         result: PipelineResponse dict.
@@ -2870,7 +2870,7 @@ def _render_section_warning_signs(result: dict) -> None:
 
     if flags:
         # Build each flag row followed immediately by its caregiver questions
-        # — all inside the same red-tinted warning card so they render as one
+        # - all inside the same red-tinted warning card so they render as one
         # bordered surface rather than a stacked second card per flag.
         flag_blocks_html = ""
         for flag in flags:
@@ -2916,7 +2916,7 @@ def _render_section_warning_signs(result: dict) -> None:
 
 def _render_section_recovery(result: dict) -> None:
     """
-    Render the recovery tab — activity restrictions (left) and dietary
+    Render the recovery tab - activity restrictions (left) and dietary
     restrictions (right) with discharge condition beneath.
 
     Args:
@@ -3039,7 +3039,7 @@ def _parse_recovery_trajectory(text: str) -> tuple[list[dict], str]:
     weeks: list[dict] = []
     matches = list(_WEEK_HEADER_RE.finditer(text))
     if not matches:
-        # No structured week headers — fall back to a single block.
+        # No structured week headers - fall back to a single block.
         if text.strip():
             weeks.append({"header": "Recovery", "body": text.strip()})
         return weeks, outro
@@ -3191,7 +3191,7 @@ def _match_caregiver_questions(
     import re as _re
 
     def _label_tokens(s: str) -> list[str]:
-        # All alpha runs of length >= 4 — meaningful words like specialty
+        # All alpha runs of length >= 4 - meaningful words like specialty
         # names, provider surnames. Filters out "Dr", "Mr", middle initials.
         return [w for w in _re.findall(r'[a-z]+', s.lower()) if len(w) >= 4]
 
@@ -3277,7 +3277,7 @@ def _render_caregiver_questions_for_item(
     `item_type` matches and whose `item_label` fuzzy-matches one of the
     provided candidates (substring, lowercased).
 
-    The block is intentionally compact — patients see it inline next to the
+    The block is intentionally compact - patients see it inline next to the
     relevant card so they can act on the gap item-by-item, per the
     professor's demo feedback that questions should attach to "each one"
     rather than only living in a global review tab.
@@ -3285,7 +3285,7 @@ def _render_caregiver_questions_for_item(
     Args:
         result:           PipelineResponse dict.
         item_type:        One of "medication", "appointment", "warning_sign",
-                          "diagnosis", or "diet_activity" — must match the
+                          "diagnosis", or "diet_activity" - must match the
                           Agent 6 schema.
         label_candidates: Strings that should match (substring,
                           case-insensitive) against the LLM's item_label.
@@ -3318,7 +3318,7 @@ def _render_extraction_verification(result: dict) -> None:
     ⚠️ when the field exists but has no provenance.
 
     The expander lives inside the AI Review tab so the "AI quality" framing
-    is centralized — patients have one place to evaluate whether to trust
+    is centralized - patients have one place to evaluate whether to trust
     what the system pulled.
 
     Args:
@@ -3384,7 +3384,7 @@ def _field_icon_status(
         return "⚠️", False, "No value extracted. Verify with caregiver."
     if has_source:
         return "✅", True, "Grounded in a verbatim PDF quote"
-    return "✅", False, "Value extracted — no clickable page link available"
+    return "✅", False, "Value extracted - no clickable page link available"
 
 
 def _verification_scalar_row(
@@ -3529,7 +3529,7 @@ def _render_verification_simple_lists(ext: dict) -> None:
     """
     Render the unprovenanced list fields. SourceSpan is not currently
     captured for these fields by Agent 1's schema, so they always render
-    with a ⚠️ icon and no citation chip — caregiver verification still
+    with a ⚠️ icon and no citation chip - caregiver verification still
     matters here, just without a one-click jump.
     """
     sections = (
@@ -3568,7 +3568,7 @@ def _render_verification_simple_lists(ext: dict) -> None:
 
 def _render_section_simulator(result: dict) -> None:
     """
-    Render the AI Review tab — Agent 6 patient-simulator output.
+    Render the AI Review tab - Agent 6 patient-simulator output.
 
     Shows the overall gap score, simulator summary, and each missed concept
     (question the document failed to answer). Unanswered concepts are shown
@@ -3598,7 +3598,7 @@ def _render_section_simulator(result: dict) -> None:
         'padding:12px 16px;margin-bottom:10px;font-size:0.88rem;color:#78350F;">'
         '<strong>For you to bring up with your care team:</strong> The AI noticed '
         'questions your discharge document may not fully answer. These are not '
-        'medical diagnoses — bring them up with your nurse, doctor, or care '
+        'medical diagnoses - bring them up with your nurse, doctor, or care '
         'coordinator before you go home.'
         '</div>',
         unsafe_allow_html=True,
@@ -3755,7 +3755,7 @@ def _render_section_simulator(result: dict) -> None:
 # ── Section dispatch ─────────────────────────────────────────────────────────
 
 def _render_section_quiz(result: dict) -> None:
-    """Teach-back quiz tab — delegates to ui/quiz_tab.py (Sprint 3, Task 3.2)."""
+    """Teach-back quiz tab - delegates to ui/quiz_tab.py (Sprint 3, Task 3.2)."""
     render_quiz_tab(
         result,
         session_id=st.session_state.get(_S_PDF_SESSION_ID) or str(uuid.uuid4()),
@@ -3781,13 +3781,13 @@ def _render_chat_widget(result: dict) -> None:
     Inject the fixed 320px right-side chat panel into the parent DOM.
 
     Chat history is persisted in window.parent.sessionStorage keyed by
-    the first 20 chars of the pipeline-context base64 — so the thread
+    the first 20 chars of the pipeline-context base64 - so the thread
     survives tab switches and any other Streamlit rerun within the same
     browser session. On re-injection, loadHistory() replays every
     stored message into the fresh panel so the conversation continues
     seamlessly.
 
-    The widget POSTs to /chat directly from JS — no Python round-trip.
+    The widget POSTs to /chat directly from JS - no Python round-trip.
 
     Args:
         result: PipelineResponse dict. Used for the suggestion chip
@@ -3826,7 +3826,7 @@ def _render_chat_widget(result: dict) -> None:
       }
       #diq-chat-panel.diq-hidden { display: none; }
 
-      /* Resize handle — invisible 6px strip on the left edge. Cursor
+      /* Resize handle - invisible 6px strip on the left edge. Cursor
          flips to col-resize so the affordance is clear on hover. */
       #diq-panel-resize {
         position: absolute; left: -3px; top: 0;
@@ -4138,7 +4138,7 @@ def _render_chat_widget(result: dict) -> None:
   var pipelineContext = null;
   try {{ pipelineContext = JSON.parse(atob(CONTEXT_B64)); }} catch(e) {{}}
 
-  // ── 4. Session ID — persisted across rerenders ───────────────────────────
+  // ── 4. Session ID - persisted across rerenders ───────────────────────────
   var sessionId = (function() {{
     var key = 'diq_session_id';
     try {{
@@ -4197,7 +4197,7 @@ def _render_chat_widget(result: dict) -> None:
         if (!inOl) {{ html += '<ol>'; inOl = true; }}
         html += '<li>' + renderInline(ol[1]) + '</li>';
       }} else if (blank) {{
-        /* blank lines between list items must not close the list —
+        /* blank lines between list items must not close the list -
            LLM output often puts a blank line after each numbered item,
            which would restart the <ol> counter at 1 for every entry */
         if (!inUl && !inOl) {{ html += ''; }}
@@ -4386,7 +4386,7 @@ def _landing_intro_html() -> str:
 
       tryClick() polls every 100 ms for up to 6 s in case the parent React
       tree hasn't mounted the hidden button yet when advance() fires (a
-      real race seen on first load — without retry the iframe was leaving
+      real race seen on first load - without retry the iframe was leaving
       the user staring at a blank dark-green page).
 
     Visual continuity:
@@ -4414,7 +4414,7 @@ def _landing_intro_html() -> str:
     color:#E6EFE9;
   }
 
-  /* Stage — fades to opacity 0 after logo exits, so the dark green
+  /* Stage - fades to opacity 0 after logo exits, so the dark green
      background is never replaced with white; the upload screen reveals
      beneath it once the iframe is invisible. cubic-bezier is iOS easeOut. */
   #stage{
@@ -4456,7 +4456,7 @@ def _landing_intro_html() -> str:
   }
   #phrase.gone{ opacity:0; }
 
-  /* "HELPING" eyebrow — small caps label, intentionally smaller to read as
+  /* "HELPING" eyebrow - small caps label, intentionally smaller to read as
      a category line rather than a body line. */
   .helping{
     font-family:Calibri,'Carlito','Segoe UI',sans-serif;
@@ -4468,7 +4468,7 @@ def _landing_intro_html() -> str:
                transform 700ms cubic-bezier(.32,.72,0,1);
   }
 
-  /* Body lines — five lines, all uniform 56px, single line-height, identical
+  /* Body lines - five lines, all uniform 56px, single line-height, identical
      visual weight (italic uses 600 instead of 500 to compensate for the
      visual shrinkage italic Cormorant renders at the same point size). */
   .line{
@@ -4515,7 +4515,7 @@ def _landing_intro_html() -> str:
   #iq{ display:none; }
   #iq.show{ display:inline-block; }
 
-  /* Caret sits between Discharge and IQ — flush against the typed text. */
+  /* Caret sits between Discharge and IQ - flush against the typed text. */
   #caret{
     display:inline-block;width:3px;height:0.7em;
     background:#1FA47F;margin:0 2px 0 3px;
@@ -4590,7 +4590,7 @@ def _landing_intro_html() -> str:
 
   // 2. Advance to upload screen via the hidden Streamlit button -----------
   // Polls every 100 ms for up to 6 s in case the parent React tree hasn't
-  // mounted the hidden button yet (it hadn't on first load — without this
+  // mounted the hidden button yet (it hadn't on first load - without this
   // retry the iframe was leaving the user staring at a blank dark page).
   function advance(){
     if (advanced) return;
@@ -4655,7 +4655,7 @@ def _landing_intro_html() -> str:
 
   // 5. Animation timeline -------------------------------------------------
   function runTimeline(){
-    // Phase A — phrase build (deliberate cadence, 400-450 ms between lines)
+    // Phase A - phrase build (deliberate cadence, 400-450 ms between lines)
     setTimeout(function(){ show('w-helping'); },  300);
     setTimeout(function(){ show('w-1'); },        850);
     setTimeout(function(){ show('w-2'); },       1250);
@@ -4663,10 +4663,10 @@ def _landing_intro_html() -> str:
     setTimeout(function(){ show('w-4'); },       2050);
     setTimeout(function(){ show('w-5'); },       2500);
 
-    // Phase B — phrase fades out (after ~2 s dwell on the full block)
+    // Phase B - phrase fades out (after ~2 s dwell on the full block)
     setTimeout(function(){ hide('phrase'); },    4500);
 
-    // Phase C/D — logo typewriter, IQ snap (caret hides at the same
+    // Phase C/D - logo typewriter, IQ snap (caret hides at the same
     // instant so there's no caret-jump artifact), subtitle reveal.
     setTimeout(function(){
       var logo = document.getElementById('logo');
@@ -4680,11 +4680,11 @@ def _landing_intro_html() -> str:
       });
     }, 4700);
 
-    // Phase E — graceful exit. Four beats:
+    // Phase E - graceful exit. Four beats:
     //   7400  fade decorations (vignette, skip)
     //   7800  logo fades out (~400 ms CSS transition on #logo)
     //   8300  dark stage fades to opacity 0 (~700 ms); bg stays dark green
-    //   9100  advance() — stage is invisible, iframe unmount is seamless.
+    //   9100  advance() - stage is invisible, iframe unmount is seamless.
     setTimeout(function(){
       hide('vignette');
       hide('skip');
@@ -4717,7 +4717,7 @@ def _render_landing_intro() -> None:
     user presses Skip), which flips _S_LANDING_DONE=True and reruns into
     the upload screen.
 
-    Gated by main() — runs once per Streamlit session. Cmd-R allocates a
+    Gated by main() - runs once per Streamlit session. Cmd-R allocates a
     fresh session which resets _S_LANDING_DONE, so the cinematic naturally
     replays on every page reload. No sessionStorage gating is used.
     """
@@ -4827,7 +4827,7 @@ def _render_upload_screen() -> None:
            inside this hidden st.file_uploader. Same-origin iframes preserve
            the user-activation gesture so the OS file picker opens reliably.
            Once a file is uploaded Streamlit reruns and Python stages it from
-           uploaded.getvalue() — no synthetic React events required.
+           uploaded.getvalue() - no synthetic React events required.
         */
         div[data-testid="stElementContainer"]:has(.diq-uploader-slot),
         div[data-testid="stElementContainer"]:has(.diq-uploader-slot)
@@ -4850,7 +4850,7 @@ def _render_upload_screen() -> None:
     # The _hidden_click_target helper renders a .diq-hidden-btn-slot marker
     # followed by an off-screen Streamlit button. The segmented toggle in the
     # navbar calls diqToggleDark() which finds this button by its data-diq-slot
-    # attribute and calls .click() on it — no button-text search, no URL reload.
+    # attribute and calls .click() on it - no button-text search, no URL reload.
     if _hidden_click_target("__diq_dark_toggle__", key="dark_toggle"):
         st.session_state[_S_UPLOAD_DARK] = not st.session_state.get(
             _S_UPLOAD_DARK, False
@@ -4858,7 +4858,7 @@ def _render_upload_screen() -> None:
         st.rerun()
 
     # ── Navbar (rendered via st.components.v1.html so <script> executes) ────────
-    # st.markdown() strips <script> tags for security — JS placed there is dead.
+    # st.markdown() strips <script> tags for security - JS placed there is dead.
     # st.components.v1.html() renders an iframe where scripts execute normally
     # and window.parent.document gives access to the Streamlit DOM above.
     sun_bg          = "#0F6E56" if not dark else "transparent"
@@ -4948,7 +4948,7 @@ def _render_upload_screen() -> None:
             st.error(upload_err)
             st.session_state[_S_UPLOAD_ERROR] = None
 
-        # Badge — teal pill with subtle left-dot
+        # Badge - teal pill with subtle left-dot
         st.markdown(
             f"""
             <div style="margin:40px 0 22px;text-align:center;">
@@ -4967,7 +4967,7 @@ def _render_upload_screen() -> None:
             unsafe_allow_html=True,
         )
 
-        # Heading + subtext — use <div> not <h1> so the agent-text h1 cap rule
+        # Heading + subtext - use <div> not <h1> so the agent-text h1 cap rule
         # in _inject_global_css() never interferes with the hero font size.
         st.markdown(
             f"""
@@ -4993,7 +4993,7 @@ def _render_upload_screen() -> None:
             unsafe_allow_html=True,
         )
 
-        # 4 step cards — workflow steps (upload → agents → summaries → gap finder)
+        # 4 step cards - workflow steps (upload → agents → summaries → gap finder)
         steps = [
             ("01", "Upload your PDF", "Drag &amp; drop to get started",
              "linear-gradient(135deg,#0F6E56,#1D9E75)"),
@@ -5030,7 +5030,7 @@ def _render_upload_screen() -> None:
 
         # ── Hidden native file_uploader ──────────────────────────────────────
         # Streamlit's file_uploader handles the upload over its own WebSocket
-        # channel — far more reliable than synthesising input/change/blur on a
+        # channel - far more reliable than synthesising input/change/blur on a
         # hidden text_area. The iframe zone forwards clicks to the "Browse
         # files" button below; once Streamlit receives a file we stage it
         # immediately. The widget key is suffixed with a counter so
@@ -5086,7 +5086,7 @@ def _render_upload_screen() -> None:
                 st.session_state[_S_STAGED_PDF_BYTES] = uploaded_bytes
                 st.session_state[_S_STAGED_PDF_NAME] = uploaded_name
 
-        # Pass 1 — clicked by the iframe when the user hits "Get started →".
+        # Pass 1 - clicked by the iframe when the user hits "Get started →".
         if _hidden_click_target("__diq_file_ready__", key="file_ready_btn"):
             staged_bytes = st.session_state.get(_S_STAGED_PDF_BYTES)
             if staged_bytes:
@@ -5101,7 +5101,7 @@ def _render_upload_screen() -> None:
         # ── Zone iframe ───────────────────────────────────────────────────────
         # Renders the dashed zone (icon+text left, button right) in a single
         # iframe. Clicking the zone .click()s the parent's hidden file_uploader
-        # "Browse files" button — same-origin iframes preserve user activation
+        # "Browse files" button - same-origin iframes preserve user activation
         # so the OS file picker opens. Once a file is uploaded Streamlit reruns
         # and we re-render the iframe with the staged filename baked in via
         # STAGED_NAME so the title flips to "Ready to analyze". Hitting "Get
@@ -5268,9 +5268,9 @@ def _run_analysis_with_loading() -> None:
     summary screen. On any error: clears _S_LOADING_SHOWN so the upload screen
     is restored and the error message is shown.
 
-    Args: none — reads all inputs from st.session_state.
+    Args: none - reads all inputs from st.session_state.
     """
-    # st.components.v1.html() renders in an iframe — scripts execute, no
+    # st.components.v1.html() renders in an iframe - scripts execute, no
     # sanitisation issues. The JS inside expands the iframe to full viewport
     # (position:fixed, inset:0) so the animation is a true full-page takeover.
     # height=200 is the pre-expansion fallback; JS overrides it immediately.
@@ -5294,7 +5294,7 @@ def _run_analysis_with_loading() -> None:
     pdf_name = st.session_state.get(_S_STAGED_PDF_NAME, "document.pdf")
 
     if not pdf_bytes:
-        # Nothing staged — something went wrong in Pass 1; reset gracefully.
+        # Nothing staged - something went wrong in Pass 1; reset gracefully.
         st.session_state[_S_LOADING_SHOWN] = False
         st.rerun()
         return
@@ -5325,7 +5325,7 @@ def _run_analysis_with_loading() -> None:
         st.session_state[_S_LOADING_SHOWN] = False
         st.session_state[_S_STAGED_PDF_BYTES] = None
         st.session_state[_S_UPLOAD_ERROR] = None
-        logger.info("Pipeline complete — status: %s", result.get("pipeline_status", "unknown"))
+        logger.info("Pipeline complete - status: %s", result.get("pipeline_status", "unknown"))
         st.rerun()
     except requests.exceptions.ConnectionError:
         _fail(
@@ -5373,7 +5373,7 @@ def _inject_guided_tour() -> None:
     the CDN driver.css provides base positioning/arrow geometry, and an
     inline <style> tag injected on top supplies the !important theme rules
     and the explicit display:flex declarations that driver.css v1.3.1 omits
-    on the footer and nav-button containers — without that override the
+    on the footer and nav-button containers - without that override the
     Next/Back buttons render with zero height (the original bug).
     """
     force_replay = bool(st.session_state.get(_S_TOUR_REPLAY, False))
@@ -5400,18 +5400,18 @@ def _inject_guided_tour() -> None:
 
   try {
     if (!FORCE_REPLAY && win.sessionStorage.getItem('diq_tour_done') === '1') {
-      log('skip — sessionStorage flag set, FORCE_REPLAY=false');
+      log('skip - sessionStorage flag set, FORCE_REPLAY=false');
       return;
     }
   } catch(e) {}
 
   // ── CSS (two layers, both idempotent) ────────────────────────────────────
-  // Layer 1 — ensureCss(): loads the CDN driver.css which provides the
+  // Layer 1 - ensureCss(): loads the CDN driver.css which provides the
   //   critical base rules Driver.js needs to position the popover correctly
   //   (position:fixed, z-index, arrow geometry, stage highlight).  Without
   //   this the popover renders as an invisible collapsed element even though
   //   the dark overlay appears (overlay position is set by JS inline styles).
-  // Layer 2 — ensureStyles(): applied after driver.css so our !important
+  // Layer 2 - ensureStyles(): applied after driver.css so our !important
   //   rules win on theme properties.  This layer also adds the footer and
   //   nav-button display:flex rules that driver.css v1.3.1 omits, which was
   //   the original cause of the missing Next/Back buttons.
@@ -5429,7 +5429,7 @@ def _inject_guided_tour() -> None:
     var style = pdoc.createElement('style');
     style.id = 'diq-driver-styles';
     style.textContent = [
-      // Overlay colour — overrides driver.css default black
+      // Overlay colour - overrides driver.css default black
       '.driver-overlay{background:rgba(4,52,44,0.75)!important;}',
 
       // Popover theme
@@ -5459,20 +5459,20 @@ def _inject_guided_tour() -> None:
       '.driver-popover-description{font-size:13px!important;color:#64748B!important;',
       'line-height:1.6!important;margin:0!important;padding:0!important;}',
 
-      // Footer — display:flex was absent from driver.css v1.3.1, causing
+      // Footer - display:flex was absent from driver.css v1.3.1, causing
       // the navigation buttons to render with zero height (invisible).
       '.driver-popover-footer{display:flex!important;align-items:center!important;',
       'justify-content:space-between!important;margin-top:14px!important;gap:8px!important;}',
 
-      // Progress text ("Step 2 of 9") — nowrap keeps it on one line
+      // Progress text ("Step 2 of 9") - nowrap keeps it on one line
       '.driver-popover-progress-text{font-size:11px!important;color:#0F6E56!important;',
       'font-weight:500!important;flex:1!important;white-space:nowrap!important;}',
 
-      // Nav button container — also requires explicit flex
+      // Nav button container - also requires explicit flex
       '.driver-popover-navigation-btns{display:flex!important;align-items:center!important;',
       'gap:6px!important;flex-shrink:0!important;}',
 
-      // Back button — font-size:0 hides ALL text Driver.js writes (including
+      // Back button - font-size:0 hides ALL text Driver.js writes (including
       // the "← Previous" flash during step transitions). The ::after pseudo-
       // element shows our label instantly via CSS, with no JS timing dependency.
       '.driver-popover-prev-btn{background:transparent!important;',
@@ -5485,7 +5485,7 @@ def _inject_guided_tour() -> None:
       'font-family:Calibri,"Carlito","Segoe UI",-apple-system,BlinkMacSystemFont,sans-serif!important;',
       'font-weight:400!important;}',
 
-      // Next / Done button — same font-size:0 + ::after trick.
+      // Next / Done button - same font-size:0 + ::after trick.
       // JS sets data-diq-done on the last step so CSS can switch "Next"→"Done".
       '.driver-popover-next-btn{background:#0F6E56!important;',
       'border:none!important;border-radius:8px!important;padding:7px 16px!important;',
@@ -5503,7 +5503,7 @@ def _inject_guided_tour() -> None:
       // Disabled state (first/last step)
       '.driver-popover-btn-disabled{opacity:0.35!important;pointer-events:none!important;}',
 
-      // Responsive width — never overflow narrow viewports
+      // Responsive width - never overflow narrow viewports
       '.driver-popover{max-width:min(320px,calc(100vw - 32px))!important;}',
 
       // Welcome step: CSS-centered so it stays put on zoom/resize.
@@ -5539,7 +5539,7 @@ def _inject_guided_tour() -> None:
       setTimeout(function() { clearInterval(t); }, 6000);
       return;
     }
-    log('first load — injecting script');
+    log('first load - injecting script');
     var script = pdoc.createElement('script');
     script.id  = 'diq-driver-script';
     script.src = 'https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js';
@@ -5579,14 +5579,14 @@ def _inject_guided_tour() -> None:
       log('driver resolved via win.Driver');
     }
     if (!driverFn) {
-      console.error('[diq tour] giving up — driver function not found on window');
+      console.error('[diq tour] giving up - driver function not found on window');
       return;
     }
 
     var steps = buildSteps(pdoc);
     log('built ' + steps.length + ' visible steps');
     if (!steps.length) {
-      console.error('[diq tour] no visible steps — dropping tour');
+      console.error('[diq tour] no visible steps - dropping tour');
       return;
     }
 
@@ -5659,7 +5659,7 @@ def _inject_guided_tour() -> None:
         element: '#diq-tab-diagnosis',
         popover: {
           title:       'What happened',
-          description: 'A plain-English explanation of your diagnosis — no medical jargon.',
+          description: 'A plain-English explanation of your diagnosis - no medical jargon.',
           side:        'bottom',
           align:       'start'
         }
@@ -5704,7 +5704,7 @@ def _inject_guided_tour() -> None:
         element: '#diq-tab-simulator',
         popover: {
           title:       'AI Review',
-          description: 'Questions your document may not fully answer — bring these to your care team.',
+          description: 'Questions your document may not fully answer - bring these to your care team.',
           side:        'bottom',
           align:       'end'
         }
@@ -5714,7 +5714,7 @@ def _inject_guided_tour() -> None:
       {
         element: '#diq-chat-panel',
         popover: {
-          title:       'Chat — ask anything',
+          title:       'Chat - ask anything',
           description: 'Type any question about your discharge and get an answer grounded in your document.',
           side:        'left',
           align:       'start'
@@ -5753,7 +5753,7 @@ def _inject_beforeunload_warning() -> None:
     shows its native confirmation dialog when the user tries to refresh
     or close the tab while analysis results are visible.
 
-    Modern browsers do not allow custom dialog text — they show their
+    Modern browsers do not allow custom dialog text - they show their
     own message ("Changes you made may not be saved" in Chrome, similar
     in Firefox and Safari). The __diqBeforeUnloadWired flag prevents
     double-registration across Streamlit reruns.
@@ -5780,7 +5780,7 @@ def _render_summary_screen() -> None:
     Render the post-analysis view: app header, tab bar, active section,
     optional PDF modal, chat panel.
 
-    Only the section matching _S_ACTIVE_TAB is rendered — tab switches
+    Only the section matching _S_ACTIVE_TAB is rendered - tab switches
     trigger a rerun and re-enter this function with the new key. If a
     citation chip (or the header "View original document" link) was
     just clicked, _S_PENDING_CITATION holds the target page; the modal
@@ -5813,7 +5813,7 @@ def _render_summary_screen() -> None:
 
     _render_tab_bar(active_tab)
 
-    # Dispatch to the active tab's section renderer — only one section
+    # Dispatch to the active tab's section renderer - only one section
     # renders per run.
     renderer = _SECTION_RENDERERS.get(active_tab, _render_section_diagnosis)
     renderer(result)
@@ -5835,10 +5835,10 @@ def _render_summary_screen() -> None:
         )
         st.session_state[_S_PENDING_CITATION] = None
 
-    # Chat panel — injected last so it sits above earlier components.
+    # Chat panel - injected last so it sits above earlier components.
     _render_chat_widget(result)
 
-    # Guided tour — injected after all DOM elements are in place so
+    # Guided tour - injected after all DOM elements are in place so
     # Driver.js can find the tab bar and chat panel on the first run.
     _inject_guided_tour()
 
@@ -5850,12 +5850,12 @@ def main() -> None:
     Main entry point for the Streamlit app.
 
     Routes between four states:
-      0. Landing intro    — first visit each tab session; cinematic plays
+      0. Landing intro    - first visit each tab session; cinematic plays
                             once then advances to the upload screen.
-      1. Summary screen   — result is in session state (_S_RESULT is set).
-      2. Loading Pass 2   — _S_LOADING_SHOWN is True; bytes are staged and the
+      1. Summary screen   - result is in session state (_S_RESULT is set).
+      2. Loading Pass 2   - _S_LOADING_SHOWN is True; bytes are staged and the
                             two-pass animation runner blocks on _call_analyze().
-      3. Upload screen    — no result and no pending analysis; show Design M.
+      3. Upload screen    - no result and no pending analysis; show Design M.
 
     Called at module level because Streamlit re-executes the file on every
     rerender.
@@ -5867,7 +5867,7 @@ def main() -> None:
 
     _inject_global_css()
 
-    # Cinematic landing intro — runs in front of the upload screen the first
+    # Cinematic landing intro - runs in front of the upload screen the first
     # time a Streamlit session is seen. _S_LANDING_DONE resets when Streamlit
     # allocates a new ws session (e.g. on Cmd-R), but the iframe checks
     # window.sessionStorage['_diq_intro_seen'] and short-circuits if that

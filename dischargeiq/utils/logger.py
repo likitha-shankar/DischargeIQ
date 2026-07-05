@@ -44,7 +44,7 @@ def configure_logging(log_level: int = logging.DEBUG) -> Path:
     """
     root_logger = logging.getLogger("dischargeiq")
 
-    # Idempotency guard — Streamlit rerenders call module-level code repeatedly.
+    # Idempotency guard - Streamlit rerenders call module-level code repeatedly.
     # Checking handlers prevents duplicate log lines per request.
     if root_logger.handlers:
         # Return the path of the existing file handler.
@@ -65,7 +65,7 @@ def configure_logging(log_level: int = logging.DEBUG) -> Path:
 
     # ── File handler (session log file) ──────────────────────────────────────
     # One file per startup, named by timestamp, in the logs/ directory.
-    # Buffered writes (default) are fine — flushes on close/process exit.
+    # Buffered writes (default) are fine - flushes on close/process exit.
     _LOGS_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file_path = _LOGS_DIR / f"session_{timestamp}.log"
@@ -76,6 +76,6 @@ def configure_logging(log_level: int = logging.DEBUG) -> Path:
     root_logger.addHandler(file_handler)
 
     root_logger.info(
-        "Logging initialised — session log: %s", log_file_path
+        "Logging initialised - session log: %s", log_file_path
     )
     return log_file_path

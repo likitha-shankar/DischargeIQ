@@ -5,7 +5,7 @@ Description: Pydantic contract for the document ingest layer (DIS-O1). Every
   ingest path (digital PDF today, image OCR in later increments) returns an
   IngestResult so the orchestrator never needs to know which path ran.
 Used by: dischargeiq/ingest/reader.py, dischargeiq/pipeline/orchestrator.py
-Dependencies: pydantic v2 only — no LLM or PDF imports here by design.
+Dependencies: pydantic v2 only - no LLM or PDF imports here by design.
 """
 
 from typing import Literal, Optional

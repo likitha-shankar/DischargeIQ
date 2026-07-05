@@ -1,7 +1,7 @@
 """
 File: dischargeiq/tests/test_analyze_text.py
 Owner: Likitha Shankar
-Description: Deterministic tests for POST /analyze/text (Sprint 2, Task 2.3 —
+Description: Deterministic tests for POST /analyze/text (Sprint 2, Task 2.3 -
   mobile on-device OCR path). Pipeline agents are mocked; verifies the raw_text
   path skips PDF reading entirely, tags the ingest as ocr_photo (scan-quality
   warning), and validates text length limits.
@@ -60,7 +60,7 @@ def _mock_patches():
                   simulator_summary="Looks clear.", fk_grade=5.0, passes=True)),
         patch("dischargeiq.pipeline.orchestrator._save_history_with_retries",
               new_callable=AsyncMock),
-        # Must NEVER be called on the text path — there is no file to read.
+        # Must NEVER be called on the text path - there is no file to read.
         patch("dischargeiq.pipeline.orchestrator.extract_document_text",
               side_effect=AssertionError("extract_document_text called on raw_text path")),
     ]

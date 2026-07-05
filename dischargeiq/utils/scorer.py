@@ -9,7 +9,7 @@ Key functions/classes: fk_score, fk_check, log_fk_score
 Edge cases handled:
   - Empty/whitespace text raises ValueError before textstat is called.
   - OSError on CSV write is logged and swallowed (non-critical path).
-  - _fk_log_lock serialises all writers — safe under asyncio.gather parallelism.
+  - _fk_log_lock serialises all writers - safe under asyncio.gather parallelism.
 Dependencies: textstat (external); csv, logging, threading, pathlib (stdlib).
 Called by: all dischargeiq.agents.* (via log_fk_score) and any code importing fk_check.
 """
@@ -41,7 +41,7 @@ def fk_score(text: str) -> float:
         float: The FK grade level (lower is simpler).
 
     Raises:
-        ValueError: If text is None, empty, or whitespace-only — textstat
+        ValueError: If text is None, empty, or whitespace-only - textstat
             returns undefined/extreme values for degenerate input.
     """
     if not text or not text.strip():
@@ -84,9 +84,9 @@ def log_fk_score(document_id: str, agent: str, fk_result: dict) -> None:
 
     Args:
         document_id: Source document label (use os.path.basename of the PDF path
-                     for readable logs — not the full /tmp/... path).
+                     for readable logs - not the full /tmp/... path).
         agent:       Agent key string, e.g. "agent3_medication".
-        fk_result:   Dict from fk_check() — keys: fk_grade, passes, threshold.
+        fk_result:   Dict from fk_check() - keys: fk_grade, passes, threshold.
     """
     _FK_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     with _fk_log_lock:

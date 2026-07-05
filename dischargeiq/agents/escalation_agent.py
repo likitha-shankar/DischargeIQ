@@ -1,7 +1,7 @@
 """
 agents/escalation_agent.py
 
-Agent 5 — Escalation / Warning-Sign Agent. Safety-critical.
+Agent 5 - Escalation / Warning-Sign Agent. Safety-critical.
 Owner: Likitha
 
 Consumes Agent 1's ExtractionOutput and produces a three-tier decision
@@ -22,16 +22,16 @@ clients for gemini / openrouter / openai / ollama.
 Data contract:
     Input:  dischargeiq.models.extraction.ExtractionOutput (from Agent 1)
             Required: primary_diagnosis (str)
-            Required: red_flag_symptoms (list[str]) — every entry must
+            Required: red_flag_symptoms (list[str]) - every entry must
                       land in exactly one tier.
             Optional: secondary_diagnoses (list[str])
-            Optional: medications (list[Medication]) — used as context so
+            Optional: medications (list[Medication]) - used as context so
                       the LLM can factor medication side-effects into
                       tier assignment (e.g. warfarin → Tier 1 bleeding).
     Output: dict with keys:
-                text     (str)   — full three-tier escalation guide
-                fk_grade (float) — FK grade level of the output
-                passes   (bool)  — True if fk_grade <= 6.0
+                text     (str)   - full three-tier escalation guide
+                fk_grade (float) - FK grade level of the output
+                passes   (bool)  - True if fk_grade <= 6.0
 
 Dependencies:
     - anthropic          (used on anthropic provider path only)
@@ -89,8 +89,8 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
           - <name> <dose>
           ...
 
-    Medications are included name + dose only — never dosing schedules
-    or statuses — so the LLM can factor drug-specific risk (e.g. warfarin
+    Medications are included name + dose only - never dosing schedules
+    or statuses - so the LLM can factor drug-specific risk (e.g. warfarin
     bleeding, metoprolol bradycardia) into tier placement without being
     tempted to comment on adherence.
 
@@ -144,7 +144,7 @@ def run_escalation_agent(
     Sends Agent 1's extraction data to the configured LLM with the Agent 5
     safety prompt, then scores the output with fk_check() and logs the score.
     Output structure is fixed by agent5_system_prompt.txt and parsed by
-    the Streamlit renderer — never change tier header strings without
+    the Streamlit renderer - never change tier header strings without
     updating the UI.
 
     Provider and model are resolved from LLM_PROVIDER / LLM_MODEL in .env via
@@ -154,13 +154,13 @@ def run_escalation_agent(
     Data contract:
         Input:  ExtractionOutput from Agent 1.
                 primary_diagnosis must be a non-empty string.
-                red_flag_symptoms is [] when none were extracted — in that
+                red_flag_symptoms is [] when none were extracted - in that
                 case the LLM still emits universally life-threatening
                 Tier 1 entries (cannot breathe, stroke signs, etc.).
         Output: dict with keys:
-                    text     (str)   — full three-tier guide as plain text
-                    fk_grade (float) — Flesch-Kincaid grade level
-                    passes   (bool)  — True if fk_grade <= 6.0
+                    text     (str)   - full three-tier guide as plain text
+                    fk_grade (float) - Flesch-Kincaid grade level
+                    passes   (bool)  - True if fk_grade <= 6.0
 
     Args:
         extraction:  Validated ExtractionOutput from Agent 1.
@@ -184,7 +184,7 @@ def run_escalation_agent(
     user_message = _build_user_message(extraction)
 
     logger.info(
-        "Agent 5 request — document: '%s', red_flags: %d",
+        "Agent 5 request - document: '%s', red_flags: %d",
         document_id,
         len(extraction.red_flag_symptoms or []),
     )
@@ -222,7 +222,7 @@ def run_escalation_agent(
         # transient errors that don't raise.
         escalation_text = response.content[0].text.strip() if response.content else ""
 
-    # Runtime ambiguity check — agent5_system_prompt.txt forbids these phrases,
+    # Runtime ambiguity check - agent5_system_prompt.txt forbids these phrases,
     # but we log a warning if the LLM slips one through so operators can catch it.
     if _AMBIGUOUS_PATTERN.search(escalation_text):
         logger.warning(
@@ -245,7 +245,7 @@ def run_escalation_agent(
         )
     else:
         logger.warning(
-            "Agent 5 FK FAIL '%s': grade %.2f — revise agent5_system_prompt.txt",
+            "Agent 5 FK FAIL '%s': grade %.2f - revise agent5_system_prompt.txt",
             document_id,
             fk_result["fk_grade"],
         )

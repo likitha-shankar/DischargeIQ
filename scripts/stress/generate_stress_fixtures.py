@@ -1,8 +1,8 @@
 """
 File: scripts/stress/generate_stress_fixtures.py
 Owner: Likitha Shankar
-Description: ReportLab generator for fixtures 9–14 — Epic/Cerner/Word-like layouts,
-  two-column MI narrative, pediatric appendix story, and multipage sepsis distractor —
+Description: ReportLab generator for fixtures 9–14 - Epic/Cerner/Word-like layouts,
+  two-column MI narrative, pediatric appendix story, and multipage sepsis distractor -
   written to dischargeiq/tests/fixtures for pipeline stress testing.
 Key functions/classes: build_* PDF builder functions (module level)
 Edge cases handled:
@@ -103,9 +103,9 @@ def build_fixture_09() -> Path:
 
     story.append(Paragraph("YOUR CARE TEAM", s["heading"]))
     story.append(Paragraph(
-        "Attending: Dr. Ravi Patel, MD — Cardiology — (312) 555-0170<br/>"
-        "Hospitalist: Dr. Nina Alvarez, MD — Internal Medicine — (312) 555-0188<br/>"
-        "Care Coordinator: Angela Barnes, RN — (312) 555-0192",
+        "Attending: Dr. Ravi Patel, MD - Cardiology - (312) 555-0170<br/>"
+        "Hospitalist: Dr. Nina Alvarez, MD - Internal Medicine - (312) 555-0188<br/>"
+        "Care Coordinator: Angela Barnes, RN - (312) 555-0192",
         s["body"],
     ))
 
@@ -131,7 +131,7 @@ def build_fixture_09() -> Path:
     ))
 
     story.append(Paragraph(
-        "MEDICATIONS — PLEASE TAKE THESE MEDICINES", s["heading"]))
+        "MEDICATIONS - PLEASE TAKE THESE MEDICINES", s["heading"]))
     med_rows = [
         ["Medication", "Dose", "How often", "Why you take it"],
         ["Furosemide (Lasix)", "40 mg", "Once daily in morning",
@@ -163,7 +163,7 @@ def build_fixture_09() -> Path:
 
     story.append(Paragraph("MEDICINES TO STOP TAKING", s["heading"]))
     story.append(Paragraph(
-        "Metformin 1000 mg — STOP taking this medicine. "
+        "Metformin 1000 mg - STOP taking this medicine. "
         "Reason: Hold until kidney function improves. "
         "Dr. Patel will decide when to restart.",
         s["body"],
@@ -223,7 +223,7 @@ def build_fixture_09() -> Path:
 # ── Fixture 10: Cerner-style dense narrative (pneumonia, elderly) ───────────
 
 def build_fixture_10() -> Path:
-    """Cerner-style prose — minimal headers, physician-written."""
+    """Cerner-style prose - minimal headers, physician-written."""
     out = OUT_DIR / "fixture_10_cerner_pneumonia.pdf"
     s = _styles()
     doc = SimpleDocTemplate(
@@ -306,7 +306,7 @@ def build_fixture_10() -> Path:
 # ── Fixture 11: Word-to-PDF community hospital (knee replacement) ───────────
 
 def build_fixture_11() -> Path:
-    """Inconsistent Word formatting — labels with colons, typos, abbrevs."""
+    """Inconsistent Word formatting - labels with colons, typos, abbrevs."""
     out = OUT_DIR / "fixture_11_word_knee.pdf"
     s = _styles()
 
@@ -329,7 +329,7 @@ def build_fixture_11() -> Path:
     story = []
 
     story.append(Paragraph(
-        "LAKESIDE COMMUNITY HOSPITAL — Discharge Instructions", label))
+        "LAKESIDE COMMUNITY HOSPITAL - Discharge Instructions", label))
     story.append(Spacer(1, 6))
 
     story.append(Paragraph(
@@ -403,7 +403,7 @@ def build_fixture_11() -> Path:
 # ── Fixture 12: real two-column platypus frame layout (post-MI) ─────────────
 
 def build_fixture_12() -> Path:
-    """Two-column platypus frames — left col fills first, then right."""
+    """Two-column platypus frames - left col fills first, then right."""
     out = OUT_DIR / "fixture_12_twocolumn_mi.pdf"
     s = _styles()
 
@@ -425,7 +425,7 @@ def build_fixture_12() -> Path:
         canvas.setFont("Helvetica-Bold", 13)
         canvas.drawCentredString(
             page_w / 2, page_h - margin,
-            "MIDTOWN HEART HOSPITAL — Post-MI Discharge Instructions",
+            "MIDTOWN HEART HOSPITAL - Post-MI Discharge Instructions",
         )
         canvas.setFont("Helvetica", 9)
         canvas.drawCentredString(
@@ -459,12 +459,12 @@ def build_fixture_12() -> Path:
 
     story.append(Paragraph("YOUR NEW MEDICATIONS", s["heading"]))
     story.append(Paragraph(
-        "Aspirin 81mg — once daily — lifelong<br/>"
-        "Clopidogrel 75mg — once daily — 12 months<br/>"
-        "Metoprolol succinate 25mg — once daily<br/>"
-        "Atorvastatin 80mg — once daily at bedtime<br/>"
-        "Lisinopril 5mg — once daily<br/>"
-        "Nitroglycerin 0.4mg SL — as needed for chest pain",
+        "Aspirin 81mg - once daily - lifelong<br/>"
+        "Clopidogrel 75mg - once daily - 12 months<br/>"
+        "Metoprolol succinate 25mg - once daily<br/>"
+        "Atorvastatin 80mg - once daily at bedtime<br/>"
+        "Lisinopril 5mg - once daily<br/>"
+        "Nitroglycerin 0.4mg SL - as needed for chest pain",
         s["body"],
     ))
 
@@ -475,8 +475,8 @@ def build_fixture_12() -> Path:
     # ── RIGHT COLUMN ─────────────────────────────────────────────────────────
     story.append(Paragraph("FOLLOW-UP APPOINTMENTS", s["heading"]))
     story.append(Paragraph(
-        "Cardiology: Dr. Patel — April 2, 2026<br/>"
-        "Primary Care: Dr. Kim — April 5, 2026<br/>"
+        "Cardiology: Dr. Patel - April 2, 2026<br/>"
+        "Primary Care: Dr. Kim - April 5, 2026<br/>"
         "Cardiac Rehab: Starting April 8, 2026",
         s["body"],
     ))
@@ -517,7 +517,7 @@ def build_fixture_13() -> Path:
     story = []
 
     story.append(Paragraph(
-        "CHILDREN'S HOSPITAL OF CHICAGO — Pediatric Discharge Instructions",
+        "CHILDREN'S HOSPITAL OF CHICAGO - Pediatric Discharge Instructions",
         s["title"],
     ))
     story.append(Spacer(1, 6))
@@ -581,7 +581,7 @@ def build_fixture_13() -> Path:
 
     story.append(Paragraph("FOLLOW-UP:", s["heading"]))
     story.append(Paragraph(
-        "Dr. Sarah Nguyen, Pediatric Surgery — April 17, 2026 at 2:00 PM — "
+        "Dr. Sarah Nguyen, Pediatric Surgery - April 17, 2026 at 2:00 PM - "
         "call 773-555-0291 to confirm.",
         s["body"],
     ))
@@ -664,23 +664,23 @@ def build_fixture_14() -> Path:
     ))
     story.append(PageBreak())
 
-    # ── PAGE 3: MAR (distractor — IV inpatient meds) ───────────────────────
+    # ── PAGE 3: MAR (distractor - IV inpatient meds) ───────────────────────
     story.append(Paragraph("MEDICATION ADMINISTRATION RECORD", s["heading"]))
     story.append(Paragraph(
         "Inpatient medications administered during this admission "
-        "(hospital stay only — NOT discharge medications):",
+        "(hospital stay only - NOT discharge medications):",
         s["body_small"],
     ))
     story.append(Spacer(1, 4))
     story.append(Paragraph(
-        "1. Vancomycin 1.25g IV Q12H — days 1 through 4<br/>"
-        "2. Piperacillin-Tazobactam 3.375g IV Q6H — days 1 through 4<br/>"
-        "3. Cefazolin 2g IV Q8H — days 5 through 6 (narrowed after cultures)<br/>"
-        "4. Insulin drip — continuous infusion days 1 through 3<br/>"
-        "5. Regular insulin sliding scale — subcutaneous days 4 through 6<br/>"
-        "6. Normal saline 125 mL/hr IV — days 1 through 3<br/>"
-        "7. Acetaminophen 650mg PO PRN fever — as needed<br/>"
-        "8. Ondansetron 4mg IV PRN nausea — as needed",
+        "1. Vancomycin 1.25g IV Q12H - days 1 through 4<br/>"
+        "2. Piperacillin-Tazobactam 3.375g IV Q6H - days 1 through 4<br/>"
+        "3. Cefazolin 2g IV Q8H - days 5 through 6 (narrowed after cultures)<br/>"
+        "4. Insulin drip - continuous infusion days 1 through 3<br/>"
+        "5. Regular insulin sliding scale - subcutaneous days 4 through 6<br/>"
+        "6. Normal saline 125 mL/hr IV - days 1 through 3<br/>"
+        "7. Acetaminophen 650mg PO PRN fever - as needed<br/>"
+        "8. Ondansetron 4mg IV PRN nausea - as needed",
         s["body"],
     ))
     story.append(PageBreak())
@@ -688,12 +688,12 @@ def build_fixture_14() -> Path:
     # ── PAGE 4: consults / labs ────────────────────────────────────────────
     story.append(Paragraph("CONSULTS", s["heading"]))
     story.append(Paragraph(
-        "Podiatry (Dr. Keller) — performed bedside debridement day 4. "
+        "Podiatry (Dr. Keller) - performed bedside debridement day 4. "
         "Recommends offloading with diabetic shoe and wound check in 1 "
         "week.<br/>"
-        "Infectious Disease (Dr. Wolfe) — recommended IV to oral "
+        "Infectious Disease (Dr. Wolfe) - recommended IV to oral "
         "transition after source control and clinical improvement.<br/>"
-        "Endocrinology (Dr. Ahn) — recommended holding Glipizide due to "
+        "Endocrinology (Dr. Ahn) - recommended holding Glipizide due to "
         "risk of hypoglycemia with renal insufficiency; start SGLT2 "
         "inhibitor once eGFR stable > 30.",
         s["body"],
@@ -732,12 +732,12 @@ def build_fixture_14() -> Path:
     story.append(Paragraph(
         "DISCHARGE MEDICATIONS (what to take at home):", s["heading"]))
     story.append(Paragraph(
-        "1. Metformin 500mg PO BID (dose REDUCED from 1000mg — "
+        "1. Metformin 500mg PO BID (dose REDUCED from 1000mg - "
         "kidney function improving but not baseline)<br/>"
         "2. Lisinopril 5mg PO QD (dose REDUCED from 10mg)<br/>"
-        "3. Dapagliflozin 10mg PO QD (NEW — added for diabetes)<br/>"
-        "4. Aspirin 81mg PO QD (NEW — cardiovascular protection)<br/>"
-        "5. Atorvastatin 20mg PO QD (continued — no change)<br/>"
+        "3. Dapagliflozin 10mg PO QD (NEW - added for diabetes)<br/>"
+        "4. Aspirin 81mg PO QD (NEW - cardiovascular protection)<br/>"
+        "5. Atorvastatin 20mg PO QD (continued - no change)<br/>"
         "STOP: Glipizide (risk of low blood sugar with new regimen)",
         s["body"],
     ))
@@ -746,14 +746,14 @@ def build_fixture_14() -> Path:
     # ── PAGE 6: follow-up + activity ───────────────────────────────────────
     story.append(Paragraph("FOLLOW-UP APPOINTMENTS", s["heading"]))
     story.append(Paragraph(
-        "• Primary Care — Dr. Jessica Lin — 2026-04-16 — diabetes and "
-        "blood pressure check — (312) 555-0312<br/>"
-        "• Podiatry — Dr. Keller — 2026-04-15 — wound check and dressing "
-        "change — (312) 555-0440<br/>"
-        "• Nephrology — Dr. Huang — 2026-04-30 — follow-up on kidney "
-        "function — (312) 555-0199<br/>"
-        "• Endocrinology — Dr. Ahn — 2026-05-08 — review diabetes "
-        "regimen — (312) 555-0288",
+        "• Primary Care - Dr. Jessica Lin - 2026-04-16 - diabetes and "
+        "blood pressure check - (312) 555-0312<br/>"
+        "• Podiatry - Dr. Keller - 2026-04-15 - wound check and dressing "
+        "change - (312) 555-0440<br/>"
+        "• Nephrology - Dr. Huang - 2026-04-30 - follow-up on kidney "
+        "function - (312) 555-0199<br/>"
+        "• Endocrinology - Dr. Ahn - 2026-05-08 - review diabetes "
+        "regimen - (312) 555-0288",
         s["body"],
     ))
     story.append(Spacer(1, 6))
@@ -786,12 +786,12 @@ def build_fixture_14() -> Path:
 # ── Driver ──────────────────────────────────────────────────────────────────
 
 BUILDERS = [
-    ("Fixture 9  — Epic CHF",              build_fixture_09),
-    ("Fixture 10 — Cerner pneumonia",      build_fixture_10),
-    ("Fixture 11 — Word knee replacement", build_fixture_11),
-    ("Fixture 12 — Two-column post-MI",    build_fixture_12),
-    ("Fixture 13 — Pediatric appendectomy", build_fixture_13),
-    ("Fixture 14 — Multi-page sepsis",     build_fixture_14),
+    ("Fixture 9  - Epic CHF",              build_fixture_09),
+    ("Fixture 10 - Cerner pneumonia",      build_fixture_10),
+    ("Fixture 11 - Word knee replacement", build_fixture_11),
+    ("Fixture 12 - Two-column post-MI",    build_fixture_12),
+    ("Fixture 13 - Pediatric appendectomy", build_fixture_13),
+    ("Fixture 14 - Multi-page sepsis",     build_fixture_14),
 ]
 
 

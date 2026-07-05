@@ -1,9 +1,9 @@
-# Quiz Gap Report — prompt-tuning evidence (Task 3.4)
+# Quiz Gap Report - prompt-tuning evidence (Task 3.4)
 
 Generated: 2026-07-05 15:47 UTC
 Completed pre→post loops: **1** (minimum for tuning decisions: 10)
 
-> ⚠️ **LOW CONFIDENCE** — below the minimum sample. This run shows the
+> ⚠️ **LOW CONFIDENCE** - below the minimum sample. This run shows the
 > pipeline works; do NOT edit prompts from it. Re-run once Sprint 2
 > beta testers produce real loops.
 
@@ -14,12 +14,12 @@ Completed pre→post loops: **1** (minimum for tuning decisions: 10)
 | Activity & diet | 0% | 0% | `prompts/agent4_system_prompt.txt (Recovery)` |
 | Follow-up visits | 100% | 0% | `prompts/agent1_system_prompt.txt (extraction) + appointments tab` |
 | Medications | 100% | 0% | `prompts/agent3_system_prompt.txt (Medications)` |
-| Warning signs | 100% | 0% | `prompts/agent5_system_prompt.txt (Warning Signs — safety-critical)` |
+| Warning signs | 100% | 0% | `prompts/agent5_system_prompt.txt (Warning Signs - safety-critical)` |
 | What happened | 0% | 0% | `prompts/agent2_system_prompt.txt (What Happened)` |
 
 ## Tuning targets
 
-_None emitted — sample below minimum._
+_None emitted - sample below minimum._
 
 ## Post-teaching failures by diagnosis
 

@@ -1,4 +1,4 @@
-# Task 1.3 — Supervisor/Router Agent ✅
+# Task 1.3 - Supervisor/Router Agent ✅
 
 **Deliverable:** a lightweight classifier in front of Agent 1 that tags the
 document type and gates non-discharge documents before any expensive agent runs.

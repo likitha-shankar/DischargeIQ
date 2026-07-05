@@ -1,7 +1,7 @@
 """
 File: tests/test_agent1.py
 Owner: Likitha Shankar
-Description: Agent 1 regression suite — pytest-discoverable slow tests that enforce the
+Description: Agent 1 regression suite - pytest-discoverable slow tests that enforce the
   8/10 hard gate across the original synthetic PDFs, plus a stress-test batch. Also
   contains a standalone main() for manual runs with per-file progress output.
 Key functions/classes: test_hard_gate_original_set, test_stress_batch, _evaluate_document
@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-# Repo root — package ``dischargeiq`` is importable when running this file directly.
+# Repo root - package ``dischargeiq`` is importable when running this file directly.
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_REPO_ROOT))
 
@@ -41,7 +41,7 @@ _HARD_GATE_THRESHOLD = 8
 # Seconds to wait between API calls to stay within Anthropic free-tier limits.
 # Binding constraint: 10,000 input tokens/min. Agent 1 sends ~5,300 tokens per
 # call (4,700-token system prompt + ~600-token PDF text). At 35 s gaps:
-# 60/35 ≈ 1.7 calls/min × 5,300 = 9,010 tokens/min — safely under the limit.
+# 60/35 ≈ 1.7 calls/min × 5,300 = 9,010 tokens/min - safely under the limit.
 _INTER_CALL_DELAY_SECONDS = 35
 
 
@@ -92,7 +92,7 @@ def _evaluate_document(pdf_path: Path) -> dict:
     except ValueError as exc:
         # Covers json.JSONDecodeError (subclass of ValueError) and similar.
         result["error"] = f"Parse error: {exc}"
-    except Exception as exc:  # noqa: BLE001 — catch-all for API and validation errors
+    except Exception as exc:  # noqa: BLE001 - catch-all for API and validation errors
         result["error"] = f"Unexpected error: {type(exc).__name__}: {exc}"
 
     return result
@@ -169,7 +169,7 @@ def _run_batch(pdf_files: list[Path], label: str, global_index_start: int) -> li
     print(f"\n--- {label} ({len(pdf_files)} documents) ---")
     results = []
     for local_index, pdf_path in enumerate(pdf_files):
-        # Always sleep between calls — the first call of a later batch must
+        # Always sleep between calls - the first call of a later batch must
         # also respect the rate limit relative to the last call of the prior batch.
         if global_index_start + local_index > 0:
             time.sleep(_INTER_CALL_DELAY_SECONDS)
@@ -195,7 +195,7 @@ def main() -> None:
 
     model_name = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
     total = len(clean_files) + len(stress_files)
-    print(f"Agent 1 test — {total} documents total ({len(clean_files)} original + {len(stress_files)} stress-test)")
+    print(f"Agent 1 test - {total} documents total ({len(clean_files)} original + {len(stress_files)} stress-test)")
     print(f"Model : {model_name}  (set GEMINI_MODEL in .env to override)")
     print(f"Delay : {_INTER_CALL_DELAY_SECONDS}s between calls (free-tier RPM limit)")
 
@@ -228,7 +228,7 @@ def test_hard_gate_original_set() -> None:
         - at least one follow-up appointment extracted
     """
     pdf_files = sorted(_TEST_DATA_DIR.glob("*.pdf"))
-    assert pdf_files, f"No PDFs found in {_TEST_DATA_DIR} — check test-data/ directory."
+    assert pdf_files, f"No PDFs found in {_TEST_DATA_DIR} - check test-data/ directory."
 
     results = []
     for index, pdf_path in enumerate(pdf_files):
@@ -248,7 +248,7 @@ def test_hard_gate_original_set() -> None:
         )
 
     assert len(passed) >= _HARD_GATE_THRESHOLD, (
-        f"HARD GATE NOT CLEARED — {len(passed)}/{len(results)} passed "
+        f"HARD GATE NOT CLEARED - {len(passed)}/{len(results)} passed "
         f"(need {_HARD_GATE_THRESHOLD}).\n" + "\n".join(summary_lines)
     )
 
@@ -278,7 +278,7 @@ def test_stress_batch_no_crashes() -> None:
     Assert Agent 1 does not crash on any stress-test PDF.
 
     Stress PDFs are edge-case documents (messy layout, tables, OCR-like).
-    This test does not enforce a pass threshold — it only verifies the agent
+    This test does not enforce a pass threshold - it only verifies the agent
     returns without an unhandled exception for every file.
     """
     stress_files = sorted(_STRESS_DATA_DIR.glob("messy_*.pdf"))

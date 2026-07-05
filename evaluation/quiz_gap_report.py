@@ -1,7 +1,7 @@
 """
 File: evaluation/quiz_gap_report.py
 Owner: Likitha Shankar
-Description: Quiz-failure analysis for prompt tuning (Sprint 3, Task 3.4) —
+Description: Quiz-failure analysis for prompt tuning (Sprint 3, Task 3.4) -
   reads quiz_scores + discharge_history from Neon, aggregates miss rates per
   quiz domain (baseline and post-teaching), breaks post-teaching failures
   down by diagnosis, and maps every failing domain to the agent prompt that
@@ -14,7 +14,7 @@ Edge cases handled:
     LOW CONFIDENCE and no tuning recommendations are emitted.
 Dependencies: asyncpg, python-dotenv; reuses query/aggregation helpers from
   ui.quiz_analytics (single source of truth for the miss-rate math).
-Called by: manual — `python evaluation/quiz_gap_report.py` from repo root.
+Called by: manual - `python evaluation/quiz_gap_report.py` from repo root.
   Writes evaluation/quiz_gap_report.md and prints it.
 """
 
@@ -37,14 +37,14 @@ from ui.quiz_analytics import (  # noqa: E402
     quiz_by_session,
 )
 
-# Which agent prompt owns each quiz domain — where a persistent failure
+# Which agent prompt owns each quiz domain - where a persistent failure
 # points the tuning work.
 _DOMAIN_TO_PROMPT = {
     "diagnosis": "prompts/agent2_system_prompt.txt (What Happened)",
     "medications": "prompts/agent3_system_prompt.txt (Medications)",
     "follow_up": "prompts/agent1_system_prompt.txt (extraction) + appointments tab",
     "activity": "prompts/agent4_system_prompt.txt (Recovery)",
-    "red_flags": "prompts/agent5_system_prompt.txt (Warning Signs — safety-critical)",
+    "red_flags": "prompts/agent5_system_prompt.txt (Warning Signs - safety-critical)",
 }
 
 # Below this many completed pre→post loops, per-domain rates are noise:
@@ -85,7 +85,7 @@ def build_report(history: list[dict], quiz: list[dict]) -> str:
 
     low_confidence = len(completed) < MIN_SESSIONS
     lines = [
-        "# Quiz Gap Report — prompt-tuning evidence (Task 3.4)",
+        "# Quiz Gap Report - prompt-tuning evidence (Task 3.4)",
         "",
         f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
         f"Completed pre→post loops: **{len(completed)}** "
@@ -94,7 +94,7 @@ def build_report(history: list[dict], quiz: list[dict]) -> str:
     ]
     if low_confidence:
         lines += [
-            "> ⚠️ **LOW CONFIDENCE** — below the minimum sample. This run shows the",
+            "> ⚠️ **LOW CONFIDENCE** - below the minimum sample. This run shows the",
             "> pipeline works; do NOT edit prompts from it. Re-run once Sprint 2",
             "> beta testers produce real loops.",
             "",
@@ -105,7 +105,7 @@ def build_report(history: list[dict], quiz: list[dict]) -> str:
         key = _label_to_key(label)
         lines.append(
             f"| {label} | {pre_miss.get(label, 0.0):.0%} | {post_miss.get(label, 0.0):.0%} "
-            f"| `{_DOMAIN_TO_PROMPT.get(key, '—')}` |"
+            f"| `{_DOMAIN_TO_PROMPT.get(key, '-')}` |"
         )
 
     flagged = {
@@ -113,11 +113,11 @@ def build_report(history: list[dict], quiz: list[dict]) -> str:
     }
     lines += ["", "## Tuning targets", ""]
     if low_confidence:
-        lines.append("_None emitted — sample below minimum._")
+        lines.append("_None emitted - sample below minimum._")
     elif not flagged:
         lines.append(
             f"_No domain exceeds the {FLAG_THRESHOLD:.0%} post-teaching miss "
-            "threshold — prompts are holding._"
+            "threshold - prompts are holding._"
         )
     else:
         for label, rate in sorted(flagged.items(), key=lambda kv: kv[1], reverse=True):
@@ -128,7 +128,7 @@ def build_report(history: list[dict], quiz: list[dict]) -> str:
                 "per sentence, restate the domain's key fact in the first line."
             )
 
-    # Post-teaching failures per diagnosis — shows whether a gap is global
+    # Post-teaching failures per diagnosis - shows whether a gap is global
     # (prompt problem) or condition-specific (template problem).
     lines += ["", "## Post-teaching failures by diagnosis", ""]
     any_fail = False
@@ -166,7 +166,7 @@ def main() -> None:
     load_dotenv(dotenv_path=".env")
     db_url = os.getenv("DATABASE_URL_RO") or os.getenv("DATABASE_URL")
     if not db_url:
-        sys.exit("No DATABASE_URL / DATABASE_URL_RO configured — set one in .env")
+        sys.exit("No DATABASE_URL / DATABASE_URL_RO configured - set one in .env")
 
     history, quiz = asyncio.run(fetch_rows(db_url))
     report = build_report([dict(r) for r in history], [dict(r) for r in quiz])

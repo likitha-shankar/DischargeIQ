@@ -1,14 +1,14 @@
 /**
  * File: frontend/explainer/engine/src/main.js
- * Component: Anatomy Explainer — Bootstrap and Wiring
+ * Component: Anatomy Explainer - Bootstrap and Wiring
  * Description: Entry point for the Vite build. Reads the explainer config,
  *   initialises the Viewer, HighlightSystem, AnimationSystem, and UIController,
  *   then orchestrates the per-panel render loop. Owns no rendering state directly
- *   — delegates everything to the four subsystems.
+ *   - delegates everything to the four subsystems.
  *
  * Config loading priority:
- *   1. window.__DISCHARGEIQ_CONFIG__ (parent-injected before load — fastest)
- *   2. ?config= URL query param (base64url JSON — for iframe src= usage)
+ *   1. window.__DISCHARGEIQ_CONFIG__ (parent-injected before load - fastest)
+ *   2. ?config= URL query param (base64url JSON - for iframe src= usage)
  *   3. postMessage from parent (Flutter JS channel or Streamlit postMessage)
  *
  * The engine never crashes on a bad or missing model: it falls back to a
@@ -21,7 +21,7 @@
  *   one of two distinct cases:
  *     - "BLOCKED_NOT_SERVABLE": entry found, is_servable = False
  *     - "NO_MATCH": no registry entry matched the diagnosis at all
- *   The frontend does not need to distinguish these — both result in the
+ *   The frontend does not need to distinguish these - both result in the
  *   text-only fallback. The distinction lives entirely in the backend logs.
  *
  * Dependencies: config.js, viewer.js, highlight.js, ui.js, animations/index.js
@@ -154,7 +154,7 @@ async function loadModelFromConfig(config, viewer, animations, ui) {
  * Initialise the full explainer with a resolved config object.
  *
  * Creates all subsystems, wires them together, and begins rendering.
- * This function runs once — further config changes would require a page reload.
+ * This function runs once - further config changes would require a page reload.
  *
  * @param {object} config - Merged explainer config from config.js.
  * @returns {Promise<void>}
@@ -207,7 +207,7 @@ function main() {
     });
     return;
   }
-  // Config not yet available — wait for postMessage (Flutter JS channel / Streamlit).
+  // Config not yet available - wait for postMessage (Flutter JS channel / Streamlit).
   listenForPostMessageConfig((lateConfig) => {
     initWithConfig(lateConfig).catch((err) => {
       console.error('[DischargeIQ] Fatal init error (postMessage path):', err);

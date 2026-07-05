@@ -1,11 +1,11 @@
 """
 File: ui/clinician_dashboard.py
 Owner: Likitha Shankar
-Description: Streamlit clinician dashboard (Sprint 3, Task 3.3) — a separate,
+Description: Streamlit clinician dashboard (Sprint 3, Task 3.3) - a separate,
   clinician-facing surface (not a patient tab) showing anonymized session
   activity, per-session comprehension deltas from the teach-back quiz, and
   flagged knowledge gaps (domains patients still miss AFTER the learning
-  cards). Reads Neon directly — point DATABASE_URL_RO at a read replica so
+  cards). Reads Neon directly - point DATABASE_URL_RO at a read replica so
   analytics never touch transactional performance; falls back to DATABASE_URL.
 Key functions/classes: main, _build_session_table (data layer + protocol
   math shared with evaluation/quiz_gap_report.py lives in ui/quiz_analytics.py)
@@ -16,7 +16,7 @@ Edge cases handled:
 Dependencies: streamlit, asyncpg, pandas (ships with streamlit), python-dotenv,
   ui.quiz_analytics (shared queries + miss-rate math).
 Called by: `streamlit run ui/clinician_dashboard.py --server.port 8502`
-  (self-contained on purpose — no dischargeiq imports, so it runs anywhere
+  (self-contained on purpose - no dischargeiq imports, so it runs anywhere
   the two env vars reach the database).
 """
 
@@ -62,7 +62,7 @@ def _build_session_table(history: list[dict], quiz_sessions: dict[str, dict]) ->
     Join discharge sessions with their quiz outcomes into a display frame.
 
     Anonymization contract: only truncated random session ids and document
-    hashes leave the database — discharge_history stores no patient names,
+    hashes leave the database - discharge_history stores no patient names,
     and quiz_scores stores no question or answer text.
 
     Args:
@@ -81,8 +81,8 @@ def _build_session_table(history: list[dict], quiz_sessions: dict[str, dict]) ->
             {
                 "Session": h["session_id"][:8],
                 "Document": (h["document_hash"] or "")[:8],
-                "Diagnosis": h["primary_diagnosis"] or "—",
-                "Pipeline": h["pipeline_status"] or "—",
+                "Diagnosis": h["primary_diagnosis"] or "-",
+                "Pipeline": h["pipeline_status"] or "-",
                 "Baseline %": pre,
                 "Post %": post,
                 "Lift (pts)": delta,
@@ -104,10 +104,10 @@ def _render_metrics(df: pd.DataFrame, quiz_sessions: dict[str, dict]) -> None:
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Documents analyzed", len(df))
     c2.metric("Completed quiz loops", len(completed))
-    c3.metric("Avg baseline", f"{avg_pre:.0f}%" if avg_pre is not None else "—")
+    c3.metric("Avg baseline", f"{avg_pre:.0f}%" if avg_pre is not None else "-")
     c4.metric(
         "Avg after teaching",
-        f"{avg_post:.0f}%" if avg_post is not None else "—",
+        f"{avg_post:.0f}%" if avg_post is not None else "-",
         delta=f"{avg_lift:+.0f} pts" if avg_lift is not None else None,
     )
     if avg_post is not None:
@@ -123,14 +123,14 @@ def _render_flagged_gaps(quiz: list[dict]) -> None:
     """
     Render the flagged-gaps section: domains still missed AFTER teaching.
 
-    A post-phase miss is the actionable signal for a care team — the app
+    A post-phase miss is the actionable signal for a care team - the app
     taught the topic and the patient still got it wrong.
     """
     st.subheader("Flagged knowledge gaps")
     post_miss = domain_miss_rates(quiz, "post")
     pre_miss = domain_miss_rates(quiz, "pre")
     if not pre_miss and not post_miss:
-        st.info("No quiz data yet — gaps appear once patients take the teach-back quiz.")
+        st.info("No quiz data yet - gaps appear once patients take the teach-back quiz.")
         return
 
     flagged = {d: rate for d, rate in post_miss.items() if rate > 0}
@@ -158,10 +158,10 @@ def _render_flagged_gaps(quiz: list[dict]) -> None:
 
 def main() -> None:
     """Page entry point: config check, data load, metrics, gaps, session table."""
-    st.set_page_config(page_title="DischargeIQ — Clinician Dashboard", page_icon="🩺", layout="wide")
+    st.set_page_config(page_title="DischargeIQ - Clinician Dashboard", page_icon="🩺", layout="wide")
     st.title("🩺 Clinician Dashboard")
     st.caption(
-        "Anonymized teach-back analytics. Sessions are random ids — no names, "
+        "Anonymized teach-back analytics. Sessions are random ids - no names, "
         "no document text, no quiz answer text is ever stored. Gaps flagged "
         "here are discussion prompts for the care team, not diagnoses."
     )
@@ -174,7 +174,7 @@ def main() -> None:
         )
         return
     if not os.getenv("DATABASE_URL_RO"):
-        st.caption("ℹ️ Using the primary DATABASE_URL — set DATABASE_URL_RO to a read replica in production.")
+        st.caption("ℹ️ Using the primary DATABASE_URL - set DATABASE_URL_RO to a read replica in production.")
 
     try:
         history, quiz = _load_data(db_url)

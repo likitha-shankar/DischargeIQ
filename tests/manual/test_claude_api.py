@@ -1,7 +1,7 @@
 """
 File: tests/manual/test_claude_api.py
 Owner: Likitha Shankar
-Description: Minimal Anthropic SDK smoke test — sends a one-line prompt to
+Description: Minimal Anthropic SDK smoke test - sends a one-line prompt to
   claude-sonnet-4-20250514 and asserts the reply contains “DischargeIQ” to verify
   API key and network path before heavier pipeline runs.
 Key functions/classes: run_claude_api_smoke
@@ -54,7 +54,7 @@ def run_claude_api_smoke():
         print("Claude API test PASSED")
 
     except anthropic.AuthenticationError as auth_error:
-        print(f"Authentication failed — check your ANTHROPIC_API_KEY: {auth_error}")
+        print(f"Authentication failed - check your ANTHROPIC_API_KEY: {auth_error}")
         sys.exit(1)
     except anthropic.APIConnectionError as conn_error:
         print(f"Could not reach the Anthropic API: {conn_error}")

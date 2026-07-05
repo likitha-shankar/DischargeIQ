@@ -54,7 +54,7 @@ def _styles():
 
 
 def build_real_01_er_simple() -> None:
-    """ER discharge — checkboxes, minimal structure, no med list."""
+    """ER discharge - checkboxes, minimal structure, no med list."""
     path = OUT_DIR / "real_01_er_simple.pdf"
     c = canvas.Canvas(str(path), pagesize=letter)
     w, h = letter
@@ -150,7 +150,7 @@ def build_real_03_narrative_style() -> None:
     body, hdr, _ = _styles()
     doc = SimpleDocTemplate(str(path), pagesize=letter, topMargin=50, bottomMargin=50)
     story = []
-    story.append(Paragraph("University Medical Center — Discharge Summary", hdr))
+    story.append(Paragraph("University Medical Center - Discharge Summary", hdr))
     story.append(Paragraph("Patient: Robert Kim, 67-year-old male.", body))
     story.append(Paragraph("Admission date: 2026-04-08. Discharge date: 2026-04-11.", body))
     story.append(Spacer(1, 0.15 * inch))
@@ -191,23 +191,23 @@ def build_real_04_icd_codes() -> None:
     body, hdr, small = _styles()
     doc = SimpleDocTemplate(str(path), pagesize=letter, topMargin=45, bottomMargin=45)
     story = []
-    story.append(Paragraph("Inpatient Discharge Summary — Internal Medicine", hdr))
+    story.append(Paragraph("Inpatient Discharge Summary - Internal Medicine", hdr))
     story.append(Paragraph("Patient: Susan Park    DOB: 1965-11-02", body))
     story.append(Paragraph("Admission: 2026-04-10    Discharge: 2026-04-14", body))
     story.append(Spacer(1, 0.12 * inch))
     story.append(Paragraph("Diagnoses (problem list)", hdr))
-    story.append(Paragraph("Primary: I50.9 — Heart failure, unspecified", body))
-    story.append(Paragraph("Secondary: I10 — Essential hypertension", small))
-    story.append(Paragraph("E11.9 — Type 2 diabetes mellitus without complications", small))
-    story.append(Paragraph("N18.3 — Chronic kidney disease, stage 3", small))
+    story.append(Paragraph("Primary: I50.9 - Heart failure, unspecified", body))
+    story.append(Paragraph("Secondary: I10 - Essential hypertension", small))
+    story.append(Paragraph("E11.9 - Type 2 diabetes mellitus without complications", small))
+    story.append(Paragraph("N18.3 - Chronic kidney disease, stage 3", small))
     story.append(Spacer(1, 0.12 * inch))
     story.append(Paragraph("Discharge Medications", hdr))
     med_data = [
         ["Drug", "Dose", "Frequency", "Notes"],
-        ["Furosemide", "40mg", "Once daily", "NEW — monitor weight daily"],
-        ["Lisinopril", "10mg", "Once daily", "REDUCED from 20mg — kidney function"],
+        ["Furosemide", "40mg", "Once daily", "NEW - monitor weight daily"],
+        ["Lisinopril", "10mg", "Once daily", "REDUCED from 20mg - kidney function"],
         ["Metoprolol", "25mg", "Twice daily", "CONTINUE"],
-        ["Metformin", "500mg", "Twice daily", "CONTINUE — reduced dose CKD"],
+        ["Metformin", "500mg", "Twice daily", "CONTINUE - reduced dose CKD"],
         ["Insulin glargine", "10 units", "Bedtime", "CONTINUE"],
     ]
     t = Table(med_data, colWidths=[1.4 * inch, 0.9 * inch, 1.1 * inch, 2.4 * inch])
@@ -257,7 +257,7 @@ def build_real_05_bilingual() -> None:
     w, h = letter
     y = h - 45
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(50, y, "ER Discharge — Bilingual Instructions / Instrucciones bilingües")
+    c.drawString(50, y, "ER Discharge - Bilingual Instructions / Instrucciones bilingües")
     y -= 22
     c.setFont("Helvetica-Bold", 10)
     c.drawString(50, y, "English")
@@ -295,7 +295,7 @@ def build_real_06_minimal_er() -> None:
     c.drawString(50, y, "DISCHARGE INSTRUCTIONS")
     y -= 22
     c.setFont("Helvetica", 9)
-    c.drawString(50, y, "[Patient label / barcode area — information not shown on copy]")
+    c.drawString(50, y, "[Patient label / barcode area - information not shown on copy]")
     y -= 28
     c.setFont("Helvetica", 10)
     for line in [

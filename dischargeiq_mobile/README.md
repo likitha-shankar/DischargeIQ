@@ -1,7 +1,7 @@
-# `dischargeiq_mobile/` — Flutter mobile client (on hold)
+# `dischargeiq_mobile/` - Flutter mobile client (on hold)
 
 Cross-platform mobile frontend for DischargeIQ. **Currently on hold** for
-the shared repo — this directory is listed in `.gitignore` and stays
+the shared repo - this directory is listed in `.gitignore` and stays
 local-only until the team decides to revive it.
 
 ## Status
@@ -11,8 +11,8 @@ local-only until the team decides to revive it.
 | Framework                | Flutter (Dart)                                               |
 | Target platforms         | iOS, Android, Web                                            |
 | Backend connection       | Calls `POST /analyze` and `POST /chat` on the FastAPI server |
-| API base URL             | Hardcoded in `lib/config.dart` — update before running      |
-| Git status               | Gitignored — **not committed to the shared repo**            |
+| API base URL             | Hardcoded in `lib/config.dart` - update before running      |
+| Git status               | Gitignored - **not committed to the shared repo**            |
 | Demo path                | Use Streamlit (`./start.sh`) instead                         |
 
 ## Running locally (if you have a local copy)

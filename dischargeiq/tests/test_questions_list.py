@@ -3,7 +3,7 @@ File: dischargeiq/tests/test_questions_list.py
 Owner: Likitha Shankar
 Description: Black-box tests for the 'Questions to bring to your care team'
   section rendered in the AI Review tab.  Tests call build_questions_section_html()
-  directly — a pure HTML builder with no Streamlit dependency — so no LLM or
+  directly - a pure HTML builder with no Streamlit dependency - so no LLM or
   Streamlit runtime is required.
 Key functions/classes: test_unanswered_questions_appear_answered_does_not,
   test_all_answered_renders_no_section
@@ -42,7 +42,7 @@ def test_unanswered_questions_appear_answered_does_not() -> None:
     """
     q_unanswered = [
         "What does it mean that I have heart failure?",
-        "Nobody told me how much water I can drink — is that okay?",
+        "Nobody told me how much water I can drink - is that okay?",
         "What do I do if I miss my Metformin dose?",
     ]
     q_answered = "When is my follow-up appointment?"
@@ -71,5 +71,5 @@ def test_all_answered_renders_no_section() -> None:
     html = build_questions_section_html(gaps)
 
     assert html == "", (
-        "Expected empty string when no unanswered gaps — section must not render"
+        "Expected empty string when no unanswered gaps - section must not render"
     )

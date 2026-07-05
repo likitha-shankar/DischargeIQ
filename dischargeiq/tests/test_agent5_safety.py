@@ -2,7 +2,7 @@
 File: dischargeiq/tests/test_agent5_safety.py
 Owner: Deepesh Kumar Appar Senthilkumar
 Description: Safety guardrail tests for Agent 5 (escalation guide). Verifies that the
-  LLM output uses unambiguous, imperative language — no hedging, no conditional phrases
+  LLM output uses unambiguous, imperative language - no hedging, no conditional phrases
   that could leave a patient unsure whether to seek care. Also checks structural
   requirements (three tier headers must be present).
 Key functions/classes: test_agent5_no_hedging_language, test_agent5_tier_headers_present,
@@ -39,7 +39,7 @@ from dischargeiq.models.extraction import ExtractionOutput, Medication
 # ── Hard rule: Agent 5 must use imperative language, never hedging ──────────
 # Patterns that indicate ambiguity about whether the patient needs to act.
 # "might feel better" (symptom description) is acceptable; "might need to call"
-# is not — so patterns target action hedging, not state descriptions.
+# is not - so patterns target action hedging, not state descriptions.
 _HEDGING_PATTERNS: list[str] = [
     r"\bmay need to\b",
     r"\bmight need to\b",
@@ -109,7 +109,7 @@ def test_agent5_no_hedging_language() -> None:
     "Go to the ER today", "Call your doctor").
     """
     if not _provider_key_present():
-        pytest.skip("No LLM provider key configured — skipping live call.")
+        pytest.skip("No LLM provider key configured - skipping live call.")
 
     result = run_escalation_agent(_HF_EXTRACTION, document_id="safety-test-hf-escalation")
     output_text = result["text"]
@@ -136,7 +136,7 @@ def test_agent5_tier_headers_present() -> None:
     Missing or re-worded headers break the UI and the tier-assignment contract.
     """
     if not _provider_key_present():
-        pytest.skip("No LLM provider key configured — skipping live call.")
+        pytest.skip("No LLM provider key configured - skipping live call.")
 
     result = run_escalation_agent(_HF_EXTRACTION, document_id="safety-test-hf-headers")
     output_text = result["text"]
@@ -188,7 +188,7 @@ def test_agent5_no_hedging_across_diagnoses(
         red_flags: List of red-flag symptom strings for this test case.
     """
     if not _provider_key_present():
-        pytest.skip("No LLM provider key configured — skipping live call.")
+        pytest.skip("No LLM provider key configured - skipping live call.")
 
     extraction = ExtractionOutput(
         primary_diagnosis=diagnosis,

@@ -1,6 +1,6 @@
 /**
  * File: frontend/explainer/engine/src/animations/index.js
- * Component: Anatomy Explainer — Animation Registry
+ * Component: Anatomy Explainer - Animation Registry
  * Description: Central registry for all procedural animations. Maps animation id
  *   strings (from the registry entry's `available_animations` list and the config
  *   panel's `animation` field) to their implementing classes.
@@ -31,7 +31,7 @@ import { InflammationHighlightAnimation } from './inflammation_highlight.js';
  *
  * Keys must match the `available_animations` strings in anatomy_registry.json
  * and the `animation` field in explainer config panels. Unknown ids are ignored
- * rather than crashing — the engine logs a warning and shows the panel without
+ * rather than crashing - the engine logs a warning and shows the panel without
  * animation.
  *
  * @type {Object<string, Function>}
@@ -78,7 +78,7 @@ class AnimationSystem {
    * Resolve a list of friendly mesh names to actual THREE.Mesh objects.
    *
    * Unknown names produce a console warning and are skipped. Empty result is
-   * valid — animations fall back to operating on the placeholder sphere.
+   * valid - animations fall back to operating on the placeholder sphere.
    *
    * @param {string[]} friendlyNames - Friendly label strings from the config panel.
    * @returns {THREE.Mesh[]}
@@ -104,7 +104,7 @@ class AnimationSystem {
   /**
    * Start a named procedural animation on the given mesh targets.
    *
-   * Stops any currently running animation before starting the new one — only
+   * Stops any currently running animation before starting the new one - only
    * one procedural animation runs at a time (baked animations run in parallel).
    * Unknown animation ids log a warning and return without crashing.
    *

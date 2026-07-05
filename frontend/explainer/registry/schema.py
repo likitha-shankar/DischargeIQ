@@ -1,6 +1,6 @@
 """
 File: frontend/explainer/registry/schema.py
-Component: Anatomy Explainer — Registry Schema
+Component: Anatomy Explainer - Registry Schema
 Description: Pydantic v2 models that define and validate every entry in
   anatomy_registry.json. This is the sole type contract between the JSON
   manifest and the rest of the system. No registry data is consumed
@@ -81,9 +81,9 @@ class RegistryEntry(BaseModel):
     One anatomy model entry in the registry manifest.
 
     The engine enforces two hard gates before serving a model:
-      1. `license_verified` must be True  — set by a human after confirming the
+      1. `license_verified` must be True  - set by a human after confirming the
          model's license permits the deployment context (commercial, patient-facing).
-      2. `clinical_review_status` must be APPROVED — set by a clinician after
+      2. `clinical_review_status` must be APPROVED - set by a clinician after
          verifying the model's anatomical accuracy for the target condition.
 
     Both default to the blocked state. A new entry that has never been reviewed
@@ -92,7 +92,7 @@ class RegistryEntry(BaseModel):
 
     Attributes:
         id: Stable dot-namespaced identifier. Convention: '<system>.<condition>'.
-            Never reuse or rename an id — downstream code stores these as keys.
+            Never reuse or rename an id - downstream code stores these as keys.
         body_system: Which of the eleven body systems this model belongs to.
         region: Plain-language anatomical region, e.g. 'chest', 'left knee'.
         condition_keys: Lowercase strings matched against discharge diagnoses by
@@ -196,9 +196,9 @@ class RegistryEntry(BaseModel):
         Return True only if this entry passes both human-gated safety checks.
 
         Both conditions must hold simultaneously:
-          1. `license_verified` is True  — a team member confirmed the license
+          1. `license_verified` is True  - a team member confirmed the license
              permits patient-facing deployment for this model.
-          2. `clinical_review_status` is APPROVED — a clinician confirmed
+          2. `clinical_review_status` is APPROVED - a clinician confirmed
              anatomical accuracy for the target condition.
 
         The resolver and the FastAPI config endpoint call this before returning

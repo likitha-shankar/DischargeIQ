@@ -1,7 +1,7 @@
 """
 agents/diagnosis_agent.py
 
-Agent 2 — Diagnosis Explanation Agent.
+Agent 2 - Diagnosis Explanation Agent.
 Owner: Deepesh Kumar
 
 Consumes ExtractionOutput.primary_diagnosis (and secondary_diagnoses,
@@ -18,9 +18,9 @@ switches every agent in the pipeline (same as agents 3–5).
 Data contract:
     Input:  dischargeiq.models.extraction.ExtractionOutput (from Agent 1)
     Output: dict with keys:
-                text     (str)   — plain-language explanation paragraph
-                fk_grade (float) — FK grade level of the output
-                passes   (bool)  — True if fk_grade <= 6.0
+                text     (str)   - plain-language explanation paragraph
+                fk_grade (float) - FK grade level of the output
+                passes   (bool)  - True if fk_grade <= 6.0
 
 Dependencies:
     - openai             (OpenAI-compatible client, used for all providers)
@@ -182,9 +182,9 @@ def run_diagnosis_agent(
         Input:  ExtractionOutput from Agent 1.
                 primary_diagnosis must not be None or empty.
         Output: dict with keys:
-                    text     (str)   — plain-language explanation paragraph
-                    fk_grade (float) — Flesch-Kincaid grade level of the output
-                    passes   (bool)  — True if fk_grade <= 6.0
+                    text     (str)   - plain-language explanation paragraph
+                    fk_grade (float) - Flesch-Kincaid grade level of the output
+                    passes   (bool)  - True if fk_grade <= 6.0
 
     Args:
         extraction:   Validated ExtractionOutput from Agent 1.
@@ -224,16 +224,16 @@ def run_diagnosis_agent(
     # structure even at 6th-grade vocabulary. Anything above 6.5 gets exactly
     # one retry with an explicit simplification reinforcement appended to the
     # user message. We then accept whichever of the two attempts scored lower
-    # — retries can occasionally regress, so we never blindly prefer attempt 2.
+    # - retries can occasionally regress, so we never blindly prefer attempt 2.
     if fk_1["fk_grade"] <= _FK_RETRY_THRESHOLD:
         chosen_text, chosen_fk = explanation_1, fk_1
         retried = False
     else:
         logger.warning(
-            "Agent 2 retry '%s': first attempt FK=%.2f > %.1f — simplifying",
+            "Agent 2 retry '%s': first attempt FK=%.2f > %.1f - simplifying",
             document_id, fk_1["fk_grade"], _FK_RETRY_THRESHOLD,
         )
-        # Reinforcement suffix is additive — the system prompt already carries
+        # Reinforcement suffix is additive - the system prompt already carries
         # the full reading-level rules; this just pushes the model harder on
         # the specific failure mode (long compound sentences with
         # "which"/"because" subordinate clauses).
@@ -259,7 +259,7 @@ def run_diagnosis_agent(
             document_id, fk_1["fk_grade"], fk_2["fk_grade"], chosen_fk["fk_grade"],
         )
 
-    # Only the accepted attempt is logged to fk_log.csv — downstream evaluators
+    # Only the accepted attempt is logged to fk_log.csv - downstream evaluators
     # see one row per document, not two rows for retried cases.
     log_fk_score(document_id, "agent2_diagnosis", chosen_fk)
 
@@ -270,12 +270,12 @@ def run_diagnosis_agent(
         )
     else:
         logger.warning(
-            "Agent 2 FK FAIL '%s': grade %.2f (retried=%s) — revise agent2_system_prompt.txt",
+            "Agent 2 FK FAIL '%s': grade %.2f (retried=%s) - revise agent2_system_prompt.txt",
             document_id, chosen_fk["fk_grade"], retried,
         )
 
     logger.info(
-        "Agent 2 complete — '%s', FK grade: %.2f, passes: %s, length: %d chars",
+        "Agent 2 complete - '%s', FK grade: %.2f, passes: %s, length: %d chars",
         document_id,
         chosen_fk["fk_grade"],
         chosen_fk["passes"],

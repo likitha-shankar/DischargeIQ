@@ -226,7 +226,7 @@ class _UploadScreenState extends State<UploadScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    // Camera scan path (Sprint 2): no PDF needed — photograph
+                    // Camera scan path (Sprint 2): no PDF needed - photograph
                     // the paper document; text is recognized on-device.
                     SizedBox(
                       width: double.infinity,

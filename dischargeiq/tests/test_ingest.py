@@ -6,7 +6,7 @@ Description: Unit tests for the ingest layer (DIS-O1 increment 1). Verifies
   IngestResult contract holds, and error behavior matches the orchestrator's
   expectations (FileNotFoundError propagates, page-count failures degrade).
 Run: python -m pytest dischargeiq/tests/test_ingest.py
-Dependencies: a real synthetic PDF from test-data/ — no LLM calls, no network.
+Dependencies: a real synthetic PDF from test-data/ - no LLM calls, no network.
 """
 
 from pathlib import Path

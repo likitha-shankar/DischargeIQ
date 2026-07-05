@@ -1,8 +1,8 @@
 """
 api/routes/pdf.py
 
-GET /pdf/{session_id}       — serve stored PDF bytes.
-GET /simulator/{session_id} — serve Agent 6 JSON.
+GET /pdf/{session_id}       - serve stored PDF bytes.
+GET /simulator/{session_id} - serve Agent 6 JSON.
 
 Both endpoints serve data that was stored during POST /analyze. They
 exist to decouple the frontend from large payloads: the PDF is served
@@ -42,9 +42,9 @@ async def get_pdf(session_id: str):
     """
     pdf_bytes = session_store.get_pdf(session_id)
     if pdf_bytes is None:
-        logger.warning("GET /pdf/%s — not found or evicted", session_id)
+        logger.warning("GET /pdf/%s - not found or evicted", session_id)
         raise HTTPException(status_code=404, detail="PDF not found or expired.")
-    logger.debug("GET /pdf/%s — serving %d bytes", session_id, len(pdf_bytes))
+    logger.debug("GET /pdf/%s - serving %d bytes", session_id, len(pdf_bytes))
     return Response(content=pdf_bytes, media_type="application/pdf")
 
 

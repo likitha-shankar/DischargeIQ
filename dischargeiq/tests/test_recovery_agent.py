@@ -47,7 +47,7 @@ def _fake_client(reply_text: str) -> tuple:
 def _surgical_extraction() -> ExtractionOutput:
     """Post-cholecystectomy ExtractionOutput for happy-path tests."""
     return ExtractionOutput(
-        primary_diagnosis="Acute calculous cholecystitis — laparoscopic cholecystectomy",
+        primary_diagnosis="Acute calculous cholecystitis - laparoscopic cholecystectomy",
         medications=[
             Medication(name="Oxycodone/Acetaminophen", dose="5/325mg", frequency="every 6h prn"),
             Medication(name="Docusate Sodium", dose="100mg", frequency="twice daily"),

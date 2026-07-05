@@ -82,7 +82,7 @@ Using the upper bound of token estimates (2,500 input + 300 output per call):
 
 **Recommendation:** Pre-load or confirm $5.00 of credits are available before
 the evaluation batch run. This covers the evaluation batch at standard rates with more
-than 20× headroom — enough to re-run the full batch multiple times if needed
+than 20× headroom - enough to re-run the full batch multiple times if needed
 during debugging, plus any associated pipeline calls.
 
 > **⚠️ Important:** This estimate covers *only* the LLM-as-Judge evaluation calls.
@@ -97,7 +97,7 @@ during debugging, plus any associated pipeline calls.
 - **claude-sonnet-4-20250514 default rate limit:** 50 requests per minute (most tiers)
 - **Batch size:** 20 calls
 - **Expected throughput:** All 20 calls complete in under 1 minute at standard limits
-- **Batch API:** Processes asynchronously — no rate limit concern for batch submission
+- **Batch API:** Processes asynchronously - no rate limit concern for batch submission
 
 ✅ Rate limits are not a bottleneck for this batch size.
 

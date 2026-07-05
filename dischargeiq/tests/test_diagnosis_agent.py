@@ -84,7 +84,7 @@ def test_high_fk_triggers_retry_path():
     assert call_chat_mock.call_count == 2, (
         "High-FK first attempt must trigger a retry"
     )
-    # Agent picks the lower-FK attempt — retry simpler text wins.
+    # Agent picks the lower-FK attempt - retry simpler text wins.
     assert result["text"] == simple_reply
 
 

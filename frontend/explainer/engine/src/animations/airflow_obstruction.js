@@ -1,6 +1,6 @@
 /**
  * File: frontend/explainer/engine/src/animations/airflow_obstruction.js
- * Component: Anatomy Explainer — Procedural Animation
+ * Component: Anatomy Explainer - Procedural Animation
  * Description: Simulates narrowed airways in COPD by cyclically squeezing the
  *   X and Z axes of target airway meshes. The squeeze alternates between full
  *   width (no obstruction) and 45% reduction (significant obstruction) with a

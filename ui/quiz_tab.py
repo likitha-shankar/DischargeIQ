@@ -2,7 +2,7 @@
 File: ui/quiz_tab.py
 Owner: Likitha Shankar
 Description: "Test yourself" tab for the Streamlit fallback surface (Sprint 3,
-  Task 3.2) — the same teach-back loop as the mobile app: baseline quiz (no
+  Task 3.2) - the same teach-back loop as the mobile app: baseline quiz (no
   feedback) → learning cards → post-quiz (feedback + explanations) → results
   with the comprehension lift. Mirrors the mobile flow so demos are equivalent
   on either surface; the phone app remains the primary product.
@@ -22,7 +22,7 @@ import streamlit as st
 
 logger = logging.getLogger(__name__)
 
-# Session-state keys — namespaced to avoid colliding with streamlit_app keys.
+# Session-state keys - namespaced to avoid colliding with streamlit_app keys.
 _S_PHASE = "quiz_phase"            # intro | pre | learn | post | results
 _S_QUESTIONS = "quiz_questions"    # frozen list from /quiz/generate
 _S_POST_ORDER = "quiz_post_order"  # shuffled presentation order for post (§3a)
@@ -56,7 +56,7 @@ def render_quiz_tab(result: dict, session_id: str, api_base: str) -> None:
 
     Args:
         result: Full PipelineResponse dict from /analyze (session state).
-        session_id: pdf_session_id for this analysis — joins quiz scores to
+        session_id: pdf_session_id for this analysis - joins quiz scores to
                     the session in Neon.
         api_base: FastAPI base URL (streamlit_app._API_BASE).
     """
@@ -88,7 +88,7 @@ def _render_intro(result: dict, session_id: str, api_base: str) -> None:
         "A short quiz about **your** discharge plan.\n\n"
         "1. Answer 5 quick questions.\n"
         "2. Learn with simple cards.\n"
-        "3. Answer again — and watch your score climb."
+        "3. Answer again - and watch your score climb."
     )
     if st.button("Start the quiz", type="primary", key="quiz_start"):
         with st.spinner("Writing questions from your discharge summary..."):
@@ -130,7 +130,7 @@ def _render_quiz_phase(phase: str, session_id: str, api_base: str) -> None:
     question = questions[q_index]
 
     label = "Before you learn" if is_pre else "After learning"
-    st.markdown(f"**{label} — question {current + 1} of {len(questions)}**")
+    st.markdown(f"**{label} - question {current + 1} of {len(questions)}**")
     st.progress((current + 1) / len(questions))
 
     domain = question.get("domain", "diagnosis")
@@ -148,7 +148,7 @@ def _render_quiz_phase(phase: str, session_id: str, api_base: str) -> None:
     if choice is not None:
         st.session_state[answers_key][q_index] = choice
         # Post phase teaches: reveal correctness + explanation immediately.
-        # Pre phase must not (§3a) — the baseline can't be a lesson.
+        # Pre phase must not (§3a) - the baseline can't be a lesson.
         if not is_pre:
             if choice == question["correct_index"]:
                 st.success(f"Correct! {question['explanation']}")
@@ -193,7 +193,7 @@ def _finish_phase(phase: str, session_id: str, api_base: str) -> None:
         resp.raise_for_status()
         scored = resp.json()
     except requests.RequestException as exc:
-        logger.warning("Quiz scoring failed — scoring locally: %s", exc)
+        logger.warning("Quiz scoring failed - scoring locally: %s", exc)
         scored = _score_locally(phase, keys, answers)
 
     if phase == "pre":
@@ -208,7 +208,7 @@ def _finish_phase(phase: str, session_id: str, api_base: str) -> None:
 
 
 def _score_locally(phase: str, keys: list[dict], answers: list[int]) -> dict:
-    """Offline fallback mirroring services/quiz.py — flow must never dead-end."""
+    """Offline fallback mirroring services/quiz.py - flow must never dead-end."""
     score = 0
     domains: dict[str, dict[str, int]] = {}
     for key, answer in zip(keys, answers):
@@ -237,13 +237,13 @@ def _learn_cards(result: dict) -> list[tuple[str, str]]:
 
     meds = "\n".join(
         f"- **{m.get('name', '')}**"
-        + (f" — {m['dose']}" if m.get("dose") else "")
+        + (f" - {m['dose']}" if m.get("dose") else "")
         + (f", {m['frequency']}" if m.get("frequency") else "")
         for m in (ex.get("medications") or [])
     )
     appts = "\n".join(
         f"- {a.get('provider') or a.get('specialty') or 'Appointment'}"
-        + (f" — {a['date']}" if a.get("date") else "")
+        + (f" - {a['date']}" if a.get("date") else "")
         for a in (ex.get("follow_up_appointments") or [])
     )
     cards = [
@@ -276,8 +276,8 @@ def _render_learn(result: dict) -> None:
     reviewing = bool(st.session_state.get(_S_REVIEW_DOMAINS))
 
     st.markdown(
-        f"**{'Focused review — the parts to master' if reviewing else 'Learning time'}"
-        f" — card {idx + 1} of {len(cards)}**"
+        f"**{'Focused review - the parts to master' if reviewing else 'Learning time'}"
+        f" - card {idx + 1} of {len(cards)}**"
     )
     st.progress((idx + 1) / len(cards))
     with st.container(border=True):
@@ -292,7 +292,7 @@ def _render_learn(result: dict) -> None:
     with next_col:
         last = idx >= len(cards) - 1
         if st.button(
-            "I'm ready — quiz me again" if last else "Got it, next",
+            "I'm ready - quiz me again" if last else "Got it, next",
             type="primary",
             key=f"quiz_learn_next_{idx}",
         ):
@@ -324,7 +324,7 @@ def _render_results() -> None:
     if lift > 0:
         st.success(f"🎉 Your understanding went up **{lift:.0f} points**!")
     elif not post.get("failed_domains"):
-        st.success("💯 You understood every topic — great job!")
+        st.success("💯 You understood every topic - great job!")
 
     st.markdown("**How you did by topic**")
     for domain, bucket in (post.get("domain_scores") or {}).items():
@@ -343,7 +343,7 @@ def _render_results() -> None:
             st.session_state[_S_PHASE] = "learn"
             st.rerun()
     else:
-        st.info("Share what you learned with a family member — teaching it back is the best proof you've got it.")
+        st.info("Share what you learned with a family member - teaching it back is the best proof you've got it.")
 
     if st.button("Start over", key="quiz_reset"):
         _reset()

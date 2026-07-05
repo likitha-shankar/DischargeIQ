@@ -133,7 +133,7 @@ def main() -> None:
         try:
             r = asyncio.run(run_pipeline(str(path)))
         except Exception as exc:
-            print(f"{label:22s} CRASH     — pipeline raised {type(exc).__name__}: {exc}")
+            print(f"{label:22s} CRASH     - pipeline raised {type(exc).__name__}: {exc}")
             summary.append((label, "CRASH"))
             continue
 
@@ -146,7 +146,7 @@ def main() -> None:
         red_flags = ext.get("red_flag_symptoms", []) or []
         appts = ext.get("follow_up_appointments", []) or []
         warnings = ext.get("extraction_warnings", []) or []
-        fk_grade = r.fk_scores.get("agent2", {}).get("fk_grade", "—")
+        fk_grade = r.fk_scores.get("agent2", {}).get("fk_grade", "-")
 
         med_ok = active_count == case["expected_active_meds"]
         dc_ok = all(

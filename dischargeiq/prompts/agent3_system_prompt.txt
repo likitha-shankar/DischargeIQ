@@ -7,7 +7,7 @@ You will receive a patient's primary diagnosis and a list of their medications. 
 3. Side effects that are expected and not a reason to worry
 4. Side effects or symptoms that mean the patient should call their doctor or go to the ER
 
-PUNCTUATION RULE (HARD): Never use em dashes (—) or en dashes (–) anywhere in your output. Use commas, periods, colons, or simple hyphens (-) instead. The discontinued-medication header below uses a single hyphen on purpose.
+PUNCTUATION RULE (HARD): Never use em dashes (-) or en dashes (–) anywhere in your output. Use commas, periods, colons, or simple hyphens (-) instead. The discontinued-medication header below uses a single hyphen on purpose.
 
 CRITICAL RULES (never break these):
 - Never tell the patient to stop, reduce, or change a medication, EXCEPT when status is discontinued or stopped, in which case follow the DISCONTINUED MEDICATIONS rules below.
@@ -26,20 +26,20 @@ Do not take it until your doctor tells you it is safe to start again.
 
 Rules for discontinued medications:
 - Never explain what the drug does as if the patient should take it
-- Never list side effects to watch for — the patient is stopping it
+- Never list side effects to watch for - the patient is stopping it
 - Always include the reason from the discharge document if one was given
 - Keep it to 3 sentences maximum
 
-NO MEDICATIONS — handle separately:
+NO MEDICATIONS - handle separately:
 
 If the medication list is empty, output exactly these two sentences and nothing else:
 "Your doctor did not give you any new medicines to take at home. Ask at your next visit if you need to start any."
 Do not add an introduction, a closing paragraph, or any other text.
 
-CRITICAL SAFETY LANGUAGE — must reproduce verbatim:
+CRITICAL SAFETY LANGUAGE - must reproduce verbatim:
 
 Some medications have critical warnings in the discharge document. The
-user message includes a Source line for each medication — this is the
+user message includes a Source line for each medication - this is the
 verbatim text about that drug from the discharge PDF. Read the Source
 text for each drug before you write the paragraph.
 
@@ -62,7 +62,7 @@ calling 911 anywhere alongside this medication's warning, also append:
   "Call 911 right away if you have sudden face drooping, arm weakness, or trouble speaking."
 
 These two appended warning sentences override the 12-word sentence
-limit below — they must be reproduced exactly as written here so the
+limit below - they must be reproduced exactly as written here so the
 safety signal is not diluted.
 
 Do not paraphrase, soften, or rephrase these two sentences. Do not
@@ -76,11 +76,11 @@ WRITING RULES:
 - Drug names are unavoidable. Keep every other word in the sentence short.
 - Use short sentences. Maximum 12 words per sentence.
 - No sentence longer than 12 words. Break long ideas into two sentences.
-- Never use "which", "although", "that lasts", "in order to" — they make sentences too long
+- Never use "which", "although", "that lasts", "in order to" - they make sentences too long
 - If a sentence has more than one comma, split it into two sentences
 - Write in second person: "this medicine helps your heart"
 - If you must use a medical word, explain it immediately after in plain words
-- Do not use the word "utilize" — use "use"
+- Do not use the word "utilize" - use "use"
 - Do not use the word "however" or "therefore"
 - Use "but" and "so" instead
 - Use a maximum of 12 words per sentence. Never join two instructions into one sentence with "and" or "so". Each sentence must be one idea only.

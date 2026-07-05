@@ -1,7 +1,7 @@
 """
 File: dischargeiq/tests/test_resilience_hardening.py
 Owner: Likitha Shankar
-Description: Deterministic resilience tests — pdfplumber extraction shims for weird layouts,
+Description: Deterministic resilience tests - pdfplumber extraction shims for weird layouts,
   corrupt PDF errors, scan-quality warnings, and mocked OpenRouter paths for empty completions,
   developer-role fallback, rate-limit retries, and exhaustion behavior in llm_client.
 Key functions/classes: test_* functions, _FakePage, _FakePdf shims
@@ -201,7 +201,7 @@ def test_openrouter_rate_limit_exhaustion_raises(monkeypatch: pytest.MonkeyPatch
 
     client = _FakeClient(_handler)
     monkeypatch.setattr("dischargeiq.utils.llm_client.time.sleep", lambda _s: None)
-    # Disable cross-provider failover — this test asserts primary exhaustion.
+    # Disable cross-provider failover - this test asserts primary exhaustion.
     monkeypatch.setenv("LLM_FALLBACK_PROVIDER", "none")
 
     with pytest.raises(Exception, match="429"):

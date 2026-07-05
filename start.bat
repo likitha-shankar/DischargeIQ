@@ -1,7 +1,7 @@
 @echo off
 REM File: start.bat
 REM Owner: Likitha Shankar
-REM Description: Windows dev bootstrap — creates .venv, pip installs requirements,
+REM Description: Windows dev bootstrap - creates .venv, pip installs requirements,
 REM   validates .env keys for LLM_PROVIDER, starts uvicorn backend in background and
 REM   runs Streamlit in foreground on port 8501.
 REM Usage: start.bat (from repo root, double-click or cmd)

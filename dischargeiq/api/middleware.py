@@ -4,9 +4,9 @@ api/middleware.py
 Production security middleware for DischargeIQ.
 
 Three concerns are handled here:
-    SecurityHeadersMiddleware — adds defensive HTTP headers to every response.
-    RateLimitMiddleware       — in-process token-bucket per client IP for /analyze and /chat.
-    verify_api_key            — FastAPI dependency; enforces Bearer token when
+    SecurityHeadersMiddleware - adds defensive HTTP headers to every response.
+    RateLimitMiddleware       - in-process token-bucket per client IP for /analyze and /chat.
+    verify_api_key            - FastAPI dependency; enforces Bearer token when
                                 DISCHARGEIQ_API_KEY is set in the environment.
 
 Why in-process rate limiting instead of Redis:
@@ -20,7 +20,7 @@ Why in-process rate limiting instead of Redis:
 
 Dependencies:
     starlette (bundled with FastAPI)
-    dischargeiq.utils.logger (shared logger config — no circular import)
+    dischargeiq.utils.logger (shared logger config - no circular import)
 """
 
 import logging
@@ -138,7 +138,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 oldest = _rate_windows[path][ip][0]
                 retry_after = int(oldest + window - now) + 1
                 logger.warning(
-                    "Rate limit hit — IP: %s, path: %s, limit: %d/%ds",
+                    "Rate limit hit - IP: %s, path: %s, limit: %d/%ds",
                     ip, path, max_requests, int(window),
                 )
                 return JSONResponse(
@@ -160,7 +160,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 _bearer_scheme = HTTPBearer(auto_error=False)
 
-# Module-level compiled pattern for filename sanitization — shared with routes.
+# Module-level compiled pattern for filename sanitization - shared with routes.
 # Strips newlines, carriage returns, tabs, and ANSI escape sequences so that
 # user-controlled filenames cannot contaminate structured logs or forge entries.
 _LOG_UNSAFE_CHARS = re.compile(r"[\r\n\t]|\x1b\[[0-9;]*[mGKH]")

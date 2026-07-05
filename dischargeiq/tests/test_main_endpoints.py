@@ -7,14 +7,14 @@ Description: Black-box tests for the FastAPI endpoints other than /chat
   contracts via fastapi.testclient.TestClient.
 
   State is managed via the public SessionStore API (session_store.*) rather
-  than poking private attributes on main.py — private attributes are an
+  than poking private attributes on main.py - private attributes are an
   implementation detail that can change without breaking the product contract.
 
 Key functions/classes: test_* functions
 Edge cases handled:
   - Unknown session ids → 404 for /pdf and /simulator, not_found body for /progress.
   - Stored entries → 200 with the expected body / content type.
-  - Progress TTL eviction (Bug D) — stale entries are swept on /progress reads.
+  - Progress TTL eviction (Bug D) - stale entries are swept on /progress reads.
 Dependencies: pytest, fastapi.testclient, dischargeiq.main (for app + backward-compat),
   dischargeiq.services.session (for test state setup)
 Called by: pytest (testpaths = dischargeiq/tests per pytest.ini).
@@ -106,7 +106,7 @@ def test_get_simulator_after_store_returns_payload():
 
 def test_get_progress_unknown_session_returns_not_found_body():
     """
-    Unknown session id → 200 with status='not_found' (NOT 404 — the polling
+    Unknown session id → 200 with status='not_found' (NOT 404 - the polling
     frontend prefers a body shape it can render uniformly).
     """
     resp = _client.get("/progress/no-such-session-progress")

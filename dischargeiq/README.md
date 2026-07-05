@@ -1,10 +1,10 @@
-# `dischargeiq/` — core package
+# `dischargeiq/` - core package
 
 FastAPI backend + multi-agent pipeline. All production code lives here.
 
 ## Files
 
-- `main.py` — FastAPI app. Endpoints: `GET /health`, `POST /analyze`,
+- `main.py` - FastAPI app. Endpoints: `GET /health`, `POST /analyze`,
   `POST /chat`. Entry point for `uvicorn dischargeiq.main:app`.
 
 ## Subpackages
@@ -17,7 +17,7 @@ FastAPI backend + multi-agent pipeline. All production code lives here.
 | `prompts/`    | System prompts used by each agent and the LLM judge                                   |
 | `utils/`      | Shared helpers (LLM client, FK scorer, logger, warnings, extraction scope, HTML builder) |
 | `db/`         | PostgreSQL schema + async write helpers (wired into orchestrator via `save_discharge_history`) |
-| `evaluation/` | FK readability log — one row appended per agent run by each agent's `_log_fk_score`  |
+| `evaluation/` | FK readability log - one row appended per agent run by each agent's `_log_fk_score`  |
 | `tests/`      | Integration/hallucination test suite and PDF fixtures                                 |
 
 ## Import paths

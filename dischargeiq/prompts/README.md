@@ -1,28 +1,28 @@
-# `prompts/` — system prompts
+# `prompts/` - system prompts
 
 One plain-text file per agent. Loaded at import time by the
-corresponding `agents/*.py` module. Edit these to change behavior —
+corresponding `agents/*.py` module. Edit these to change behavior -
 do not hard-code prompt text in Python.
 
 ## Files
 
-- `agent1_system_prompt.txt` — Agent 1 (extraction). Strict
+- `agent1_system_prompt.txt` - Agent 1 (extraction). Strict
   JSON-only output matching `ExtractionOutput`.
-- `agent2_system_prompt.txt` — Agent 2 (diagnosis). Reading-level
+- `agent2_system_prompt.txt` - Agent 2 (diagnosis). Reading-level
   rules, NO INVENTED NUMBERS rule.
-- `agent3_system_prompt.txt` — Agent 3 (medications).
-- `agent4_system_prompt.txt` — Agent 4 (recovery).
-- `agent5_system_prompt.txt` — Agent 5 (escalation). Tier headers are
+- `agent3_system_prompt.txt` - Agent 3 (medications).
+- `agent4_system_prompt.txt` - Agent 4 (recovery).
+- `agent5_system_prompt.txt` - Agent 5 (escalation). Tier headers are
   fixed strings; do not change them without updating `streamlit_app.py`.
-- `agent6_system_prompt.txt` — Agent 6 (patient simulator). Instructs
+- `agent6_system_prompt.txt` - Agent 6 (patient simulator). Instructs
   the LLM to act as a confused patient and identify gaps in the discharge
   document. Output is parsed into `MissedConcept` rows with severity levels.
-- `llm_judge_prompt.txt` — Judge prompt used by the hallucination
+- `llm_judge_prompt.txt` - Judge prompt used by the hallucination
   test suite to audit Agent 2 output for fabrication.
 
 ## Editing
 
-1. Change the text. Do not change the prompt filename — agent modules
+1. Change the text. Do not change the prompt filename - agent modules
    reference it directly.
 2. Re-run the relevant test to confirm no regression:
    ```bash

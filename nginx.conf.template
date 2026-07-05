@@ -61,7 +61,7 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
-        # Streamlit WebSocket endpoint — needs HTTP/1.1 + Upgrade headers.
+        # Streamlit WebSocket endpoint - needs HTTP/1.1 + Upgrade headers.
         location /_stcore/stream {
             proxy_pass http://127.0.0.1:${STREAMLIT_PORT};
             proxy_http_version 1.1;

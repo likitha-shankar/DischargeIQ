@@ -1,7 +1,7 @@
 """
 File: dischargeiq/models/extraction.py
 Owner: Likitha Shankar
-Description: Pydantic v2 models for Agent 1 structured extraction — SourceSpan,
+Description: Pydantic v2 models for Agent 1 structured extraction - SourceSpan,
   Medication, FollowUpAppointment, and ExtractionOutput define the locked JSON contract
   passed to scoped downstream agents; optional provenance fields support UI citations.
 Key functions/classes: SourceSpan, Medication, FollowUpAppointment, ExtractionOutput
@@ -19,7 +19,7 @@ class SourceSpan(BaseModel):
     """
     Points back to the exact passage in the PDF that supports an extracted value.
 
-    Used by the UI to show provenance — which page and which sentence each
+    Used by the UI to show provenance - which page and which sentence each
     field came from. Prevents hallucination trust issues by making every
     extracted value traceable to the source document.
     """
@@ -60,7 +60,7 @@ class ExtractionOutput(BaseModel):
     Source span fields (patient_name_source, discharge_date_source,
     discharge_condition_source, primary_diagnosis_source, and source on each
     Medication and FollowUpAppointment) are Optional and default to None for
-    backward compatibility — existing tests and downstream agents are unaffected.
+    backward compatibility - existing tests and downstream agents are unaffected.
     """
 
     patient_name: Optional[str] = None

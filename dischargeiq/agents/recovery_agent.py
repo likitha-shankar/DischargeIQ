@@ -1,7 +1,7 @@
 """
 agents/recovery_agent.py
 
-Agent 4 — Recovery Trajectory Agent.
+Agent 4 - Recovery Trajectory Agent.
 Owner: Suchithra
 
 Consumes ExtractionOutput.primary_diagnosis and procedures_performed from
@@ -21,9 +21,9 @@ Data contract:
             Required: primary_diagnosis (str)
             Optional: procedures_performed (list[str])
     Output: dict with keys:
-                text     (str)   — full week-by-week recovery guide
-                fk_grade (float) — FK grade level of the output
-                passes   (bool)  — True if fk_grade <= 6.0
+                text     (str)   - full week-by-week recovery guide
+                fk_grade (float) - FK grade level of the output
+                passes   (bool)  - True if fk_grade <= 6.0
 
 Dependencies:
     - anthropic          (used on anthropic provider path only)
@@ -126,9 +126,9 @@ def run_recovery_agent(
                 primary_diagnosis must be a non-empty string.
                 procedures_performed and activity_restrictions are optional.
         Output: dict with keys:
-                    text     (str)   — full recovery timeline as plain text
-                    fk_grade (float) — Flesch-Kincaid grade level
-                    passes   (bool)  — True if fk_grade <= 6.0
+                    text     (str)   - full recovery timeline as plain text
+                    fk_grade (float) - Flesch-Kincaid grade level
+                    passes   (bool)  - True if fk_grade <= 6.0
 
     Args:
         extraction:  Validated ExtractionOutput from Agent 1.
@@ -151,7 +151,7 @@ def run_recovery_agent(
     system_prompt = load_agent_prompt("agent4_system_prompt.txt")
     user_message = _build_user_message(extraction)
 
-    logger.info("Agent 4 request — document: '%s'", document_id)
+    logger.info("Agent 4 request - document: '%s'", document_id)
 
     provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     client, model = get_native_agent_client(provider)
@@ -198,7 +198,7 @@ def run_recovery_agent(
         )
     else:
         logger.warning(
-            "Agent 4 FK FAIL '%s': grade %.2f — revise agent4_system_prompt.txt",
+            "Agent 4 FK FAIL '%s': grade %.2f - revise agent4_system_prompt.txt",
             document_id,
             fk_result["fk_grade"],
         )

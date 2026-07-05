@@ -1,4 +1,4 @@
-# DischargeIQ — Setup & Handoff Guide
+# DischargeIQ - Setup & Handoff Guide
 
 > A new engineer with Python and Git experience should be able to clone and
 > run DischargeIQ from scratch using only this document.
@@ -9,9 +9,9 @@
 
 DischargeIQ is a web application that turns a hospital discharge PDF into
 plain-language patient education content. A patient uploads their discharge
-document and receives six AI-generated summaries — diagnosis explanation,
+document and receives six AI-generated summaries - diagnosis explanation,
 medication rationale, recovery timeline, warning signs, follow-up appointments,
-and a comprehension-gap audit — displayed in a Streamlit dashboard. The system
+and a comprehension-gap audit - displayed in a Streamlit dashboard. The system
 targets post-discharge health literacy for patients who cannot understand their
 discharge paperwork.
 
@@ -41,14 +41,14 @@ support.
 ### Six-Agent Pipeline
 
 Runs in sequence. All six agents use the LLM provider set by `LLM_PROVIDER`
-in `.env` — there is no per-agent provider split.
+in `.env` - there is no per-agent provider split.
 
 ---
 
-**Agent 1 — Extraction** `dischargeiq/agents/extraction_agent.py`
+**Agent 1 - Extraction** `dischargeiq/agents/extraction_agent.py`
 
 - **Input:** Raw PDF text extracted by pdfplumber (with `[PAGE N]` markers)
-- **Output:** `ExtractionOutput` Pydantic model — diagnosis, medications (with
+- **Output:** `ExtractionOutput` Pydantic model - diagnosis, medications (with
   dose/frequency/status/source), follow-up appointments, activity restrictions,
   dietary restrictions, red-flag symptoms, discharge condition, extraction warnings
 - **Rule:** Never fabricates or infers a field. Returns `null`/`[]` when a
@@ -56,7 +56,7 @@ in `.env` — there is no per-agent provider split.
 
 ---
 
-**Agent 2 — Diagnosis Explanation** `dischargeiq/agents/diagnosis_agent.py`
+**Agent 2 - Diagnosis Explanation** `dischargeiq/agents/diagnosis_agent.py`
 
 - **Input:** `primary_diagnosis`, `secondary_diagnoses`, `procedures_performed`
   from Agent 1
@@ -66,7 +66,7 @@ in `.env` — there is no per-agent provider split.
 
 ---
 
-**Agent 3 — Medication Rationale** `dischargeiq/agents/medication_agent.py`
+**Agent 3 - Medication Rationale** `dischargeiq/agents/medication_agent.py`
 
 - **Input:** `medications` list + `primary_diagnosis` + `safety_context`
   (emergency phrases harvested from raw PDF)
@@ -76,7 +76,7 @@ in `.env` — there is no per-agent provider split.
 
 ---
 
-**Agent 4 — Recovery Trajectory** `dischargeiq/agents/recovery_agent.py`
+**Agent 4 - Recovery Trajectory** `dischargeiq/agents/recovery_agent.py`
 
 - **Input:** `primary_diagnosis`, `procedures_performed`, `activity_restrictions`,
   `dietary_restrictions`, `red_flag_symptoms` from Agent 1
@@ -86,13 +86,13 @@ in `.env` — there is no per-agent provider split.
 
 ---
 
-**Agent 5 — Escalation / Warning Signs** `dischargeiq/agents/escalation_agent.py`
-**Safety-critical — all output must be manually reviewed before clinical use.**
+**Agent 5 - Escalation / Warning Signs** `dischargeiq/agents/escalation_agent.py`
+**Safety-critical - all output must be manually reviewed before clinical use.**
 
 - **Input:** `primary_diagnosis`, `secondary_diagnoses`, `red_flag_symptoms`,
   `medications` from Agent 1
 - **Output:** `{"text": str, "fk_grade": float, "passes": bool}`
-- **Rule:** Three fixed tier headers (parsed by Streamlit UI — do not rename
+- **Rule:** Three fixed tier headers (parsed by Streamlit UI - do not rename
   without updating the renderer):
   - `CALL 911 IMMEDIATELY`
   - `GO TO THE ER TODAY`
@@ -101,18 +101,18 @@ in `.env` — there is no per-agent provider split.
 
 ---
 
-**Agent 6 — AI Patient Simulator** `dischargeiq/agents/patient_simulator_agent.py`
+**Agent 6 - AI Patient Simulator** `dischargeiq/agents/patient_simulator_agent.py`
 
 - **Input:** Full `ExtractionOutput` from Agent 1
 - **Output:** `PatientSimulatorOutput`
-  - `missed_concepts` — list of questions with `answered_by_doc`, `gap_summary`,
+  - `missed_concepts` - list of questions with `answered_by_doc`, `gap_summary`,
     `severity` (critical / moderate / minor)
-  - `overall_gap_score` — integer 0–10
-  - `simulator_summary` — one-line summary of the biggest gap
-  - `caregiver_questions` — per-item follow-up questions for meds/appointments/warnings
+  - `overall_gap_score` - integer 0–10
+  - `simulator_summary` - one-line summary of the biggest gap
+  - `caregiver_questions` - per-item follow-up questions for meds/appointments/warnings
   - `fk_grade`, `passes` (threshold: 8.0, not 6.0)
 - **Rule:** Non-fatal. If Agent 6 fails or times out, the pipeline still returns
-  with `patient_simulator: null` — it does not set `pipeline_status` to `"partial"`.
+  with `patient_simulator: null` - it does not set `pipeline_status` to `"partial"`.
 
 ---
 
@@ -138,7 +138,7 @@ Wall-clock timeout: **300 seconds**. Agent 6 failure does not affect status.
 
 ### FastAPI Backend
 
-`dischargeiq/main.py` — **http://127.0.0.1:8000**
+`dischargeiq/main.py` - **http://127.0.0.1:8000**
 
 > For Flutter mobile (physical device): run uvicorn with `--host 0.0.0.0`.
 
@@ -149,7 +149,7 @@ Wall-clock timeout: **300 seconds**. Agent 6 failure does not affect status.
 | `GET`   | `/progress/{session_id}`      | Real-time agent progress                                         |
 | `GET`   | `/pdf/{session_id}`           | Raw PDF bytes (50-entry LRU in-memory store)                     |
 | `GET`   | `/simulator/{session_id}`     | Agent 6 `PatientSimulatorOutput` JSON                            |
-| `POST`  | `/chat`                       | Grounded Q&A — body: `{message, session_id, pipeline_context}`   |
+| `POST`  | `/chat`                       | Grounded Q&A - body: `{message, session_id, pipeline_context}`   |
 
 CORS allows all `localhost` and `127.0.0.1` origins on any port.
 
@@ -157,18 +157,18 @@ CORS allows all `localhost` and `127.0.0.1` origins on any port.
 
 ### Streamlit Frontend
 
-`streamlit_app.py` — **http://127.0.0.1:8501**
+`streamlit_app.py` - **http://127.0.0.1:8501**
 
 Six-tab dashboard rendered after upload:
 
 | Tab            | Content                                                                              |
 |----------------|--------------------------------------------------------------------------------------|
-| What happened  | Agent 2 — plain-language diagnosis explanation                                       |
-| Medications    | Agent 3 — per-drug cards, color-coded by status (new/changed/continued/discontinued) |
-| Appointments   | Agent 1 extraction — sorted by date, with source-page citation buttons               |
-| Warning signs  | Agent 5 — three-tier escalation guide                                                |
-| Recovery       | Agent 4 — week-by-week recovery guide                                                |
-| AI Review      | Agent 6 — gap score bar, missed-concept cards by severity, caregiver questions       |
+| What happened  | Agent 2 - plain-language diagnosis explanation                                       |
+| Medications    | Agent 3 - per-drug cards, color-coded by status (new/changed/continued/discontinued) |
+| Appointments   | Agent 1 extraction - sorted by date, with source-page citation buttons               |
+| Warning signs  | Agent 5 - three-tier escalation guide                                                |
+| Recovery       | Agent 4 - week-by-week recovery guide                                                |
+| AI Review      | Agent 6 - gap score bar, missed-concept cards by severity, caregiver questions       |
 
 The floating chat panel calls `POST /chat` and labels answers as
 "From your discharge summary" or "General guidance".
@@ -177,7 +177,7 @@ The floating chat panel calls `POST /chat` and labels answers as
 
 ### Flutter Mobile App
 
-`dischargeiq_mobile/` — **On hold. Gitignored. Not in the shared repo.**
+`dischargeiq_mobile/` - **On hold. Gitignored. Not in the shared repo.**
 
 Do not assume teammates have this directory. Revive only as a team decision.
 
@@ -193,7 +193,7 @@ view as Streamlit, chat panel, real-time progress via `GET /progress/{session_id
 
 ### Neon PostgreSQL Database
 
-Schema: `dischargeiq/db/schema.sql` — one table: `discharge_history`
+Schema: `dischargeiq/db/schema.sql` - one table: `discharge_history`
 
 ```sql
 CREATE TABLE discharge_history (
@@ -228,7 +228,7 @@ From `requirements.txt`:
 | python-multipart  | 0.0.9       | File upload parsing                           |
 | streamlit         | 1.32.0      | Web UI                                        |
 | anthropic         | 0.25.0      | Anthropic SDK (native)                        |
-| openai            | 1.0.0       | OpenAI-compatible SDK — used for all providers|
+| openai            | 1.0.0       | OpenAI-compatible SDK - used for all providers|
 | pdfplumber        | 0.11.0      | PDF text extraction                           |
 | pypdf             | 4.0.0       | PDF utilities                                 |
 | pydantic          | 2.0.0       | Data validation (v2)                          |
@@ -255,10 +255,10 @@ Flutter (if revived): Dart SDK >=3.3.0, `http ^1.2.2`, `file_picker ^8.1.4`,
 |----------------------|-------------------------------------------------------------------------|
 | Python 3.11+         | Verify: `python3 --version`                                             |
 | Git                  | Standard install                                                        |
-| Anthropic API key    | https://console.anthropic.com — free tier: 5 RPM, 10k tokens/min        |
-| OpenRouter API key   | https://openrouter.ai/keys — optional, preferred for dev                |
-| Neon PostgreSQL URL  | https://neon.tech — optional; only needed for history persistence       |
-| Flutter SDK          | https://docs.flutter.dev/get-started/install — optional; mobile only    |
+| Anthropic API key    | https://console.anthropic.com - free tier: 5 RPM, 10k tokens/min        |
+| OpenRouter API key   | https://openrouter.ai/keys - optional, preferred for dev                |
+| Neon PostgreSQL URL  | https://neon.tech - optional; only needed for history persistence       |
+| Flutter SDK          | https://docs.flutter.dev/get-started/install - optional; mobile only    |
 
 Required environment variables:
 
@@ -270,7 +270,7 @@ Required environment variables:
 | `OPENROUTER_API_KEY`  | `LLM_PROVIDER=openrouter`  | OpenRouter key                                            |
 | `OPENAI_API_KEY`      | `LLM_PROVIDER=openai`      | OpenAI platform key                                       |
 | `OLLAMA_BASE_URL`     | `LLM_PROVIDER=ollama`      | Default: `http://localhost:11434/v1`                      |
-| `DATABASE_URL`        | Optional                   | Neon connection string — omit to skip DB persistence      |
+| `DATABASE_URL`        | Optional                   | Neon connection string - omit to skip DB persistence      |
 
 ---
 
@@ -320,10 +320,10 @@ Missing keys raise `ValueError` at startup with a clear message.
 ### 5. Database setup (optional)
 
 ```bash
-# Baseline schema — idempotent, safe to re-run
+# Baseline schema - idempotent, safe to re-run
 psql "$DATABASE_URL" -f dischargeiq/db/schema.sql
 
-# Migration — required if DB was created before April 20, 2026
+# Migration - required if DB was created before April 20, 2026
 psql "$DATABASE_URL" -f dischargeiq/db/migrations/20260420_pipeline_status_width_and_check.sql
 ```
 
@@ -382,7 +382,7 @@ python scripts/manual/agents_1_2_3_check.py
 ```
 
 Run from the repo root with the virtual environment active. No `PYTHONPATH`
-prefix needed — the script inserts the repo root into `sys.path` automatically.
+prefix needed - the script inserts the repo root into `sys.path` automatically.
 
 The script runs against five hardcoded PDFs in `test-data/`:
 `heart_failure_01.pdf`, `copd_01.pdf`, `diabetes_01.pdf`,
@@ -417,16 +417,16 @@ python tests/manual/test_neon_db.py       # Verify Neon DB connection
 # Fast unit + API tests (no LLM calls, seconds)
 python -m pytest dischargeiq/tests/ -v
 
-# Skip slow tests (same as above — default behavior)
+# Skip slow tests (same as above - default behavior)
 python -m pytest dischargeiq/tests/ -q
 
-# Full corpus smoke test — real LLM, minutes to hours
+# Full corpus smoke test - real LLM, minutes to hours
 python -m pytest -m slow dischargeiq/tests/test_all_corpus_smoke.py -v -s
 
-# Hallucination gate — 8 adversarial cases
+# Hallucination gate - 8 adversarial cases
 python -m pytest dischargeiq/tests/test_integration_hallucination.py -v
 
-# Stress tests — format diversity
+# Stress tests - format diversity
 python scripts/stress/run_stress_fixtures.py
 python scripts/stress/run_stress_fixtures.py --fixtures 9,14   # specific fixtures
 
@@ -449,7 +449,7 @@ find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true
 | `aki_6_secondaries.pdf`                   | AKI with 6 secondary diagnoses                    |
 | `pediatric_asthma_weight_based.pdf`       | Pediatric asthma, weight-based dosing             |
 
-**Stress suite — format diversity:**
+**Stress suite - format diversity:**
 
 | File                              | Scenario                               |
 |-----------------------------------|----------------------------------------|
@@ -466,7 +466,7 @@ find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true
 |-------------------------|---------------------------------------|
 | `adv_01_no_meds.pdf`    | Discharge with no medication list     |
 | `adv_02_bilingual.pdf`  | Mixed English/Spanish                 |
-| `adv_03_12_drugs.pdf`   | 12-drug list — stress on Agent 3      |
+| `adv_03_12_drugs.pdf`   | 12-drug list - stress on Agent 3      |
 | `adv_04_conflicting.pdf`| Conflicting dose information          |
 | `adv_05_minimal.pdf`    | Near-empty document                   |
 | `adv_06_warfarin.pdf`   | Warfarin with tight INR monitoring    |
@@ -484,7 +484,7 @@ exist locally only.
 |-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Minor     | **History read path not wired.** `get_history_for_session()` in `dischargeiq/db/history.py` is implemented but no API endpoint or UI tab calls it. Write path works. Missing piece: `GET /history/{session_id}`. |
 | Minor     | **Flutter app gitignored.** `dischargeiq_mobile/` is local-only. Revive as a team decision, then remove from `.gitignore` and push.                                              |
-| Minor     | **Flutter LAN IP hardcoded.** `lib/config.dart:10` — `_lanIp = '104.194.97.253'`. Update before any mobile demo.                                                                 |
+| Minor     | **Flutter LAN IP hardcoded.** `lib/config.dart:10` - `_lanIp = '104.194.97.253'`. Update before any mobile demo.                                                                 |
 | Minor     | **Long PDFs may timeout.** Documents >100 pages may hit the 300 s wall-clock limit. No page-count cap enforced.                                                                  |
 | Minor     | **Scanned PDFs not handled.** pdfplumber requires selectable text. Image-only PDFs yield empty extraction; no OCR fallback.                                                      |
 | Minor     | **Chat is stateless.** Each `POST /chat` is independent. No conversation history persisted on the backend.                                                                       |
@@ -498,7 +498,7 @@ exist locally only.
 - Prefix every commit: `DIS-<ticket>: short description`
 - Only commit verified, error-free code
 - Never commit `.env` or any file containing API keys
-- Never commit real patient data — all test PDFs must be synthetic
+- Never commit real patient data - all test PDFs must be synthetic
 - No AI authorship in commit messages, code comments, or docstrings
 - The AI never runs `git commit`, `git push`, or `git add` on this repo
 
@@ -508,7 +508,7 @@ exist locally only.
 
 | Name                               | Role                                                             |
 |------------------------------------|------------------------------------------------------------------|
-| Likitha Shankar                    | Team Lead — Pipeline, Agent 1, Agent 5, Agent 6, FastAPI, Streamlit |
+| Likitha Shankar                    | Team Lead - Pipeline, Agent 1, Agent 5, Agent 6, FastAPI, Streamlit |
 | Suchithra Rajkumar                 | Agent 3 (Medication), Agent 4 (Recovery)                         |
 | Deepesh Kumar Appar Senthilkumar   | Agent 2 (Diagnosis)                                              |
 | Manusha Boorgula                   | General contributions                                            |

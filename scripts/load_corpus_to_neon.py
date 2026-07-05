@@ -1,7 +1,7 @@
 """
 scripts/load_corpus_to_neon.py
 
-Sprint 1, Task 1.6 — Load the synthetic corpus metadata into Neon.
+Sprint 1, Task 1.6 - Load the synthetic corpus metadata into Neon.
 Owner: Likitha Shankar
 
 Reads test-data/synthetic/corpus_index.json (written by
@@ -10,7 +10,7 @@ synthetic_corpus table, creating the table if it does not exist. This
 populates the testing matrix that Month 3's clinician review and the
 comprehension-lift analysis query against.
 
-Only structured metadata is stored — never raw document text (repo rule:
+Only structured metadata is stored - never raw document text (repo rule:
 no full PDF text in the database).
 
 Usage:
@@ -18,7 +18,7 @@ Usage:
   python scripts/load_corpus_to_neon.py [--index test-data/synthetic/corpus_index.json]
 
 Requires: DATABASE_URL in .env (Neon PostgreSQL connection string).
-          Exits with a clear message (code 1) when unset — never crashes.
+          Exits with a clear message (code 1) when unset - never crashes.
 """
 
 import argparse
@@ -95,7 +95,7 @@ async def load_corpus(database_url: str, index_path: Path) -> int:
         count = 0
         for entry in entries:
             # Entries written by the resume path of the generator carry only
-            # file/category/variant — tolerate both shapes.
+            # file/category/variant - tolerate both shapes.
             variant = entry.get("variant", {})
             await conn.execute(
                 _UPSERT_SQL,
@@ -126,7 +126,7 @@ def main() -> None:
     database_url = os.environ.get("DATABASE_URL", "").strip()
     if not database_url:
         logger.error(
-            "DATABASE_URL is not set in .env — cannot load corpus into Neon. "
+            "DATABASE_URL is not set in .env - cannot load corpus into Neon. "
             "Set it to your Neon PostgreSQL connection string and re-run."
         )
         sys.exit(1)
@@ -134,7 +134,7 @@ def main() -> None:
     index_path = Path(args.index)
     if not index_path.exists():
         logger.error(
-            "Corpus index not found at %s — run scripts/generate_synthetic_corpus.py first.",
+            "Corpus index not found at %s - run scripts/generate_synthetic_corpus.py first.",
             index_path,
         )
         sys.exit(1)

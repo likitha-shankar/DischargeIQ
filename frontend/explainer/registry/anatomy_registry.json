@@ -19,8 +19,8 @@
         "hfpef"
       ],
       "model_path": "cardiovascular/heart_failure.glb",
-      "source": "Z-Anatomy project — https://www.z-anatomy.com (to be downloaded and verified by team).",
-      "license": "PENDING — must confirm CC-BY or equivalent before setting license_verified: true.",
+      "source": "Z-Anatomy project - https://www.z-anatomy.com (to be downloaded and verified by team).",
+      "license": "PENDING - must confirm CC-BY or equivalent before setting license_verified: true.",
       "license_verified": false,
       "clinical_review_status": "pending",
       "mesh_names": {
@@ -60,8 +60,8 @@
         "copd"
       ],
       "model_path": "respiratory/copd_airways.glb",
-      "source": "Z-Anatomy project — https://www.z-anatomy.com (to be downloaded and verified by team).",
-      "license": "PENDING — must confirm CC-BY or equivalent before setting license_verified: true.",
+      "source": "Z-Anatomy project - https://www.z-anatomy.com (to be downloaded and verified by team).",
+      "license": "PENDING - must confirm CC-BY or equivalent before setting license_verified: true.",
       "license_verified": false,
       "clinical_review_status": "pending",
       "mesh_names": {
@@ -102,8 +102,8 @@
         "t1dm"
       ],
       "model_path": "endocrine/pancreas_diabetes.glb",
-      "source": "Z-Anatomy project — https://www.z-anatomy.com (to be downloaded and verified by team).",
-      "license": "PENDING — must confirm CC-BY or equivalent before setting license_verified: true.",
+      "source": "Z-Anatomy project - https://www.z-anatomy.com (to be downloaded and verified by team).",
+      "license": "PENDING - must confirm CC-BY or equivalent before setting license_verified: true.",
       "license_verified": false,
       "clinical_review_status": "pending",
       "mesh_names": {
@@ -138,7 +138,7 @@
         "pancreatitis"
       ],
       "model_path": "digestive/placeholder_digestive.glb",
-      "source": "NOT YET SOURCED — see NOTES.md for candidate model repositories.",
+      "source": "NOT YET SOURCED - see NOTES.md for candidate model repositories.",
       "license": "NOT YET SOURCED",
       "license_verified": false,
       "clinical_review_status": "pending",
@@ -165,7 +165,7 @@
         "tia"
       ],
       "model_path": "nervous/placeholder_nervous.glb",
-      "source": "NOT YET SOURCED — see NOTES.md for candidate model repositories.",
+      "source": "NOT YET SOURCED - see NOTES.md for candidate model repositories.",
       "license": "NOT YET SOURCED",
       "license_verified": false,
       "clinical_review_status": "pending",
@@ -192,7 +192,7 @@
         "osteoarthritis of hip"
       ],
       "model_path": "musculoskeletal/placeholder_hip.glb",
-      "source": "NOT YET SOURCED — see NOTES.md for candidate model repositories.",
+      "source": "NOT YET SOURCED - see NOTES.md for candidate model repositories.",
       "license": "NOT YET SOURCED",
       "license_verified": false,
       "clinical_review_status": "pending",
@@ -219,7 +219,7 @@
         "uti"
       ],
       "model_path": "urinary/placeholder_urinary.glb",
-      "source": "NOT YET SOURCED — see NOTES.md for candidate model repositories.",
+      "source": "NOT YET SOURCED - see NOTES.md for candidate model repositories.",
       "license": "NOT YET SOURCED",
       "license_verified": false,
       "clinical_review_status": "pending",
@@ -245,7 +245,7 @@
         "burns"
       ],
       "model_path": "integumentary/placeholder_integumentary.glb",
-      "source": "NOT YET SOURCED — see NOTES.md for candidate model repositories.",
+      "source": "NOT YET SOURCED - see NOTES.md for candidate model repositories.",
       "license": "NOT YET SOURCED",
       "license_verified": false,
       "clinical_review_status": "pending",
@@ -273,7 +273,7 @@
         "bph"
       ],
       "model_path": "reproductive/placeholder_reproductive.glb",
-      "source": "NOT YET SOURCED — see NOTES.md for candidate model repositories.",
+      "source": "NOT YET SOURCED - see NOTES.md for candidate model repositories.",
       "license": "NOT YET SOURCED",
       "license_verified": false,
       "clinical_review_status": "pending",
@@ -300,7 +300,7 @@
         "immunodeficiency"
       ],
       "model_path": "lymphatic_immune/placeholder_lymphatic.glb",
-      "source": "NOT YET SOURCED — see NOTES.md for candidate model repositories.",
+      "source": "NOT YET SOURCED - see NOTES.md for candidate model repositories.",
       "license": "NOT YET SOURCED",
       "license_verified": false,
       "clinical_review_status": "pending",
@@ -327,7 +327,7 @@
         "vertigo"
       ],
       "model_path": "special_senses/placeholder_special_senses.glb",
-      "source": "NOT YET SOURCED — see NOTES.md for candidate model repositories.",
+      "source": "NOT YET SOURCED - see NOTES.md for candidate model repositories.",
       "license": "NOT YET SOURCED",
       "license_verified": false,
       "clinical_review_status": "pending",

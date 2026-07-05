@@ -1,16 +1,16 @@
-# `pipeline/` — agent orchestrator
+# `pipeline/` - agent orchestrator
 
 Wires all six agents into a single end-to-end pipeline. Everything
 downstream (FastAPI, CLI tests, Streamlit) calls into `run_pipeline()`
-— nothing else talks to the agents directly.
+- nothing else talks to the agents directly.
 
 ## Files
 
-- `orchestrator.py` — `run_pipeline(pdf_path, session_id=None, on_progress=None) -> PipelineResponse`.
+- `orchestrator.py` - `run_pipeline(pdf_path, session_id=None, on_progress=None) -> PipelineResponse`.
   Extracts PDF text, runs Agent 1 (extraction), then Agents 2–5
   (diagnosis, medication, recovery, escalation) in sequence, then
   Agent 6 (patient simulator). Aggregates FK scores, extraction
-  warnings, and DB persistence. Never raises — on any agent failure it
+  warnings, and DB persistence. Never raises - on any agent failure it
   sets `pipeline_status = "partial"` and fills in a safe fallback.
 
 ## Using

@@ -1,7 +1,7 @@
 # DischargeIQ
 
 DischargeIQ is a **patient-friendly chatbot** grounded in your discharge
-document, plus an **AI simulation layer** that surfaces missed concepts —
+document, plus an **AI simulation layer** that surfaces missed concepts -
 questions a confused patient would ask that the document does not answer.
 
 Upload your discharge PDF: get plain-language answers to your questions via
@@ -35,10 +35,10 @@ Second run launches both servers.
 
 Open `.env` and set:
 
-- `LLM_PROVIDER` — `anthropic` (default, Haiku), `openrouter`, `openai`, or `ollama`
+- `LLM_PROVIDER` - `anthropic` (default, Haiku), `openrouter`, `openai`, or `ollama`
 - The matching key: `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, or
   `ANTHROPIC_API_KEY` (Ollama needs no key)
-- Optional: `LLM_MODEL` — required to pin Sonnet for `anthropic` (see `.env.example`)
+- Optional: `LLM_MODEL` - required to pin Sonnet for `anthropic` (see `.env.example`)
 
 ## Running
 
@@ -51,23 +51,23 @@ Open the dashboard at http://127.0.0.1:8501.
 ## Testing
 
 ```bash
-# Fast pytest suite (API guardrails, resilience mocks — seconds)
+# Fast pytest suite (API guardrails, resilience mocks - seconds)
 .venv/bin/python -m pytest dischargeiq/tests/
 
-# Quiet dots only (harder to see progress — not recommended while debugging)
+# Quiet dots only (harder to see progress - not recommended while debugging)
 .venv/bin/python -m pytest dischargeiq/tests/ -q
 
-# Full PDF corpus smoke (slow: real LLM + Neon — can take hours)
+# Full PDF corpus smoke (slow: real LLM + Neon - can take hours)
 .venv/bin/python -m pytest -m slow dischargeiq/tests/test_all_corpus_smoke.py -v -s
 
-# 8-case hallucination + integration suite (gates: 0 hallucinations) — separate script
+# 8-case hallucination + integration suite (gates: 0 hallucinations) - separate script
 python dischargeiq/tests/test_integration_hallucination.py
 
 # 6-case real-world-format stress suite
 python scripts/stress/run_stress_fixtures.py                  # all 6
 python scripts/stress/run_stress_fixtures.py --fixtures 9,14  # subset
 
-# Root integration runners (LLM / real PDFs — manual)
+# Root integration runners (LLM / real PDFs - manual)
 python tests/test_agent1.py
 python tests/test_agents_1_2.py
 
@@ -93,7 +93,7 @@ dischargeiq/
 ├── tests/             Pytest suites (guardrails, hallucination, corpus, quiz)
 ├── evaluation/        FK logs, cost estimates, judge results
 └── docs/              Extraction schema reference
-dischargeiq_mobile/  Flutter app — the PRIMARY product (upload → 7 tabs incl.
+dischargeiq_mobile/  Flutter app - the PRIMARY product (upload → 7 tabs incl.
                      "Test yourself" teach-back quiz → chat)
 ui/                Streamlit tab modules (new tabs go here, not the monolith)
 docs/deliverables/ Summer work-plan deliverables: commits, demo tags, status
@@ -104,7 +104,7 @@ streamlit_app.py   7-tab Streamlit fallback surface (What happened / Medications
                    Appointments / Warning signs / Recovery / Test yourself / AI Review)
 start.sh / .bat    One-command startup scripts
 requirements.txt   Pinned dependencies
-.env.example       Env template — copy to .env and fill in keys
+.env.example       Env template - copy to .env and fill in keys
 ```
 
 See the README inside each folder under `dischargeiq/` for details on

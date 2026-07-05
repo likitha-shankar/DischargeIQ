@@ -1,4 +1,4 @@
-# Task 1.4 — Model Routing and Safety Gating ✅
+# Task 1.4 - Model Routing and Safety Gating ✅
 
 **Deliverable:** Gemini primary; automatic Claude failover; Vertex AI path for
 real-world data; FK readability gate on every output.
@@ -12,7 +12,7 @@ Proven in production use: Gemini rate-limited during corpus generation and
 Claude finished the batch automatically.
 
 **Vertex (dual data-mode):** `LLM_PROVIDER=vertex` serves the same Gemini
-models inside a GCP project where a BAA can cover inference — required before
+models inside a GCP project where a BAA can cover inference - required before
 any real patient document. OAuth via Application Default Credentials with
 auto-refresh. Synthetic mode keeps the plain API key. Switching modes is one
 env var, no code change.

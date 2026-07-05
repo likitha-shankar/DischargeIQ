@@ -1,7 +1,7 @@
 """
 File: dischargeiq/utils/llm_client.py
 Owner: Likitha Shankar
-Description: Central LLM routing — builds an OpenAI-compatible client for anthropic,
+Description: Central LLM routing - builds an OpenAI-compatible client for anthropic,
   openrouter, openai, ollama, or gemini from LLM_PROVIDER/LLM_MODEL and validates API keys with
   clear ValueError messages. call_chat_with_fallback adds OpenRouter retries for
   empty completions, developer-instruction role merge, and 429 backoff, plus one
@@ -25,7 +25,7 @@ from pathlib import Path
 
 from openai import OpenAI
 
-# Cache LLM clients by provider string — building OpenAI() constructs a
+# Cache LLM clients by provider string - building OpenAI() constructs a
 # connection pool internally. Under parallel asyncio.gather (4 agents per upload),
 # four concurrent constructions are wasteful. The client is thread-safe and
 # config is static at runtime, so caching per provider is safe.
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 
 # Default configuration per provider.
-# Add a new provider here — no agent code needs to change.
+# Add a new provider here - no agent code needs to change.
 _PROVIDER_DEFAULTS: dict[str, dict] = {
     "openrouter": {
         "base_url": "https://openrouter.ai/api/v1",
@@ -54,7 +54,7 @@ _PROVIDER_DEFAULTS: dict[str, dict] = {
         # Google Gemini exposes an OpenAI-compatible chat completions endpoint.
         # Auth uses GOOGLE_API_KEY. The system role is supported, so the shared
         # OpenAI SDK client works unchanged for Agents 1, 2, 6 and /chat. The
-        # model name is read from LLM_MODEL — the default below is only a
+        # model name is read from LLM_MODEL - the default below is only a
         # fallback when LLM_MODEL is unset.
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
         "api_key_env": "GOOGLE_API_KEY",
@@ -71,11 +71,11 @@ _PROVIDER_DEFAULTS: dict[str, dict] = {
     "ollama": {
         # Ollama exposes an OpenAI-compatible endpoint locally.
         "base_url": "http://localhost:11434/v1",
-        "api_key_env": None,  # "ollama" is used as a placeholder — no real key needed
+        "api_key_env": None,  # "ollama" is used as a placeholder - no real key needed
         "default_model": "llama3.2",
     },
     "vertex": {
-        # Google Vertex AI — same Gemini models as the "gemini" provider, but
+        # Google Vertex AI - same Gemini models as the "gemini" provider, but
         # served inside a GCP project where a HIPAA BAA can cover the calls.
         # This is the required provider before ANY real (non-synthetic) patient
         # document is processed. Auth uses short-lived OAuth tokens from
@@ -88,7 +88,7 @@ _PROVIDER_DEFAULTS: dict[str, dict] = {
     },
 }
 
-# Vertex OAuth credentials — cached module-wide; tokens auto-refresh via
+# Vertex OAuth credentials - cached module-wide; tokens auto-refresh via
 # google-auth when expired. Populated lazily on first vertex call.
 _vertex_creds = None
 
@@ -135,7 +135,7 @@ def _get_vertex_client() -> tuple[OpenAI, str]:
         )
     if not _vertex_creds.valid:
         _vertex_creds.refresh(Request())
-        _client_cache.pop("vertex", None)  # token rotated — cached client is stale
+        _client_cache.pop("vertex", None)  # token rotated - cached client is stale
 
     model_name = os.environ.get(
         "LLM_MODEL", _PROVIDER_DEFAULTS["vertex"]["default_model"]
@@ -205,7 +205,7 @@ def get_llm_client() -> tuple[OpenAI, str]:
             f"Supported values: {supported}"
         )
 
-    # Vertex uses OAuth tokens with expiry — handled by its own builder.
+    # Vertex uses OAuth tokens with expiry - handled by its own builder.
     if provider == "vertex":
         return _get_vertex_client()
 
@@ -254,7 +254,7 @@ def load_agent_prompt(prompt_filename: str) -> str:
     """
     Load a system prompt from dischargeiq/prompts/<prompt_filename>.
 
-    Result is cached indefinitely — prompt files are static assets that do not
+    Result is cached indefinitely - prompt files are static assets that do not
     change while the server is running. First call reads from disk; subsequent
     calls (across all agents and uploads) return the cached string with zero I/O.
 
@@ -289,7 +289,7 @@ def get_native_agent_client(provider: str) -> tuple:
     get_llm_client()). This single function replaces the three identical _get_client()
     copies that previously lived in medication_agent, recovery_agent, and
     escalation_agent. Timeout (60s) and max_retries (1) match the values those
-    copies had for the anthropic branch — confirmed identical before consolidation.
+    copies had for the anthropic branch - confirmed identical before consolidation.
 
     Args:
         provider: Lowercase LLM_PROVIDER value (e.g. "gemini", "anthropic").
@@ -303,7 +303,7 @@ def get_native_agent_client(provider: str) -> tuple:
         ImportError: If provider is "anthropic" but the anthropic package is absent.
     """
     if provider == "anthropic":
-        import anthropic as _anthropic  # lazy import — not needed on Gemini path
+        import anthropic as _anthropic  # lazy import - not needed on Gemini path
         require_provider_api_key("anthropic")
         model = os.environ.get("LLM_MODEL", DEFAULT_ANTHROPIC_MODEL)
         client = _anthropic.Anthropic(
@@ -380,7 +380,7 @@ def get_fallback_client() -> tuple[OpenAI, str, str] | None:
         client, model = _client_cache[cache_key]
         return client, model, fallback
 
-    # LLM_MODEL belongs to the primary provider — the fallback always uses its
+    # LLM_MODEL belongs to the primary provider - the fallback always uses its
     # own provider default so a Gemini model name is never sent to Anthropic.
     model = config["default_model"]
     client = OpenAI(
@@ -441,7 +441,7 @@ def call_chat_with_fallback(
             raise
         fb_client, fb_model, fb_provider = fb
         logger.warning(
-            "%s primary provider '%s' failed for '%s' — failing over to '%s' (%s): %s",
+            "%s primary provider '%s' failed for '%s' - failing over to '%s' (%s): %s",
             agent_name, provider, document_id, fb_provider, fb_model, primary_exc,
         )
         try:
@@ -498,7 +498,7 @@ def _call_chat_once(
             if not response.choices:
                 if provider == "openrouter" and attempt < max_attempts:
                     logger.warning(
-                        "%s empty choices array (attempt %d/%d) for '%s' — retrying",
+                        "%s empty choices array (attempt %d/%d) for '%s' - retrying",
                         agent_name, attempt, max_attempts, document_id,
                     )
                     time.sleep(float(attempt * 2))
@@ -514,7 +514,7 @@ def _call_chat_once(
                 # as retryable so the next attempt may land on a different model.
                 if provider == "openrouter" and attempt < max_attempts:
                     logger.warning(
-                        "%s empty completion (attempt %d/%d) for '%s' — retrying",
+                        "%s empty completion (attempt %d/%d) for '%s' - retrying",
                         agent_name,
                         attempt,
                         max_attempts,

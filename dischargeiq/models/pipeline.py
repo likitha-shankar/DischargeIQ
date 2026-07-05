@@ -1,7 +1,7 @@
 """
 File: dischargeiq/models/pipeline.py
 Owner: Likitha Shankar
-Description: API-facing aggregate models — MissedConcept and PatientSimulatorOutput for
+Description: API-facing aggregate models - MissedConcept and PatientSimulatorOutput for
   Agent 6 eval, and PipelineResponse wrapping extraction plus all five agent text outputs,
   fk_scores, warnings, pipeline_status, and optional simulator payload for /analyze JSON.
 Key functions/classes: MissedConcept, PatientSimulatorOutput, PipelineResponse
@@ -27,7 +27,7 @@ class MissedConcept(BaseModel):
 class CaregiverQuestion(BaseModel):
     """
     A small set of questions the patient should ask their caregiver about
-    one specific extracted item — e.g. one medication, one appointment, or
+    one specific extracted item - e.g. one medication, one appointment, or
     one red-flag symptom. Surfaced inline next to that item in the UI so
     the patient can act on the gap without scrolling to the AI Review tab.
     """
@@ -63,7 +63,7 @@ class PipelineResponse(BaseModel):
         fk_scores: Flesch-Kincaid grade for each agent's text output.
         extraction_warnings: Completeness warnings from utils/warnings.py.
         pipeline_status: "complete", "complete_with_warnings", or "partial"
-            — never raises unhandled exceptions.
+            - never raises unhandled exceptions.
     """
 
     extraction: ExtractionOutput

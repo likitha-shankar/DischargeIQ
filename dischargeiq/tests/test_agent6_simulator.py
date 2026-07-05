@@ -2,7 +2,7 @@
 File: dischargeiq/tests/test_agent6_simulator.py
 Owner: Likitha Shankar
 Description: Black-box unit tests for Agent 6 (patient_simulator_agent).
-  All LLM calls are mocked — no network I/O, no API keys required.
+  All LLM calls are mocked - no network I/O, no API keys required.
   Covers happy path, critical gap detection, well-written doc scoring,
   empty pipeline input, malformed LLM output, and missing SEVERITY field.
 Key functions/classes: test_* functions, _minimal_extraction(), _make_llm_response()
@@ -60,7 +60,7 @@ def _make_llm_response(blocks: list[dict], gap_score: int = 6, summary: str = ""
     Build a well-formed Agent 6 text response from a list of question dicts.
 
     Each dict may contain: question (str), answered (str "YES"/"NO"),
-    gap (str), severity (str). All keys are optional — omitting severity tests
+    gap (str), severity (str). All keys are optional - omitting severity tests
     the default-fallback path.
     """
     lines: list[str] = []
@@ -103,7 +103,7 @@ def test_happy_path_returns_valid_output():
             "severity": "minor",
         },
         {
-            "question": "What does twice daily mean — morning and night?",
+            "question": "What does twice daily mean - morning and night?",
             "answered": "NO",
             "gap": "Timing not specified.",
             "severity": "moderate",
@@ -143,7 +143,7 @@ def test_obvious_gaps_produce_critical_unanswered_concept():
     """Response with missing follow-up/diet/meds info → ≥1 critical unanswered concept."""
     blocks = [
         {
-            "question": "Nobody told me when to see my doctor again — is that normal?",
+            "question": "Nobody told me when to see my doctor again - is that normal?",
             "answered": "NO",
             "gap": "Follow-up timing is not specified in the document.",
             "severity": "critical",
@@ -254,7 +254,7 @@ def test_empty_pipeline_result_does_not_raise():
 
 def test_malformed_llm_response_returns_fallback_no_raise(caplog):
     """Completely malformed LLM response → no exception, fallback output, WARNING logged."""
-    malformed = "INVALID OUTPUT — not a valid Q block or JSON"
+    malformed = "INVALID OUTPUT - not a valid Q block or JSON"
 
     with patch(_MOCK_CLIENT, return_value=_FAKE_CLIENT_PAIR), \
          patch(_MOCK_CHAT, return_value=malformed):
@@ -272,7 +272,7 @@ def test_malformed_llm_response_returns_fallback_no_raise(caplog):
 
 
 def test_missing_severity_defaults_to_moderate():
-    """Q blocks with no SEVERITY line must default to 'moderate' — no KeyError."""
+    """Q blocks with no SEVERITY line must default to 'moderate' - no KeyError."""
     blocks = [
         {
             "question": "What is this medication supposed to do for me?",

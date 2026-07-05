@@ -52,7 +52,7 @@ def _rate_limit_slow_tests(request, _slow_test_state: dict) -> None:
     No-op for tests that are not marked ``@pytest.mark.slow``.
 
     Args:
-        request: Pytest FixtureRequest — used to check the slow marker.
+        request: Pytest FixtureRequest - used to check the slow marker.
         _slow_test_state: Session-scoped dict with ``last_call_at`` timestamp.
     """
     if not request.node.get_closest_marker("slow"):

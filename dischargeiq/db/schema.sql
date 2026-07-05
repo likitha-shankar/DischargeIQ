@@ -1,6 +1,6 @@
 -- File: dischargeiq/db/schema.sql
 -- Owner: Likitha Shankar
--- Description: Baseline PostgreSQL schema for discharge_history — stores session_id,
+-- Description: Baseline PostgreSQL schema for discharge_history - stores session_id,
 --   document hash, diagnosis metadata, pipeline_status, JSONB snapshots of extraction
 --   and FK scores, plus a CHECK constraint on pipeline_status canonical values.
 -- Run order: Apply on fresh Neon/local DB before first app write; pair with migrations

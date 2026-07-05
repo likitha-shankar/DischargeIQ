@@ -146,7 +146,7 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
                   trajectory: '${r['recovery_trajectory'] ?? ''}',
                   extraction: r['extraction'],
                 ),
-                // Teach-back quiz (Sprint 3) — the comprehension-lift loop.
+                // Teach-back quiz (Sprint 3) - the comprehension-lift loop.
                 // Session id reuses the backend's pdf_session_id so quiz
                 // scores join up with the analyze session in Neon.
                 QuizBody(
@@ -330,7 +330,7 @@ class _RichTextSection extends StatelessWidget {
   }
 }
 
-/// Rich Discharge Check / AI Review tab — mirrors the Streamlit web UI.
+/// Rich Discharge Check / AI Review tab - mirrors the Streamlit web UI.
 /// Shows: HITL notice, gap score bar, severity-coded missed concept cards.
 class _DischargeCheckBody extends StatelessWidget {
   const _DischargeCheckBody({required this.simulator});
@@ -396,7 +396,7 @@ class _DischargeCheckBody extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'AI Review — Share these gaps with your care team. '
+                    'AI Review - Share these gaps with your care team. '
                     'This is not a diagnosis.',
                     style: TextStyle(
                       fontSize: 12,
@@ -440,7 +440,7 @@ class _DischargeCheckBody extends StatelessWidget {
                         border: Border.all(color: scoreColor.withValues(alpha: 0.4)),
                       ),
                       child: Text(
-                        '$gapScore / 10 — $scoreLabel',
+                        '$gapScore / 10 - $scoreLabel',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -665,7 +665,7 @@ class _AnsweredConceptsExpanderState extends State<_AnsweredConceptsExpander> {
   }
 }
 
-/// Diagnosis tab — "At a glance" badges + Agent 2 explanation text.
+/// Diagnosis tab - "At a glance" badges + Agent 2 explanation text.
 class _DiagnosisBody extends StatelessWidget {
   const _DiagnosisBody({required this.explanation, required this.extraction});
   final String explanation;
@@ -771,7 +771,7 @@ class _DxBadgeRow extends StatelessWidget {
   }
 }
 
-/// Medications tab — per-drug cards with status badge + expandable rationale.
+/// Medications tab - per-drug cards with status badge + expandable rationale.
 class _MedicationsBody extends StatelessWidget {
   const _MedicationsBody({
     required this.rationaleText,
@@ -806,7 +806,7 @@ class _MedicationsBody extends StatelessWidget {
       var header = trimmed.substring(0, nl).trim();
       final body = trimmed.substring(nl + 1).trim();
       if (!header.endsWith(':') || body.isEmpty) continue;
-      header = header.replaceAll(RegExp(r' [—-] stopping:?$', caseSensitive: false), '').replaceAll(':', '').trim();
+      header = header.replaceAll(RegExp(r' [--] stopping:?$', caseSensitive: false), '').replaceAll(':', '').trim();
       if (header.isNotEmpty) blocks[header.toLowerCase()] = body;
     }
     return blocks;
@@ -1024,7 +1024,7 @@ class _MedCardState extends State<_MedCard> {
   }
 }
 
-/// Warning Signs tab — red-flag bullet list + 3-tier escalation cards with bullets.
+/// Warning Signs tab - red-flag bullet list + 3-tier escalation cards with bullets.
 class _WarningsBody extends StatelessWidget {
   const _WarningsBody({
     required this.escalationText,
@@ -1224,7 +1224,7 @@ class _EscalationTier extends StatelessWidget {
   }
 }
 
-/// Recovery tab — activity/dietary restrictions + discharge condition + timeline.
+/// Recovery tab - activity/dietary restrictions + discharge condition + timeline.
 class _RecoveryBody extends StatelessWidget {
   const _RecoveryBody({required this.trajectory, required this.extraction});
   final String trajectory;

@@ -1,7 +1,7 @@
 """
 File: tests/manual/test_neon_db.py
 Owner: Likitha Shankar
-Description: Asyncpg smoke test against DATABASE_URL — connects to Neon (or any
+Description: Asyncpg smoke test against DATABASE_URL - connects to Neon (or any
   Postgres), ensures discharge_history exists (creates from schema if missing), and
   verifies readability for local DB setup debugging.
 Key functions/classes: run_neon_db_smoke, main
@@ -68,7 +68,7 @@ async def run_neon_db_smoke():
         print("Neon DB test PASSED")
 
     except asyncpg.InvalidPasswordError as auth_error:
-        print(f"Database authentication failed — check DATABASE_URL credentials: {auth_error}")
+        print(f"Database authentication failed - check DATABASE_URL credentials: {auth_error}")
         sys.exit(1)
     except OSError as net_error:
         print(f"Could not reach the database server: {net_error}")

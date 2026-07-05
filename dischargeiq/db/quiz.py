@@ -1,14 +1,14 @@
 """
 File: dischargeiq/db/quiz.py
 Owner: Likitha Shankar
-Description: Async Neon helpers for teach-back quiz scores (Sprint 3, Task 3.1) —
+Description: Async Neon helpers for teach-back quiz scores (Sprint 3, Task 3.1) -
   table creation, per-phase score inserts, and pre-score lookup for the
   comprehension delta. All failures are logged and non-fatal: the quiz works
   without a database, it just doesn't accumulate lift data.
 Key functions/classes: save_quiz_score, get_latest_pre_percent
 Edge cases handled:
   - pool=None (DATABASE_URL unset) → both functions no-op with a debug log.
-  - Only structured fields stored — no question text, no raw answers content.
+  - Only structured fields stored - no question text, no raw answers content.
 Dependencies: asyncpg, dischargeiq.models.quiz.QuizScoreResult
 Called by: dischargeiq.api.routes.quiz
 """
@@ -22,7 +22,7 @@ from dischargeiq.models.quiz import QuizScoreResult
 
 logger = logging.getLogger(__name__)
 
-# Structured scores only — never question text or free-text answers.
+# Structured scores only - never question text or free-text answers.
 # session_id + phase is intentionally NOT unique: a mastery-path retake adds a
 # new row, and analysis takes the latest (or first, for the honest baseline).
 _CREATE_TABLE_SQL = """
@@ -61,7 +61,7 @@ async def save_quiz_score(pool: asyncpg.Pool | None, result: QuizScoreResult) ->
         result: The computed score for this phase.
     """
     if pool is None:
-        logger.debug("quiz_scores: no DB pool — score not persisted")
+        logger.debug("quiz_scores: no DB pool - score not persisted")
         return
     try:
         await _ensure_table(pool)
@@ -86,7 +86,7 @@ async def get_latest_pre_percent(pool: asyncpg.Pool | None, session_id: str) -> 
     """
     Return the FIRST recorded pre-phase percent for a session, or None.
 
-    The first pre score is the honest baseline — later retakes of the baseline
+    The first pre score is the honest baseline - later retakes of the baseline
     (if any) are inflated by exposure and must not shrink the measured lift.
 
     Args:

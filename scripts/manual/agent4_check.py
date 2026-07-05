@@ -1,7 +1,7 @@
 """
 File: scripts/manual/agent4_check.py
 Owner: Likitha Shankar
-Description: Developer utility — for each canonical test PDF, runs extract_text_from_pdf,
+Description: Developer utility - for each canonical test PDF, runs extract_text_from_pdf,
   run_extraction_agent, then run_recovery_agent and prints recovery text with timing;
   optional phrase guardrails flag unsafe wording.
 Key functions/classes: main script flow (module level)

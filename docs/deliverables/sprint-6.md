@@ -1,4 +1,4 @@
-# Sprint 6 — Final Polish and Packaging (Weeks 11–12) ◻
+# Sprint 6 - Final Polish and Packaging (Weeks 11–12) ◻
 
 | Task | Deliverable | Status |
 |---|---|---|

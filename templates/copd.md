@@ -7,7 +7,7 @@ Used by: Reference / eval material; not loaded automatically by the pipeline.
 Critical rules: Keep patient text at low reading level; guideline citation in header.
 -->
 
-# COPD — Patient Explanation Template
+# COPD - Patient Explanation Template
 
 **Guideline reference:** GOLD 2024 Global Strategy for Prevention, Diagnosis and Management of COPD
 **Reviewed by:** Rushi Eshwar Neelam
@@ -27,14 +27,14 @@ COPD is a lung disease that makes it hard to breathe. Your airways get narrow an
 - "Chronic obstructive pulmonary disease" replaced with "a lung disease that makes it hard to breathe"
 - "Bronchospasm" and "airway inflammation" replaced with "airways get narrow and fill with mucus"
 - "Bronchodilator therapy and systemic corticosteroids" replaced with "medicine to open your airways and reduce swelling"
-- Inhaler adherence emphasized — GOLD 2024 identifies non-adherence as primary cause of exacerbation readmission
+- Inhaler adherence emphasized - GOLD 2024 identifies non-adherence as primary cause of exacerbation readmission
 - Smoking and environmental triggers confirmed as GOLD 2024 modifiable risk factors
 - "Do not stop inhalers" kept as explicit instruction per GOLD recommendation
 - No jargon remaining in template text
 
 ## Clinical sign-off
 
-**Reviewed by:** [Pending — Dr. Liebovitz / designated reviewer]
+**Reviewed by:** [Pending - Dr. Liebovitz / designated reviewer]
 **Date:** [Pending]
 **Status:** Awaiting faculty review
 **Changes made based on review:** [To be completed after faculty feedback]

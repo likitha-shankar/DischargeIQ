@@ -1,6 +1,6 @@
 /**
  * File: frontend/explainer/engine/src/animations/pulse_beat.js
- * Component: Anatomy Explainer — Procedural Animation
+ * Component: Anatomy Explainer - Procedural Animation
  * Description: Applies a gentle, rhythmic scale pulse to target meshes simulating
  *   a heartbeat. Scale oscillates between (1 - amplitude) and (1 + amplitude) at
  *   a BPM-derived frequency using a sine wave driven by accumulated time.

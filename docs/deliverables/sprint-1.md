@@ -1,4 +1,4 @@
-# Sprint 1 — Cloud Backend and Extraction Pipeline (Weeks 1–2) ✅
+# Sprint 1 - Cloud Backend and Extraction Pipeline (Weeks 1–2) ✅
 
 **Milestone contribution:** discharge text in → structured, safety-gated,
 6th-grade output back, on a live cloud backend, with model failover and a
@@ -14,7 +14,7 @@ populated 50-document testing matrix.
 | 1.4 | Model routing: Claude failover + Vertex AI path + FK gate | `26a761a`, `b2e07b2` | [task-1.4](tasks/task-1.4.md) |
 | 1.5 | 50-doc synthetic corpus | `42d0f43` (generator), `ddad5bb` (data) | [task-1.5](tasks/task-1.5.md) |
 | 1.6 | Neon corpus load | `b8d2cdf` | [task-1.6](tasks/task-1.6.md) |
-| — | Pre-sprint code hygiene (FK logging consolidation, dead code removal) | `806fa0b` | — |
+| - | Pre-sprint code hygiene (FK logging consolidation, dead code removal) | `806fa0b` | - |
 
 ## Demo script (bi-weekly demo)
 

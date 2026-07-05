@@ -7,7 +7,7 @@ Used by: Reference / eval material; not loaded automatically by the pipeline.
 Critical rules: Preserve perioperative safety tone; keep FK and sign-off metadata accurate.
 -->
 
-# Laparoscopic Surgery — Patient Explanation Template
+# Laparoscopic Surgery - Patient Explanation Template
 
 **Guideline reference:** ACC/ACS Perioperative Care Guidelines (2024)
 **Reviewed by:** Deepesh Kumar
@@ -24,19 +24,19 @@ Your doctor made small cuts in your belly to do the surgery. A tiny camera and s
 
 ## Reviewer notes
 
-- "Laparoscopic" replaced entirely — patients do not need the word, they need to understand the concept
-- "Carbon dioxide insufflation" replaced with "the gas used in the surgery" — cause is explained without the term
-- "Referred shoulder pain" replaced with "pain in your shoulder or chest for a day or two" — symptom named plainly
+- "Laparoscopic" replaced entirely - patients do not need the word, they need to understand the concept
+- "Carbon dioxide insufflation" replaced with "the gas used in the surgery" - cause is explained without the term
+- "Referred shoulder pain" replaced with "pain in your shoulder or chest for a day or two" - symptom named plainly
 - "POD 1 ambulation encouraged" replaced with "start walking the day you get home"
-- "NSAIDs contraindicated with opioids" removed — handled by Agent 3 (Medication Rationale), not this template
+- "NSAIDs contraindicated with opioids" removed - handled by Agent 3 (Medication Rationale), not this template
 - Template applies to appendectomy, cholecystectomy, hernia repair, and other common laparoscopic procedures
 - Activity restriction (10 lbs, 2-4 weeks) confirmed against ACC/ACS perioperative guidelines
-- No jargon remaining — scanned against 15-word jargon list, zero hits
+- No jargon remaining - scanned against 15-word jargon list, zero hits
 - Three iterations run: v1 Grade 3.6 → v2 Grade 1.0 → v3/final Grade 1.1
 
 ## Clinical sign-off
 
-**Reviewed by:** [Pending — Dr. Liebovitz / designated reviewer]
+**Reviewed by:** [Pending - Dr. Liebovitz / designated reviewer]
 **Date:** [Pending]
 **Status:** Awaiting faculty review
 **Changes made based on review:** [To be completed after faculty feedback]

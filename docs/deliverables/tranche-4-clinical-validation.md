@@ -1,4 +1,4 @@
-# Tranche 4 — Clinical Validation (End of Week 12)
+# Tranche 4 - Clinical Validation (End of Week 12)
 
 **Accepted when:** 50-document review complete at median ≥ 4.0/5.0; zero
 hallucinations in the adversarial audit; integration-readiness docs delivered.

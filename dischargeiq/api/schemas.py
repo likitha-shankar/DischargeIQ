@@ -40,7 +40,7 @@ class ChatResponse(BaseModel):
         source_page:   1-indexed page number referenced in the answer, or None.
         from_document: True when the reply is grounded in the patient's PDF.
                        The frontend uses this to decide whether to attribute
-                       the answer to the document — never imply PDF sourcing
+                       the answer to the document - never imply PDF sourcing
                        for general guidance (patient-trust requirement).
     """
 
@@ -55,7 +55,7 @@ class AnalyzeTextRequest(BaseModel):
 
     Fields:
         text: Document text recognized on the phone by ML Kit. The photo
-              itself never leaves the device — only text crosses the wire.
+              itself never leaves the device - only text crosses the wire.
     """
 
     text: str
@@ -78,7 +78,7 @@ class QuizGenerateRequest(BaseModel):
 
 
 class QuizGenerateResponse(BaseModel):
-    """Response body for POST /quiz/generate — the frozen question set."""
+    """Response body for POST /quiz/generate - the frozen question set."""
 
     session_id: str
     questions: list[QuizQuestion]
@@ -98,7 +98,7 @@ class QuizScoreRequest(BaseModel):
 
     The client sends back the grading key it received from /quiz/generate plus
     the patient's answers, in presentation order. answers uses -1 for skipped.
-    Stateless by design — no server-side quiz storage required.
+    Stateless by design - no server-side quiz storage required.
     """
 
     session_id: str

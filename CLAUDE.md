@@ -1,13 +1,13 @@
 <!--
 File: CLAUDE.md
 Owner: Likitha Shankar
-Description: Long-form project handbook for AI assistants — architecture, locked Agent 1
+Description: Long-form project handbook for AI assistants - architecture, locked Agent 1
   schema, pipeline contracts, API overview, team DIS ownership, testing map, and strict
   rules (e.g. no agent-authored commits, no real PHI). Complements README operational steps.
 Maintained for: Course team and Cursor/Claude context; keep "Current project status" accurate.
 -->
 
-# DischargeIQ — Project Context for AI Agents
+# DischargeIQ - Project Context for AI Agents
 
 ## What this project is
 
@@ -16,18 +16,18 @@ DischargeIQ is two things working together:
 1. **A patient-friendly chatbot** grounded in the uploaded discharge document.
    Patients ask plain-language questions; the chat panel answers from the doc.
 2. **An AI simulation layer** that reads the same discharge document and
-   surfaces "missed concepts" — questions a confused patient would ask that
-   the document does not answer — before the patient ever sees the summary.
+   surfaces "missed concepts" - questions a confused patient would ask that
+   the document does not answer - before the patient ever sees the summary.
 
 A patient uploads a PDF of their discharge document and receives output from
 six specialised agents, displayed across six tabs in the Streamlit UI:
 
-1. What Happened to You (Agent 2 — diagnosis explanation)
-2. Your Medications Explained (Agent 3 — per-drug rationale)
-3. Your Recovery Timeline (Agent 4 — week-by-week guide)
-4. Warning Signs: When to Get Help (Agent 5 — three-tier escalation decision tree)
-5. Your Follow-Up Appointments (Agent 1 extraction — sorted, with source citations)
-6. AI Review (Agent 6 — AI patient simulator: gap score 0–10, missed concepts)
+1. What Happened to You (Agent 2 - diagnosis explanation)
+2. Your Medications Explained (Agent 3 - per-drug rationale)
+3. Your Recovery Timeline (Agent 4 - week-by-week guide)
+4. Warning Signs: When to Get Help (Agent 5 - three-tier escalation decision tree)
+5. Your Follow-Up Appointments (Agent 1 extraction - sorted, with source citations)
+6. AI Review (Agent 6 - AI patient simulator: gap score 0–10, missed concepts)
 
 The AI surfaces gaps; a human (care coordinator, nurse, or the patient's own
 care team) acts on them. The system never takes clinical responsibility.
@@ -37,7 +37,7 @@ It targets the LOF Patient Engagement pillar. The primary use case is
 post-discharge health literacy for patients who do not understand their
 discharge documents.
 
-## Current project status (detailed) — for AI assistants
+## Current project status (detailed) - for AI assistants
 
 **Last reviewed:** July 2026 (LOF summer engagement, Week 2). Treat this section
 as the source of truth for “what is happening now.” Older sections below (e.g.
@@ -61,7 +61,7 @@ Streamlit). Comprehension-lift target: 13% baseline → 50–70%.
   `./start.sh` (or `start.bat` on Windows). Default URL: http://127.0.0.1:8501.
 - **Backend:** FastAPI in `dischargeiq/main.py`, typically http://127.0.0.1:8000.
 - **Hosted deployment (verified June 2026):** Cloud Run at
-  https://dischargeiq-1015692703359.us-central1.run.app — nginx multiplexes
+  https://dischargeiq-1015692703359.us-central1.run.app - nginx multiplexes
   one container: `/api/*` → FastAPI, everything else → Streamlit. Backend
   health check is `GET /api/health` (plain `/health` returns Streamlit HTML).
   Deployed from outside the repo (no URL reference in source by design).
@@ -75,28 +75,28 @@ Streamlit). Comprehension-lift target: 13% baseline → 50–70%.
 
 - **Single provider for all agents:** Every agent reads **`LLM_PROVIDER`**
   (default **`gemini`** as of June 2026) via shared helpers in `dischargeiq/utils/llm_client.py`.
-  Also supported (July 2026): **`vertex`** — same Gemini models through a GCP
+  Also supported (July 2026): **`vertex`** - same Gemini models through a GCP
   project under BAA (requires `VERTEX_PROJECT`, ADC auth; the REQUIRED path for
   real patient data), and **`LLM_FALLBACK_PROVIDER`** (default anthropic) for
   one automatic cross-provider failover attempt.
   Agents 1, 2, 6 use `get_llm_client()` (OpenAI-compat client for all providers).
-  Agents 3–5 use `get_native_agent_client(provider)` — returns native `anthropic.Anthropic`
+  Agents 3–5 use `get_native_agent_client(provider)` - returns native `anthropic.Anthropic`
   on the `anthropic` path and the OpenAI-compat client for all other providers (gemini,
   openrouter, openai, ollama). There is **no** split where only one agent uses a different
-  backend — switching `LLM_PROVIDER` in `.env` switches **every** agent.
+  backend - switching `LLM_PROVIDER` in `.env` switches **every** agent.
 - **Default provider: Gemini.** Default model: `gemini-2.5-flash-lite`. Override with
   `LLM_MODEL=gemini-2.5-flash` for higher quality. For Anthropic: set
   `LLM_PROVIDER=anthropic` and `LLM_MODEL=claude-haiku-4-5-20251001` (cheapest) or
-  `claude-sonnet-4-20250514` for eval. **Always use dated Anthropic model IDs** — undated
+  `claude-sonnet-4-20250514` for eval. **Always use dated Anthropic model IDs** - undated
   aliases can **404**.
 - **Primary key: `GOOGLE_API_KEY`** (required when `LLM_PROVIDER=gemini`). Also available:
   `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, optional `OLLAMA_BASE_URL`.
   Missing keys raise **`ValueError`** with a clear message from `require_provider_api_key()`
   rather than a raw **`KeyError`**.
 - **`DATABASE_URL`** supports Neon PostgreSQL (history / persistence) where wired;
-  local development may work without DB for core `/analyze` paths—confirm in code
+  local development may work without DB for core `/analyze` paths-confirm in code
   paths if debugging save failures. DB pool is now long-lived (created at startup via
-  FastAPI lifespan, closed at shutdown) — no longer created per request.
+  FastAPI lifespan, closed at shutdown) - no longer created per request.
 
 ### HTTP API (FastAPI)
 
@@ -115,7 +115,7 @@ Streamlit). Comprehension-lift target: 13% baseline → 50–70%.
 - **Streamlit UI has 7 tabs (July 2026):** What Happened / Medications / Appointments /
   Warning Signs / Recovery / **Test yourself** / AI Review. The AI Review tab surfaces
   Agent 6 output (gap score bar, missed-concept cards by severity, answered-concept
-  expander). The tab is always visible — Agent 6 runs on every upload (non-fatal
+  expander). The tab is always visible - Agent 6 runs on every upload (non-fatal
   fallback on failure). "Test yourself" is the teach-back quiz loop (`ui/quiz_tab.py`);
   new Streamlit tabs go in the `ui/` package, never into streamlit_app.py.
 - **PRODUCT PRIORITY (July 2026):** the Flutter mobile app (`dischargeiq_mobile/`)
@@ -136,10 +136,10 @@ Streamlit). Comprehension-lift target: 13% baseline → 50–70%.
 
 Notable tests under `dischargeiq/tests/`:
 
-- `test_integration_hallucination.py` — integration / hallucination gates (see README).
-- `test_api_guardrails.py` — API behavior and guardrails.
-- `test_resilience_hardening.py` — retries, OpenRouter error paths.
-- `test_all_corpus_smoke.py` — corpus smoke coverage.
+- `test_integration_hallucination.py` - integration / hallucination gates (see README).
+- `test_api_guardrails.py` - API behavior and guardrails.
+- `test_resilience_hardening.py` - retries, OpenRouter error paths.
+- `test_all_corpus_smoke.py` - corpus smoke coverage.
 
 Additional scripts and stress runners are documented in **`README.md`**.
 
@@ -155,13 +155,13 @@ Additional scripts and stress runners are documented in **`README.md`**.
 
 - **OpenRouter free tier / rate limits:** Frequent **429** responses; pipeline may
   go **partial** or retry per `llm_client.py`.
-- **Multi-key setup:** Default provider is now **Gemini** — new contributors need
+- **Multi-key setup:** Default provider is now **Gemini** - new contributors need
   `GOOGLE_API_KEY`. If using Anthropic instead, set `LLM_PROVIDER=anthropic` and
   `ANTHROPIC_API_KEY`. OpenRouter/OpenAI paths also available.
 - **In-memory PDF store is process-local:** `_pdf_store` and `_simulator_store` in
   `main.py` are per-process `OrderedDict`s. Under Cloud Run with `max-instances > 1`,
   a `GET /pdf/{session_id}` may land on a different instance than the `POST /analyze`
-  that stored it, returning 404. Long-term fix requires GCS or Redis — not yet wired.
+  that stored it, returning 404. Long-term fix requires GCS or Redis - not yet wired.
 - **Mobile apps frozen:** `ios/` (SwiftUI) is gitignored and local-only.
   `dischargeiq_mobile/` (Flutter) source is tracked in Git but development is
   frozen; only its build artifacts are gitignored.
@@ -173,18 +173,18 @@ Additional scripts and stress runners are documented in **`README.md`**.
 
 ## Team (Plan B assignments)
 
-- Likitha — Team Lead, Backend + LLM
-- Suchithra — Strong, Frontend + LLM
-- Deepesh — Strong, Anything
-- Rushi — Weak, Anything
-- Manusha — Weak, Data Infra
+- Likitha - Team Lead, Backend + LLM
+- Suchithra - Strong, Frontend + LLM
+- Deepesh - Strong, Anything
+- Rushi - Weak, Anything
+- Manusha - Weak, Data Infra
 
 ## Tech stack
 
 - Backend: FastAPI + Python 3.11+
-- LLM: Configurable — all agents share `LLM_PROVIDER` (default: **gemini**).
+- LLM: Configurable - all agents share `LLM_PROVIDER` (default: **gemini**).
   Agents 1/2/6 use OpenAI-compat client via `get_llm_client()`. Agents 3–5 use
-  `get_native_agent_client()` — native Anthropic SDK on `anthropic` path, OpenAI-compat
+  `get_native_agent_client()` - native Anthropic SDK on `anthropic` path, OpenAI-compat
   on all others. Default Gemini model: `gemini-2.5-flash-lite` (see `llm_client.py`).
 - Database: Neon PostgreSQL (asyncpg)
 - Frontend: Streamlit (MVP) or React
@@ -200,17 +200,17 @@ dischargeiq/
 ├── .env.example               # GOOGLE_API_KEY= (primary), ANTHROPIC_API_KEY=, DATABASE_URL=
 ├── .gitignore                 # must include .env
 ├── agents/
-│   ├── extraction_agent.py         # Agent 1 — structured extraction
-│   ├── diagnosis_agent.py          # Agent 2 — diagnosis explanation
-│   ├── medication_agent.py         # Agent 3 — medication rationale
-│   ├── recovery_agent.py           # Agent 4 — recovery timeline
-│   ├── escalation_agent.py         # Agent 5 — escalation / warning signs
-│   └── patient_simulator_agent.py  # Agent 6 — AI patient simulator (gap scoring)
+│   ├── extraction_agent.py         # Agent 1 - structured extraction
+│   ├── diagnosis_agent.py          # Agent 2 - diagnosis explanation
+│   ├── medication_agent.py         # Agent 3 - medication rationale
+│   ├── recovery_agent.py           # Agent 4 - recovery timeline
+│   ├── escalation_agent.py         # Agent 5 - escalation / warning signs
+│   └── patient_simulator_agent.py  # Agent 6 - AI patient simulator (gap scoring)
 ├── models/
 │   ├── extraction.py          # Pydantic ExtractionOutput model
 │   └── pipeline.py            # Pydantic PipelineResponse + PatientSimulatorOutput
 ├── pipeline/
-│   └── orchestrator.py        # Async orchestrator — wires all 6 agents;
+│   └── orchestrator.py        # Async orchestrator - wires all 6 agents;
 │                              #   Agents 2–5 run in parallel via asyncio.gather
 ├── prompts/
 │   ├── agent1_system_prompt.txt
@@ -249,7 +249,7 @@ dischargeiq/
     └── extraction_schema_notes.md
 ```
 
-## Agent 1 JSON output schema (LOCKED — do not change without team sign-off)
+## Agent 1 JSON output schema (LOCKED - do not change without team sign-off)
 
 This is the contract between Agent 1 and all downstream agents.
 Agent 1 must NEVER fabricate or infer values. If a field is not in the
@@ -322,7 +322,7 @@ All agents are tested against these 5 conditions:
 - Hip replacement (guideline: AAOS)
 - Surgical case / laparoscopic (guideline: ACC/ACS perioperative)
 
-## Hard rules — never violate these
+## Hard rules - never violate these
 
 1. Agent 1 never fabricates or guesses a field value. null is always safer
    than a wrong answer.
@@ -341,18 +341,18 @@ All agents are tested against these 5 conditions:
 
 ## FK scorer utility
 ```python
-# utils/scorer.py — three public functions
+# utils/scorer.py - three public functions
 
 def fk_score(text: str) -> float: ...          # raw FK grade via textstat
 def fk_check(text: str, threshold: float = 6.0) -> dict: ...  # {fk_grade, passes, threshold}
 def log_fk_score(document_id: str, agent: str, fk_result: dict) -> None: ...
     # Appends one row to evaluation/fk_log.csv under threading.Lock.
     # agent examples: "agent3_medication", "agent4_recovery", "agent5_escalation"
-    # All agents 3–5 call log_fk_score() — do NOT write CSV logic in agent files.
+    # All agents 3–5 call log_fk_score() - do NOT write CSV logic in agent files.
 ```
 
 Call fk_check() on every agent text output. If score > 6.0, the system
-prompt for that agent needs revision — add instructions like:
+prompt for that agent needs revision - add instructions like:
 "Use short sentences. Maximum 15 words per sentence. Avoid medical jargon."
 
 ## Claude API call pattern
@@ -395,10 +395,10 @@ async def analyze_discharge(file: UploadFile = File(...)):
 
 ## Test scripts
 
-- `tests/test_agent1.py` — runs Agent 1 on all PDFs in `test-data/`, prints pass/fail (manual: `python tests/test_agent1.py` from repo root).
-- `tests/test_agents_1_2.py` — end-to-end Agents 1 and 2 on `test-data/` (manual: `python tests/test_agents_1_2.py`).
-- `tests/manual/test_claude_api.py` — Anthropic API key smoke (manual: `python tests/manual/test_claude_api.py`).
-- `tests/manual/test_neon_db.py` — Neon/Postgres connectivity smoke (manual: `python tests/manual/test_neon_db.py`).
+- `tests/test_agent1.py` - runs Agent 1 on all PDFs in `test-data/`, prints pass/fail (manual: `python tests/test_agent1.py` from repo root).
+- `tests/test_agents_1_2.py` - end-to-end Agents 1 and 2 on `test-data/` (manual: `python tests/test_agents_1_2.py`).
+- `tests/manual/test_claude_api.py` - Anthropic API key smoke (manual: `python tests/manual/test_claude_api.py`).
+- `tests/manual/test_neon_db.py` - Neon/Postgres connectivity smoke (manual: `python tests/manual/test_neon_db.py`).
 
 Automated pytest suites live under `dischargeiq/tests/` (see README). Hard gate: Agent 1 must pass 8/10 test documents before Agent 2 development starts.
 
@@ -437,7 +437,7 @@ start to feel better in 2 to 4 weeks."
 
 FK score on that paragraph: ~5.1. Short sentences, no jargon, plain language.
 
-## AI Agent Rules — Read before doing anything
+## AI Agent Rules - Read before doing anything
 
 These rules apply to every AI agent working in this repo.
 No exceptions. No overrides.
@@ -447,7 +447,7 @@ No exceptions. No overrides.
 - NEVER run `git commit`, `git push`, or `git add` for any reason.
 - NEVER stage files. NEVER create a commit message. NEVER initiate a pull request.
 - Only suggest what to commit and why. The human decides when and what gets committed.
-- If you think something is ready to commit, say so in a comment — do not act on it.
+- If you think something is ready to commit, say so in a comment - do not act on it.
 
 ### Authorship and identity
 
@@ -458,7 +458,7 @@ No exceptions. No overrides.
 
 ### Code quality standard
 
-Write code as a senior engineer with a Master's in Computer Science would write it —
+Write code as a senior engineer with a Master's in Computer Science would write it -
 not a student, not a script generator. Every file you produce must meet these standards:
 
 **Clarity**
@@ -512,7 +512,7 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
     Note:
         This is the HARD GATE agent. Do not proceed to Agent 2 until this
         function passes on 8/10 test documents. The schema it returns is the
-        contract for all downstream agents — never change field names without
+        contract for all downstream agents - never change field names without
         team sign-off.
     """
 ```

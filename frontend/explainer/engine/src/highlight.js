@@ -1,6 +1,6 @@
 /**
  * File: frontend/explainer/engine/src/highlight.js
- * Component: Anatomy Explainer — Highlight System
+ * Component: Anatomy Explainer - Highlight System
  * Description: Handles tap/click raycast on the 3D canvas. Resolves the hit mesh
  *   to a friendly label using the registry mesh_names map (reversed at init time).
  *   On a hit: visually emphasises the mesh with an emissive boost and shows a
@@ -9,7 +9,7 @@
  *
  * Integration point with Viewer:
  *   Receives Viewer.getCamera(), Viewer.getDomElement(), and a getMeshByName()
- *   function. Does NOT own the render loop — call updateLabelPosition() from the
+ *   function. Does NOT own the render loop - call updateLabelPosition() from the
  *   Viewer's update callback each frame to keep the callout tracking the mesh.
  *
  * Dependencies: three
@@ -82,7 +82,7 @@ class HighlightSystem {
    * Handle a pointer-up event: raycast and update highlight state.
    *
    * Normalises pointer coordinates to [-1, 1] clip space before raycasting.
-   * Ignores pointers that moved more than 8px — they were drag gestures, not taps.
+   * Ignores pointers that moved more than 8px - they were drag gestures, not taps.
    *
    * @param {PointerEvent} ev
    * @returns {void}

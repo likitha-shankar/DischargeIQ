@@ -1,7 +1,7 @@
 """
 File: dischargeiq/agents/quiz_agent.py
 Owner: Likitha Shankar
-Description: Teach-back quiz generator (Sprint 3, Task 3.1) — turns Agent 1's
+Description: Teach-back quiz generator (Sprint 3, Task 3.1) - turns Agent 1's
   extraction output into 5 non-leading multiple-choice questions across the five
   comprehension domains (diagnosis, medications, follow_up, activity, red_flags).
   The same frozen set is used for the pre and post phases so the comprehension
@@ -17,10 +17,10 @@ Dependencies: dischargeiq.utils.llm_client, dischargeiq.utils.scorer,
 Called by: dischargeiq.api.routes.quiz (POST /quiz/generate).
 
 Data contract (integration point):
-  Input:  extraction dict — the `extraction` field of a PipelineResponse
+  Input:  extraction dict - the `extraction` field of a PipelineResponse
           (ExtractionOutput.model_dump()). Missing/empty fields are fine; the
           prompt substitutes questions from richer domains.
-  Output: QuizSet — validated questions, fk_grade, fk_passes.
+  Output: QuizSet - validated questions, fk_grade, fk_passes.
 """
 
 import json
@@ -44,10 +44,10 @@ logger = logging.getLogger(__name__)
 _MAX_TOKENS = 1500
 
 # Below this count the quiz cannot meaningfully measure comprehension across
-# domains — fail loudly instead of returning a 1-question "quiz".
+# domains - fail loudly instead of returning a 1-question "quiz".
 _MIN_QUESTIONS = 3
 
-# Extraction fields the quiz may draw from — everything else (names, dates,
+# Extraction fields the quiz may draw from - everything else (names, dates,
 # MRN) is trivia the prompt forbids, so it is not sent at all.
 _QUIZ_FIELDS = (
     "primary_diagnosis",
@@ -84,7 +84,7 @@ def run_quiz_agent(extraction: dict, session_id: str, document_id: str = "quiz")
     if not quiz_input:
         raise ValueError(
             f"Quiz generation needs at least one populated extraction field "
-            f"for session '{session_id}' — got none."
+            f"for session '{session_id}' - got none."
         )
 
     provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
@@ -114,7 +114,7 @@ def run_quiz_agent(extraction: dict, session_id: str, document_id: str = "quiz")
             f"for session '{session_id}' (minimum {_MIN_QUESTIONS})."
         )
 
-    # FK gate — same rule as every agent: patient-facing text is scored and
+    # FK gate - same rule as every agent: patient-facing text is scored and
     # logged. Quiz stems and options must be readable to be answerable.
     fk_text = " ".join(
         f"{q.question} {' '.join(q.options)} {q.explanation}" for q in questions
@@ -123,7 +123,7 @@ def run_quiz_agent(extraction: dict, session_id: str, document_id: str = "quiz")
     log_fk_score(document_id, "quiz_agent", fk_result)
     if not fk_result["passes"]:
         logger.warning(
-            "QuizAgent FK grade %.1f above threshold for '%s' — prompt needs revision",
+            "QuizAgent FK grade %.1f above threshold for '%s' - prompt needs revision",
             fk_result["fk_grade"], document_id,
         )
 
@@ -140,7 +140,7 @@ def _parse_questions(raw: str, session_id: str) -> list[QuizQuestion]:
     Parse the LLM response into validated QuizQuestion models.
 
     Strips accidental markdown fences, parses the JSON array, and validates
-    each entry independently — one malformed question is dropped with a
+    each entry independently - one malformed question is dropped with a
     warning instead of discarding the whole set.
 
     Args:
@@ -172,7 +172,7 @@ def _parse_questions(raw: str, session_id: str) -> list[QuizQuestion]:
             questions.append(QuizQuestion.model_validate(item))
         except ValidationError as exc:
             logger.warning(
-                "QuizAgent question %d failed validation (session '%s') — dropped: %s",
+                "QuizAgent question %d failed validation (session '%s') - dropped: %s",
                 i, session_id, exc,
             )
     return questions

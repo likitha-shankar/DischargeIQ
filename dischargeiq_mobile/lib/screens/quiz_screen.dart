@@ -1,6 +1,6 @@
 /// screens/quiz_screen.dart
 ///
-/// The gamified teach-back loop (Sprint 3) — the comprehension-lift feature:
+/// The gamified teach-back loop (Sprint 3) - the comprehension-lift feature:
 ///
 ///   intro → baseline quiz (no feedback) → learning cards → post-quiz
 ///   (with feedback) → results (score ring, lift banner, domain chips)
@@ -28,7 +28,7 @@ enum _Phase { intro, loading, pre, learn, post, results, error }
 class QuizBody extends StatefulWidget {
   const QuizBody({super.key, required this.result, required this.sessionId});
 
-  /// Full /analyze response — extraction feeds question generation and the
+  /// Full /analyze response - extraction feeds question generation and the
   /// agent texts feed the learning cards.
   final Map<String, dynamic> result;
   final String sessionId;
@@ -44,7 +44,7 @@ class _QuizBodyState extends State<QuizBody> {
   String _error = '';
 
   List<QuizQuestion> _questions = [];
-  // Presentation order for the post phase — same questions, shuffled (§3a).
+  // Presentation order for the post phase - same questions, shuffled (§3a).
   List<int> _postOrder = [];
   int _current = 0;
   List<int?> _preAnswers = [];
@@ -100,7 +100,7 @@ class _QuizBodyState extends State<QuizBody> {
       setState(() => _current++);
       return;
     }
-    // Last question answered — score this phase.
+    // Last question answered - score this phase.
     final isPre = _phase == _Phase.pre;
     final answers = [for (final a in _answers) a ?? -1];
     QuizScoreResult? scored;
@@ -182,13 +182,13 @@ class _QuizBodyState extends State<QuizBody> {
         v is List && v.isNotEmpty ? v.map((e) => '• $e').join('\n') : '';
     final meds = [
       for (final m in (ex['medications'] as List? ?? []))
-        '• ${m['name']}${m['dose'] != null ? ' — ${m['dose']}' : ''}'
+        '• ${m['name']}${m['dose'] != null ? ' - ${m['dose']}' : ''}'
             '${m['frequency'] != null ? ', ${m['frequency']}' : ''}'
     ].join('\n');
     final appts = [
       for (final a in (ex['follow_up_appointments'] as List? ?? []))
         '• ${a['provider'] ?? a['specialty'] ?? 'Appointment'}'
-            '${a['date'] != null ? ' — ${a['date']}' : ''}'
+            '${a['date'] != null ? ' - ${a['date']}' : ''}'
     ].join('\n');
 
     final all = <(String, String)>[
@@ -285,8 +285,8 @@ class _QuizBodyState extends State<QuizBody> {
           current: _current + 1,
           total: _questions.length,
           label: isPre
-              ? 'Before you learn — question ${_current + 1} of ${_questions.length}'
-              : 'After learning — question ${_current + 1} of ${_questions.length}',
+              ? 'Before you learn - question ${_current + 1} of ${_questions.length}'
+              : 'After learning - question ${_current + 1} of ${_questions.length}',
         ),
         const SizedBox(height: 18),
         QuestionCard(
@@ -322,8 +322,8 @@ class _QuizBodyState extends State<QuizBody> {
           current: _learnIndex + 1,
           total: cards.length,
           label: isReview
-              ? 'Focused review — the parts to master'
-              : 'Learning time — card ${_learnIndex + 1} of ${cards.length}',
+              ? 'Focused review - the parts to master'
+              : 'Learning time - card ${_learnIndex + 1} of ${cards.length}',
         ),
         const SizedBox(height: 18),
         Card(
@@ -377,7 +377,7 @@ class _QuizBodyState extends State<QuizBody> {
                   _startPost();
                 }
               },
-              child: Text(last ? 'I\'m ready — quiz me again' : 'Got it, next'),
+              child: Text(last ? 'I\'m ready - quiz me again' : 'Got it, next'),
             ),
           ],
         ),

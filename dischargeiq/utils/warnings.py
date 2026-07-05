@@ -2,7 +2,7 @@
 File: dischargeiq/utils/warnings.py
 Owner: Likitha Shankar
 Description: Classifies Agent 1 extraction gaps into critical vs advisory warnings
-  to drive pipeline_status (partial vs complete_with_warnings) and UI messaging —
+  to drive pipeline_status (partial vs complete_with_warnings) and UI messaging -
   distinguishes true non-discharge uploads from incomplete-but-usable summaries.
 Key functions/classes: assess_extraction_completeness, _home_meds_without_list_only,
   _likely_not_discharge_summary
@@ -15,7 +15,7 @@ Called by: dischargeiq.pipeline.orchestrator, dischargeiq.tests.test_api_guardra
 
 from dischargeiq.models.extraction import ExtractionOutput
 
-# Must match agent1_system_prompt.txt — ER sheets that say "continue home
+# Must match agent1_system_prompt.txt - ER sheets that say "continue home
 # medications" without listing drugs.
 _HOME_MEDS_NO_LIST_WARNING = (
     "Document says continue home meds but no medication list provided"
@@ -57,7 +57,7 @@ def assess_extraction_completeness(extraction: ExtractionOutput) -> dict:
                 the summary (primary_diagnosis, medications, red_flag_symptoms).
             advisory_warnings (list[str]): Missing fields that are common
                 on valid discharges (follow-ups, activity/diet, dates, name).
-            warning_messages (list[str]): Union of both — kept for callers
+            warning_messages (list[str]): Union of both - kept for callers
                 that only want the flat list for display.
             has_warnings (bool): True iff either list is non-empty.
             is_critical  (bool): True iff critical_warnings is non-empty.
@@ -65,7 +65,7 @@ def assess_extraction_completeness(extraction: ExtractionOutput) -> dict:
     critical_warnings: list[str] = []
     advisory_warnings: list[str] = []
 
-    # ── Critical — three fields that together define a real discharge ──
+    # ── Critical - three fields that together define a real discharge ──
     # A document missing any of these is almost certainly not a discharge
     # summary (could be an intake form, a consent page, or a non-clinical
     # PDF). Downstream agents have nothing meaningful to say without them.
@@ -92,7 +92,7 @@ def assess_extraction_completeness(extraction: ExtractionOutput) -> dict:
             "Please upload a discharge summary PDF."
         )
 
-    # ── Advisory — common gaps on real, usable discharges ──
+    # ── Advisory - common gaps on real, usable discharges ──
     # These are worth surfacing to the patient (so they know the summary
     # is incomplete) but they do not invalidate the extraction.
     if not extraction.follow_up_appointments:

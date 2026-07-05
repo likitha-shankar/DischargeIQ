@@ -1,6 +1,6 @@
 /**
  * File: frontend/explainer/engine/src/ui.js
- * Component: Anatomy Explainer — UI Controller
+ * Component: Anatomy Explainer - UI Controller
  * Description: Drives all non-3D HTML UI: gesture hint, play bar (play/pause,
  *   progress indicator, panel counter), caption text, safety lines, title bar,
  *   footer, and the text-only fallback panel.

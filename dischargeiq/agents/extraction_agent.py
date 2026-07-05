@@ -1,13 +1,13 @@
 """
 agents/extraction_agent.py
 
-Agent 1 — Extraction Agent.
+Agent 1 - Extraction Agent.
 Owner: Likitha
 
 Reads discharge document text (marked with [PAGE N] prefixes from pdfplumber)
 and calls the LLM with agent1_system_prompt.txt to produce JSON matching
 ExtractionOutput. Validates the response with Pydantic; never fabricates field
-values — missing data is returned as null or [] per the locked schema contract.
+values - missing data is returned as null or [] per the locked schema contract.
 
 Post-processing expands common medication frequency/route abbreviations into
 plain English so Agents 2–5 see consistent patient-facing strings.
@@ -17,7 +17,7 @@ dischargeiq.utils.llm_client.get_llm_client(). Changing LLM_PROVIDER switches
 this agent together with every other agent in the pipeline.
 
 Data contract:
-    Input:  str — raw PDF text (typically from extract_text_from_pdf()).
+    Input:  str - raw PDF text (typically from extract_text_from_pdf()).
     Output: dischargeiq.models.extraction.ExtractionOutput
             Required: primary_diagnosis (str)
             Optional fields: null or [] per schema; lists are never null.
@@ -30,7 +30,7 @@ Dependencies:
     - dischargeiq.models.extraction.ExtractionOutput
     - dischargeiq/prompts/agent1_system_prompt.txt
 
-BLOCKED BY: None — Agent 1 is the pipeline schema gate. Agents 2–5 require a
+BLOCKED BY: None - Agent 1 is the pipeline schema gate. Agents 2–5 require a
 valid ExtractionOutput from this module.
 """
 
@@ -88,7 +88,7 @@ _FREQ_NORMALIZATION_MAP: dict[str, str] = {
     "q12h":          "every 12 hours",
     # English-language variants the LLM sometimes emits verbatim; we
     # canonicalise them to the same phrases so downstream consumers see
-    # a single form. NB: bare "daily" is intentionally NOT in this map —
+    # a single form. NB: bare "daily" is intentionally NOT in this map -
     # the single-pass regex would otherwise re-match "daily" inside
     # already-canonical phrases like "once daily" or "twice daily",
     # producing "once once daily". Patients understand "daily" perfectly
@@ -168,7 +168,7 @@ def _normalize_frequency(raw: str | None) -> str | None:
     would have its inner tokens re-substituted on a second pass (e.g.
     "daily" -> "once daily", yielding "four times once daily"). Compound
     frequencies such as "BID PRN" are still handled because the regex
-    matches each token independently in one pass — the output is
+    matches each token independently in one pass - the output is
     "twice daily as needed".
 
     Args:
@@ -222,7 +222,7 @@ def _apply_medication_normalization(extraction: ExtractionOutput) -> None:
 
     Route normalisation is applied first (expands "PO" to "by mouth") so the
     subsequent frequency normaliser sees a cleaner string without embedded
-    route tokens. Debug-level logging records any string that changed — the
+    route tokens. Debug-level logging records any string that changed - the
     DEBUG channel keeps the INFO session log quiet during normal runs while
     still being available for spot-checking extraction quality.
 
@@ -294,7 +294,7 @@ def _check_dose_conflicts(
         - Only numeric + unit tokens count (see _DOSE_VALUE_PATTERN), so
           instruction text like "for 5 days" is ignored.
         - A drug with fewer than two distinct dose values produces no
-          warning — occurrences that share the same dose are expected
+          warning - occurrences that share the same dose are expected
           (e.g. a discharge meds section and a discharge instructions
           section both stating "Metoprolol 25mg twice daily").
         - Dose values are normalised to lowercase for comparison, so
@@ -383,7 +383,7 @@ def _short_document_warning(raw_text: str) -> list[str]:
     if word_count < _SHORT_DOC_WORD_THRESHOLD:
         return [
             f"Document is very short ({word_count} words). This may be an "
-            "ER discharge sheet or a brief summary — extraction will continue "
+            "ER discharge sheet or a brief summary - extraction will continue "
             "but some sections may be empty by design."
         ]
     return []
@@ -405,7 +405,7 @@ Return a single JSON object with these fields (no extra keys, no commentary):
     "page": integer (1-indexed page number where the discharge date appears),
     "text": "the exact line from the PDF that states the discharge date"
   } or null if discharge date not found,
-  "primary_diagnosis":        string          (REQUIRED — never null),
+  "primary_diagnosis":        string          (REQUIRED - never null),
   "primary_diagnosis_source": {
     "page": integer (1-indexed page number where the diagnosis appears),
     "text": "the exact sentence or line from the PDF that states the primary diagnosis"
@@ -589,13 +589,13 @@ def _remove_stray_tokens(text: str) -> str:
     Lines that fail this check are dropped silently.
 
     Accepted first characters:
-        { } [ ]   — object/array boundaries
-        "         — string key or value
-        , :       — separators (sometimes appear on their own line)
-        0-9  -    — numeric literals
-        t         — true
-        f         — false
-        n         — null
+        { } [ ]   - object/array boundaries
+        "         - string key or value
+        , :       - separators (sometimes appear on their own line)
+        0-9  -    - numeric literals
+        t         - true
+        f         - false
+        n         - null
 
     Args:
         text: JSON text that may contain stray non-JSON lines.
@@ -609,7 +609,7 @@ def _remove_stray_tokens(text: str) -> str:
     for line in text.splitlines():
         stripped = line.lstrip()
         if not stripped:
-            # Blank / whitespace-only line — harmless, keep it.
+            # Blank / whitespace-only line - harmless, keep it.
             filtered_lines.append(line)
             continue
 
@@ -620,7 +620,7 @@ def _remove_stray_tokens(text: str) -> str:
 
         if is_structural or is_numeric or is_keyword:
             filtered_lines.append(line)
-        # Any other start character is a stray token — drop the line.
+        # Any other start character is a stray token - drop the line.
 
     return "\n".join(filtered_lines)
 
@@ -665,7 +665,7 @@ def _parse_and_validate(raw_response: str) -> ExtractionOutput:
             data = json.loads(sanitised)
             logger.info("JSON parse succeeded after stray-token cleanup.")
         except json.JSONDecodeError:
-            # Both attempts failed — log the sanitised text and raise the
+            # Both attempts failed - log the sanitised text and raise the
             # original error so the caller sees the first failure point.
             logger.error(
                 "JSON parse failed after cleanup. Sanitised response:\n%s\n"
@@ -689,8 +689,8 @@ def _detect_low_text_density(page: object) -> bool:
     The previous threshold of 20 words produced false positives on short but
     perfectly text-extractable PDFs (e.g. a 3-line ER discharge note with
     ~37 words on one page). A real scanned/image page typically exposes no
-    extractable words at all — at most a handful of artifacts from stamps
-    or OCR noise — so 5 words is a sharper signal for the true failure mode
+    extractable words at all - at most a handful of artifacts from stamps
+    or OCR noise - so 5 words is a sharper signal for the true failure mode
     we care about (no text layer to extract).
 
     Pages below this threshold are combined with the document-level text
@@ -723,7 +723,7 @@ def _extract_page_tables(page: object) -> str:
     """
     try:
         tables = page.extract_tables()
-    except Exception as exc:  # noqa: BLE001 — pdfplumber table errors are non-fatal
+    except Exception as exc:  # noqa: BLE001 - pdfplumber table errors are non-fatal
         logger.warning("Table extraction failed on a page: %s", exc)
         return ""
 
@@ -744,7 +744,7 @@ def _extract_page_text(page: object) -> str:
     Extract text from a single pdfplumber page with multi-column fallback.
 
     Standard extraction is attempted first. If the result looks like a scrambled
-    multi-column layout — wide page, average line shorter than 40 characters —
+    multi-column layout - wide page, average line shorter than 40 characters -
     the extraction is retried with tighter x/y tolerances. Table content is always
     appended after the main text so medication tables are not lost.
 
@@ -782,7 +782,7 @@ def _build_document_notes(
 
     Two conditions must both hold before the scan note is emitted:
         1. More than 30% of processed pages are low-density (see
-           _detect_low_text_density — now thresholded at <5 words).
+           _detect_low_text_density - now thresholded at <5 words).
         2. The whole document's average is below 5 words per page.
 
     Requiring the document-level average prevents the scan note from firing
@@ -892,7 +892,7 @@ def extract_text_from_pdf(pdf_path: str) -> str:
 
     if truncated:
         prefix += (
-            "[DOCUMENT NOTE: Document exceeds 50 pages — only first 50 pages "
+            "[DOCUMENT NOTE: Document exceeds 50 pages - only first 50 pages "
             "processed. Verify completeness manually.]\n\n"
         )
 
@@ -920,13 +920,13 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
     Provider and model are resolved from LLM_PROVIDER / LLM_MODEL in .env via
     get_llm_client(). Supports openrouter, openai, ollama, and anthropic.
 
-    This is the HARD GATE agent — do not proceed to Agent 2 until this
+    This is the HARD GATE agent - do not proceed to Agent 2 until this
     function passes on 8/10 test documents. The schema it returns is the
     contract for all downstream agents; never change field names without
     team sign-off.
 
     Data contract (output):
-        ExtractionOutput — see dischargeiq/models/extraction.py for full schema.
+        ExtractionOutput - see dischargeiq/models/extraction.py for full schema.
         Required field: primary_diagnosis (str, never null).
         Optional scalar fields return None if not found in the document.
         All list fields return [] (never None) if nothing was extracted.
@@ -954,7 +954,7 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
     raw_response = _call_llm(system_prompt, pdf_text)
     result = _parse_and_validate(raw_response)
 
-    # Post-LLM deterministic normalisation — route and frequency abbreviations
+    # Post-LLM deterministic normalisation - route and frequency abbreviations
     # are expanded on every medication entry so downstream agents see
     # consistent plain-English text regardless of how the LLM formatted the
     # discharge source.
@@ -979,7 +979,7 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
     # Log a structured completion summary so the orchestrator log shows
     # extraction quality at a glance without needing to parse the full output.
     logger.info(
-        "Agent 1 complete — diagnosis: '%s', meds: %d, follow-ups: %d, warnings: %d",
+        "Agent 1 complete - diagnosis: '%s', meds: %d, follow-ups: %d, warnings: %d",
         result.primary_diagnosis,
         len(result.medications),
         len(result.follow_up_appointments),

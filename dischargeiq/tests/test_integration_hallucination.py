@@ -20,8 +20,8 @@ and detailed diffs to the existing session log file
 (logs/session_YYYYMMDD_HHMMSS.log) via the project logger.
 
 Dependencies (added to requirements.txt for this test suite):
-    - reportlab   — synthetic PDF generation
-    - deepdiff    — pretty diffs in debug log only (not in gate path)
+    - reportlab   - synthetic PDF generation
+    - deepdiff    - pretty diffs in debug log only (not in gate path)
 """
 
 from __future__ import annotations
@@ -207,7 +207,7 @@ def overlap_ratio(a: str, b: str) -> float:
 # out ("gastroesophageal reflux disease"). The token-overlap ratio used by
 # check_primary_dx / check_secondary_dx scores those two forms as disjoint
 # because they share zero tokens. Expanding known abbreviations on BOTH sides
-# of the comparison — at comparison time — lets the harness treat the two
+# of the comparison - at comparison time - lets the harness treat the two
 # forms as equivalent without forcing the extractor to pick a single style.
 #
 # Keys are stored lowercase for case-insensitive lookup; the regex in
@@ -242,7 +242,7 @@ def _expand_medical_abbreviations(text: str) -> str:
     collapsed so the expanded string tokenises cleanly.
 
     Used by check_primary_dx and check_secondary_dx before passing the result
-    to overlap_ratio — without this pre-pass "GERD" and "gastroesophageal
+    to overlap_ratio - without this pre-pass "GERD" and "gastroesophageal
     reflux disease" compare as disjoint token sets.
 
     Args:
@@ -270,7 +270,7 @@ def _expand_medical_abbreviations(text: str) -> str:
 # ── Red-flag fuzzy matching ───────────────────────────────────────────────────
 # Clinical shorthand the extractor sometimes leaves unexpanded in the
 # red_flag_symptoms list (e.g. "SOB" for shortness of breath). Expanding these
-# at comparison time — on both sides — lets the harness accept a raw
+# at comparison time - on both sides - lets the harness accept a raw
 # abbreviation as an equivalent match to the spelled-out ground-truth phrase
 # without forcing the extractor to do the expansion itself.
 _RED_FLAG_ABBREV_MAP: dict[str, str] = {
@@ -350,7 +350,7 @@ def fuzzy_red_flag_match(expected: str, got: str, n: int = 3) -> bool:
     "102 f"). The contiguous-subsequence check is symmetric so that a short
     output phrase can still match a longer ground-truth phrase and vice versa.
     When either phrase has fewer than `n` words, the window shrinks to the
-    shorter phrase's length — a single-word GT like "confusion" matches any
+    shorter phrase's length - a single-word GT like "confusion" matches any
     output that contains that word as a contiguous token.
 
     Args:
@@ -418,7 +418,7 @@ def generate_pdf(profile: Profile, out_path: Path) -> None:
             if block.startswith("# "):
                 story.append(Paragraph(block[2:].strip(), heading))
             else:
-                # reportlab Paragraph interprets HTML entities — escape <>&
+                # reportlab Paragraph interprets HTML entities - escape <>&
                 escaped = (
                     block.replace("&", "&amp;")
                          .replace("<", "&lt;")
@@ -531,7 +531,7 @@ def check_medications(out: dict, gt: dict) -> list[Issue]:
     for key, exp in gt_by_name.items():
         got = got_by_name.get(key)
         if got is None:
-            # Substring fallback — LLM may prefix/suffix with brand name.
+            # Substring fallback - LLM may prefix/suffix with brand name.
             for gk, gm in got_by_name.items():
                 if key in gk or gk in key:
                     got = gm
@@ -629,7 +629,7 @@ def check_red_flags(out: dict, gt: dict) -> list[Issue]:
     gt_flags = gt.get("red_flag_symptoms") or []
 
     if not gt_flags:
-        return issues  # Empty GT — nothing to verify.
+        return issues  # Empty GT - nothing to verify.
 
     matched_out: set[int] = set()
     for exp in gt_flags:
@@ -649,7 +649,7 @@ def check_red_flags(out: dict, gt: dict) -> list[Issue]:
         if not hit:
             issues.append(Issue("OMISSION", "red_flag_symptoms",
                                 f"expected '{exp}' not found in output"))
-    # Unmatched output flags — flag only when the phrase has no fuzzy match
+    # Unmatched output flags - flag only when the phrase has no fuzzy match
     # against ANY GT entry. Mirrors the GT-side matcher so the harness
     # doesn't penalise extras that are semantically equivalent to a GT item.
     for i, got in enumerate(got_flags):
@@ -668,7 +668,7 @@ def check_warnings(out: dict, profile: Profile) -> list[Issue]:
         return issues
     got_warnings = out.get("extraction_warnings") or []
     for expected in profile.expected_warnings:
-        # Sub-phrase match — accept any warning that shares ≥ 3 key tokens.
+        # Sub-phrase match - accept any warning that shares ≥ 3 key tokens.
         exp_tokens = token_set(expected)
         hit = any(len(exp_tokens & token_set(w)) >= 3 for w in got_warnings)
         if not hit:
@@ -837,7 +837,7 @@ def run_case(profile: Profile, index: int, total: int) -> dict:
         "audit_claims": [],
         "error": None,
     }
-    logger.info("=== [%d/%d] %s — start ===", index, total, profile.name)
+    logger.info("=== [%d/%d] %s - start ===", index, total, profile.name)
 
     pdf_path = _FIXTURES_DIR / f"{profile.name}.pdf"
     try:
@@ -849,7 +849,7 @@ def run_case(profile: Profile, index: int, total: int) -> dict:
         logger.error("PDF build failed for %s: %s", profile.name, pdf_exc)
         return result
 
-    # Run the real pipeline with rate-limit retry. run_pipeline is async —
+    # Run the real pipeline with rate-limit retry. run_pipeline is async -
     # wrap each call in asyncio.run() so the existing sync retry helper works
     # unchanged.
     def _run_pipeline_sync(path: str):
@@ -875,7 +875,7 @@ def run_case(profile: Profile, index: int, total: int) -> dict:
     if pr.get("pipeline_status") == "partial" and not extraction.get("medications"):
         result["status"] = "ERROR"
         result["error"] = "pipeline_status=partial with empty extraction"
-        logger.warning("Skipping checks for %s — %s", profile.name, result["error"])
+        logger.warning("Skipping checks for %s - %s", profile.name, result["error"])
         return result
 
     # Field-level checks.
@@ -889,7 +889,7 @@ def run_case(profile: Profile, index: int, total: int) -> dict:
     issues += check_red_flags(extraction, profile.ground_truth)
     issues += check_warnings(extraction, profile)
 
-    # Agent 2 audit — only run if an explanation was produced. Pass both the
+    # Agent 2 audit - only run if an explanation was produced. Pass both the
     # ground-truth dict AND the raw pdfplumber-extracted source text so the
     # judge does not flag legitimate details that were present in the PDF but
     # omitted from the ground-truth scaffold.
@@ -922,7 +922,7 @@ def run_case(profile: Profile, index: int, total: int) -> dict:
     result["omissions"] = sum(1 for i in issues if i.kind == "OMISSION")
     result["status"] = "FAIL" if result["hallucinations"] > 0 else "PASS"
 
-    # Debug diff for the log file only — keeps stdout compact.
+    # Debug diff for the log file only - keeps stdout compact.
     if DeepDiff is not None:
         try:
             logger.debug(
@@ -972,7 +972,7 @@ Type 2 Diabetes Mellitus with hyperglycemia
 - Dr. Sarah Chen, Endocrinology - 2026-04-26 - diabetes management
 - Dr. Michael Rivera, Primary Care - 2026-05-03 - blood pressure check
 
-# WARNING SIGNS — Call 911 if:
+# WARNING SIGNS - Call 911 if:
 - Severe chest pain
 - Difficulty breathing
 - Signs of stroke (slurred speech, facial droop)
@@ -1131,7 +1131,7 @@ or confusion.""",
         Profile(
             name="hip_replacement_8pages_distractors",
             pages=[
-                """# PRE-OPERATIVE RECORD — PAGE 1
+                """# PRE-OPERATIVE RECORD - PAGE 1
 
 Patient: Thomas O'Neill
 Admission Date: 2026-04-06
@@ -1145,7 +1145,7 @@ Planned Procedure: Right Total Hip Arthroplasty
 
 These medications were administered in the operating room only and are
 not part of the discharge regimen.""",
-                """# OPERATIVE NOTE — PAGE 2
+                """# OPERATIVE NOTE - PAGE 2
 
 Right total hip arthroplasty performed without complication on
 2026-04-06. Estimated blood loss 350 mL. Spinal anesthesia with light
@@ -1154,27 +1154,27 @@ general sedation using propofol infusion intraoperatively.
 The anesthesia team administered rocuronium and fentanyl strictly
 intraoperatively. The patient did not receive any of these agents
 post-operatively or at discharge.""",
-                """# HOSPITAL COURSE DAY 1 — PAGE 3
+                """# HOSPITAL COURSE DAY 1 - PAGE 3
 
 Post-operative day 1. Vital signs stable. Hemoglobin 11.2. Patient
 tolerated physical therapy evaluation. Pain controlled with scheduled
 acetaminophen and as needed oxycodone. Ambulated 50 feet with walker.""",
-                """# HOSPITAL COURSE DAYS 2-3 — PAGE 4
+                """# HOSPITAL COURSE DAYS 2-3 - PAGE 4
 
 Physical therapy advanced. Patient ambulated 200 feet by post-operative
 day 3. Deep vein thrombosis prophylaxis with enoxaparin started on
 day 1 and continued through hospital stay. Wound healing appropriately.""",
-                """# HOSPITAL COURSE DAY 4 — PAGE 5
+                """# HOSPITAL COURSE DAY 4 - PAGE 5
 
 Patient independent with walker and meets criteria for discharge home
 with home physical therapy. Wound clean and dry. No signs of infection
 or deep vein thrombosis.""",
-                """# PROCEDURES PERFORMED — PAGE 6
+                """# PROCEDURES PERFORMED - PAGE 6
 
 - Right total hip arthroplasty (2026-04-06)
 - Physical therapy sessions (post-op days 1-4)
 - Enoxaparin DVT prophylaxis during admission""",
-                """# DISCHARGE PLANNING — PAGE 7
+                """# DISCHARGE PLANNING - PAGE 7
 
 # FOLLOW-UP APPOINTMENTS
 - Dr. Patrick Deluca, Orthopedic Surgery - 2026-04-20 - wound check and staple removal
@@ -1182,7 +1182,7 @@ or deep vein thrombosis.""",
 
 Patient educated on hip precautions: no flexion past 90 degrees, no
 crossing legs, no internal rotation for 6 weeks.""",
-                """# DISCHARGE MEDICATIONS — PAGE 8
+                """# DISCHARGE MEDICATIONS - PAGE 8
 
 - Oxycodone 5mg by mouth every 4 hours as needed for pain
 - Acetaminophen 650mg by mouth every 6 hours scheduled
@@ -1565,7 +1565,7 @@ if __name__ == "__main__":
 # Run: pytest -m slow dischargeiq/tests/test_integration_hallucination.py
 # ──────────────────────────────────────────────────────────────────────────────
 
-import pytest  # noqa: E402 — kept at bottom to preserve script-mode import order
+import pytest  # noqa: E402 - kept at bottom to preserve script-mode import order
 
 
 def _profile_ids() -> list[str]:
@@ -1598,7 +1598,7 @@ def test_hallucination_gate_per_profile(profile: "Profile") -> None:
     provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     required_key = provider_key_env.get(provider)
     if required_key and not os.environ.get(required_key, "").strip():
-        pytest.skip(f"{required_key} not set — skipping live LLM call.")
+        pytest.skip(f"{required_key} not set - skipping live LLM call.")
 
     result = run_case(profile, index=1, total=1)
 
@@ -1639,7 +1639,7 @@ def test_omission_soft_gate_all_profiles() -> None:
     provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     required_key = provider_key_env.get(provider)
     if required_key and not os.environ.get(required_key, "").strip():
-        pytest.skip(f"{required_key} not set — skipping live LLM call.")
+        pytest.skip(f"{required_key} not set - skipping live LLM call.")
 
     profiles = _profiles()
     total_omissions = 0

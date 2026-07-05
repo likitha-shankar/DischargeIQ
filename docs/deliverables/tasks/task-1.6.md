@@ -1,4 +1,4 @@
-# Task 1.6 — Neon Corpus Load ✅
+# Task 1.6 - Neon Corpus Load ✅
 
 **Deliverable:** corpus metadata loaded into Neon to populate the testing
 matrix for Month 3's clinician review.

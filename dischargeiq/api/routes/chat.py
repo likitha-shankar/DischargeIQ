@@ -1,7 +1,7 @@
 """
 api/routes/chat.py
 
-POST /chat — grounded patient Q&A against their discharge document.
+POST /chat - grounded patient Q&A against their discharge document.
 
 The route handler is thin: it validates the empty-message edge case, delegates
 to ChatService (services/chat.py) for all domain work, and maps exceptions to
@@ -24,7 +24,7 @@ async def chat(request: ChatRequest):
     """
     Answer a patient question grounded in their discharge summary.
 
-    Delegates all domain work to ChatService.answer() — prompt construction,
+    Delegates all domain work to ChatService.answer() - prompt construction,
     LLM call, grounding detection, source attribution.
 
     Args:
@@ -44,7 +44,7 @@ async def chat(request: ChatRequest):
         )
 
     logger.info(
-        "POST /chat — session: %s, message: %.60s…",
+        "POST /chat - session: %s, message: %.60s…",
         request.session_id,
         request.message,
     )
@@ -62,7 +62,7 @@ async def chat(request: ChatRequest):
         )
 
     logger.info(
-        "POST /chat response — session: %s, source_page: %s, length: %d, from_document: %s",
+        "POST /chat response - session: %s, source_page: %s, length: %d, from_document: %s",
         request.session_id,
         source_page,
         len(reply),

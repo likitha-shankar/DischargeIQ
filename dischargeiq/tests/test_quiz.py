@@ -1,7 +1,7 @@
 """
 File: dischargeiq/tests/test_quiz.py
 Owner: Likitha Shankar
-Description: Deterministic tests for the teach-back quiz loop (Sprint 3, Task 3.1) —
+Description: Deterministic tests for the teach-back quiz loop (Sprint 3, Task 3.1) -
   quiz agent JSON parsing/validation, pure scoring logic, and both /quiz endpoints
   via TestClient with the LLM mocked. No network I/O.
 Key functions/classes: test_* functions
@@ -22,7 +22,7 @@ from dischargeiq.services.quiz import score_quiz
 
 _client = TestClient(app)
 
-# One valid LLM response used across tests — 5 questions, one per domain.
+# One valid LLM response used across tests - 5 questions, one per domain.
 _VALID_LLM_RESPONSE = json.dumps([
     {
         "question": f"Question about {domain}?",

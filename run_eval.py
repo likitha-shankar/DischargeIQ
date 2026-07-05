@@ -9,4 +9,4 @@ results = run_full_evaluation(test_cases)
 with open("evaluation/judge_results.json", "w", encoding="utf-8") as f:
     json.dump(results, f, indent=2)
 
-print("DONE — evaluation complete")
+print("DONE - evaluation complete")

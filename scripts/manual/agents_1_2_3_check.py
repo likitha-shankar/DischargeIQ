@@ -1,7 +1,7 @@
 """
 File: scripts/manual/agents_1_2_3_check.py
 Owner: Likitha Shankar
-Description: Manual three-agent chain check on representative PDFs — extraction, diagnosis
+Description: Manual three-agent chain check on representative PDFs - extraction, diagnosis
   explanation, and medication rationale printed sequentially for quick LLM/prompt debugging
   without full orchestrator or Streamlit.
 Key functions/classes: module-level runner functions
@@ -174,7 +174,7 @@ def _resolve_test_docs(argv: list[str]) -> list[Path]:
     With no arguments, the default five-document corpus is used.
 
     Args:
-        argv: sys.argv[1:] — zero or more PDF paths.
+        argv: sys.argv[1:] - zero or more PDF paths.
 
     Returns:
         List of Path objects to run the chain on. Missing files are kept

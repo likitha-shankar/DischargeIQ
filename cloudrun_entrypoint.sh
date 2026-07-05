@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cloud Run entrypoint — multiplexes FastAPI + Streamlit behind nginx.
+# Cloud Run entrypoint - multiplexes FastAPI + Streamlit behind nginx.
 #   - FastAPI (uvicorn)  -> 127.0.0.1:${BACKEND_PORT}    (loopback only)
 #   - Streamlit          -> 127.0.0.1:${STREAMLIT_PORT}  (loopback only)
 #   - nginx              -> 0.0.0.0:${PORT}              (Cloud Run public)

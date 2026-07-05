@@ -1,7 +1,7 @@
 """
 File: dischargeiq/db/history.py
 Owner: Likitha Shankar
-Description: Async PostgreSQL helpers (asyncpg) for Neon — connection pool creation,
+Description: Async PostgreSQL helpers (asyncpg) for Neon - connection pool creation,
   insert of discharge_history rows (structured extraction JSON + fk_scores + status),
   and session lookup placeholder; DB failures are logged but should not crash analysis.
 Key functions/classes: get_db_pool, save_discharge_history, get_history_for_session
@@ -12,7 +12,7 @@ Called by: dischargeiq.pipeline.orchestrator (_save_history_with_retries), disch
   (pool for /health DB check when configured).
 """
 
-# READ PATH — not yet implemented.
+# READ PATH - not yet implemented.
 # get_history_for_session() is defined below but not called
 # anywhere in the current UI. When the patient history screen
 # is built, wire it up in main.py as:

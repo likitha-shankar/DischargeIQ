@@ -1,7 +1,7 @@
 """
 api/routes/progress.py
 
-GET /progress/{session_id} — real-time pipeline progress polling.
+GET /progress/{session_id} - real-time pipeline progress polling.
 
 The Streamlit frontend polls this endpoint every ~500ms while a pipeline
 is running to drive the progress bar. TTL-based eviction prevents the

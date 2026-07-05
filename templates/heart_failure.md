@@ -7,7 +7,7 @@ Used by: Reference / eval material; not loaded automatically by the pipeline.
 Critical rules: Plain language only in template text; preserve guideline reference metadata.
 -->
 
-# Heart Failure — Patient Explanation Template
+# Heart Failure - Patient Explanation Template
 
 **Guideline reference:** ACC/AHA 2022 Guideline for the Management of Heart Failure
 **Reviewed by:** Rushi Eshwar Neelam
@@ -26,14 +26,14 @@ Your heart was not pumping blood the way it should. This caused fluid to build u
 
 - "Heart failure" and "congestive heart failure" replaced with plain description of what happened
 - "Diuresis" replaced with "medicine to remove the extra fluid"
-- "Ejection fraction" removed — not necessary for patient understanding at discharge
-- Daily weight monitoring confirmed as Class I recommendation per ACC/AHA 2022 — 2 lb threshold is guideline-specified
-- "Do not stop medications" implicit — covered by Agent 3 (Medication Rationale)
+- "Ejection fraction" removed - not necessary for patient understanding at discharge
+- Daily weight monitoring confirmed as Class I recommendation per ACC/AHA 2022 - 2 lb threshold is guideline-specified
+- "Do not stop medications" implicit - covered by Agent 3 (Medication Rationale)
 - No jargon remaining in template text
 
 ## Clinical sign-off
 
-**Reviewed by:** [Pending — Dr. Liebovitz / designated reviewer]
+**Reviewed by:** [Pending - Dr. Liebovitz / designated reviewer]
 **Date:** [Pending]
 **Status:** Awaiting faculty review
 **Changes made based on review:** [To be completed after faculty feedback]

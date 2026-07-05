@@ -1,7 +1,7 @@
 """
 api/routes/health.py
 
-GET /health — liveness + lightweight dependency signals.
+GET /health - liveness + lightweight dependency signals.
 
 Returns 200 when the process is up. Includes the active LLM provider,
 whether the Anthropic API key is set, and whether the database pool can
@@ -27,7 +27,7 @@ async def health(request: Request):
     api/app.py) to avoid opening a new connection per health call.
 
     Args:
-        request: FastAPI Request — used to access app.state.db_pool.
+        request: FastAPI Request - used to access app.state.db_pool.
 
     Returns:
         dict: status, llm_provider, anthropic_api_key_configured, database.
@@ -49,9 +49,9 @@ async def health(request: Request):
             db_reachable = False
             # Log the full exception internally; never return connection string
             # fragments, hostnames, or credentials to the caller. A generic
-            # "unreachable" message is enough for ops triage — details go to logs.
+            # "unreachable" message is enough for ops triage - details go to logs.
             logger.error("DB health check failed: %s", exc)
-            db_detail = "unreachable — see server logs"
+            db_detail = "unreachable - see server logs"
     elif database_url:
         db_detail = "pool not initialised"
     else:

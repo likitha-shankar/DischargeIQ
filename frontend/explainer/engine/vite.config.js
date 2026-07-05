@@ -1,6 +1,6 @@
 /**
  * File: frontend/explainer/engine/vite.config.js
- * Component: Anatomy Explainer — Build Config
+ * Component: Anatomy Explainer - Build Config
  * Description: Vite build config for the self-contained anatomy explainer bundle.
  *
  * Key choices:

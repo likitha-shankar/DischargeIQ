@@ -1,7 +1,7 @@
 """
 File: dischargeiq/services/quiz.py
 Owner: Likitha Shankar
-Description: Pure scoring logic for the teach-back quiz (Sprint 3, Task 3.1) —
+Description: Pure scoring logic for the teach-back quiz (Sprint 3, Task 3.1) -
   computes score, per-domain breakdown, and failed domains from a question set
   and the patient's answers. No I/O here: the route layer handles persistence
   and the comprehension delta lookup.
@@ -23,7 +23,7 @@ def score_quiz(
     Score one quiz phase.
 
     Data contract (integration point with the clients): question_keys is the
-    minimal grading key — [{"domain": str, "correct_index": int}, ...] in the
+    minimal grading key - [{"domain": str, "correct_index": int}, ...] in the
     same order the questions were presented. answers is the patient's chosen
     0-based option index per question, -1 (or out of range) meaning skipped.
 
@@ -35,14 +35,14 @@ def score_quiz(
 
     Returns:
         QuizScoreResult: score, percent, per-domain breakdown, failed domains.
-        comprehension_delta is left None — the route fills it for post phases.
+        comprehension_delta is left None - the route fills it for post phases.
 
     Raises:
         ValueError: If answers and question_keys lengths differ, or the key
                     is empty (nothing to score).
     """
     if not question_keys:
-        raise ValueError(f"Empty question key for session '{session_id}' — nothing to score.")
+        raise ValueError(f"Empty question key for session '{session_id}' - nothing to score.")
     if len(answers) != len(question_keys):
         raise ValueError(
             f"Answer count ({len(answers)}) does not match question count "

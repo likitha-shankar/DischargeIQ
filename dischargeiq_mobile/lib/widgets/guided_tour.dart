@@ -1,7 +1,7 @@
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:flutter/material.dart';
 
-/// Global keys for spotlight targets — attach to widgets on [ResultsScreen].
+/// Global keys for spotlight targets - attach to widgets on [ResultsScreen].
 class TourKeys {
   static final GlobalKey tabBar = GlobalKey(debugLabel: 'tourTabBar');
   static final GlobalKey diagnosis = GlobalKey(debugLabel: 'tourDiagnosis');
@@ -30,7 +30,7 @@ final List<_TourStep> _kSteps = [
   _TourStep(
     title: 'Swipe between sections',
     body:
-        'These tabs organize everything from your discharge — start with What happened.',
+        'These tabs organize everything from your discharge - start with What happened.',
     tabIndex: 0,
     targetKey: TourKeys.tabBar,
   ),
@@ -58,14 +58,14 @@ final List<_TourStep> _kSteps = [
   _TourStep(
     title: 'Discharge quality check',
     body:
-        'AI simulates a confused patient to find gaps in your discharge doc — unique to DischargeIQ.',
+        'AI simulates a confused patient to find gaps in your discharge doc - unique to DischargeIQ.',
     tabIndex: 5,
     targetKey: TourKeys.dischargeCheck,
   ),
   _TourStep(
     title: 'Ask anything',
     body:
-        'Type any question in plain language. Answers come only from your document — nothing made up.',
+        'Type any question in plain language. Answers come only from your document - nothing made up.',
     tabIndex: null,
     targetKey: TourKeys.chat,
   ),

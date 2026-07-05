@@ -1,7 +1,7 @@
 """
 File: dischargeiq/tests/test_all_corpus_smoke.py
 Owner: Likitha Shankar
-Description: Slow, marked integration sweep — runs run_pipeline across fixtures in
+Description: Slow, marked integration sweep - runs run_pipeline across fixtures in
   dischargeiq/tests/fixtures, test-data, and stress-test; asserts pipeline_status whitelist,
   FK ceilings for agents 2–5, and Neon discharge_history rows using short-lived DB connections
   per query to avoid idle disconnects on long runs.
@@ -323,7 +323,7 @@ def test_corpus_db_invariants(
     Declared after `test_corpus_fixture_passes` in the module so pytest
     collects it second and runs it after all 35 parametrized cases have
     written their rows. Opens a fresh asyncpg connection per query via
-    _fresh_query — no long-lived connection is held anywhere in this test.
+    _fresh_query - no long-lived connection is held anywhere in this test.
 
     Args:
         corpus_size:   Fixture count, from the session-scoped fixture.

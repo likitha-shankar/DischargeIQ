@@ -1,18 +1,18 @@
 """
 scripts/generate_synthetic_corpus.py
 
-Sprint 1, Task 1.5 — Synthetic data generation.
+Sprint 1, Task 1.5 - Synthetic data generation.
 Owner: Likitha Shankar
 
 Generates 50 de-identified synthetic hospital discharge summaries:
   10 per diagnosis × 5 categories = 50 documents.
 
 Categories:
-  heart_failure  — ACC/AHA guidelines
-  copd           — GOLD 2024
-  diabetes       — ADA 2024
-  hip_replacement — AAOS
-  surgical       — ACC/ACS perioperative (laparoscopic)
+  heart_failure  - ACC/AHA guidelines
+  copd           - GOLD 2024
+  diabetes       - ADA 2024
+  hip_replacement - AAOS
+  surgical       - ACC/ACS perioperative (laparoscopic)
 
 Each document is generated with:
   - Realistic 11th-grade medical jargon (as clinicians actually write)
@@ -68,7 +68,7 @@ _CATEGORIES = [
 
 _DOCS_PER_CATEGORY = 10
 
-# Variant seeds ensure 10 different documents per category — different
+# Variant seeds ensure 10 different documents per category - different
 # patient age/sex, severity, comorbidities, and medication regimens.
 _VARIANTS: list[dict] = [
     {"age": 68, "sex": "Male",   "severity": "moderate",  "comorbidities": "hypertension, CKD stage 3"},
@@ -87,15 +87,15 @@ _SYSTEM_PROMPT = """You are a hospital discharge summary generator for clinical 
 
 Generate a realistic hospital discharge summary that:
 1. Uses authentic 11th-grade medical jargon exactly as a clinician would write
-2. Has DISJOINTED formatting — mix of paragraph prose, bullet lists, tabular medication lists,
+2. Has DISJOINTED formatting - mix of paragraph prose, bullet lists, tabular medication lists,
    inconsistent section headers (some ALL-CAPS, some Title Case, some missing entirely)
 3. Includes realistic abbreviations (BID, PRN, q.d., EF, SpO2, SOB, DOE, etc.)
 4. Is 400–600 words in the body (not counting headers)
 5. MUST include these sections (in any order, with varied header names):
-   - Patient demographics (synthetic only — no real names/DOB/MRN)
+   - Patient demographics (synthetic only - no real names/DOB/MRN)
    - Primary diagnosis and relevant secondary diagnoses
    - Brief hospital course (procedures, key events)
-   - Discharge medications (name, dose, frequency, duration — at least 4 medications)
+   - Discharge medications (name, dose, frequency, duration - at least 4 medications)
    - Follow-up appointments (at least 2, with date placeholder like "in 2 weeks" or "06/30/2026")
    - Activity restrictions or weight-bearing status
    - Dietary restrictions if applicable
@@ -105,7 +105,7 @@ Generate a realistic hospital discharge summary that:
 CRITICAL: This is SYNTHETIC test data only. Use ONLY:
   - Fake patient names like "Patient A", "J. Doe", or "Test Patient [nn]"
   - Placeholder MRN like "MRN: 000-TEST-[nn]"
-  - No real hospital names — use "General Hospital" or "Metro Medical Center"
+  - No real hospital names - use "General Hospital" or "Metro Medical Center"
 
 Return ONLY the discharge summary text. No preamble, no explanation."""
 
@@ -202,7 +202,7 @@ def generate_corpus(out_dir: Path, provider: str, client, model: str) -> list[di
             out_path = out_dir / f"{doc_name}.pdf"
 
             if out_path.exists():
-                logger.info("  Skipping %s — already exists", doc_name)
+                logger.info("  Skipping %s - already exists", doc_name)
                 corpus_index.append({"file": str(out_path), "category": category, "variant": variant})
                 global_idx += 1
                 continue

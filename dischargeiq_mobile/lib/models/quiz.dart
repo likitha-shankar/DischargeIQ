@@ -7,7 +7,7 @@
 ///   POST /quiz/score    → QuizScoreResult (score, domain breakdown, delta)
 ///
 /// The client keeps the full questions (including correct_index) in memory and
-/// sends back only the grading key + answers for scoring — the endpoints are
+/// sends back only the grading key + answers for scoring - the endpoints are
 /// stateless by design so they work on any backend instance.
 library;
 

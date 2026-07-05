@@ -62,7 +62,7 @@ def extract_document_text(pdf_path: str) -> IngestResult:
     Raises:
         FileNotFoundError: If the file does not exist at pdf_path.
         OSError: If the file cannot be opened (permissions / I/O).
-        RuntimeError: For corrupted or password-protected PDFs — message is
+        RuntimeError: For corrupted or password-protected PDFs - message is
             produced by extract_text_from_pdf and includes the path, so the
             orchestrator can set pipeline_status="partial" exactly as before.
     """

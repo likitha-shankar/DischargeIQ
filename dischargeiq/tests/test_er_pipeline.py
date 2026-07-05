@@ -49,7 +49,7 @@ _MOCK_SAVE_HISTORY    = "dischargeiq.pipeline.orchestrator._save_history_with_re
 def _laceration_extraction() -> ExtractionOutput:
     """Minimal ExtractionOutput for a simple finger-laceration ER visit."""
     return ExtractionOutput(
-        primary_diagnosis="Laceration, right index finger — repaired with 3 sutures",
+        primary_diagnosis="Laceration, right index finger - repaired with 3 sutures",
         medications=[
             Medication(name="Ibuprofen", dose="400mg", frequency="as needed up to 3 times daily")
         ],
@@ -97,7 +97,7 @@ def _minimal_simulator_output() -> PatientSimulatorOutput:
     return PatientSimulatorOutput(
         missed_concepts=[],
         overall_gap_score=7,
-        simulator_summary="Short ER discharge — follow-up timing and wound care are not fully specified.",
+        simulator_summary="Short ER discharge - follow-up timing and wound care are not fully specified.",
         fk_grade=5.5,
         passes=True,
     )
@@ -120,7 +120,7 @@ def _er_patches(extraction: ExtractionOutput, simulator_output: PatientSimulator
         patch(
             _MOCK_EXTRACT_TEXT,
             return_value=IngestResult(
-                text="ER discharge text — minimal content",
+                text="ER discharge text - minimal content",
                 source="digital_pdf",
                 page_count=1,
             ),
@@ -198,7 +198,7 @@ def test_er_pipeline_with_empty_medications_does_not_partial():
     This guards against agents that crash on an empty medication list.
     """
     extraction = ExtractionOutput(
-        primary_diagnosis="Minor contusion, left knee — no treatment required",
+        primary_diagnosis="Minor contusion, left knee - no treatment required",
         medications=[],
         follow_up_appointments=[
             FollowUpAppointment(provider="Primary care", date="if symptoms worsen")
@@ -223,7 +223,7 @@ def test_er_pipeline_with_empty_medications_does_not_partial():
 def test_er_pipeline_simulator_fallback_does_not_partial():
     """
     When Agent 6 returns a zero-score fallback (empty concepts), the pipeline
-    status must still be complete or complete_with_warnings — never partial.
+    status must still be complete or complete_with_warnings - never partial.
     """
     empty_sim = PatientSimulatorOutput(
         missed_concepts=[],

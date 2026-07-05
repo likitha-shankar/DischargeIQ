@@ -30,7 +30,7 @@ DEMO.md
 *.backup
 google-cloud-sdk
 google-cloud-cli-darwin-arm.tar.gz
-# Media / design assets — never needed inside the container (65MB+ saved)
+# Media / design assets - never needed inside the container (65MB+ saved)
 *.mp4
 *.zip
 *.pptx

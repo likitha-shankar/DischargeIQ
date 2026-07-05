@@ -1,4 +1,4 @@
-# Tranche 3 — Gamification and Media (End of Week 8)
+# Tranche 3 - Gamification and Media (End of Week 8)
 
 **Accepted when:** teach-back loop scores before/after; dashboard live with
 flagged gaps; NotebookLM media generating and playing in the app.

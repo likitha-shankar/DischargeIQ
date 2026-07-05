@@ -6,7 +6,7 @@ Description: Eval script for Agent 6 system prompt quality.
   prints per-doc gap scores and concept counts, and saves a CSV summary
   to evaluation/agent6_eval_results.csv.
 
-  This is an eval script, NOT a unit test — it calls the real LLM and
+  This is an eval script, NOT a unit test - it calls the real LLM and
   requires ANTHROPIC_API_KEY (or your configured LLM_PROVIDER) to be set
   in .env. Do not run this in CI or with mocks.
 
@@ -19,7 +19,7 @@ Output:
     - Exits with code 1 if any doc returns a partial/failed result
 
 Dependencies:
-    - dischargeiq.agents.extraction_agent (Agent 1 — extracts PDF text)
+    - dischargeiq.agents.extraction_agent (Agent 1 - extracts PDF text)
     - dischargeiq.agents.patient_simulator_agent (Agent 6)
     - dischargeiq.models.extraction.ExtractionOutput
     - dischargeiq.models.pipeline.PatientSimulatorOutput
@@ -81,7 +81,7 @@ def _run_one(pdf_path: Path) -> dict:
     Run Agent 1 extraction then Agent 6 simulation on one PDF.
 
     Returns a result dict matching _CSV_FIELDS.
-    Never raises — failures are captured in the 'status' field.
+    Never raises - failures are captured in the 'status' field.
     """
     start = time.monotonic()
     result: dict = {
@@ -198,7 +198,7 @@ def main() -> None:
 
     failed = [r for r in results if r["status"] != "ok"]
     if failed:
-        print(f"\n[WARN] {len(failed)} doc(s) failed — check status column in CSV.",
+        print(f"\n[WARN] {len(failed)} doc(s) failed - check status column in CSV.",
               file=sys.stderr)
         sys.exit(1)
 

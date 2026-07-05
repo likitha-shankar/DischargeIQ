@@ -1,4 +1,4 @@
-# Task 1.5 — Synthetic Data Generation ✅
+# Task 1.5 - Synthetic Data Generation ✅
 
 **Deliverable:** 50 varied synthetic discharge summaries (10 per diagnosis ×
 5 conditions) with realistic 11th-grade jargon and disjointed formatting.
@@ -12,5 +12,5 @@
 resumable (skips existing files); variant seeds vary age, sex, severity,
 comorbidities, and regimens.
 
-**Demo:** open two PDFs from different categories — different header styles,
+**Demo:** open two PDFs from different categories - different header styles,
 different severities; show the 10×5 category matrix.

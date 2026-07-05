@@ -1,12 +1,12 @@
 /**
  * File: frontend/explainer/engine/src/animations/fluid_accumulation.js
- * Component: Anatomy Explainer — Procedural Animation
+ * Component: Anatomy Explainer - Procedural Animation
  * Description: Simulates fluid rising inside a region (pulmonary oedema in heart
  *   failure, bilateral leg oedema). A semi-transparent blue-grey plane is created
  *   within the bounding box of the target meshes and its Y scale animates from 0
  *   to 1 over `fillDuration` seconds, then holds. Reversing play calls the drain.
  *
- *   Works on any mesh set — falls back to a unit-cube bounding region when no
+ *   Works on any mesh set - falls back to a unit-cube bounding region when no
  *   target meshes are present in the scene, so it renders something meaningful
  *   even against the placeholder sphere.
  *
@@ -27,7 +27,7 @@ const FLUID_OPACITY = 0.35;
 
 class FluidAccumulationAnimation {
   /**
-   * Construct the animation. Does not add anything to the scene yet — call play().
+   * Construct the animation. Does not add anything to the scene yet - call play().
    *
    * @param {THREE.Scene} scene - The active THREE.js scene.
    * @param {THREE.Mesh[]} targetMeshes - Meshes representing the affected region.

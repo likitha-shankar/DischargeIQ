@@ -1,4 +1,4 @@
-# `tests/` — integration + hallucination suite
+# `tests/` - integration + hallucination suite
 
 End-to-end tests that run the full pipeline against real PDF fixtures
 and audit the output with an LLM judge. These are the gating tests
@@ -6,11 +6,11 @@ for prompt and agent changes.
 
 ## Files
 
-- `test_integration_hallucination.py` — 8-case suite. For each
+- `test_integration_hallucination.py` - 8-case suite. For each
   fixture: runs the pipeline, audits Agent 1 extraction against the
   known-truth JSON, runs the LLM judge on the Agent 2 explanation to
   detect fabrication. Gate: 0 hallucinations, ≤ 3 omissions total.
-- `fixtures/` — PDF inputs. See `fixtures/README.md`.
+- `fixtures/` - PDF inputs. See `fixtures/README.md`.
 
 ## Running
 

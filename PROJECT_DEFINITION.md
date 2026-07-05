@@ -1,4 +1,4 @@
-# DischargeIQ — Course Project Definition
+# DischargeIQ - Course Project Definition
 
 **Course:** CS 595 Med Informatics AI: SeeDoBuild, Spring 2026  
 **Institution:** Illinois Institute of Technology, Chicago  
@@ -18,7 +18,7 @@
 | Course        | CS 595 Med Informatics AI: SeeDoBuild, Spring 2026                                                 |
 | Sponsor       | Leap of Faith Health Tech                                                                          |
 | LOF Pillar    | Patient Engagement                                                                                 |
-| Sub-domain    | Post-Acute Care — Discharge Comprehension                                                          |
+| Sub-domain    | Post-Acute Care - Discharge Comprehension                                                          |
 | Team Lead     | Likitha Shankar                                                                                    |
 | Team Members  | Suchithra Rajkumar, Deepesh Kumar Appar Senthilkumar, Manusha Boorgula, Rushi Eshwar Reddy Neelam  |
 
@@ -34,7 +34,7 @@ adopted tool that converts a discharge PDF into verified, plain-language patient
 education content at the point of discharge.
 
 The consequences are measurable: hospital readmission rates remain above 15% for
-conditions such as heart failure, COPD, and hip replacement — conditions where
+conditions such as heart failure, COPD, and hip replacement - conditions where
 comprehension of discharge instructions is directly tied to outcome. Patients who
 cannot understand their medication list, warning signs, or follow-up requirements
 are at highest risk.
@@ -47,8 +47,8 @@ are at highest risk.
 
 A patient leaves the hospital with a PDF discharge summary written for a
 physician audience. The document contains the information needed for safe
-recovery — medication instructions, warning signs, follow-up appointments,
-dietary and activity restrictions — but it is not written for the patient. No
+recovery - medication instructions, warning signs, follow-up appointments,
+dietary and activity restrictions - but it is not written for the patient. No
 automated system currently converts that document into plain language, verifies
 that it is actually readable, or identifies what the document fails to explain.
 
@@ -57,34 +57,34 @@ that it is actually readable, or identifies what the document fails to explain.
 DischargeIQ is a six-agent AI pipeline. A patient uploads their discharge PDF
 to the Streamlit dashboard (`streamlit_app.py`). The pipeline:
 
-1. **Agent 1** (`agents/extraction_agent.py`) — Extracts structured data from
+1. **Agent 1** (`agents/extraction_agent.py`) - Extracts structured data from
    the PDF using pdfplumber and an LLM with strict extraction rules: diagnosis,
    medications (with dose, frequency, status), follow-up appointments (with
    source page citations), activity restrictions, dietary restrictions, red-flag
    symptoms, discharge condition, and patient metadata. Never fabricates fields;
    returns null or [] when a field is absent.
 
-2. **Agent 2** (`agents/diagnosis_agent.py`) — Generates a plain-language
+2. **Agent 2** (`agents/diagnosis_agent.py`) - Generates a plain-language
    explanation of the primary diagnosis and procedures, targeting 6th-grade
    reading level. Uses Flesch-Kincaid scoring via `utils/scorer.py`; retries
    once if FK grade exceeds 6.5.
 
-3. **Agent 3** (`agents/medication_agent.py`) — Explains each medication's
+3. **Agent 3** (`agents/medication_agent.py`) - Explains each medication's
    purpose, observable effects, expected side effects, and emergency symptoms
    in four points per drug. Handles discontinued medications. Includes verbatim
    safety language: "do not stop this medication without calling your doctor."
 
-4. **Agent 4** (`agents/recovery_agent.py`) — Generates a week-by-week
+4. **Agent 4** (`agents/recovery_agent.py`) - Generates a week-by-week
    recovery guide structured by time period (Week 1, Week 2, Weeks 3–4, When
    to expect improvement). Incorporates every activity and dietary restriction
    extracted by Agent 1 without omission.
 
-5. **Agent 5** (`agents/escalation_agent.py`) — Generates a three-tier
+5. **Agent 5** (`agents/escalation_agent.py`) - Generates a three-tier
    escalation decision tree: CALL 911 IMMEDIATELY, GO TO THE ER TODAY, and
    CALL YOUR DOCTOR. Assigns every red-flag symptom to exactly one tier.
    Safety-critical; all outputs must be manually reviewed before clinical use.
 
-6. **Agent 6** (`agents/patient_simulator_agent.py`) — Simulates a confused
+6. **Agent 6** (`agents/patient_simulator_agent.py`) - Simulates a confused
    patient asking 6–8 questions a real patient would ask after reading the
    document. Scores each question: answered by doc (yes/no), gap summary,
    severity (critical / moderate / minor). Produces an overall gap score 0–10.
@@ -106,16 +106,16 @@ from the discharge document; answers cite the source page. The chat calls
 
 What DischargeIQ produces for a patient:
 
-- **Plain-language summary in six sections** — each verified by Flesch-Kincaid
+- **Plain-language summary in six sections** - each verified by Flesch-Kincaid
   readability scoring (target: FK grade ≤ 6.0 for Agents 2–5).
-- **Source citations** — every follow-up appointment and extracted medication
+- **Source citations** - every follow-up appointment and extracted medication
   links back to the page number in the original PDF.
-- **A comprehension gap audit** — before the patient sees the summary, Agent 6
+- **A comprehension gap audit** - before the patient sees the summary, Agent 6
   has already identified which questions go unanswered, rated by clinical
   severity, giving care coordinators a prioritized action list.
-- **A grounded chatbot** — patients can ask follow-up questions and receive
+- **A grounded chatbot** - patients can ask follow-up questions and receive
   answers tied to their specific document.
-- **Caregiver-ready questions** — per-item questions formatted for the patient
+- **Caregiver-ready questions** - per-item questions formatted for the patient
   to ask their doctor or care coordinator at follow-up.
 
 ### Competition
@@ -123,7 +123,7 @@ What DischargeIQ produces for a patient:
 **Epic MyChart patient portal**
 Patients view discharge summaries in a portal, but summaries are written in
 clinical language. No plain-language conversion, no diagnosis explanation, no
-gap detection — document delivery without comprehension support.
+gap detection - document delivery without comprehension support.
 
 **Nuance DAX and similar ambient AI scribes**
 Transcribe and summarize physician encounters. Physician-facing by design;
@@ -171,7 +171,7 @@ PipelineResponse → FastAPI → Streamlit
 
 | Component                  | File                                      | Port          |
 |----------------------------|-------------------------------------------|---------------|
-| Orchestrator               | `dischargeiq/pipeline/orchestrator.py`    | —             |
+| Orchestrator               | `dischargeiq/pipeline/orchestrator.py`    | -             |
 | FastAPI backend            | `dischargeiq/main.py`                     | 8000          |
 | Streamlit frontend         | `streamlit_app.py`                        | 8501          |
 | Flutter mobile (on hold)   | `dischargeiq_mobile/`                     | 55497 (web)   |
@@ -263,7 +263,7 @@ support. It does not diagnose, prescribe, or make clinical recommendations.
 - EHR integration or write-back (Epic, Cerner, etc.)
 - HIPAA compliance hardening for production use with real patient data
 - Doctor-facing or clinician portal
-- Real patient data — all test documents are synthetic
+- Real patient data - all test documents are synthetic
 - Multi-turn conversation history persistence on the backend
 - History read-back in the Streamlit UI (DB write path only)
 - Authentication or role-based access
@@ -280,8 +280,8 @@ Every agent text output is scored by `utils/scorer.py` using `textstat.flesch_ki
 | Agent                 | FK Threshold | Notes                                          |
 |-----------------------|--------------|------------------------------------------------|
 | Agent 2 (Diagnosis)   | 6.0          | Retries once if FK > 6.5                       |
-| Agent 3 (Medication)  | 6.0          | —                                              |
-| Agent 4 (Recovery)    | 6.0          | —                                              |
+| Agent 3 (Medication)  | 6.0          | -                                              |
+| Agent 4 (Recovery)    | 6.0          | -                                              |
 | Agent 5 (Escalation)  | 6.0          | Safety-critical; manual review still required  |
 | Agent 6 (Simulator)   | 8.0          | Gap summaries tolerate slightly higher grade   |
 
@@ -289,7 +289,7 @@ Results logged to `dischargeiq/evaluation/fk_log.csv` on every run.
 
 ### LLM-as-Judge
 
-`evaluation/run_judge.py` — Anthropic-powered evaluator scores each agent
+`evaluation/run_judge.py` - Anthropic-powered evaluator scores each agent
 output on four dimensions (clinical accuracy 1–5, plain language 1–5,
 completeness 1–5, actionability 1–5) plus a pass/fail safety gate. Results
 saved to `evaluation/judge_results.json`. Judge prompt at
@@ -297,12 +297,12 @@ saved to `evaluation/judge_results.json`. Judge prompt at
 
 ### Test Fixtures
 
-`dischargeiq/tests/fixtures/` — Adversarial synthetic PDFs including cases with
+`dischargeiq/tests/fixtures/` - Adversarial synthetic PDFs including cases with
 no medications, abbreviated formats, ER discharge sheets, and multi-condition
 documents. The fixture builder is at
 `dischargeiq/tests/fixtures/build_real_world_fixtures.py`.
 
-`test-data/` — 10 synthetic discharge PDFs (2 per diagnosis): heart failure,
+`test-data/` - 10 synthetic discharge PDFs (2 per diagnosis): heart failure,
 COPD, diabetes, hip replacement, surgical case.
 
 ### Test Suite Coverage
@@ -325,7 +325,7 @@ COPD, diabetes, hip replacement, surgical case.
 | Question                       | Current state                                                                                                                           |
 |--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
 | **Internet requirement**       | All LLM calls go to an external provider. An Ollama path exists for offline use but has not been tested under demo conditions.          |
-| **Session persistence**        | PDFs stored in process memory (LRU cap: 50). Server restart clears all sessions. DB write persists metadata only — not PDF bytes.       |
+| **Session persistence**        | PDFs stored in process memory (LRU cap: 50). Server restart clears all sessions. DB write persists metadata only - not PDF bytes.       |
 | **Authentication**             | No user login in MVP. Any user with the URL can upload a PDF. Auth required before any real patient data is used.                       |
 | **End-to-end patient flow**    | Open Streamlit (http://127.0.0.1:8501), upload PDF, wait ~60–90 s, browse six tabs, use chat. No account, no session recovery after restart. |
 
@@ -336,11 +336,11 @@ COPD, diabetes, hip replacement, surgical case.
 **TheraCareAI integration**
 DischargeIQ's `ExtractionOutput` (medications, follow-up appointments,
 restrictions) is the structured handoff to TheraCareAI's adherence pipeline.
-Integration point: `POST /analyze` response — TheraCareAI consumes
+Integration point: `POST /analyze` response - TheraCareAI consumes
 `extraction.medications` and `extraction.follow_up_appointments` to initialize
 adherence reminders. DischargeIQ is Box 1; TheraCareAI is Box 2.
 
-**Post-acute care pilot — 30-day readmission reduction**
+**Post-acute care pilot - 30-day readmission reduction**
 Deploy at a single LOF partner site targeting heart failure and COPD.
 Measure patient comprehension pre/post (modified REALM-SF), care coordinator
 workload, and 30-day readmission rate vs control group.
@@ -348,7 +348,7 @@ workload, and 30-day readmission rate vs control group.
 **Parallelize Agents 2–5**
 Agents 2–5 are independent after Agent 1. Running them concurrently
 (`asyncio.gather`) would cut pipeline latency by ~3×. No changes needed to
-the agents themselves — orchestrator wiring only.
+the agents themselves - orchestrator wiring only.
 
 **History read path**
 `get_history_for_session()` is implemented in `dischargeiq/db/history.py` but
@@ -374,7 +374,7 @@ See `requirements.txt` for pinned versions. Summary:
 | PDF extraction       | pdfplumber          | >=0.11.0                     |
 | Readability scoring  | textstat            | >=0.7.13                     |
 | Data validation      | Pydantic v2         | >=2.0.0                      |
-| Database             | Neon PostgreSQL     | — (external service)         |
+| Database             | Neon PostgreSQL     | - (external service)         |
 | DB driver            | asyncpg             | >=0.29.0                     |
 | Runtime              | Python              | 3.11+                        |
 | Test runner          | pytest              | >=8.0,<9.0                   |

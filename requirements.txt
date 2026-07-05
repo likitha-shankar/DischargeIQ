@@ -27,5 +27,5 @@ deepdiff>=7.0
 # google-auth: only used when LLM_PROVIDER=vertex (HIPAA/BAA path for real data)
 google-auth>=2.0
 
-# Tests — run: python -m pytest dischargeiq/tests/
+# Tests - run: python -m pytest dischargeiq/tests/
 pytest>=8.0,<9.0

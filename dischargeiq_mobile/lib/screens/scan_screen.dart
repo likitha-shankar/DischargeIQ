@@ -5,10 +5,10 @@
 /// the combined text, and send only the text to POST /analyze/text.
 ///
 /// Privacy property: the photo never leaves the phone. Only recognized text
-/// crosses the wire — images of paper medical documents stay on-device.
+/// crosses the wire - images of paper medical documents stay on-device.
 ///
 /// Density check: ML Kit needs roughly >16x16 px per character for reliable
-/// recognition. Rather than measuring glyphs, we use a practical proxy — a
+/// recognition. Rather than measuring glyphs, we use a practical proxy - a
 /// page that produced very little text triggers a retake prompt.
 library;
 
@@ -136,7 +136,7 @@ class _ScanScreenState extends State<ScanScreen> {
                 ),
                 child: Text(
                   'Photograph each page of your discharge papers. Reading '
-                  'happens on your phone — the photos are never uploaded.',
+                  'happens on your phone - the photos are never uploaded.',
                   style: TextStyle(
                     fontSize: 13,
                     height: 1.4,
@@ -191,7 +191,7 @@ class _ScanScreenState extends State<ScanScreen> {
                                             fontWeight: FontWeight.w700)),
                                     const SizedBox(width: 8),
                                     if (p.looksPoor)
-                                      const Text('⚠ low text — retake?',
+                                      const Text('⚠ low text - retake?',
                                           style: TextStyle(
                                               fontSize: 12, color: kTier2)),
                                     const Spacer(),

@@ -1,8 +1,8 @@
 """
 api/routes/analyze.py
 
-POST /analyze      — discharge PDF upload → multi-agent pipeline.
-POST /analyze/text — pre-extracted text (mobile on-device OCR) → same pipeline.
+POST /analyze      - discharge PDF upload → multi-agent pipeline.
+POST /analyze/text - pre-extracted text (mobile on-device OCR) → same pipeline.
 
 Validation logic (_validate_uploaded_pdf) is the only non-trivial code here.
 Everything else delegates: PDF storage to SessionStore, pipeline execution to
@@ -74,11 +74,11 @@ async def analyze_discharge(request: Request, file: UploadFile = File(...)):
 
     Stores the PDF in memory for later retrieval via GET /pdf/{session_id},
     runs the 6-agent pipeline, and returns a serialised PipelineResponse.
-    The pipeline runs inside asyncio.wait_for (300s) — a timeout is surfaced
+    The pipeline runs inside asyncio.wait_for (300s) - a timeout is surfaced
     as HTTP 504 so the UI can suggest trying a smaller PDF.
 
     Args:
-        request: FastAPI Request — used to access app.state.db_pool.
+        request: FastAPI Request - used to access app.state.db_pool.
         file:    PDF file uploaded by the patient or clinician.
 
     Returns:
@@ -90,15 +90,15 @@ async def analyze_discharge(request: Request, file: UploadFile = File(...)):
         HTTPException 504: Pipeline timed out (> 5 minutes).
         HTTPException 500: Unexpected pipeline error.
     """
-    # Sanitize filename before any logging — raw filenames can contain newlines,
+    # Sanitize filename before any logging - raw filenames can contain newlines,
     # ANSI escape codes, or path separators that corrupt log entries.
     safe_filename = sanitize_for_log(file.filename or "")
-    logger.info("POST /analyze — filename: %s", safe_filename)
+    logger.info("POST /analyze - filename: %s", safe_filename)
 
     contents = await file.read()
     validate_uploaded_pdf(file.filename, contents)
 
-    # Hash computed over in-memory bytes — avoids a second disk read after
+    # Hash computed over in-memory bytes - avoids a second disk read after
     # the pipeline writes the tmpfile and all agents have run.
     document_hash = hashlib.sha256(contents).hexdigest()
 
@@ -106,7 +106,7 @@ async def analyze_discharge(request: Request, file: UploadFile = File(...)):
     #   (a) it is a valid UUID format, AND
     #   (b) it does not already exist in the session store (prevents hijacking).
     # A client supplying a UUID that already maps to another user's data would
-    # silently overwrite that session — that is a session-fixation attack.
+    # silently overwrite that session - that is a session-fixation attack.
     client_session_id = (request.headers.get("X-Discharge-Session-Id") or "").strip()
     try:
         proposed_id = str(uuid.UUID(client_session_id)) if client_session_id else None
@@ -116,7 +116,7 @@ async def analyze_discharge(request: Request, file: UploadFile = File(...)):
     if proposed_id and session_store.get_pdf(proposed_id) is not None:
         # Reject: would overwrite an existing session. Generate a fresh one.
         logger.warning(
-            "POST /analyze — rejected X-Discharge-Session-Id %s: already in use",
+            "POST /analyze - rejected X-Discharge-Session-Id %s: already in use",
             proposed_id,
         )
         proposed_id = None
@@ -153,7 +153,7 @@ async def analyze_discharge(request: Request, file: UploadFile = File(...)):
 # ── OCR text limits ───────────────────────────────────────────────────────────
 # A one-page discharge summary is ~2–4k chars; 200k allows a very long
 # multi-page scan while still bounding memory/token abuse. Below 100 chars a
-# scan almost certainly failed — reject early with a clear message instead of
+# scan almost certainly failed - reject early with a clear message instead of
 # burning 6 agent calls on noise.
 _MIN_TEXT_CHARS = 100
 _MAX_TEXT_CHARS = 200_000
@@ -164,12 +164,12 @@ async def analyze_discharge_text(request: Request, body: AnalyzeTextRequest):
     """
     Run the multi-agent pipeline on pre-extracted document text.
 
-    Sprint 2, Task 2.3 — the mobile OCR path: the phone recognizes text
+    Sprint 2, Task 2.3 - the mobile OCR path: the phone recognizes text
     on-device (Google ML Kit) and sends ONLY the text, never the photo.
     That keeps images of paper documents off the wire and out of the
-    backend entirely — a deliberate privacy property of the scan path.
+    backend entirely - a deliberate privacy property of the scan path.
 
-    No PDF exists for this session, so GET /pdf/{session_id} will 404 —
+    No PDF exists for this session, so GET /pdf/{session_id} will 404 -
     clients on the OCR path must not offer the "view original" affordance.
 
     Raises:
@@ -188,7 +188,7 @@ async def analyze_discharge_text(request: Request, body: AnalyzeTextRequest):
 
     pdf_session_id = str(uuid.uuid4())
     logger.info(
-        "POST /analyze/text — session: %s, chars: %d", pdf_session_id, len(text)
+        "POST /analyze/text - session: %s, chars: %d", pdf_session_id, len(text)
     )
 
     session_store.set_progress(pdf_session_id, {
@@ -201,7 +201,7 @@ async def analyze_discharge_text(request: Request, body: AnalyzeTextRequest):
     return await _execute_pipeline(
         doc_label=f"ocr:{pdf_session_id}",
         pdf_session_id=pdf_session_id,
-        pdf_path=f"ocr:{pdf_session_id}",  # label only — never opened
+        pdf_path=f"ocr:{pdf_session_id}",  # label only - never opened
         document_hash=hashlib.sha256(text.encode("utf-8")).hexdigest(),
         db_pool=getattr(request.app.state, "db_pool", None),
         raw_text=text,
@@ -265,7 +265,7 @@ async def _execute_pipeline(
         asyncio.create_task(cleanup_progress_after_delay(pdf_session_id))
 
         logger.info(
-            "Analyze complete — '%s', status: %s", doc_label, result.pipeline_status
+            "Analyze complete - '%s', status: %s", doc_label, result.pipeline_status
         )
 
         result_dict = result.model_dump()

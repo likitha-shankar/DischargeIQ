@@ -36,10 +36,10 @@ def run_tests():
     all outputs must pass FK grade <= 6.0.
     """
     print("=" * 65)
-    print("DischargeIQ — Agents 1 + 2 Integration Test")
+    print("DischargeIQ - Agents 1 + 2 Integration Test")
     print("=" * 65)
 
-    # Collect all PDFs — skip stress-test folder
+    # Collect all PDFs - skip stress-test folder
     pdf_files = sorted([
         f for f in TEST_DATA_DIR.glob("*.pdf")
     ])
@@ -94,9 +94,9 @@ def run_tests():
     print(f"\nTotal documents: {total}")
     print(f"FK passed:       {pass_count}")
     if fail_count:
-        print(f"FK failed:       {fail_count} — revise prompts/agent2_system_prompt.txt")
+        print(f"FK failed:       {fail_count} - revise prompts/agent2_system_prompt.txt")
     if error_count:
-        print(f"Errors:          {error_count} — check API keys and model names")
+        print(f"Errors:          {error_count} - check API keys and model names")
 
     print("\nFK scores logged to: dischargeiq/evaluation/fk_log.csv")
     print("\n[NOTE] Per CLAUDE.md: do NOT git commit from here.")

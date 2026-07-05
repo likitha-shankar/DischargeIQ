@@ -1,13 +1,13 @@
 /**
  * File: frontend/explainer/engine/src/animations/inflammation_highlight.js
- * Component: Anatomy Explainer — Procedural Animation
+ * Component: Anatomy Explainer - Procedural Animation
  * Description: Applies a pulsing warm emissive highlight to target meshes to draw
  *   attention to an inflamed or affected region (e.g. pancreas in diabetes, lung
  *   parenchyma in COPD). The emissive oscillates between the mesh's resting state
  *   and a warm orange-red at 0.8 Hz, creating a visible but non-alarming glow.
  *
  *   Restores all original emissive values on stop(). Safe to run alongside
- *   the highlight system — the highlight system also uses emissive, so the two
+ *   the highlight system - the highlight system also uses emissive, so the two
  *   should not be active on the same mesh simultaneously (the highlight wins).
  *
  * Dependencies: three

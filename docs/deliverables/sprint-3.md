@@ -1,4 +1,4 @@
-# Sprint 3 — Teach-Back Loop and Clinician Dashboard (Weeks 5–6) — core built EARLY ✅
+# Sprint 3 - Teach-Back Loop and Clinician Dashboard (Weeks 5–6) - core built EARLY ✅
 
 The comprehension-lift loop was pulled forward from Week 5 to Week 2 because
 it is the headline metric (13% → 50–70%).
@@ -15,7 +15,7 @@ it is the headline metric (13% → 50–70%).
 ## Demo script
 
 1. Analyze a discharge PDF on the phone (or Streamlit fallback).
-2. "Test yourself" tab → baseline quiz (note: no right/wrong feedback — the
+2. "Test yourself" tab → baseline quiz (note: no right/wrong feedback - the
    baseline must not teach, per protocol §3a).
 3. Learning cards → post-quiz (same questions, shuffled, instant feedback).
 4. Results: score ring, before/after lift banner, per-domain chips.

@@ -1,7 +1,7 @@
 """
 File: ui/quiz_analytics.py
 Owner: Likitha Shankar
-Description: Shared quiz-analytics data layer (Sprint 3, Tasks 3.3/3.4) —
+Description: Shared quiz-analytics data layer (Sprint 3, Tasks 3.3/3.4) -
   Neon reads plus the baseline/post protocol math used by BOTH the clinician
   dashboard and the prompt-tuning gap report. Lives outside any Streamlit
   module on purpose: importing it never touches streamlit, so CLI scripts
@@ -52,7 +52,7 @@ async def fetch_rows(db_url: str) -> tuple[list, list]:
     try:
         async def _safe(query: str) -> list:
             # Fresh deployments create tables lazily on first write, so a
-            # missing table just means "no data yet" — never an error page.
+            # missing table just means "no data yet" - never an error page.
             try:
                 return await conn.fetch(query)
             except asyncpg.UndefinedTableError:
@@ -97,7 +97,7 @@ def quiz_by_session(quiz: list[dict]) -> dict[str, dict]:
 
     Protocol match with dischargeiq/db/quiz.py: the FIRST pre row is the
     baseline (retakes are inflated by exposure); the LAST post row is the
-    outcome (mastery-path retakes count — they reflect what the patient
+    outcome (mastery-path retakes count - they reflect what the patient
     finally knows).
 
     Args:

@@ -33,13 +33,13 @@ logs/
 **/xcuserdata/
 **/*.xcuserstate
 
-# Mobile apps (on hold — local only)
+# Mobile apps (on hold - local only)
 /ios/
 
 # Runtime / local logs (never commit)
 *.log
 
-# Test artifacts — regenerated on every run
+# Test artifacts - regenerated on every run
 dischargeiq/tests/fixtures/*.pdf
 dischargeiq/evaluation/fk_log.csv
 
@@ -57,7 +57,7 @@ htmlcov/
 # Nested egg-info (e.g. if package installed with pip install -e .)
 **/*.egg-info/
 
-# Flutter / Dart build artifacts (dischargeiq_mobile/ — on hold, local only)
+# Flutter / Dart build artifacts (dischargeiq_mobile/ - on hold, local only)
 dischargeiq_mobile/build/
 dischargeiq_mobile/.dart_tool/
 dischargeiq_mobile/.flutter-plugins

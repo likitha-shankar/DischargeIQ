@@ -1,6 +1,6 @@
 # Extraction Schema Notes
 
-Locked schema for Agent 1 — do not change without team sign-off.
+Locked schema for Agent 1 - do not change without team sign-off.
 
 ## Field definitions (one line each)
 
@@ -8,7 +8,7 @@ Locked schema for Agent 1 — do not change without team sign-off.
 
 **discharge_date:** Discharge date string as printed on the summary (often near the top), or null if absent.
 
-**primary_diagnosis:** Main condition treated during the stay (principal or discharge diagnosis) — required when documented.
+**primary_diagnosis:** Main condition treated during the stay (principal or discharge diagnosis) - required when documented.
 
 **secondary_diagnoses:** Additional documented diagnoses or comorbidities, or `[]` if none.
 
@@ -30,6 +30,6 @@ Locked schema for Agent 1 — do not change without team sign-off.
 
 ## Null rule
 
-- Optional scalar fields: use `null` when missing or unreadable — never guess.
+- Optional scalar fields: use `null` when missing or unreadable - never guess.
 - List fields: use `[]` when empty, never `null`.
 - Agent 1 must never fabricate clinical values; prefer null/`[]` over wrong data.

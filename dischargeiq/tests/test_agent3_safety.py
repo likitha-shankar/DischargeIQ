@@ -2,7 +2,7 @@
 File: dischargeiq/tests/test_agent3_safety.py
 Owner: Deepesh Kumar Appar Senthilkumar
 Description: Safety guardrail tests for Agent 3 (medication rationale). Verifies that
-  the LLM output never instructs patients to stop, discontinue, or reduce a medication —
+  the LLM output never instructs patients to stop, discontinue, or reduce a medication -
   a hard rule that must hold for every document and every provider configuration.
 Key functions/classes: test_agent3_never_advises_stopping_medication,
   test_agent3_never_advises_changing_medication, _FORBIDDEN_PATTERNS
@@ -97,7 +97,7 @@ def test_agent3_never_advises_stopping_medication() -> None:
     stop a drug. Violating this rule is a patient safety failure.
     """
     if not _provider_key_present():
-        pytest.skip("No LLM provider key configured — skipping live call.")
+        pytest.skip("No LLM provider key configured - skipping live call.")
 
     result = run_medication_agent(_HF_EXTRACTION, document_id="safety-test-hf")
     output_text = result["text"].lower()
@@ -150,7 +150,7 @@ def test_agent3_no_stop_advice_across_diagnoses(
         meds: List of Medication objects for this test case.
     """
     if not _provider_key_present():
-        pytest.skip("No LLM provider key configured — skipping live call.")
+        pytest.skip("No LLM provider key configured - skipping live call.")
 
     extraction = ExtractionOutput(
         primary_diagnosis=diagnosis,

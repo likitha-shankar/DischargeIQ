@@ -2,7 +2,7 @@
 File: dischargeiq/pipeline/orchestrator.py
 Owner: Likitha Shankar
 Description: Async coordinator for PDF→text extraction, Agents 1–5, optional Agent 6,
-  and Neon history persistence — wraps each agent in try/except, scopes extraction per
+  and Neon history persistence - wraps each agent in try/except, scopes extraction per
   agent via extraction_scope, injects safety_context sentences into Agent 3 input from
   raw PDF text, and sets pipeline_status from completeness + failure state.
 Key functions/classes: run_pipeline, _run_pipeline_internal, _extract_safety_context,
@@ -76,7 +76,7 @@ def _parse_appt_date(appt: FollowUpAppointment) -> datetime:
     return datetime.max
 
 
-# Trigger phrases for _extract_safety_context — matched case-insensitively
+# Trigger phrases for _extract_safety_context - matched case-insensitively
 # against each sentence of the raw discharge text. The list mirrors the
 # CRITICAL SAFETY LANGUAGE block in prompts/agent3_system_prompt.txt so the
 # LLM receives exactly the sentences it is expected to reproduce verbatim.
@@ -111,7 +111,7 @@ async def _save_history_with_retries(
     Persist one discharge_history row with short retries for transient outages.
 
     When `pool` is provided (the long-lived lifespan pool from main.py), it is
-    used directly and never closed here — the caller owns its lifecycle. When
+    used directly and never closed here - the caller owns its lifecycle. When
     `pool` is None, a short-lived pool is created from `database_url` and closed
     after use (legacy / test path).
 
@@ -185,7 +185,7 @@ def _extract_safety_context(raw_text: str) -> str:
     Returns:
         str: Up to _SAFETY_MAX_SENTENCES matching sentences joined by
              newlines. Empty string when nothing matches or on any error
-             — callers must treat an empty result as "no safety block"
+             - callers must treat an empty result as "no safety block"
              rather than as a failure.
     """
     if not raw_text:
@@ -204,7 +204,7 @@ def _extract_safety_context(raw_text: str) -> str:
                 if len(matches) >= _SAFETY_MAX_SENTENCES:
                     break
         return "\n".join(matches)
-    except Exception as exc:  # pragma: no cover — defensive
+    except Exception as exc:  # pragma: no cover - defensive
         logger.warning("safety context scan failed: %s", exc)
         return ""
 
@@ -218,7 +218,7 @@ async def run_pipeline(
     raw_text: str | None = None,
 ) -> PipelineResponse:
     """
-    Public entry point — wraps _run_pipeline_internal in a 300-second
+    Public entry point - wraps _run_pipeline_internal in a 300-second
     wall-clock timeout so a stuck LLM call cannot hang the API worker
     forever. On timeout, asyncio.TimeoutError is allowed to propagate;
     main.py translates it to an HTTP 504 for the client.
@@ -236,7 +236,7 @@ async def run_pipeline(
                        pool on every upload. When None, a short-lived pool is
                        created from DATABASE_URL (legacy / test path).
         raw_text:      Pre-extracted document text (mobile on-device OCR path,
-                       POST /analyze/text). When set, pdf_path is a label only —
+                       POST /analyze/text). When set, pdf_path is a label only -
                        no file is read; router and Agent 1 consume this text.
     """
     return await asyncio.wait_for(
@@ -273,7 +273,7 @@ async def _run_pipeline_internal(
     passing an Exception where callers expect a dict.
 
     On any agent failure the pipeline sets pipeline_status="partial" and
-    returns whatever was successfully extracted — it never raises to the
+    returns whatever was successfully extracted - it never raises to the
     caller (except for the wall-clock timeout enforced by run_pipeline).
 
     Args:
@@ -290,15 +290,15 @@ async def _run_pipeline_internal(
         critical gap or downstream agent failure.
     """
     pipeline_start = time.monotonic()
-    logger.info("Pipeline start — document: %s", pdf_path)
+    logger.info("Pipeline start - document: %s", pdf_path)
 
-    # ── Router / Supervisor — document classification ────────────────────────
+    # ── Router / Supervisor - document classification ────────────────────────
     # Classifies document type (heart_failure, copd, etc.) and gates obviously
     # non-discharge documents before any expensive agent calls run.
     # Always non-fatal: router failures fall back to should_process=True so a
     # real discharge summary is never silently dropped by a classifier error.
     router_result = {"should_process": True}
-    # Pre-read raw text for the router (pdfplumber re-reads in Agent 1 — accepted
+    # Pre-read raw text for the router (pdfplumber re-reads in Agent 1 - accepted
     # cost; the router only needs the first ~2000 chars so it is negligible).
     try:
         if on_progress is not None:
@@ -332,20 +332,20 @@ async def _run_pipeline_internal(
             pipeline_status="partial",
         )
 
-    # ── Agent 1 — Extraction ─────────────────────────────────────────────────
+    # ── Agent 1 - Extraction ─────────────────────────────────────────────────
     if on_progress is not None:
         on_progress(1, "Extraction", "Reading your discharge document...")
     # Produces the ExtractionOutput that all downstream agents consume.
     # On failure, fall back to a minimal stub so the API never returns 500.
     # pdf_text is initialised here (not inside try) so that downstream steps
-    # — notably _extract_safety_context before Agent 3 — can reference it
+    # - notably _extract_safety_context before Agent 3 - can reference it
     # unconditionally even if the text extraction step raised.
     pdf_text = ""
     try:
         # Each agent's LLM client (Anthropic / OpenAI / OpenRouter) is
         # synchronous and blocks the FastAPI event loop while waiting on the
         # network. With six sequential agents at 5–15 s each, that starves
-        # the /progress poller in the loading iframe — the bar appears
+        # the /progress poller in the loading iframe - the bar appears
         # frozen even though the pipeline is making progress. asyncio.to_thread
         # offloads each blocking call to the default thread pool so the
         # event loop can keep serving /progress in real time.
@@ -356,7 +356,7 @@ async def _run_pipeline_internal(
         # decision stays invisible here.
         if raw_text is not None:
             # Mobile OCR path: text was recognized on-device (ML Kit) and sent
-            # via POST /analyze/text — there is no PDF to read. The scan-quality
+            # via POST /analyze/text - there is no PDF to read. The scan-quality
             # note keeps a human in the loop on the lossier capture path.
             ingest_result = IngestResult(
                 text=raw_text,
@@ -376,18 +376,18 @@ async def _run_pipeline_internal(
         if ingest_result.warnings:
             extraction.extraction_warnings.extend(ingest_result.warnings)
         pipeline_status = "complete"
-        logger.info("Agent 1 complete — primary_diagnosis: '%s'", extraction.primary_diagnosis)
+        logger.info("Agent 1 complete - primary_diagnosis: '%s'", extraction.primary_diagnosis)
     except Exception as exc:
         logger.error("Agent 1 failed for %s: %s", pdf_path, exc)
         extraction = ExtractionOutput(
             primary_diagnosis="Extraction failed",
             extraction_warnings=[
-                f"Agent 1 error — could not extract document: {type(exc).__name__}: {exc}"
+                f"Agent 1 error - could not extract document: {type(exc).__name__}: {exc}"
             ],
         )
         pipeline_status = "partial"
 
-    # Soonest follow-ups first — document order is not always chronological.
+    # Soonest follow-ups first - document order is not always chronological.
     if extraction.follow_up_appointments:
         extraction = extraction.model_copy(
             update={
@@ -400,15 +400,15 @@ async def _run_pipeline_internal(
 
     # ── Completeness check ────────────────────────────────────────────────────
     # assess_extraction_completeness splits missing fields into:
-    #   critical  — primary_diagnosis / medications / red_flag_symptoms missing
+    #   critical  - primary_diagnosis / medications / red_flag_symptoms missing
     #               means this likely isn't a real discharge document, so we
     #               downgrade status to "partial".
-    #   advisory  — common gaps on valid discharges (no follow-ups, missing
+    #   advisory  - common gaps on valid discharges (no follow-ups, missing
     #               patient name, etc.). We promote to "complete_with_warnings"
     #               so the UI can show a softer "Verified*" pill instead of
     #               the alarming amber "Incomplete" one.
     # Agent failures downstream (A2–A5) still set "partial" directly on their
-    # own except path — a crashed agent is always a real failure.
+    # own except path - a crashed agent is always a real failure.
     completeness = assess_extraction_completeness(extraction)
     # Preserve deterministic Agent 1 warnings (e.g. short-document,
     # conflicting-dose) and append completeness-classification warnings.
@@ -448,7 +448,7 @@ async def _run_pipeline_internal(
     recovery_trajectory = ""
     escalation_guide = ""
 
-    # ── Agents 2–5 — parallel ────────────────────────────────────────────────
+    # ── Agents 2–5 - parallel ────────────────────────────────────────────────
     # All four are independent: each reads only Agent 1's ExtractionOutput.
     # asyncio.gather(return_exceptions=True) runs them concurrently in the
     # default thread pool (each is a blocking LLM call wrapped in to_thread).
@@ -456,7 +456,7 @@ async def _run_pipeline_internal(
     #
     # IMPORTANT: return_exceptions=True means a failed agent returns an
     # Exception *object* in the results list rather than raising. Each result
-    # is checked with isinstance before unpacking — passing an Exception where
+    # is checked with isinstance before unpacking - passing an Exception where
     # downstream code expects a dict would be a silent data-corruption bug.
     #
     # FK log thread safety: log_fk_score() in utils/scorer.py holds
@@ -467,7 +467,7 @@ async def _run_pipeline_internal(
         if on_progress is not None:
             on_progress(2, "Agents", "Analyzing your discharge summary...")
 
-        # Harvest cross-section safety language once — shared by Agent 3.
+        # Harvest cross-section safety language once - shared by Agent 3.
         safety_ctx = _extract_safety_context(pdf_text)
 
         # Agent 2 input: strip inpatient-only procedures_performed so the
@@ -517,7 +517,7 @@ async def _run_pipeline_internal(
                     "passes": result["passes"],
                 }
                 logger.info(
-                    "%s complete — FK grade: %.2f, passes: %s",
+                    "%s complete - FK grade: %.2f, passes: %s",
                     _agent_labels[i],
                     result["fk_grade"],
                     result["passes"],
@@ -530,8 +530,8 @@ async def _run_pipeline_internal(
         recovery_trajectory = rec_r["text"] if rec_r else ""
         escalation_guide = esc_r["text"] if esc_r else ""
 
-    # ── Agent 6 — AI patient simulator (non-fatal) ──────────────────────────
-    # Surfaces "missed concepts" — questions a confused patient would ask that
+    # ── Agent 6 - AI patient simulator (non-fatal) ──────────────────────────
+    # Surfaces "missed concepts" - questions a confused patient would ask that
     # the document does not answer. Runs on every successful pipeline call.
     # Never fatal: run_patient_simulator_agent() returns a safe fallback on
     # all error paths so a simulator failure cannot degrade the pipeline status.
@@ -567,11 +567,11 @@ async def _run_pipeline_internal(
 
     if pipeline_status == "partial":
         logger.warning(
-            "Pipeline complete (partial) — %s — %.2fs", pdf_path, elapsed
+            "Pipeline complete (partial) - %s - %.2fs", pdf_path, elapsed
         )
     else:
         logger.info(
-            "Pipeline complete — %s — status: %s, %.2fs",
+            "Pipeline complete - %s - status: %s, %.2fs",
             pdf_path,
             pipeline_status,
             elapsed,
@@ -591,7 +591,7 @@ async def _run_pipeline_internal(
 
     # ── DB write (non-fatal) ────────────────────────────────────────────────
     # Persist one row per pipeline run so the history screen can list past
-    # summaries. The DB write is wrapped in try/except — a Neon outage or
+    # summaries. The DB write is wrapped in try/except - a Neon outage or
     # schema drift must never crash the pipeline or block the UI response.
     db_session_id = session_id or str(uuid.uuid4())
     try:
@@ -600,7 +600,7 @@ async def _run_pipeline_internal(
         # caller does not supply the hash (e.g. stress scripts, slow corpus tests).
         if document_hash is None:
             if raw_text is not None:
-                # OCR text path — there is no file on disk to hash.
+                # OCR text path - there is no file on disk to hash.
                 document_hash = hashlib.sha256(raw_text.encode("utf-8")).hexdigest()
             else:
                 with open(pdf_path, "rb") as pdf_file:
@@ -618,11 +618,11 @@ async def _run_pipeline_internal(
             pool=db_pool,
         )
         logger.info(
-            "Discharge history saved — session: %s", db_session_id
+            "Discharge history saved - session: %s", db_session_id
         )
     except Exception as exc:
         logger.warning(
-            "DB write failed (non-fatal) — session: %s — %s",
+            "DB write failed (non-fatal) - session: %s - %s",
             db_session_id,
             exc,
         )

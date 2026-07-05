@@ -28,7 +28,7 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# Defaults — match the values previously hard-coded in main.py.
+# Defaults - match the values previously hard-coded in main.py.
 _PDF_STORE_MAX = 50
 _PROGRESS_TTL_SECONDS = 600.0
 
@@ -81,7 +81,7 @@ class SessionStore:
                     self._simulator.pop(old_sid, None)
             self._pdf[session_id] = pdf_bytes
         logger.debug(
-            "PDF stored — session: %s, size: %d bytes", session_id, len(pdf_bytes)
+            "PDF stored - session: %s, size: %d bytes", session_id, len(pdf_bytes)
         )
         return session_id
 
@@ -189,7 +189,7 @@ class SessionStore:
                 self._progress.pop(sid, None)
 
 
-# Process-level singleton — one store per uvicorn worker.
+# Process-level singleton - one store per uvicorn worker.
 # Routes import this directly; tests that need isolation should instantiate
 # a fresh SessionStore() rather than mutating this singleton.
 session_store = SessionStore()

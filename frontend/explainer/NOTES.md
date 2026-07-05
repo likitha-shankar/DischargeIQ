@@ -1,4 +1,4 @@
-# Anatomy Explainer — Human Work Items
+# Anatomy Explainer - Human Work Items
 
 These tasks are explicitly outside the scope of the AI-written engine code.
 Every item here requires a human decision and human sign-off before the
@@ -22,9 +22,9 @@ place each GLB before its registry entry can be activated.
 | NIH 3D Print Exchange | https://3d.nih.gov | Public domain, US government; GLB export available |
 
 **Priority order for sourcing (matches the three real registry targets):**
-1. Cardiovascular — heart and lungs for heart failure (`cardiovascular/heart_failure.glb`)
-2. Respiratory — airways and lungs for COPD (`respiratory/copd_airways.glb`)
-3. Endocrine — pancreas region for diabetes (`endocrine/pancreas_diabetes.glb`)
+1. Cardiovascular - heart and lungs for heart failure (`cardiovascular/heart_failure.glb`)
+2. Respiratory - airways and lungs for COPD (`respiratory/copd_airways.glb`)
+3. Endocrine - pancreas region for diabetes (`endocrine/pancreas_diabetes.glb`)
 
 **Where to place models once downloaded:**
 ```
@@ -52,7 +52,7 @@ Before setting `"license_verified": true` in `anatomy_registry.json` for any
 entry, a team member must confirm ALL of the following:
 
 - [ ] The license allows patient-facing deployment (not just personal or academic use).
-- [ ] The license allows the deployment context (commercial service, SaaS, hospital portal — whichever applies to DischargeIQ's final deployment).
+- [ ] The license allows the deployment context (commercial service, SaaS, hospital portal - whichever applies to DischargeIQ's final deployment).
 - [ ] Attribution requirements (if any) are recorded and will be displayed in the UI.
 - [ ] Modification rights are confirmed if the model will be edited, segmented, or re-rigged.
 
@@ -78,7 +78,7 @@ condition) must confirm:
   harm or unnecessary anxiety.
 
 **The engine never serves a model to a patient without APPROVED status.**
-The fallback is always clean text — a missing visual is safe; a misleading
+The fallback is always clean text - a missing visual is safe; a misleading
 one is not.
 
 Document each clinical review with: reviewer name, credentials, date, and
@@ -93,7 +93,7 @@ may differ from the names recorded in `mesh_names`. Run the asset pipeline
 script (Phase 7, to be implemented) to get a mismatch report, then update
 either the GLB (rename nodes in Blender or a GLTF editor) or the registry
 `mesh_names` entries to match. The highlight system depends on exact name
-matching — a single character difference silently breaks highlighting.
+matching - a single character difference silently breaks highlighting.
 
 ---
 

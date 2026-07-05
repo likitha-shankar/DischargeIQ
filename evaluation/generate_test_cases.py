@@ -67,7 +67,7 @@ async def main():
     with open("evaluation/test_cases.json", "w", encoding="utf-8") as f:
         json.dump(test_cases, f, indent=2)
 
-    print("\nDONE — 20 test cases created")
+    print("\nDONE - 20 test cases created")
 
 if __name__ == "__main__":
     asyncio.run(main())

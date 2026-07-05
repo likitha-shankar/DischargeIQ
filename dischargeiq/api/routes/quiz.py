@@ -2,8 +2,8 @@
 api/routes/quiz.py
 
 Teach-back quiz endpoints (Sprint 3, Task 3.1):
-    POST /quiz/generate — frozen 5-question set from the session's extraction
-    POST /quiz/score    — score one phase (pre/post), persist, return delta
+    POST /quiz/generate - frozen 5-question set from the session's extraction
+    POST /quiz/score    - score one phase (pre/post), persist, return delta
 
 Route handlers are thin: generation delegates to the quiz agent, scoring to
 services/quiz.py, persistence to db/quiz.py. Both endpoints are stateless with
@@ -37,14 +37,14 @@ async def generate_quiz(request: QuizGenerateRequest):
     Generate the frozen teach-back question set for a session.
 
     The client sends the extraction dict it already holds (same pattern as
-    /chat's pipeline_context). The LLM call runs in a worker thread — the
+    /chat's pipeline_context). The LLM call runs in a worker thread - the
     agent is synchronous like all other agents.
 
     Raises:
         HTTPException 422: Extraction has no quiz-relevant content.
         HTTPException 502: LLM returned unusable output after retries/failover.
     """
-    logger.info("POST /quiz/generate — session: %s", request.session_id)
+    logger.info("POST /quiz/generate - session: %s", request.session_id)
     try:
         quiz_set = await asyncio.to_thread(
             run_quiz_agent, request.extraction, request.session_id
@@ -79,7 +79,7 @@ async def score(request: QuizScoreRequest, pool=Depends(get_db_pool)):
         HTTPException 422: answers/question_keys mismatch.
     """
     logger.info(
-        "POST /quiz/score — session: %s, phase: %s", request.session_id, request.phase
+        "POST /quiz/score - session: %s, phase: %s", request.session_id, request.phase
     )
     try:
         result = score_quiz(

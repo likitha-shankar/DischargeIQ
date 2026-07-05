@@ -1,8 +1,8 @@
 /**
  * File: frontend/explainer/engine/src/config.js
- * Component: Anatomy Explainer — Config Loader
+ * Component: Anatomy Explainer - Config Loader
  * Description: Parses the explainer config from three sources in priority order:
- *   1. window.__DISCHARGEIQ_CONFIG__ (set by parent before script loads — preferred).
+ *   1. window.__DISCHARGEIQ_CONFIG__ (set by parent before script loads - preferred).
  *   2. URL query param ?config=<base64url-encoded-JSON> (works for Streamlit iframes
  *      where postMessage timing is uncertain).
  *   3. window.addEventListener('message') for late-arriving postMessage from parent
@@ -113,7 +113,7 @@ function listenForPostMessageConfig(onConfig) {
  *
  * Checks window.__DISCHARGEIQ_CONFIG__ first (fastest, most reliable), then
  * falls back to URL query param decoding. Returns null if neither source
- * provides a config — callers should then call listenForPostMessageConfig()
+ * provides a config - callers should then call listenForPostMessageConfig()
  * and wait for a late-arriving config.
  *
  * @returns {ExplainerConfig|null} - Merged config, or null if not yet available.

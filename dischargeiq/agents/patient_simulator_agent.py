@@ -1,14 +1,14 @@
 """
 agents/patient_simulator_agent.py
 
-Agent 6 — AI Patient Simulator
+Agent 6 - AI Patient Simulator
 Owner: Likitha
 
 Simulates a patient reading the structured extraction and asks plain-language
 questions about gaps between what the document says and what a lay reader might
 still misunderstand. Output is parsed into MissedConcept rows, an overall
 gap score, a short summary, and a Flesch-Kincaid grade on the gap text (for
-eval / logging only — not shown to patients in the main Streamlit flow).
+eval / logging only - not shown to patients in the main Streamlit flow).
 
 Every run appends one FK row to dischargeiq/evaluation/fk_log.csv under
 agent key agent6_patient_simulator.
@@ -24,7 +24,7 @@ Data contract:
                 overall_gap_score   (int, 0–10)
                 simulator_summary   (str)
                 fk_grade            (float)
-                passes              (bool) — vs internal _FK_THRESHOLD
+                passes              (bool) - vs internal _FK_THRESHOLD
 
 Dependencies:
     - openai             (OpenAI-compatible client, used for all providers)
@@ -34,7 +34,7 @@ Dependencies:
     - dischargeiq.models.pipeline (MissedConcept, PatientSimulatorOutput)
     - dischargeiq/prompts/agent6_system_prompt.txt
 
-BLOCKED BY: Agent 1 — requires validated ExtractionOutput. Typically
+BLOCKED BY: Agent 1 - requires validated ExtractionOutput. Typically
 invoked from evaluation or orchestration paths after extraction succeeds.
 """
 
@@ -65,7 +65,7 @@ logger = logging.getLogger(__name__)
 # ── Configuration ──────────────────────────────────────────────────────────────
 
 # Bumped from 1200 to 1800 to leave headroom for the ITEM_QUESTIONS_JSON
-# block — Agent 6 now emits 6-8 Q-blocks plus a per-item caregiver-question
+# block - Agent 6 now emits 6-8 Q-blocks plus a per-item caregiver-question
 # array (one entry per medication/appointment/warning sign). 1800 stays well
 # inside Anthropic Haiku's per-call budget.
 _MAX_TOKENS = 1800
@@ -113,7 +113,7 @@ def _med_bullet(med) -> str:
         parts.append(f"frequency {med.frequency}")
     if med.status:
         parts.append(f"status {med.status}")
-    return " — ".join(parts)
+    return " - ".join(parts)
 
 
 def _appt_bullet(appt) -> str:
@@ -127,7 +127,7 @@ def _appt_bullet(appt) -> str:
         bits.append(appt.date)
     if appt.reason:
         bits.append(appt.reason)
-    return " — ".join(bits) if bits else "(appointment details unclear)"
+    return " - ".join(bits) if bits else "(appointment details unclear)"
 
 
 def _build_simulator_user_message(extraction: ExtractionOutput) -> str:
@@ -305,29 +305,29 @@ def _concepts_from_q_body(q_body: str) -> list[MissedConcept]:
     Split question body into blocks and parse each into a MissedConcept.
 
     Strategy (in priority order):
-    1. Split on explicit Q: / Q. markers — the canonical format.
+    1. Split on explicit Q: / Q. markers - the canonical format.
     2. Split on "N. Q:" patterns (numbered + Q: on same line).
     3. Fall back to bare numbered list (1. / 1) prefixes).
     Return whichever strategy produces the most parsed concepts.
     """
-    _MIN = 2  # accept ≥2 parsed concepts (down from 3 — ER docs can be short)
+    _MIN = 2  # accept ≥2 parsed concepts (down from 3 - ER docs can be short)
 
     def _parse_chunks(chunks: list[str]) -> list[MissedConcept]:
         return [c for c in (_parse_q_block(ch) for ch in chunks) if c]
 
-    # Strategy 1 — explicit Q: markers.
+    # Strategy 1 - explicit Q: markers.
     parts_q = re.split(r"(?m)^\s*Q\s*[:\.]\s*", q_body)
     concepts_q = _parse_chunks([p.strip() for p in parts_q if p.strip()])
     if len(concepts_q) >= _MIN:
         return concepts_q
 
-    # Strategy 2 — "1. Q:" combined prefix.
+    # Strategy 2 - "1. Q:" combined prefix.
     parts_nq = re.split(r"(?m)^\s*\d+[\.\)]\s*Q\s*[:\.]\s*", q_body)
     concepts_nq = _parse_chunks([p.strip() for p in parts_nq if p.strip()])
     if len(concepts_nq) >= _MIN:
         return concepts_nq
 
-    # Strategy 3 — bare numbered list.
+    # Strategy 3 - bare numbered list.
     parts_n = re.split(r"(?m)^\s*\d+[\.\)]\s+", q_body)
     concepts_n = _parse_chunks([p.strip() for p in parts_n if p.strip()])
     if len(concepts_n) >= _MIN:
@@ -352,7 +352,7 @@ def _parse_overall_gap_and_summary(cleaned: str, document_id: str) -> tuple[int,
         summary = (ms.group(1) or "").strip()
     else:
         logger.warning(
-            "agent6 summary missing for '%s' — defaulting to empty", document_id
+            "agent6 summary missing for '%s' - defaulting to empty", document_id
         )
     return score, summary
 
@@ -452,7 +452,7 @@ def _parse_item_questions_json(raw: str, document_id: str) -> list[CaregiverQues
     Locates the JSON array that follows the header, runs json.loads, and
     validates each entry against the CaregiverQuestion model. Invalid entries
     are skipped; total parse failure returns an empty list. The function
-    never raises — Agent 6's per-item questions are an enhancement, not a
+    never raises - Agent 6's per-item questions are an enhancement, not a
     safety-critical field.
 
     Args:
@@ -505,7 +505,7 @@ def _strip_item_questions_block(text: str) -> str:
     Remove the ITEM_QUESTIONS_JSON: header and its trailing JSON array from a
     text body before the existing OVERALL_GAP_SCORE / SUMMARY parsers run.
 
-    The current SUMMARY regex is greedy — without this strip, the SUMMARY
+    The current SUMMARY regex is greedy - without this strip, the SUMMARY
     field would absorb the entire JSON array and the parser would emit a
     summary containing raw JSON.
     """
@@ -628,7 +628,7 @@ def run_patient_simulator_agent(
 
     Data contract:
         Input:  ExtractionOutput from Agent 1.
-        Output: PatientSimulatorOutput — missed_concepts, overall_gap_score,
+        Output: PatientSimulatorOutput - missed_concepts, overall_gap_score,
                 simulator_summary, fk_grade, passes.
 
     Args:
@@ -637,13 +637,13 @@ def run_patient_simulator_agent(
 
     Returns:
         PatientSimulatorOutput on success, or a safe zero-value fallback on all
-        error paths. Never raises — all failures are logged at WARNING level.
+        error paths. Never raises - all failures are logged at WARNING level.
     """
     try:
         raw = _fetch_raw_simulator_output(extraction, document_id)
     except Exception as exc:
         logger.warning(
-            "agent6_patient_simulator fetch failed for '%s': %s — returning fallback",
+            "agent6_patient_simulator fetch failed for '%s': %s - returning fallback",
             document_id,
             exc,
         )
@@ -651,7 +651,7 @@ def run_patient_simulator_agent(
 
     if not raw:
         logger.warning(
-            "agent6_patient_simulator: empty completion for '%s' — returning fallback",
+            "agent6_patient_simulator: empty completion for '%s' - returning fallback",
             document_id,
         )
         return _FALLBACK_OUTPUT
@@ -667,11 +667,11 @@ def run_patient_simulator_agent(
             except ValueError:
                 pass
         # Attempt to salvage the per-item caregiver questions even when
-        # Q-block parsing fails — the JSON block is independently parseable
+        # Q-block parsing fails - the JSON block is independently parseable
         # and may still be valid.
         salvaged_questions = _parse_item_questions_json(raw, document_id)
         logger.warning(
-            "agent6_patient_simulator parse failed for '%s' (%s) — returning partial fallback",
+            "agent6_patient_simulator parse failed for '%s' (%s) - returning partial fallback",
             document_id,
             exc,
         )

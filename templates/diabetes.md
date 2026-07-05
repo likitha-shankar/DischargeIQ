@@ -7,7 +7,7 @@ Used by: Reference / eval material; not loaded automatically by the pipeline.
 Critical rules: No unexplained jargon; maintain reviewed FK and clinical sign-off block.
 -->
 
-# Diabetes Management — Patient Explanation Template
+# Diabetes Management - Patient Explanation Template
 
 **Guideline reference:** ADA Standards of Medical Care in Diabetes 2024
 **Reviewed by:** Rushi Eshwar Neelam
@@ -26,14 +26,14 @@ Your blood sugar got too high and your body could not bring it back down on its 
 
 - "Diabetic ketoacidosis" or "hyperglycemic episode" replaced with "your blood sugar got too high"
 - "IV insulin infusion and fluid resuscitation" replaced with "fluids and insulin through a tube in your arm"
-- Long-term complications stated plainly (heart, kidneys, eyes) — confirmed complications per ADA 2024 Standards
+- Long-term complications stated plainly (heart, kidneys, eyes) - confirmed complications per ADA 2024 Standards
 - Blood glucose monitoring and meal regularity confirmed as ADA 2024 self-management cornerstones
-- "HbA1c target" not mentioned — too complex for this template, handled in follow-up
+- "HbA1c target" not mentioned - too complex for this template, handled in follow-up
 - No jargon remaining in template text
 
 ## Clinical sign-off
 
-**Reviewed by:** [Pending — Dr. Liebovitz / designated reviewer]
+**Reviewed by:** [Pending - Dr. Liebovitz / designated reviewer]
 **Date:** [Pending]
 **Status:** Awaiting faculty review
 **Changes made based on review:** [To be completed after faculty feedback]

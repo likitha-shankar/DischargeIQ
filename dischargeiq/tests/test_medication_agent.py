@@ -92,7 +92,7 @@ def test_empty_medication_list_renders_no_meds_fallback():
     and verify the agent passes it through without modification.
     """
     extraction = ExtractionOutput(
-        primary_diagnosis="Minor laceration, finger — repaired",
+        primary_diagnosis="Minor laceration, finger - repaired",
         medications=[],
     )
     no_meds_reply = (
@@ -109,7 +109,7 @@ def test_empty_medication_list_renders_no_meds_fallback():
 def test_discontinued_medication_uses_stopping_format():
     """
     A medication with status='discontinued' must produce the [Drug name] -
-    stopping: format (the LLM is the one that generates this — we just verify
+    stopping: format (the LLM is the one that generates this - we just verify
     the agent passes through the formatted reply).
     """
     extraction = ExtractionOutput(
@@ -119,7 +119,7 @@ def test_discontinued_medication_uses_stopping_format():
         ],
     )
     stopping_reply = (
-        "Warfarin — stopping:\n"
+        "Warfarin - stopping:\n"
         "Your doctor wants you to stop taking this medicine.\n"
         "Your bleeding risk was too high on this drug.\n"
         "Do not take it until your doctor tells you it is safe to start again."

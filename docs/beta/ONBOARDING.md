@@ -1,37 +1,37 @@
-# DischargeIQ Beta — Tester Onboarding (Sprint 2, Task 2.5)
+# DischargeIQ Beta - Tester Onboarding (Sprint 2, Task 2.5)
 
 Thanks for testing DischargeIQ! You'll scan a (fake) hospital discharge
 document with your phone camera and get back a plain-language explanation of
 the diagnosis, medications, warning signs, and a short "Test yourself" quiz.
 
-## ⚠️ Rule #1 — synthetic documents only
+## ⚠️ Rule #1 - synthetic documents only
 
-**Never scan or upload a real discharge document — yours or anyone else's.**
+**Never scan or upload a real discharge document - yours or anyone else's.**
 The beta backend is not yet cleared for real patient data. Use only the test
 documents we give you (they describe fictional patients). If you accidentally
 scan something real, tell us immediately so we can purge the session.
 
 Your invite includes 2–3 printed synthetic documents (from the project's
 50-document corpus, e.g. a COPD, heart-failure, or hip-replacement case).
-Lost them? Ask your contact for replacements — or print any PDF from
+Lost them? Ask your contact for replacements - or print any PDF from
 `test-data/synthetic/` if you have repo access.
 
 ## Install
 
-### Android (available now — direct install)
+### Android (available now - direct install)
 
 1. Open the APK link from your invite message on your phone
    (or transfer the `app-release.apk` file we sent you).
 2. Tap the file. If Android asks, allow **"Install unknown apps"** for your
-   browser/files app (Settings prompt appears automatically — it's a one-time
+   browser/files app (Settings prompt appears automatically - it's a one-time
    switch because this beta build doesn't come from the Play Store yet).
 3. Open **DischargeIQ**. No account or login needed. The app talks to our
-   hosted backend automatically — any Wi‑Fi or mobile data works.
+   hosted backend automatically - any Wi‑Fi or mobile data works.
 
 Play Store internal-testing links replace this direct install later in the
 beta (you'll get a new invite; nothing to uninstall).
 
-### iPhone (TestFlight — invites coming shortly)
+### iPhone (TestFlight - invites coming shortly)
 
 1. Install **TestFlight** from the App Store.
 2. Tap the TestFlight invite link in your invite message.
@@ -61,20 +61,20 @@ Message your invite contact or email **lshankar@hawk.illinoistech.edu** with:
 - A screenshot if you have one
 
 Crashes, weird text, slow responses, confusing wording, quiz questions that
-feel unfair or leading — all of it is useful. "This worked great" is also a
+feel unfair or leading - all of it is useful. "This worked great" is also a
 report; we count active installs and completed quiz loops.
 
 ## Known rough edges
 
 - A busy backend can return a **partial** result (some tabs show a fallback
   message). Re-analyzing usually clears it.
-- Blurry/dark scans trigger a scan-quality warning — retake the photo.
+- Blurry/dark scans trigger a scan-quality warning - retake the photo.
 - The app never diagnoses or changes your treatment. It explains a document.
   (And in this beta, the "patient" is always fictional.)
 
 ---
 
-## For the team — building the beta APK
+## For the team - building the beta APK
 
 ```bash
 cd dischargeiq_mobile

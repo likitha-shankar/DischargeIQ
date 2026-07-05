@@ -25,7 +25,7 @@ async def get_db_pool(request: Request):
     Provide the long-lived asyncpg pool from the FastAPI lifespan context.
 
     Returns None when DATABASE_URL is unset or the pool failed to initialise
-    at startup — callers must treat None as "no persistence available" and
+    at startup - callers must treat None as "no persistence available" and
     proceed without saving history.
 
     Args:

@@ -53,13 +53,13 @@ src/
 
 The realistic appearance comes from this stack operating together:
 
-1. **PMREMGenerator + RoomEnvironment** — neutral studio IBL. All PBR materials in loaded GLBs sample this for reflections and indirect light.
-2. **ACESFilmic tone mapping** — correct colour grading. Required alongside IBL.
-3. **sRGB output colour space** — correct gamma. Required for matching real-world colour.
-4. **Key light (DirectionalLight 2.5, warm white)** — main shadow direction.
-5. **PCFSoftShadowMap, 2048px** — soft shadow edges that read as medical-grade, not videogame.
-6. **Fill light (DirectionalLight 0.8, cool blue-white)** — softens key-side shadows.
-7. **AmbientLight 0.15** — prevents pure-black shadows (IBL covers most of this already).
+1. **PMREMGenerator + RoomEnvironment** - neutral studio IBL. All PBR materials in loaded GLBs sample this for reflections and indirect light.
+2. **ACESFilmic tone mapping** - correct colour grading. Required alongside IBL.
+3. **sRGB output colour space** - correct gamma. Required for matching real-world colour.
+4. **Key light (DirectionalLight 2.5, warm white)** - main shadow direction.
+5. **PCFSoftShadowMap, 2048px** - soft shadow edges that read as medical-grade, not videogame.
+6. **Fill light (DirectionalLight 0.8, cool blue-white)** - softens key-side shadows.
+7. **AmbientLight 0.15** - prevents pure-black shadows (IBL covers most of this already).
 
 Removing or weakening any item in this stack degrades the clinical trustworthiness of the visual.
 
@@ -70,7 +70,7 @@ Removing or weakening any item in this stack degrades the clinical trustworthine
 The engine renders from a single config object. The FastAPI endpoint (Phase 5) assembles
 this from the discharge pipeline output. The engine also accepts it via three channels (in priority order):
 
-1. `window.__DISCHARGEIQ_CONFIG__ = { ... }` — set by parent before script loads.
+1. `window.__DISCHARGEIQ_CONFIG__ = { ... }` - set by parent before script loads.
 2. `?config=<base64url-JSON>` URL query param.
 3. `window.postMessage({ type: 'DISCHARGEIQ_CONFIG', payload: { ... } })`.
 
@@ -115,7 +115,7 @@ this from the discharge pipeline output. The engine also accepts it via three ch
       }
     },
     {
-      "caption": "The medicines you are going home with — furosemide and lisinopril — help your heart pump better and remove the extra fluid.",
+      "caption": "The medicines you are going home with - furosemide and lisinopril - help your heart pump better and remove the extra fluid.",
       "highlight_meshes": ["left ventricle", "aorta"],
       "animation": "pulse_beat",
       "camera": null
@@ -156,7 +156,7 @@ visible and functional.
 
 ---
 
-## Phase 4 resolver logging — note for implementer
+## Phase 4 resolver logging - note for implementer
 
 The backend resolver (Phase 4) must log two **distinct** outcomes, not one:
 
@@ -166,7 +166,7 @@ The backend resolver (Phase 4) must log two **distinct** outcomes, not one:
 | No entry matched the diagnosis at all | `NO_MATCH` | Condition not in registry at all. Rare enough to defer, or a new body system to add. |
 
 Both result in `model_id: null` in the config response so the engine always renders the
-text fallback — but the distinction in the backend logs is how you prioritise what to source
+text fallback - but the distinction in the backend logs is how you prioritise what to source
 next. Log both with the original diagnosis string and the matched entry id (if any).
 
 ---
@@ -196,7 +196,7 @@ npm install
 cp -r node_modules/three/examples/jsm/libs/draco/ public/draco/
 
 # 3. Start the dev server (open http://localhost:5173 to see the placeholder sphere
-#    with the full realistic lighting pipeline — IBL, ACES tone mapping, soft shadows)
+#    with the full realistic lighting pipeline - IBL, ACES tone mapping, soft shadows)
 npm run dev
 
 # 4. Build the production bundle for Streamlit and Flutter

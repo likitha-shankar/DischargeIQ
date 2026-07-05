@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
-/// API base URL — override at build time with `--dart-define=API_BASE=http://...`
+/// API base URL - override at build time with `--dart-define=API_BASE=http://...`
 ///
 /// Resolution order:
 ///   1. --dart-define=API_BASE (always wins, debug and release)
 ///   2. Release builds default to the hosted Cloud Run backend. The nginx
 ///      proxy there routes only `/api/*` to FastAPI, so the base includes
-///      the `/api` prefix — endpoints are appended as `/analyze`, `/chat`.
-///   3. Debug builds default to a local FastAPI (no `/api` prefix — local
+///      the `/api` prefix - endpoints are appended as `/analyze`, `/chat`.
+///   3. Debug builds default to a local FastAPI (no `/api` prefix - local
 ///      uvicorn serves routes at the root).
 ///
 /// Local real-device demo: flutter run --dart-define=API_BASE=http://<laptop-lan-ip>:8000
@@ -28,7 +28,7 @@ class ApiConfig {
     if (kReleaseMode) return _cloudRunBase;
     if (kIsWeb) return 'http://localhost:8000';
     // Real Android device uses the laptop's LAN IP.
-    // Emulator would use 10.0.2.2 — pass via --dart-define if testing in emulator.
+    // Emulator would use 10.0.2.2 - pass via --dart-define if testing in emulator.
     if (defaultTargetPlatform == TargetPlatform.android) {
       return 'http://$_lanIp:8000';
     }

@@ -2,7 +2,7 @@
 File: dischargeiq/utils/extraction_scope.py
 Owner: Likitha Shankar
 Description: Builds narrowed ExtractionOutput copies for Agents 2–5 so each LLM user
-  message only includes fields that agent is allowed to see — reducing tokens and
+  message only includes fields that agent is allowed to see - reducing tokens and
   hallucination surface (e.g. Agent 2 excludes procedures/meds; Agent 3 keeps meds).
 Key functions/classes: scope_for_agent2, scope_for_agent3, scope_for_agent4, scope_for_agent5
 Edge cases handled:

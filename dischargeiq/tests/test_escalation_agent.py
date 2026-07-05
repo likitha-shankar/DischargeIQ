@@ -1,7 +1,7 @@
 """
 File: dischargeiq/tests/test_escalation_agent.py
 Owner: Likitha Shankar
-Description: Black-box tests for Agent 5 (run_escalation_agent) — the
+Description: Black-box tests for Agent 5 (run_escalation_agent) - the
   safety-critical three-tier warning-sign decision tree.  Mocks the Anthropic
   client at the agent's _get_client target so tests are deterministic and
   offline.  Verifies the LOCKED rules from CLAUDE.md: red-flag symptoms are
@@ -119,7 +119,7 @@ def test_call_911_language_present_when_red_flag_critical():
 def test_empty_anthropic_content_returns_empty_text_no_crash():
     """
     Bug C regression: Anthropic returns content=[] → empty string, no IndexError.
-    Critical for safety-sensitive Agent 5 — a crash here would void the
+    Critical for safety-sensitive Agent 5 - a crash here would void the
     pipeline, while the guard lets the orchestrator mark partial.
     """
     extraction = _hf_extraction()

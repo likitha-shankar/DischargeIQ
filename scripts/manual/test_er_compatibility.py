@@ -38,10 +38,10 @@ _ER_PDFS = [
 ]
 
 _AGENT_FIELDS = [
-    ("diagnosis_explanation", "Agent 2 — Diagnosis Explanation"),
-    ("medication_rationale",  "Agent 3 — Medication Rationale"),
-    ("recovery_trajectory",   "Agent 4 — Recovery Trajectory"),
-    ("escalation_guide",      "Agent 5 — Escalation Guide"),
+    ("diagnosis_explanation", "Agent 2 - Diagnosis Explanation"),
+    ("medication_rationale",  "Agent 3 - Medication Rationale"),
+    ("recovery_trajectory",   "Agent 4 - Recovery Trajectory"),
+    ("escalation_guide",      "Agent 5 - Escalation Guide"),
 ]
 
 
@@ -56,7 +56,7 @@ def _section(label: str, text: str) -> None:
     if text and text.strip():
         print(text.strip()[:800] + ("…" if len(text) > 800 else ""))
     else:
-        print("[EMPTY — agent returned no output]")
+        print("[EMPTY - agent returned no output]")
 
 
 async def _run_and_report(pdf_path: Path) -> bool:
@@ -102,7 +102,7 @@ async def _run_and_report(pdf_path: Path) -> bool:
             print(f"  Q: {c.question}")
             print(f"     GAP: {c.gap_summary}")
     else:
-        print("[EMPTY — Agent 6 returned no output or was skipped]")
+        print("[EMPTY - Agent 6 returned no output or was skipped]")
 
     if result.pipeline_status == "partial":
         print(f"\n[FLAG] pipeline_status=partial for {pdf_path.name}")
@@ -122,7 +122,7 @@ async def main() -> None:
     if all_passed:
         print("All ER compatibility checks passed.")
     else:
-        print("One or more ER compatibility checks FAILED — see above.")
+        print("One or more ER compatibility checks FAILED - see above.")
         sys.exit(1)
 
 

@@ -1,6 +1,6 @@
 /**
  * File: frontend/explainer/engine/src/viewer.js
- * Component: Anatomy Explainer — Rendering Core
+ * Component: Anatomy Explainer - Rendering Core
  * Description: Owns the WebGLRenderer, scene, camera, orbit controls, lighting,
  *   model loading, and render loop. Everything visual lives here except highlight
  *   overlays and procedural animations (which are separate modules that call back
@@ -11,7 +11,7 @@
  *   IBL via PMREMGenerator + RoomEnvironment drives PBR material appearance.
  *   ACESFilmic tone mapping and sRGB output color space are required for correct
  *   color grading. The key light casts soft shadows (PCFSoft, 2048px map).
- *   Do not remove or simplify this stack — a flat-lit model reads as untrustworthy.
+ *   Do not remove or simplify this stack - a flat-lit model reads as untrustworthy.
  *
  * Dependencies: three, three/addons/...
  * Consumed by: src/main.js
@@ -91,7 +91,7 @@ class Viewer {
    * Create the scene with a dark clinical background.
    *
    * Background color #1a1a1a matches the surrounding HTML dark theme.
-   * No fog — anatomy models need clear depth at all distances.
+   * No fog - anatomy models need clear depth at all distances.
    *
    * @returns {THREE.Scene}
    */
@@ -105,7 +105,7 @@ class Viewer {
    * Create a perspective camera positioned for a front-on torso view.
    *
    * Near plane at 0.01 prevents z-fighting on small anatomical structures.
-   * Far plane at 100 is generous — anatomy models are rarely deeper than 5 units.
+   * Far plane at 100 is generous - anatomy models are rarely deeper than 5 units.
    *
    * @returns {THREE.PerspectiveCamera}
    */
@@ -124,7 +124,7 @@ class Viewer {
    * This is the single biggest contributor to a "realistic" look. PBR materials
    * in loaded GLBs sample this environment map for reflections and indirect light.
    * The RoomEnvironment generates a neutral studio HDRI suitable for clinical
-   * anatomy presentation. Dispose the generator after use — it holds GPU memory.
+   * anatomy presentation. Dispose the generator after use - it holds GPU memory.
    *
    * @returns {void}
    */
@@ -184,7 +184,7 @@ class Viewer {
    * Create and add a PBR placeholder sphere visible before any model loads.
    *
    * The sphere uses MeshStandardMaterial (PBR) so it demonstrates the full
-   * lighting pipeline — IBL reflections, key shadow, fill gradient — from
+   * lighting pipeline - IBL reflections, key shadow, fill gradient - from
    * frame one. This is the visual checkpoint to confirm realistic rendering
    * is working before a real GLB is sourced.
    *
@@ -237,7 +237,7 @@ class Viewer {
    * Attach a ResizeObserver to the container so the renderer and camera
    * aspect ratio update whenever the iframe or WebView is resized.
    *
-   * Caps DPR at MAX_DPR after resize — device DPR does not change at runtime
+   * Caps DPR at MAX_DPR after resize - device DPR does not change at runtime
    * but the explicit cap prevents the renderer from reading an inflated value.
    *
    * @returns {void}
@@ -282,7 +282,7 @@ class Viewer {
    *
    * Draco decoder WASM files must be present in public/draco/ (copied there by
    * the Phase 7 asset pipeline script). Without them, uncompressed GLBs still
-   * load correctly — Draco is only needed for compressed models.
+   * load correctly - Draco is only needed for compressed models.
    *
    * @returns {GLTFLoader}
    */
@@ -320,7 +320,7 @@ class Viewer {
    * Remove the placeholder sphere from the scene and free its GPU memory.
    *
    * Called after a real model has been successfully loaded. Safe to call
-   * multiple times — guards against double-dispose.
+   * multiple times - guards against double-dispose.
    *
    * @returns {void}
    */
@@ -338,7 +338,7 @@ class Viewer {
    * On success: disposes the placeholder, adds the model to the scene, stores
    * the root for later mesh lookup, and returns the GLTF object.
    * On failure: leaves the placeholder visible, logs the error, and returns null.
-   * The engine never crashes on a bad model path — a missing visual is safe.
+   * The engine never crashes on a bad model path - a missing visual is safe.
    *
    * @param {string} modelPath - URL or relative path to the GLB file.
    * @param {number} [scale=1.0] - Uniform scale to apply after load.
@@ -373,7 +373,7 @@ class Viewer {
    * Smoothly move the camera to a new position and look-at target.
    *
    * Sets OrbitControls target so orbit rotation stays centred on the new target.
-   * Does not animate (instant snap) — smooth interpolation can be added in a
+   * Does not animate (instant snap) - smooth interpolation can be added in a
    * future pass once the panel navigation UX is validated.
    *
    * @param {number[]} position - [x, y, z] camera position.
