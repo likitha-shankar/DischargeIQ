@@ -26,6 +26,7 @@ git checkout main       # come back — nothing is lost
 | `task-3.2-quiz-mobile` | Gamified quiz in the Flutter app | `a7359fc` |
 | `task-3.2-quiz-web` | Quiz tab on the Streamlit fallback | `de6d126` |
 | `task-3.3-clinician-dashboard` | Clinician dashboard (deltas, flagged gaps) | `d86fc3c` |
+| `task-3.4-gap-tooling` | Quiz-gap report: prompt-tuning evidence pipeline | `aef022a` |
 
 `git log --oneline` between two tags shows exactly what a sprint added.
 Reverting would destroy later work; checkout/tags show history non-destructively.
