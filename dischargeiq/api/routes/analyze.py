@@ -1,12 +1,13 @@
 """
 api/routes/analyze.py
 
-POST /analyze — accept a discharge PDF upload and run the multi-agent pipeline.
+POST /analyze      — discharge PDF upload → multi-agent pipeline.
+POST /analyze/text — pre-extracted text (mobile on-device OCR) → same pipeline.
 
 Validation logic (_validate_uploaded_pdf) is the only non-trivial code here.
 Everything else delegates: PDF storage to SessionStore, pipeline execution to
-run_pipeline(), progress callbacks to SessionStore, and simulator storage to
-SessionStore after the pipeline completes.
+run_pipeline() via the shared _execute_pipeline helper, progress callbacks to
+SessionStore, and simulator storage to SessionStore after the pipeline completes.
 """
 
 import asyncio
@@ -20,6 +21,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 
 from dischargeiq.api.middleware import sanitize_for_log, verify_api_key
 from dischargeiq.api.routes.progress import cleanup_progress_after_delay
+from dischargeiq.api.schemas import AnalyzeTextRequest
 from dischargeiq.pipeline.orchestrator import run_pipeline
 from dischargeiq.services.session import session_store
 
@@ -136,6 +138,107 @@ async def analyze_discharge(request: Request, file: UploadFile = File(...)):
     db_pool = getattr(request.app.state, "db_pool", None)
 
     try:
+        return await _execute_pipeline(
+            doc_label=safe_filename,
+            pdf_session_id=pdf_session_id,
+            pdf_path=tmp_path,
+            document_hash=document_hash,
+            db_pool=db_pool,
+        )
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
+
+# ── OCR text limits ───────────────────────────────────────────────────────────
+# A one-page discharge summary is ~2–4k chars; 200k allows a very long
+# multi-page scan while still bounding memory/token abuse. Below 100 chars a
+# scan almost certainly failed — reject early with a clear message instead of
+# burning 6 agent calls on noise.
+_MIN_TEXT_CHARS = 100
+_MAX_TEXT_CHARS = 200_000
+
+
+@router.post("/analyze/text", dependencies=[Depends(verify_api_key)])
+async def analyze_discharge_text(request: Request, body: AnalyzeTextRequest):
+    """
+    Run the multi-agent pipeline on pre-extracted document text.
+
+    Sprint 2, Task 2.3 — the mobile OCR path: the phone recognizes text
+    on-device (Google ML Kit) and sends ONLY the text, never the photo.
+    That keeps images of paper documents off the wire and out of the
+    backend entirely — a deliberate privacy property of the scan path.
+
+    No PDF exists for this session, so GET /pdf/{session_id} will 404 —
+    clients on the OCR path must not offer the "view original" affordance.
+
+    Raises:
+        HTTPException 422: Text too short (failed scan) or too long.
+        HTTPException 504/500: Same semantics as POST /analyze.
+    """
+    text = body.text.strip()
+    if len(text) < _MIN_TEXT_CHARS:
+        raise HTTPException(
+            status_code=422,
+            detail="The scan captured too little text. Retake the photo with "
+                   "the full page visible and good lighting.",
+        )
+    if len(text) > _MAX_TEXT_CHARS:
+        raise HTTPException(status_code=422, detail="Scanned text is too long.")
+
+    pdf_session_id = str(uuid.uuid4())
+    logger.info(
+        "POST /analyze/text — session: %s, chars: %d", pdf_session_id, len(text)
+    )
+
+    session_store.set_progress(pdf_session_id, {
+        "status": "running",
+        "current_agent": 0,
+        "agent_name": "Starting",
+        "message": "Reading your scanned document...",
+    })
+
+    return await _execute_pipeline(
+        doc_label=f"ocr:{pdf_session_id}",
+        pdf_session_id=pdf_session_id,
+        pdf_path=f"ocr:{pdf_session_id}",  # label only — never opened
+        document_hash=hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        db_pool=getattr(request.app.state, "db_pool", None),
+        raw_text=text,
+    )
+
+
+async def _execute_pipeline(
+    doc_label: str,
+    pdf_session_id: str,
+    pdf_path: str,
+    document_hash: str,
+    db_pool,
+    raw_text: str | None = None,
+) -> dict:
+    """
+    Shared pipeline execution for both analyze routes.
+
+    Owns the progress lifecycle (running → complete/error → delayed cleanup),
+    simulator storage, and the timeout/error → HTTP status mapping. Both
+    routes delegate here so the two input paths cannot drift apart.
+
+    Args:
+        doc_label: Sanitized name for log lines (filename or ocr:<session>).
+        pdf_session_id: Session id already registered with the progress store.
+        pdf_path: Tmpfile path (PDF route) or a label (text route).
+        document_hash: SHA-256 of the source bytes/text.
+        db_pool: Long-lived pool from app.state, or None.
+        raw_text: Pre-extracted text for the OCR path; None for PDFs.
+
+    Returns:
+        dict: Serialised PipelineResponse plus pdf_session_id.
+
+    Raises:
+        HTTPException 504: Pipeline wall-clock timeout.
+        HTTPException 500: Any other pipeline error.
+    """
+    try:
         def update_progress(agent_num: int, agent_name: str, message: str) -> None:
             session_store.set_progress(pdf_session_id, {
                 "status": "running",
@@ -145,11 +248,12 @@ async def analyze_discharge(request: Request, file: UploadFile = File(...)):
             })
 
         result = await run_pipeline(
-            tmp_path,
+            pdf_path,
             session_id=pdf_session_id,
             on_progress=update_progress,
             document_hash=document_hash,
             db_pool=db_pool,
+            raw_text=raw_text,
         )
 
         session_store.set_progress(pdf_session_id, {
@@ -161,9 +265,7 @@ async def analyze_discharge(request: Request, file: UploadFile = File(...)):
         asyncio.create_task(cleanup_progress_after_delay(pdf_session_id))
 
         logger.info(
-            "POST /analyze complete — '%s', status: %s",
-            safe_filename,
-            result.pipeline_status,
+            "Analyze complete — '%s', status: %s", doc_label, result.pipeline_status
         )
 
         result_dict = result.model_dump()
@@ -184,7 +286,7 @@ async def analyze_discharge(request: Request, file: UploadFile = File(...)):
             "message": "Analysis timed out.",
         })
         asyncio.create_task(cleanup_progress_after_delay(pdf_session_id))
-        logger.error("Pipeline timeout for document '%s'", safe_filename)
+        logger.error("Pipeline timeout for document '%s'", doc_label)
         raise HTTPException(
             status_code=504,
             detail="Analysis took longer than 5 minutes. Please try a smaller or clearer PDF.",
@@ -197,8 +299,5 @@ async def analyze_discharge(request: Request, file: UploadFile = File(...)):
             "message": "Analysis failed.",
         })
         asyncio.create_task(cleanup_progress_after_delay(pdf_session_id))
-        logger.error("Pipeline error for '%s': %s", safe_filename, pipeline_error)
+        logger.error("Pipeline error for '%s': %s", doc_label, pipeline_error)
         raise HTTPException(status_code=500, detail="Internal pipeline error.")
-    finally:
-        if os.path.exists(tmp_path):
-            os.unlink(tmp_path)

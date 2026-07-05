@@ -88,6 +88,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 # Window: sliding 60-second window using a simple token-replenishment approach.
 _RATE_LIMITS: dict[str, tuple[int, float]] = {
     "/analyze": (5, 60.0),    # max_requests, window_seconds
+    "/analyze/text": (5, 60.0),  # same cost as /analyze (full pipeline)
     "/chat": (30, 60.0),
     "/quiz/generate": (10, 60.0),
     "/quiz/score": (30, 60.0),

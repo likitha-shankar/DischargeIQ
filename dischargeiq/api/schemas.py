@@ -49,6 +49,18 @@ class ChatResponse(BaseModel):
     from_document: bool = True
 
 
+class AnalyzeTextRequest(BaseModel):
+    """
+    Request body for POST /analyze/text (mobile on-device OCR path).
+
+    Fields:
+        text: Document text recognized on the phone by ML Kit. The photo
+              itself never leaves the device — only text crosses the wire.
+    """
+
+    text: str
+
+
 class QuizGenerateRequest(BaseModel):
     """
     Request body for POST /quiz/generate.

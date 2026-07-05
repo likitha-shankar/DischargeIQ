@@ -29,7 +29,7 @@ from dischargeiq.agents.diagnosis_agent import run_diagnosis_agent
 from dischargeiq.agents.router_agent import run_router_agent
 from dischargeiq.agents.escalation_agent import run_escalation_agent
 from dischargeiq.agents.extraction_agent import run_extraction_agent
-from dischargeiq.ingest import extract_document_text
+from dischargeiq.ingest import IngestResult, extract_document_text
 from dischargeiq.agents.patient_simulator_agent import run_patient_simulator_agent
 from dischargeiq.agents.medication_agent import run_medication_agent
 from dischargeiq.agents.recovery_agent import run_recovery_agent
@@ -215,6 +215,7 @@ async def run_pipeline(
     on_progress: Callable[[int, str, str], None] | None = None,
     document_hash: str | None = None,
     db_pool=None,
+    raw_text: str | None = None,
 ) -> PipelineResponse:
     """
     Public entry point — wraps _run_pipeline_internal in a 300-second
@@ -234,9 +235,12 @@ async def run_pipeline(
                        context. When provided, avoids creating and closing a new
                        pool on every upload. When None, a short-lived pool is
                        created from DATABASE_URL (legacy / test path).
+        raw_text:      Pre-extracted document text (mobile on-device OCR path,
+                       POST /analyze/text). When set, pdf_path is a label only —
+                       no file is read; router and Agent 1 consume this text.
     """
     return await asyncio.wait_for(
-        _run_pipeline_internal(pdf_path, session_id, on_progress, document_hash, db_pool),
+        _run_pipeline_internal(pdf_path, session_id, on_progress, document_hash, db_pool, raw_text),
         timeout=_PIPELINE_TIMEOUT_SECONDS,
     )
 
@@ -247,6 +251,7 @@ async def _run_pipeline_internal(
     on_progress: Callable[[int, str, str], None] | None = None,
     document_hash: str | None = None,
     db_pool=None,
+    raw_text: str | None = None,
 ) -> PipelineResponse:
     """
     Run the multi-agent discharge pipeline on a PDF file path.
@@ -298,8 +303,11 @@ async def _run_pipeline_internal(
     try:
         if on_progress is not None:
             on_progress(0, "Router", "Classifying document type...")
-        _ingest_for_router = await asyncio.to_thread(extract_document_text, pdf_path)
-        router_result = await asyncio.to_thread(run_router_agent, _ingest_for_router.text)
+        if raw_text is not None:
+            _router_text = raw_text
+        else:
+            _router_text = (await asyncio.to_thread(extract_document_text, pdf_path)).text
+        router_result = await asyncio.to_thread(run_router_agent, _router_text)
         logger.info(
             "Router: type=%s confidence=%.2f should_process=%s",
             router_result["document_type"], router_result["confidence"], router_result["should_process"],
@@ -346,7 +354,21 @@ async def _run_pipeline_internal(
         # photographed documents through OCR in later increments. The
         # orchestrator only ever consumes IngestResult.text, so the routing
         # decision stays invisible here.
-        ingest_result = await asyncio.to_thread(extract_document_text, pdf_path)
+        if raw_text is not None:
+            # Mobile OCR path: text was recognized on-device (ML Kit) and sent
+            # via POST /analyze/text — there is no PDF to read. The scan-quality
+            # note keeps a human in the loop on the lossier capture path.
+            ingest_result = IngestResult(
+                text=raw_text,
+                source="ocr_photo",
+                page_count=0,
+                warnings=[
+                    "This summary was created from a phone camera scan. "
+                    "If something looks wrong, check the original paper document."
+                ],
+            )
+        else:
+            ingest_result = await asyncio.to_thread(extract_document_text, pdf_path)
         pdf_text = ingest_result.text
         extraction = await asyncio.to_thread(run_extraction_agent, pdf_text)
         # Surface ingest warnings (e.g. future OCR confidence banners) on the
@@ -577,8 +599,12 @@ async def _run_pipeline_internal(
         # tmpfile). Fall back to disk read on legacy / test paths where the
         # caller does not supply the hash (e.g. stress scripts, slow corpus tests).
         if document_hash is None:
-            with open(pdf_path, "rb") as pdf_file:
-                document_hash = hashlib.sha256(pdf_file.read()).hexdigest()
+            if raw_text is not None:
+                # OCR text path — there is no file on disk to hash.
+                document_hash = hashlib.sha256(raw_text.encode("utf-8")).hexdigest()
+            else:
+                with open(pdf_path, "rb") as pdf_file:
+                    document_hash = hashlib.sha256(pdf_file.read()).hexdigest()
         database_url = os.getenv("DATABASE_URL")
         if not database_url:
             raise RuntimeError("DATABASE_URL not set")
