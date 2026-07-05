@@ -326,3 +326,45 @@ def test_get_fallback_client_builds_anthropic_default(monkeypatch: pytest.Monkey
         assert model == llm_client.DEFAULT_ANTHROPIC_MODEL
     finally:
         llm_client._client_cache.pop("fallback:anthropic", None)
+
+
+# ── Vertex AI provider path (HIPAA/BAA readiness) ──────────────────────────────
+
+
+def test_vertex_provider_requires_project(monkeypatch: pytest.MonkeyPatch) -> None:
+    """LLM_PROVIDER=vertex without VERTEX_PROJECT raises a clear ValueError."""
+    from dischargeiq.utils import llm_client
+
+    monkeypatch.setenv("LLM_PROVIDER", "vertex")
+    monkeypatch.delenv("VERTEX_PROJECT", raising=False)
+    with pytest.raises(ValueError, match="VERTEX_PROJECT"):
+        llm_client.get_llm_client()
+
+
+def test_vertex_provider_builds_project_scoped_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Vertex client points at the project-scoped OpenAI-compat endpoint with a token."""
+    from types import SimpleNamespace as _NS
+
+    from dischargeiq.utils import llm_client
+
+    fake_creds = _NS(valid=True, token="fake-oauth-token")
+    fake_google_auth = _NS(default=lambda scopes: (fake_creds, "proj"))
+    monkeypatch.setitem(__import__("sys").modules, "google.auth", fake_google_auth)
+    monkeypatch.setitem(
+        __import__("sys").modules,
+        "google.auth.transport.requests",
+        _NS(Request=lambda: None),
+    )
+    monkeypatch.setattr(llm_client, "_vertex_creds", fake_creds)
+    monkeypatch.setenv("LLM_PROVIDER", "vertex")
+    monkeypatch.setenv("VERTEX_PROJECT", "dischargeiq-test")
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+    llm_client._client_cache.pop("vertex", None)
+    try:
+        client, model = llm_client.get_llm_client()
+        assert model == "google/gemini-2.5-flash-lite"
+        assert "dischargeiq-test" in str(client.base_url)
+        assert "us-central1-aiplatform.googleapis.com" in str(client.base_url)
+    finally:
+        llm_client._client_cache.pop("vertex", None)
+        monkeypatch.setattr(llm_client, "_vertex_creds", None)

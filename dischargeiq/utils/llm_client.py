@@ -74,7 +74,87 @@ _PROVIDER_DEFAULTS: dict[str, dict] = {
         "api_key_env": None,  # "ollama" is used as a placeholder — no real key needed
         "default_model": "llama3.2",
     },
+    "vertex": {
+        # Google Vertex AI — same Gemini models as the "gemini" provider, but
+        # served inside a GCP project where a HIPAA BAA can cover the calls.
+        # This is the required provider before ANY real (non-synthetic) patient
+        # document is processed. Auth uses short-lived OAuth tokens from
+        # Application Default Credentials (gcloud auth application-default login
+        # locally; the service account on Cloud Run), not a static API key.
+        # base_url is built per-project in _get_vertex_client().
+        "base_url": None,
+        "api_key_env": None,
+        "default_model": "google/gemini-2.5-flash-lite",  # Vertex needs google/ prefix
+    },
 }
+
+# Vertex OAuth credentials — cached module-wide; tokens auto-refresh via
+# google-auth when expired. Populated lazily on first vertex call.
+_vertex_creds = None
+
+
+def _get_vertex_client() -> tuple[OpenAI, str]:
+    """
+    Build (or refresh) the OpenAI-compatible client for Vertex AI.
+
+    Vertex auth uses ~1h OAuth tokens, so unlike static-key providers the
+    cached client must be rebuilt whenever the token has expired. google-auth
+    handles refresh; this function re-creates the OpenAI client with the fresh
+    token when needed.
+
+    Returns:
+        tuple[OpenAI, str]: Configured client and resolved model name.
+
+    Raises:
+        ValueError: If VERTEX_PROJECT is unset or google-auth is not installed.
+    """
+    global _vertex_creds
+
+    project = os.environ.get("VERTEX_PROJECT", "").strip()
+    if not project:
+        raise ValueError(
+            "LLM_PROVIDER=vertex requires VERTEX_PROJECT in .env "
+            "(your GCP project ID). Optional: VERTEX_LOCATION (default us-central1). "
+            "Authenticate with 'gcloud auth application-default login' locally, "
+            "or a service account on Cloud Run."
+        )
+    location = os.environ.get("VERTEX_LOCATION", "us-central1").strip()
+
+    try:
+        import google.auth
+        from google.auth.transport.requests import Request
+    except ImportError as exc:
+        raise ValueError(
+            "LLM_PROVIDER=vertex requires the google-auth package: "
+            "pip install google-auth (listed in requirements.txt)."
+        ) from exc
+
+    if _vertex_creds is None:
+        _vertex_creds, _ = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        )
+    if not _vertex_creds.valid:
+        _vertex_creds.refresh(Request())
+        _client_cache.pop("vertex", None)  # token rotated — cached client is stale
+
+    model_name = os.environ.get(
+        "LLM_MODEL", _PROVIDER_DEFAULTS["vertex"]["default_model"]
+    )
+    if "vertex" in _client_cache:
+        return _client_cache["vertex"]
+
+    base_url = (
+        f"https://{location}-aiplatform.googleapis.com/v1/"
+        f"projects/{project}/locations/{location}/endpoints/openapi"
+    )
+    result = OpenAI(
+        base_url=base_url,
+        api_key=_vertex_creds.token,
+        timeout=60.0,
+        max_retries=1,
+    ), model_name
+    _client_cache["vertex"] = result
+    return result
 
 
 def require_provider_api_key(provider: str) -> None:
@@ -124,6 +204,10 @@ def get_llm_client() -> tuple[OpenAI, str]:
             f"Unsupported LLM_PROVIDER '{provider}'. "
             f"Supported values: {supported}"
         )
+
+    # Vertex uses OAuth tokens with expiry — handled by its own builder.
+    if provider == "vertex":
+        return _get_vertex_client()
 
     require_provider_api_key(provider)
     config = _PROVIDER_DEFAULTS[provider]
@@ -278,6 +362,13 @@ def get_fallback_client() -> tuple[OpenAI, str, str] | None:
     fallback = os.environ.get("LLM_FALLBACK_PROVIDER", "anthropic").lower()
     if fallback in ("none", "") or fallback not in _PROVIDER_DEFAULTS:
         return None
+    if fallback == "vertex":
+        # Vertex uses OAuth tokens, not a static key; unconfigured → disabled.
+        try:
+            client, model = _get_vertex_client()
+        except ValueError:
+            return None
+        return client, model, "vertex"
     config = _PROVIDER_DEFAULTS[fallback]
     key_env = config["api_key_env"]
     api_key = (os.environ.get(key_env, "") if key_env else "ollama").strip()
