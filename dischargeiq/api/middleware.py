@@ -94,26 +94,6 @@ _rate_lock = threading.Lock()
 _rate_windows: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
 
 
-def _get_client_ip(request: Request) -> str:
-    """
-    Extract the real client IP from the request.
-
-    Prefers X-Forwarded-For (set by Cloud Run / nginx) over the direct
-    connection IP. Only the first hop in X-Forwarded-For is trusted — appended
-    hops can be spoofed by the client.
-
-    Args:
-        request: FastAPI Request object.
-
-    Returns:
-        str: Best-effort client IP string.
-    """
-    forwarded_for = request.headers.get("X-Forwarded-For", "")
-    if forwarded_for:
-        return forwarded_for.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
-
-
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """
     Simple in-process per-IP, per-endpoint sliding-window rate limiter.
@@ -140,7 +120,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         max_requests, window = _RATE_LIMITS[path]
-        ip = _get_client_ip(request)
+        fwd = request.headers.get("X-Forwarded-For", "")
+        ip = fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else "unknown")
         now = time.monotonic()
         cutoff = now - window
 

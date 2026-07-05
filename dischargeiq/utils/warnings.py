@@ -61,9 +61,6 @@ def assess_extraction_completeness(extraction: ExtractionOutput) -> dict:
                 that only want the flat list for display.
             has_warnings (bool): True iff either list is non-empty.
             is_critical  (bool): True iff critical_warnings is non-empty.
-            is_partial   (bool): Alias of is_critical, retained so any
-                older caller keying on this flag still behaves the same
-                way (partial == "document not usable", same as critical).
     """
     critical_warnings: list[str] = []
     advisory_warnings: list[str] = []
@@ -116,5 +113,4 @@ def assess_extraction_completeness(extraction: ExtractionOutput) -> dict:
         "warning_messages": critical_warnings + advisory_warnings,
         "has_warnings": has_warnings,
         "is_critical": is_critical,
-        "is_partial": is_critical,
     }

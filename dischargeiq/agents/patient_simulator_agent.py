@@ -40,7 +40,6 @@ invoked from evaluation or orchestration paths after extraction succeeds.
 
 from __future__ import annotations
 
-import csv
 import json
 import logging
 import os
@@ -59,6 +58,7 @@ from dischargeiq.models.pipeline import (
     PatientSimulatorOutput,
 )
 from dischargeiq.utils.llm_client import call_chat_with_fallback, get_llm_client
+from dischargeiq.utils.scorer import log_fk_score
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,6 @@ logger = logging.getLogger(__name__)
 # inside Anthropic Haiku's per-call budget.
 _MAX_TOKENS = 1800
 _PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
-_FK_LOG_PATH = Path(__file__).parent.parent / "evaluation" / "fk_log.csv"
 _FK_THRESHOLD = 8.0
 
 _FALLBACK_OUTPUT = PatientSimulatorOutput(
@@ -400,35 +399,6 @@ def _text_for_fk(concepts: list[MissedConcept], simulator_summary: str) -> str:
     return joined if joined else "."
 
 
-def _log_fk_row(document_id: str, fk_grade: float, passes: bool) -> None:
-    """Append Agent 6 FK row to evaluation/fk_log.csv."""
-    _FK_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    write_header = not _FK_LOG_PATH.exists()
-    try:
-        with open(_FK_LOG_PATH, "a", newline="", encoding="utf-8") as f:
-            w = csv.DictWriter(
-                f,
-                fieldnames=[
-                    "document_id",
-                    "agent",
-                    "fk_grade",
-                    "passes",
-                    "threshold",
-                ],
-            )
-            if write_header:
-                w.writeheader()
-            w.writerow({
-                "document_id": document_id,
-                "agent": "agent6_patient_simulator",
-                "fk_grade": fk_grade,
-                "passes": passes,
-                "threshold": _FK_THRESHOLD,
-            })
-    except OSError as exc:
-        logger.warning("Agent 6 FK log write failed for '%s': %s", document_id, exc)
-
-
 _ITEM_QUESTIONS_HEADER = re.compile(r"(?im)^\s*ITEM_QUESTIONS_JSON\s*:\s*$")
 
 
@@ -590,7 +560,7 @@ def _parse_simulator_response(
         passes=passes,
         caregiver_questions=caregiver_questions,
     )
-    _log_fk_row(document_id, fk_grade, passes)
+    log_fk_score(document_id, "agent6_patient_simulator", {"fk_grade": fk_grade, "passes": passes, "threshold": _FK_THRESHOLD})
     return out
 
 

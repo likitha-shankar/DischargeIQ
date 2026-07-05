@@ -43,28 +43,18 @@ class SessionStore:
         serialise all three; separate locks let them proceed in parallel.
 
     LRU eviction:
-        The PDF store is capped at `pdf_store_max` entries. When the cap is
+        The PDF store is capped at _PDF_STORE_MAX entries. When the cap is
         reached, the oldest entry (first inserted) is evicted, and its
         corresponding simulator entry is also removed to avoid orphaned data.
-
-    Args:
-        pdf_store_max: Maximum number of PDF sessions to hold in memory.
-        progress_ttl:  Seconds before a progress entry is considered stale.
     """
 
-    def __init__(
-        self,
-        pdf_store_max: int = _PDF_STORE_MAX,
-        progress_ttl: float = _PROGRESS_TTL_SECONDS,
-    ) -> None:
+    def __init__(self) -> None:
         self._pdf: OrderedDict[str, bytes] = OrderedDict()
         self._simulator: OrderedDict[str, dict] = OrderedDict()
         self._progress: dict[str, dict] = {}
         self._pdf_lock = threading.Lock()
         self._simulator_lock = threading.Lock()
         self._progress_lock = threading.Lock()
-        self.pdf_store_max = pdf_store_max
-        self.progress_ttl = progress_ttl
 
     # ── PDF store ─────────────────────────────────────────────────────────────
 
@@ -85,7 +75,7 @@ class SessionStore:
         """
         session_id = session_id or str(uuid.uuid4())
         with self._pdf_lock:
-            if len(self._pdf) >= self.pdf_store_max:
+            if len(self._pdf) >= _PDF_STORE_MAX:
                 old_sid, _ = self._pdf.popitem(last=False)
                 with self._simulator_lock:
                     self._simulator.pop(old_sid, None)
@@ -193,7 +183,7 @@ class SessionStore:
             stale = [
                 sid
                 for sid, p in self._progress.items()
-                if now - p.get("created_at", now) > self.progress_ttl
+                if now - p.get("created_at", now) > _PROGRESS_TTL_SECONDS
             ]
             for sid in stale:
                 self._progress.pop(sid, None)

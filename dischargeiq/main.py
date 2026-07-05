@@ -26,7 +26,7 @@ Backward-compat re-exports (tests only — do not use in new code):
     _pdf_store_lock         → session_store._pdf_lock      (threading.Lock)
     _simulator_store        → session_store._simulator     (OrderedDict)
     _pipeline_progress      → session_store._progress      (dict)
-    _PROGRESS_TTL_SECONDS   → session_store.progress_ttl   (float)
+    _PROGRESS_TTL_SECONDS   → services.session._PROGRESS_TTL_SECONDS (float)
 """
 
 from dotenv import load_dotenv
@@ -39,7 +39,7 @@ configure_logging()
 
 from dischargeiq.api.app import create_app
 from dischargeiq.api.routes.analyze import validate_uploaded_pdf
-from dischargeiq.services.session import session_store
+from dischargeiq.services.session import _PROGRESS_TTL_SECONDS, session_store
 
 # ── Public app symbol (uvicorn entry point) ───────────────────────────────────
 app = create_app()
@@ -55,4 +55,4 @@ _pdf_store = session_store._pdf
 _pdf_store_lock = session_store._pdf_lock
 _simulator_store = session_store._simulator
 _pipeline_progress = session_store._progress
-_PROGRESS_TTL_SECONDS = session_store.progress_ttl
+# _PROGRESS_TTL_SECONDS re-exported directly from services.session import above

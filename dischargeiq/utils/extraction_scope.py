@@ -13,71 +13,49 @@ Called by: dischargeiq.pipeline.orchestrator (before each downstream agent run).
 
 from dischargeiq.models.extraction import ExtractionOutput
 
+_CLEARED: dict = {
+    "patient_name": None,
+    "discharge_date": None,
+    "primary_diagnosis_source": None,
+    "secondary_diagnoses": [],
+    "procedures_performed": [],
+    "medications": [],
+    "follow_up_appointments": [],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": None,
+    "extraction_warnings": [],
+}
+
 
 def scope_for_agent2(extraction: ExtractionOutput) -> ExtractionOutput:
-    """Primary + secondary diagnoses only (no procedures — orchestrator clears those)."""
-    return extraction.model_copy(
-        update={
-            "patient_name": None,
-            "discharge_date": None,
-            "primary_diagnosis_source": None,
-            "procedures_performed": [],
-            "medications": [],
-            "follow_up_appointments": [],
-            "activity_restrictions": [],
-            "dietary_restrictions": [],
-            "red_flag_symptoms": [],
-            "discharge_condition": None,
-            "extraction_warnings": [],
-        }
-    )
+    """Primary + secondary diagnoses only."""
+    return extraction.model_copy(update={**_CLEARED, "secondary_diagnoses": extraction.secondary_diagnoses})
 
 
 def scope_for_agent3(extraction: ExtractionOutput) -> ExtractionOutput:
-    """Primary diagnosis + medication list (+ source spans on meds)."""
-    return extraction.model_copy(
-        update={
-            "patient_name": None,
-            "discharge_date": None,
-            "primary_diagnosis_source": None,
-            "secondary_diagnoses": [],
-            "procedures_performed": [],
-            "follow_up_appointments": [],
-            "activity_restrictions": [],
-            "dietary_restrictions": [],
-            "red_flag_symptoms": [],
-            "discharge_condition": None,
-            "extraction_warnings": [],
-        }
-    )
+    """Primary diagnosis + medication list."""
+    return extraction.model_copy(update={**_CLEARED, "medications": extraction.medications})
 
 
 def scope_for_agent4(extraction: ExtractionOutput) -> ExtractionOutput:
-    """Recovery: diagnosis, procedures, restrictions, red flags, and discharge condition."""
-    return extraction.model_copy(
-        update={
-            "patient_name": None,
-            "discharge_date": None,
-            "primary_diagnosis_source": None,
-            "medications": [],
-            "follow_up_appointments": [],
-            "extraction_warnings": [],
-        }
-    )
+    """Recovery: diagnosis, procedures, restrictions, red flags, discharge condition."""
+    return extraction.model_copy(update={
+        **_CLEARED,
+        "procedures_performed": extraction.procedures_performed,
+        "activity_restrictions": extraction.activity_restrictions,
+        "dietary_restrictions": extraction.dietary_restrictions,
+        "red_flag_symptoms": extraction.red_flag_symptoms,
+        "discharge_condition": extraction.discharge_condition,
+    })
 
 
 def scope_for_agent5(extraction: ExtractionOutput) -> ExtractionOutput:
-    """Escalation: diagnosis, red flags, secondaries, medications only."""
-    return extraction.model_copy(
-        update={
-            "patient_name": None,
-            "discharge_date": None,
-            "primary_diagnosis_source": None,
-            "procedures_performed": [],
-            "follow_up_appointments": [],
-            "activity_restrictions": [],
-            "dietary_restrictions": [],
-            "discharge_condition": None,
-            "extraction_warnings": [],
-        }
-    )
+    """Escalation: diagnosis, red flags, secondaries, medications."""
+    return extraction.model_copy(update={
+        **_CLEARED,
+        "secondary_diagnoses": extraction.secondary_diagnoses,
+        "medications": extraction.medications,
+        "red_flag_symptoms": extraction.red_flag_symptoms,
+    })

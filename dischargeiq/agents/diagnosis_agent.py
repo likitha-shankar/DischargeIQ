@@ -32,7 +32,6 @@ Dependencies:
 BLOCKED BY: Agent 1 must be done before this runs in production.
 """
 
-import csv
 import logging
 import os
 from pathlib import Path
@@ -41,7 +40,7 @@ from openai import APIError, OpenAI
 
 from dischargeiq.models.extraction import ExtractionOutput
 from dischargeiq.utils.llm_client import call_chat_with_fallback, get_llm_client
-from dischargeiq.utils.scorer import fk_check
+from dischargeiq.utils.scorer import fk_check, log_fk_score
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +58,6 @@ _FK_RETRY_THRESHOLD = 6.5
 
 # Paths resolved relative to this file
 _PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
-_FK_LOG_PATH = Path(__file__).parent.parent / "evaluation" / "fk_log.csv"
 
 
 # ── Internal helpers ───────────────────────────────────────────────────────────
@@ -164,35 +162,6 @@ def _call_llm(
         raise
 
 
-def _log_fk_score(document_id: str, fk_result: dict) -> None:
-    """
-    Append an FK score result to dischargeiq/evaluation/fk_log.csv.
-
-    Creates the file with a header row if it does not already exist.
-    All Agent 2 FK scores must be logged.
-
-    Args:
-        document_id: Source document identifier (e.g. "heart_failure_01.pdf").
-        fk_result:   Dict returned by fk_check() — keys: fk_grade, passes, threshold.
-    """
-    _FK_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    write_header = not _FK_LOG_PATH.exists()
-
-    with open(_FK_LOG_PATH, "a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(
-            f, fieldnames=["document_id", "agent", "fk_grade", "passes", "threshold"]
-        )
-        if write_header:
-            writer.writeheader()
-        writer.writerow({
-            "document_id": document_id,
-            "agent": "agent2_diagnosis",
-            "fk_grade": fk_result["fk_grade"],
-            "passes": fk_result["passes"],
-            "threshold": fk_result["threshold"],
-        })
-
-
 # ── Public API ─────────────────────────────────────────────────────────────────
 
 def run_diagnosis_agent(
@@ -292,7 +261,7 @@ def run_diagnosis_agent(
 
     # Only the accepted attempt is logged to fk_log.csv — downstream evaluators
     # see one row per document, not two rows for retried cases.
-    _log_fk_score(document_id, chosen_fk)
+    log_fk_score(document_id, "agent2_diagnosis", chosen_fk)
 
     if chosen_fk["passes"]:
         logger.info(

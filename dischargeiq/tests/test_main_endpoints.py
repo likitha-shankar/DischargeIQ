@@ -26,7 +26,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from dischargeiq.main import app
-from dischargeiq.services.session import session_store
+from dischargeiq.services.session import _PROGRESS_TTL_SECONDS, session_store
 
 _client = TestClient(app, raise_server_exceptions=True)
 
@@ -152,7 +152,7 @@ def test_progress_sweep_evicts_stale_entries():
             "current_agent": 7,
             "agent_name": "Complete",
             "message": "Almost ready...",
-            "created_at": time.time() - (session_store.progress_ttl + 60),
+            "created_at": time.time() - (_PROGRESS_TTL_SECONDS + 60),
         }
     assert session_store.get_progress(sid) is not None
 
