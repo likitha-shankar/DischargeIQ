@@ -33,6 +33,10 @@ _S_PRE_RESULT = "quiz_pre_result"
 _S_POST_RESULT = "quiz_post_result"
 _S_LEARN_IDX = "quiz_learn_idx"
 _S_REVIEW_DOMAINS = "quiz_review_domains"  # mastery path filter
+_S_CELEBRATED = "quiz_celebrated"  # balloons fired once for this results view
+
+# Short, 5th-grade-level praise lines for correct post-quiz answers.
+_PRAISE = ["You got it!", "Nice work!", "That's right!", "Great memory!", "Well done!"]
 
 _DOMAIN_LABELS = {
     "diagnosis": "What happened",
@@ -77,7 +81,7 @@ def _reset() -> None:
     for key in (
         _S_PHASE, _S_QUESTIONS, _S_POST_ORDER, _S_CURRENT, _S_PRE_ANSWERS,
         _S_POST_ANSWERS, _S_PRE_RESULT, _S_POST_RESULT, _S_LEARN_IDX,
-        _S_REVIEW_DOMAINS,
+        _S_REVIEW_DOMAINS, _S_CELEBRATED,
     ):
         st.session_state.pop(key, None)
 
@@ -151,7 +155,14 @@ def _render_quiz_phase(phase: str, session_id: str, api_base: str) -> None:
         # Pre phase must not (§3a) - the baseline can't be a lesson.
         if not is_pre:
             if choice == question["correct_index"]:
-                st.success(f"Correct! {question['explanation']}")
+                praise = _PRAISE[hash(question["question"]) % len(_PRAISE)]
+                st.success(f"⭐ {praise} {question['explanation']}")
+                # Accuracy streak (no timers, no speed points): derived from
+                # the answers themselves so Streamlit reruns can't double-count.
+                streak = _streak_through(questions, st.session_state[_S_POST_ORDER],
+                                         st.session_state[answers_key], current)
+                if streak >= 2:
+                    st.markdown(f"🔥 **{streak} in a row!**")
             else:
                 st.error(
                     f"The answer is: **{question['options'][question['correct_index']]}**. "
@@ -205,6 +216,24 @@ def _finish_phase(phase: str, session_id: str, api_base: str) -> None:
     else:
         st.session_state[_S_POST_RESULT] = scored
         st.session_state[_S_PHASE] = "results"
+
+
+def _streak_through(questions: list, order: list[int], answers: list, upto: int) -> int:
+    """
+    Consecutive correct answers in post presentation order, ending at `upto`.
+
+    Derived from stored answers (not incremented on events) so Streamlit's
+    rerun-per-interaction model cannot double-count a streak.
+    """
+    streak = 0
+    for pos in range(upto + 1):
+        q_index = order[pos]
+        answer = answers[q_index]
+        if answer is not None and answer == questions[q_index]["correct_index"]:
+            streak += 1
+        else:
+            streak = 0
+    return streak
 
 
 def _score_locally(phase: str, keys: list[dict], answers: list[int]) -> dict:
@@ -326,6 +355,13 @@ def _render_results() -> None:
     elif not post.get("failed_domains"):
         st.success("💯 You understood every topic - great job!")
 
+    # Celebration gating (mirrors the mobile app): balloons only when
+    # comprehension improved or the score is perfect, and only once per
+    # results view so reruns don't spam the animation.
+    if (lift > 0 or post_pct >= 100) and not st.session_state.get(_S_CELEBRATED):
+        st.session_state[_S_CELEBRATED] = True
+        st.balloons()
+
     st.markdown("**How you did by topic**")
     for domain, bucket in (post.get("domain_scores") or {}).items():
         full = bucket["correct"] == bucket["total"]
@@ -341,6 +377,8 @@ def _render_results() -> None:
             st.session_state[_S_REVIEW_DOMAINS] = set(failed)
             st.session_state[_S_LEARN_IDX] = 0
             st.session_state[_S_PHASE] = "learn"
+            # A mastery retake earns a fresh celebration if it improves things.
+            st.session_state.pop(_S_CELEBRATED, None)
             st.rerun()
     else:
         st.info("Share what you learned with a family member - teaching it back is the best proof you've got it.")

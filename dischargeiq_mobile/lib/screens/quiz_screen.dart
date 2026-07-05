@@ -22,6 +22,7 @@ import 'package:dischargeiq_mobile/models/quiz.dart';
 import 'package:dischargeiq_mobile/services/api_service.dart';
 import 'package:dischargeiq_mobile/widgets/quiz_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 
 enum _Phase { intro, loading, pre, learn, post, results, error }
 
@@ -54,6 +55,8 @@ class _QuizBodyState extends State<QuizBody> {
   // Mastery path: when set, the learn phase shows only these domains.
   Set<String> _reviewDomains = {};
   int _learnIndex = 0;
+  // Consecutive correct answers in the post phase (accuracy streak, no timer).
+  int _streak = 0;
 
   // ── Flow actions ─────────────────────────────────────────────────────────
 
@@ -92,8 +95,22 @@ class _QuizBodyState extends State<QuizBody> {
   List<int?> get _answers =>
       _phase == _Phase.post ? _postAnswers : _preAnswers;
 
-  void _select(int option) =>
-      setState(() => _answers[_qIndex] = option);
+  void _select(int option) {
+    // First tap in the post phase locks the answer and drives streak +
+    // haptics; a correct pick extends the streak, a miss quietly resets it
+    // (non-punitive: no buzz, no lost points).
+    if (_phase == _Phase.post && _answers[_qIndex] == null) {
+      if (option == _questions[_qIndex].correctIndex) {
+        _streak++;
+        HapticFeedback.mediumImpact();
+      } else {
+        _streak = 0;
+      }
+    } else {
+      HapticFeedback.selectionClick();
+    }
+    setState(() => _answers[_qIndex] = option);
+  }
 
   Future<void> _next() async {
     if (_current < _questions.length - 1) {
@@ -169,6 +186,7 @@ class _QuizBodyState extends State<QuizBody> {
       _postAnswers = List.filled(_questions.length, null);
       _postOrder = List.generate(_questions.length, (i) => i)..shuffle(Random());
       _current = 0;
+      _streak = 0;
       _phase = _Phase.post;
     });
   }
@@ -288,6 +306,11 @@ class _QuizBodyState extends State<QuizBody> {
               ? 'Before you learn - question ${_current + 1} of ${_questions.length}'
               : 'After learning - question ${_current + 1} of ${_questions.length}',
         ),
+        // Accuracy streak, post phase only (the baseline gives no feedback).
+        if (!isPre && _streak >= 2 && answered) ...[
+          const SizedBox(height: 10),
+          Align(alignment: Alignment.centerLeft, child: StreakChip(streak: _streak)),
+        ],
         const SizedBox(height: 18),
         QuestionCard(
           // Key forces a fresh card per question so option state never leaks.
@@ -390,7 +413,11 @@ class _QuizBodyState extends State<QuizBody> {
     final post = _postResult;
     if (post == null) return const SizedBox.shrink();
     final mastered = post.failedDomains.isEmpty;
-    return ListView(
+    // Celebration gating (research: rare celebrations register as meaningful):
+    // confetti only when comprehension improved; a bigger burst for 100%.
+    final perfect = post.percent >= 100;
+    final improved = pre != null && post.percent > pre.percent;
+    final listView = ListView(
       children: [
         const SizedBox(height: 8),
         Center(child: ScoreRing(percent: post.percent)),
@@ -446,6 +473,11 @@ class _QuizBodyState extends State<QuizBody> {
         ),
       ],
     );
+    if (!improved && !perfect) return listView;
+    return Stack(children: [
+      listView,
+      Positioned.fill(child: ConfettiBurst(pieces: perfect ? 110 : 60)),
+    ]);
   }
 }
 

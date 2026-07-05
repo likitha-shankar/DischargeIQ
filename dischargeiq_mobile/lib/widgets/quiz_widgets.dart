@@ -2,9 +2,17 @@
 ///
 /// Reusable visual pieces for the teach-back quiz flow (Sprint 3):
 /// question card with tappable options, step progress bar, animated score
-/// ring, per-domain result chips, and the comprehension-lift banner.
+/// ring, per-domain result chips, the comprehension-lift banner, the
+/// answer-streak chip, and the milestone confetti overlay.
 /// Pure presentation - all state lives in QuizScreen.
+///
+/// Game-design notes (from patient-education gamification research):
+/// celebrations are GATED to milestones (improved score, perfect score) so
+/// they stay rare and meaningful; feedback is instant and non-punitive; no
+/// timers or speed scoring, which pressure older or unwell patients.
 library;
+
+import 'dart:math' show Random, pi, sin;
 
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/models/quiz.dart';
@@ -124,7 +132,21 @@ class QuestionCard extends StatelessWidget {
           const SizedBox(height: 10),
         ],
         if (showFeedback) ...[
-          const SizedBox(height: 4),
+          if (selectedIndex == question.correctIndex) ...[
+            const SizedBox(height: 4),
+            Row(children: [
+              const Icon(Icons.star_rounded, size: 18, color: kTier3),
+              const SizedBox(width: 6),
+              Text(
+                // Deterministic per question so rebuilds don't reshuffle praise.
+                _kPraise[question.question.hashCode.abs() % _kPraise.length],
+                style: const TextStyle(
+                    fontWeight: FontWeight.w700, color: kTier3, fontSize: 14),
+              ),
+            ]),
+            const SizedBox(height: 8),
+          ] else
+            const SizedBox(height: 4),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
@@ -149,6 +171,15 @@ class QuestionCard extends StatelessWidget {
     return _OptionState.idle;
   }
 }
+
+// Short, 5th-grade-level praise lines for correct post-quiz answers.
+const _kPraise = [
+  'You got it!',
+  'Nice work!',
+  "That's right!",
+  'Great memory!',
+  'Well done!',
+];
 
 enum _OptionState { idle, selected, correct, wrong }
 
@@ -291,6 +322,144 @@ class DomainChips extends StatelessWidget {
             labelStyle: const TextStyle(color: kTextPrimaryLight),
           ),
       ],
+    );
+  }
+}
+
+/// "N in a row!" chip shown during the post quiz for 2+ consecutive correct
+/// answers. Pops in with a gentle scale; accuracy-based, never speed-based.
+class StreakChip extends StatelessWidget {
+  const StreakChip({super.key, required this.streak});
+
+  final int streak;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      // A new streak value re-triggers the pop via the key.
+      key: ValueKey(streak),
+      tween: Tween(begin: 0.6, end: 1),
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.elasticOut,
+      builder: (context, scale, child) =>
+          Transform.scale(scale: scale, child: child),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: kTier3Bg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: kTier3, width: 1.2),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.local_fire_department_rounded,
+                size: 18, color: kTier3),
+            const SizedBox(width: 5),
+            Text(
+              '$streak in a row!',
+              style: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: kTextPrimaryLight),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One falling confetti piece: spawn column, sway, spin, color, size, delay.
+class _ConfettiPiece {
+  _ConfettiPiece(Random rng)
+      : x = rng.nextDouble(),
+        delay = rng.nextDouble() * 0.35,
+        sway = 0.02 + rng.nextDouble() * 0.05,
+        swaySpeed = 2 + rng.nextDouble() * 3,
+        size = 5 + rng.nextDouble() * 5,
+        spin = (rng.nextDouble() - 0.5) * 8,
+        color = _palette[rng.nextInt(_palette.length)];
+
+  static const _palette = [kTealMid, kTealLight, kTier3, kTier2, kMedNew];
+
+  final double x, delay, sway, swaySpeed, size, spin;
+  final Color color;
+}
+
+class _ConfettiPainter extends CustomPainter {
+  _ConfettiPainter(this.pieces, this.t);
+
+  final List<_ConfettiPiece> pieces;
+  final double t; // 0..1 animation progress
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+    for (final p in pieces) {
+      final local = ((t - p.delay) / (1 - p.delay)).clamp(0.0, 1.0);
+      if (local == 0) continue;
+      // Ease-in fall from above the top edge to below the bottom edge.
+      final y = (local * local * 0.7 + local * 0.5) * (size.height + 40) - 20;
+      final x =
+          (p.x + sin(local * p.swaySpeed * pi) * p.sway) * size.width;
+      // Fade out over the last quarter of the fall.
+      paint.color = p.color.withValues(alpha: (1 - local) < 0.25 ? (1 - local) * 4 : 1);
+      canvas.save();
+      canvas.translate(x, y);
+      canvas.rotate(local * p.spin);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromCenter(
+                center: Offset.zero, width: p.size, height: p.size * 0.6),
+            const Radius.circular(2)),
+        paint,
+      );
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ConfettiPainter old) => old.t != t;
+}
+
+/// One-shot confetti overlay for milestone celebrations. Plays once on mount
+/// and fades itself out; wrap in Positioned.fill inside a Stack.
+class ConfettiBurst extends StatefulWidget {
+  const ConfettiBurst({super.key, this.pieces = 60});
+
+  final int pieces;
+
+  @override
+  State<ConfettiBurst> createState() => _ConfettiBurstState();
+}
+
+class _ConfettiBurstState extends State<ConfettiBurst>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 2400))
+    ..forward();
+  late final List<_ConfettiPiece> _pieces =
+      List.generate(widget.pieces, (_) => _ConfettiPiece(Random()));
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (_, __) => _controller.isCompleted
+            ? const SizedBox.shrink()
+            : CustomPaint(
+                painter: _ConfettiPainter(_pieces, _controller.value),
+                size: Size.infinite,
+              ),
+      ),
     );
   }
 }
