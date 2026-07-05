@@ -4993,16 +4993,19 @@ def _render_upload_screen() -> None:
             unsafe_allow_html=True,
         )
 
-        # 4 step cards - workflow steps (upload → agents → summaries → gap finder)
+        # 4 step cards - workflow steps (upload → agents → summaries → gap finder).
+        # One brand hue, light to dark: the deepening teal reads as the steps
+        # advancing. The old blue/purple/red chips made 04 look like an error
+        # and matched the generic AI-template look.
         steps = [
             ("01", "Upload your PDF", "Drag &amp; drop to get started",
-             "linear-gradient(135deg,#0F6E56,#1D9E75)"),
+             "linear-gradient(135deg,#5DCAA5,#1D9E75)"),
             ("02", "6 agents analyze", "~30 seconds, no manual work",
-             "linear-gradient(135deg,#1D4ED8,#3B82F6)"),
+             "linear-gradient(135deg,#1D9E75,#0F6E56)"),
             ("03", "Plain summaries", "Meds, recovery, appointments &amp; more",
-             "linear-gradient(135deg,#7C3AED,#A78BFA)"),
+             "linear-gradient(135deg,#0F6E56,#085041)"),
             ("04", "AI finds the gaps", "Spots what&apos;s missing from your doc",
-             "linear-gradient(135deg,#DC2626,#F87171)"),
+             "linear-gradient(135deg,#085041,#04342C)"),
         ]
         cards_inner = "".join(
             f"""<div style="flex:1;min-width:0;background:{card_bg};
