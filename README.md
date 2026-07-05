@@ -82,18 +82,26 @@ Default `pytest` settings live in `pytest.ini` (**verbose**, **skip `slow`**; de
 
 ```
 dischargeiq/
-├── agents/            Agents 1–6 (extraction → education → simulator)
-├── pipeline/          Async orchestrator wiring all agents
-├── models/            Pydantic models (ExtractionOutput, PipelineResponse)
-├── prompts/           System prompts for all 6 agents + LLM judge
-├── utils/             FK scorer, LLM client, warnings, logger
-├── db/                Neon history persistence
-├── tests/             Pytest suites (guardrails, hallucination, corpus)
+├── agents/            Router + Agents 1–6 + quiz agent (extraction → education → simulator → quiz)
+├── pipeline/          Async orchestrator wiring router + all agents
+├── models/            Pydantic models (ExtractionOutput, PipelineResponse, Quiz*)
+├── prompts/           System prompts (router, agents 1–6, quiz, LLM judge)
+├── utils/             FK scorer, LLM client (failover + Vertex AI path), warnings, logger
+├── db/                Neon persistence (history, quiz scores)
+├── services/          Chat + quiz scoring services
+├── api/               FastAPI app factory, routes (analyze/chat/quiz/pdf/progress), middleware
+├── tests/             Pytest suites (guardrails, hallucination, corpus, quiz)
 ├── evaluation/        FK logs, cost estimates, judge results
 └── docs/              Extraction schema reference
+dischargeiq_mobile/  Flutter app — the PRIMARY product (upload → 7 tabs incl.
+                     "Test yourself" teach-back quiz → chat)
+ui/                Streamlit tab modules (new tabs go here, not the monolith)
+docs/deliverables/ Summer work-plan deliverables: commits, demo tags, status
+scripts/           Corpus generator + Neon loader + stress tooling
+test-data/         Synthetic PDFs incl. the locked 50-doc corpus (synthetic/)
 tests/             Root-level integration runners + tests/manual/ smoke scripts
-streamlit_app.py   6-tab Streamlit dashboard (What happened / Medications /
-                   Appointments / Warning signs / Recovery / AI Review)
+streamlit_app.py   7-tab Streamlit fallback surface (What happened / Medications /
+                   Appointments / Warning signs / Recovery / Test yourself / AI Review)
 start.sh / .bat    One-command startup scripts
 requirements.txt   Pinned dependencies
 .env.example       Env template — copy to .env and fill in keys

@@ -39,8 +39,17 @@ discharge documents.
 
 ## Current project status (detailed) — for AI assistants
 
-**Last reviewed:** June 2026. Treat this section as the source of truth for
-“what is happening now.” Older sections below (e.g. dated milestones) may be stale.
+**Last reviewed:** July 2026 (LOF summer engagement, Week 2). Treat this section
+as the source of truth for “what is happening now.” Older sections below (e.g.
+dated milestones) may be stale.
+
+**Summer engagement (July 2026):** DischargeIQ is now a funded 12-week Leap of
+Faith project. Work plan: `docs/deliverables/README.md` maps every deliverable
+to commits and demo tags. New since June: supervisor/router agent, cross-provider
+LLM failover, Vertex AI (BAA) provider path, locked 50-doc synthetic corpus
+(`test-data/synthetic/` + Neon `synthetic_corpus`), and the teach-back quiz loop
+(`/quiz/generate`, `/quiz/score`, `quiz_scores` table, quiz UIs on mobile and
+Streamlit). Comprehension-lift target: 13% baseline → 50–70%.
 
 ### Where the product stands
 
@@ -66,6 +75,10 @@ discharge documents.
 
 - **Single provider for all agents:** Every agent reads **`LLM_PROVIDER`**
   (default **`gemini`** as of June 2026) via shared helpers in `dischargeiq/utils/llm_client.py`.
+  Also supported (July 2026): **`vertex`** — same Gemini models through a GCP
+  project under BAA (requires `VERTEX_PROJECT`, ADC auth; the REQUIRED path for
+  real patient data), and **`LLM_FALLBACK_PROVIDER`** (default anthropic) for
+  one automatic cross-provider failover attempt.
   Agents 1, 2, 6 use `get_llm_client()` (OpenAI-compat client for all providers).
   Agents 3–5 use `get_native_agent_client(provider)` — returns native `anthropic.Anthropic`
   on the `anthropic` path and the OpenAI-compat client for all other providers (gemini,
@@ -93,14 +106,22 @@ discharge documents.
 | POST | `/analyze` | Multipart PDF upload; runs full pipeline |
 | GET | `/pdf/{session_id}` | Retrieve stored PDF bytes for session (used with Streamlit viewer) |
 | POST | `/chat` | Grounded chat answer. Body: `message`, `session_id`, `pipeline_context` (CORS enabled for Streamlit origins) |
+| POST | `/quiz/generate` | Teach-back quiz: 5 non-leading MCQs from the session's extraction. Body: `session_id`, `extraction`. Stateless; rate-limited 10/min |
+| POST | `/quiz/score` | Score one quiz phase. Body: `session_id`, `phase` (`pre`\|`post`), `question_keys`, `answers`. Persists to `quiz_scores` (non-fatal without DB); post phases return `comprehension_delta` vs the first stored pre score |
 
 ### Frontend and tooling
 
 - **Streamlit** is the main MVP UI; it talks to the API (including `/chat` with CORS).
-- **Streamlit UI has 6 tabs:** What Happened / Medications / Appointments /
-  Warning Signs / Recovery / AI Review. The AI Review tab surfaces Agent 6
-  output (gap score bar, missed-concept cards by severity, answered-concept expander).
-  The tab is always visible — Agent 6 runs on every upload (non-fatal fallback on failure).
+- **Streamlit UI has 7 tabs (July 2026):** What Happened / Medications / Appointments /
+  Warning Signs / Recovery / **Test yourself** / AI Review. The AI Review tab surfaces
+  Agent 6 output (gap score bar, missed-concept cards by severity, answered-concept
+  expander). The tab is always visible — Agent 6 runs on every upload (non-fatal
+  fallback on failure). "Test yourself" is the teach-back quiz loop (`ui/quiz_tab.py`);
+  new Streamlit tabs go in the `ui/` package, never into streamlit_app.py.
+- **PRODUCT PRIORITY (July 2026):** the Flutter mobile app (`dischargeiq_mobile/`)
+  is the MAIN product; Streamlit is the fallback/demo surface. Mobile development
+  is UNFROZEN. The app has upload → results (7 tabs incl. "Test yourself" quiz) →
+  chat, and talks to the same API.
 - **HITL framing:** The AI Review tab opens with a patient-facing notice that
   gaps are for discussion with their care team, not medical diagnoses.
 - **iOS / SwiftUI client:** Development is **on hold** for the shared repo.
@@ -144,9 +165,11 @@ Additional scripts and stress runners are documented in **`README.md`**.
 - **Mobile apps frozen:** `ios/` (SwiftUI) is gitignored and local-only.
   `dischargeiq_mobile/` (Flutter) source is tracked in Git but development is
   frozen; only its build artifacts are gitignored.
-- **No automatic LLM cross-failover:** If the active provider is down, agents 2–5
-  fail together and the API returns **partial** with empty sections. Streamlit shows
-  section-level warnings; a full provider fallback is not wired.
+- ~~No automatic LLM cross-failover~~ **RESOLVED July 2026:** `call_chat_with_fallback`
+  now makes one failover attempt on `LLM_FALLBACK_PROVIDER` (default anthropic,
+  `none` disables) when the primary provider fails after its retries. Covers all
+  agents on the OpenAI-compat path. If both providers fail, behavior is the old
+  one: **partial** with section-level warnings.
 
 ## Team (Plan B assignments)
 
