@@ -3,6 +3,7 @@ import 'dart:math' show max, min;
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/services/api_service.dart';
+import 'package:dischargeiq_mobile/screens/quiz_screen.dart';
 import 'package:dischargeiq_mobile/screens/settings_screen.dart';
 import 'package:dischargeiq_mobile/widgets/guided_tour.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,7 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
     'Appointments',
     'Warning signs',
     'Recovery',
+    'Test yourself',
     'Discharge Check',
   ];
 
@@ -143,6 +145,13 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
                 _RecoveryBody(
                   trajectory: '${r['recovery_trajectory'] ?? ''}',
                   extraction: r['extraction'],
+                ),
+                // Teach-back quiz (Sprint 3) — the comprehension-lift loop.
+                // Session id reuses the backend's pdf_session_id so quiz
+                // scores join up with the analyze session in Neon.
+                QuizBody(
+                  result: r,
+                  sessionId: '${r['pdf_session_id'] ?? DateTime.now().millisecondsSinceEpoch}',
                 ),
                 KeyedSubtree(
                   key: TourKeys.dischargeCheck,
