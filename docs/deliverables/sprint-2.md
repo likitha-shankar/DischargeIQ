@@ -8,8 +8,8 @@ discharge document with the camera, get 6th-grade output back — live.
 | Task | Deliverable | Status |
 |---|---|---|
 | 2.1 | Flutter core UI (themes, state, camera + detail screens) | Head start: app already has upload → results → quiz flow |
-| 2.2 | Camera + ML Kit OCR pipeline (edge detection, perspective correction) | ◻ |
-| 2.3 | Client-to-server integration (TLS, multipart, loading states) | Partially done (upload path works; OCR-text path ◻) |
+| 2.2 | Camera + ML Kit OCR pipeline | ✅ `7a2bf9c` — [task-2.2](tasks/task-2.2.md) (edge detection deferred) |
+| 2.3 | Client-to-server integration | ✅ — PDF upload + OCR-text path (`e5de64b`) both live |
 | 2.4 | TestFlight + Play Internal Testing distribution | ◻ — blocked on developer account verification |
 | 2.5 | Beta onboarding (15 testers → 10–20 active installs) | ◻ |
 
