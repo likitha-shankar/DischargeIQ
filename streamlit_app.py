@@ -3877,6 +3877,15 @@ def _render_chat_widget(result: dict) -> None:
         display: flex; flex-direction: column; gap: 8px;
       }
 
+      /* Empty-state hint: visible only while it is the thread's sole child,
+         so the first appended message hides it with zero JS. */
+      .diq-empty-hint {
+        margin: auto; text-align: center; color: #94A3B8;
+        font-size: 12px; line-height: 1.5; padding: 0 22px;
+      }
+      .diq-empty-hint .diq-empty-icon { font-size: 26px; display: block; margin-bottom: 6px; }
+      #diq-panel-thread .diq-empty-hint:not(:only-child) { display: none; }
+
       /* Typography normalized: both bubbles share one size / line-height
          so user and AI messages visually match. Markdown <p>/<ul>/<b>
          inside the AI bubble inherit these values, which was the source
@@ -3987,7 +3996,13 @@ def _render_chat_widget(result: dict) -> None:
           <span class="diq-panel-chip">What should I not eat?</span>
           <span class="diq-panel-chip">When should I call 911?</span>
         </div>
-        <div id="diq-panel-thread"></div>
+        <div id="diq-panel-thread">
+          <div class="diq-empty-hint">
+            <span class="diq-empty-icon">💬</span>
+            Ask anything about your discharge papers.<br>
+            Answers come only from your document.
+          </div>
+        </div>
         <div id="diq-panel-input-row">
           <input id="diq-panel-input" type="text"
                  placeholder="Type your question\u2026" autocomplete="off">
