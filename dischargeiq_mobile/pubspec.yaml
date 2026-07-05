@@ -14,6 +14,10 @@ dependencies:
   file_picker: ^8.1.4
   provider: ^6.1.2
   shared_preferences: ^2.2.2
+  # Camera scan path (Sprint 2): capture via the system camera, recognize
+  # text on-device with ML Kit — the photo never leaves the phone.
+  image_picker: ^1.1.2
+  google_mlkit_text_recognition: ^0.15.0
 
 dev_dependencies:
   flutter_test:

@@ -28,14 +28,19 @@ const _kPillLabels = [
 ];
 
 /// Full-screen loading with hospital→home animation while `/analyze` runs.
+///
+/// Two input modes: a picked PDF (pdfBytes) or camera-scanned text (ocrText,
+/// Sprint 2 OCR path). Exactly one must be provided.
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({
     super.key,
-    required this.pdfBytes,
+    this.pdfBytes,
+    this.ocrText,
     required this.fileName,
-  });
+  }) : assert(pdfBytes != null || ocrText != null);
 
-  final Uint8List pdfBytes;
+  final Uint8List? pdfBytes;
+  final String? ocrText;
   final String fileName;
 
   @override
@@ -68,7 +73,9 @@ class _LoadingScreenState extends State<LoadingScreen> with TickerProviderStateM
 
   Future<void> _runAnalyze() async {
     try {
-      final data = await ApiService().analyze(widget.pdfBytes, widget.fileName);
+      final data = widget.ocrText != null
+          ? await ApiService().analyzeText(widget.ocrText!)
+          : await ApiService().analyze(widget.pdfBytes!, widget.fileName);
       if (!mounted) return;
       context.read<DischargeProvider>().setResult(
             data,
@@ -80,7 +87,7 @@ class _LoadingScreenState extends State<LoadingScreen> with TickerProviderStateM
       if (!mounted) return;
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not analyze this PDF. $err')),
+        SnackBar(content: Text('Could not analyze this document. $err')),
       );
     }
   }

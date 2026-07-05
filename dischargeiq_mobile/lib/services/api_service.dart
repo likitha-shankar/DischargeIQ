@@ -59,6 +59,12 @@ class ApiService {
     return decoded;
   }
 
+  /// POST /analyze/text — run the pipeline on camera-scanned text (Sprint 2).
+  /// The photo never leaves the phone: ML Kit recognizes text on-device and
+  /// only the text is sent. Pipeline can take minutes → long timeout.
+  Future<Map<String, dynamic>> analyzeText(String text) =>
+      _postJson('/analyze/text', {'text': text}, timeoutSeconds: 300);
+
   /// POST /quiz/generate — the frozen teach-back question set for a session.
   /// `extraction` is the `extraction` field of the /analyze response.
   Future<Map<String, dynamic>> generateQuiz({

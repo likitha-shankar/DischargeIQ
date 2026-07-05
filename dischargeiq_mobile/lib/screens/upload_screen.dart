@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/screens/loading_screen.dart';
+import 'package:dischargeiq_mobile/screens/scan_screen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -221,6 +222,33 @@ class _UploadScreenState extends State<UploadScreen> {
                         child: const Text(
                           'Upload & Analyze',
                           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Camera scan path (Sprint 2): no PDF needed — photograph
+                    // the paper document; text is recognized on-device.
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.push<void>(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (_) => const ScanScreen(),
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: _dark ? kTealGlow : kTeal,
+                          side: BorderSide(color: _dark ? kTealGlow : kTeal),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                        label: const Text(
+                          'No PDF? Scan the paper with your camera',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                         ),
                       ),
                     ),

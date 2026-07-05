@@ -71,5 +71,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>DischargeIQ uses the camera to scan your paper discharge document. The photo is read on your phone and never uploaded.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>DischargeIQ can read a photo of your discharge document from your library. The photo is read on your phone and never uploaded.</string>
 </dict>
 </plist>
