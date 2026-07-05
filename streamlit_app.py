@@ -285,7 +285,7 @@ html,body{
 <body>
 <div class="wrap">
   <p class="ttl">Analyzing your discharge document</p>
-  <p class="sub">Our AI agents are reading your document &mdash; this takes about 30 seconds</p>
+  <p class="sub">Our AI agents are reading your document. This takes about 30 seconds.</p>
   <div class="scene">
     <div class="gnd"></div><div class="road"></div>
     <div class="hosp">
@@ -4226,17 +4226,17 @@ def _render_chat_widget(result: dict) -> None:
     var src = pdoc.createElement('div');
     src.className = 'diq-msg-source';
     // Patient-trust rule: never claim "from your document" for answers the
-    // model flagged as general medical knowledge \u2014 the backend signals this
+    // model flagged as general medical knowledge - the backend signals this
     // via from_document=false. Default to true for older cached entries so
     // pre-upgrade history still renders something sensible.
     if (fromDocument === false) {{
-      src.textContent = '\u2014 general medical guidance \u00b7 not from your document';
+      src.textContent = 'general medical guidance \u00b7 not from your document';
       src.style.color = '#B45309';
       src.style.fontStyle = 'normal';
     }} else if (sourcePage) {{
-      src.textContent = '\u2014 from your document (p.' + sourcePage + ')';
+      src.textContent = 'from your document (p.' + sourcePage + ')';
     }} else {{
-      src.textContent = '\u2014 from your document';
+      src.textContent = 'from your document';
     }}
     wrap.appendChild(src);
     getThread().appendChild(wrap);
