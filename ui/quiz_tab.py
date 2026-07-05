@@ -87,14 +87,31 @@ def _reset() -> None:
 
 
 def _render_intro(result: dict, session_id: str, api_base: str) -> None:
-    st.markdown("### 🧠 Test your understanding")
+    # Centered hero block matching the app's visual language: the plain
+    # left-aligned markdown looked unfinished next to the other tabs.
     st.markdown(
-        "A short quiz about **your** discharge plan.\n\n"
-        "1. Answer 5 quick questions.\n"
-        "2. Learn with simple cards.\n"
-        "3. Answer again - and watch your score climb."
+        "<div style='text-align:center;padding:26px 12px 4px;'>"
+        "<div style='font-size:46px;line-height:1;'>🧠</div>"
+        "<h3 style='margin:12px 0 6px;'>Test your understanding</h3>"
+        "<p style='margin:0;opacity:0.75;'>A short quiz about <b>your</b> "
+        "discharge plan. No timers, no pressure.</p></div>",
+        unsafe_allow_html=True,
     )
-    if st.button("Start the quiz", type="primary", key="quiz_start"):
+    step_cols = st.columns(3)
+    quiz_steps = (
+        ("✏️", "Answer 5 quick questions"),
+        ("📖", "Learn with simple cards"),
+        ("🎉", "Answer again and watch your score climb"),
+    )
+    for col, (icon, text) in zip(step_cols, quiz_steps):
+        col.markdown(
+            f"<div style='text-align:center;padding:12px 6px;opacity:0.9;'>"
+            f"<div style='font-size:22px;'>{icon}</div>"
+            f"<div style='font-size:13.5px;line-height:1.35;'>{text}</div></div>",
+            unsafe_allow_html=True,
+        )
+    left_pad, center, right_pad = st.columns([1.2, 1, 1.2])
+    if center.button("Start the quiz", type="primary", key="quiz_start", use_container_width=True):
         with st.spinner("Writing questions from your discharge summary..."):
             try:
                 resp = requests.post(
