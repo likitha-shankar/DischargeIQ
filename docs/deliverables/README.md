@@ -21,9 +21,11 @@ git checkout main       # come back — nothing is lost
 | `task-1.4-failover-vertex` | Claude failover + Vertex AI (BAA) path | `b2e07b2` |
 | `task-1.5-corpus` | 50-document locked synthetic corpus | `ddad5bb` |
 | `sprint-1-complete` | All of Sprint 1 (tasks 1.1–1.6) | `b8d2cdf` |
+| `task-2.2-camera-ocr` | Camera scan + on-device ML Kit OCR (tasks 2.2/2.3) | `7a2bf9c` |
 | `task-3.1-quiz-backend` | Teach-back quiz engine + API | `7efc3b7` |
 | `task-3.2-quiz-mobile` | Gamified quiz in the Flutter app | `a7359fc` |
 | `task-3.2-quiz-web` | Quiz tab on the Streamlit fallback | `de6d126` |
+| `task-3.3-clinician-dashboard` | Clinician dashboard (deltas, flagged gaps) | `d86fc3c` |
 
 `git log --oneline` between two tags shows exactly what a sprint added.
 Reverting would destroy later work; checkout/tags show history non-destructively.
@@ -34,8 +36,8 @@ Reverting would destroy later work; checkout/tags show history non-destructively
 |---|---|---|
 | Tranche 1 | Mobilization (work plan) | ✅ plan v2 delivered |
 | Sprint 1 | Cloud backend + extraction pipeline (1.1–1.6) | ✅ complete |
-| Sprint 2 | Mobile bridge + OCR (2.1–2.5) | ◻ next — camera OCR, store distribution |
-| Sprint 3 | Teach-back loop (3.1, 3.2) | ✅ built early (3.3 dashboard, 3.4 tuning remain) |
+| Sprint 2 | Mobile bridge + OCR (2.1–2.5) | ◑ 2.2/2.3 done — store distribution (2.4/2.5) blocked on dev account |
+| Sprint 3 | Teach-back loop (3.1–3.3) | ✅ built early (3.4 tuning awaits tester data) |
 | Sprint 4 | NotebookLM media + corpus lock | ◻ corpus already generated; lock at Week 8 |
 | Sprints 5–6 | Clinical validation + packaging | ◻ Month 3 |
 
