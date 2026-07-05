@@ -201,6 +201,8 @@ def test_openrouter_rate_limit_exhaustion_raises(monkeypatch: pytest.MonkeyPatch
 
     client = _FakeClient(_handler)
     monkeypatch.setattr("dischargeiq.utils.llm_client.time.sleep", lambda _s: None)
+    # Disable cross-provider failover — this test asserts primary exhaustion.
+    monkeypatch.setenv("LLM_FALLBACK_PROVIDER", "none")
 
     with pytest.raises(Exception, match="429"):
         call_chat_with_fallback(
@@ -214,3 +216,113 @@ def test_openrouter_rate_limit_exhaustion_raises(monkeypatch: pytest.MonkeyPatch
             document_id="doc-3",
         )
     assert len(client.completions.calls) == 3
+
+
+# ── Cross-provider failover (Sprint 1, Task 1.4) ───────────────────────────────
+
+
+def test_failover_to_fallback_provider_when_primary_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Primary provider failure triggers one attempt on the fallback provider."""
+
+    def _primary_handler(_payload: dict, _call_index: int):
+        raise Exception("gemini 503 service unavailable")
+
+    fallback_client = _FakeClient(lambda _p, _i: _resp("fallback answer"))
+    monkeypatch.setattr(
+        "dischargeiq.utils.llm_client.get_fallback_client",
+        lambda: (fallback_client, "claude-haiku-4-5-20251001", "anthropic"),
+    )
+
+    content = call_chat_with_fallback(
+        client=_FakeClient(_primary_handler),
+        model_name="gemini-2.5-flash-lite",
+        system_prompt="System",
+        user_message="User",
+        max_tokens=128,
+        provider="gemini",
+        agent_name="Agent X",
+        document_id="doc-fo-1",
+    )
+    assert content == "fallback answer"
+    # Fallback must use its own provider's model, never the primary's.
+    assert fallback_client.completions.calls[0]["model"] == "claude-haiku-4-5-20251001"
+
+
+def test_failover_skipped_when_fallback_is_primary(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No failover loop: anthropic primary does not fail over to anthropic."""
+
+    def _handler(_payload: dict, _call_index: int):
+        raise Exception("anthropic overloaded")
+
+    fallback_client = _FakeClient(lambda _p, _i: _resp("should not be called"))
+    monkeypatch.setattr(
+        "dischargeiq.utils.llm_client.get_fallback_client",
+        lambda: (fallback_client, "claude-haiku-4-5-20251001", "anthropic"),
+    )
+
+    with pytest.raises(Exception, match="overloaded"):
+        call_chat_with_fallback(
+            client=_FakeClient(_handler),
+            model_name="claude-haiku-4-5-20251001",
+            system_prompt="System",
+            user_message="User",
+            max_tokens=128,
+            provider="anthropic",
+            agent_name="Agent X",
+            document_id="doc-fo-2",
+        )
+    assert fallback_client.completions.calls == []
+
+
+def test_failover_reraises_primary_error_when_fallback_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Both providers down: the primary exception is what surfaces to callers."""
+
+    monkeypatch.setattr(
+        "dischargeiq.utils.llm_client.get_fallback_client",
+        lambda: (
+            _FakeClient(lambda _p, _i: (_ for _ in ()).throw(Exception("claude also down"))),
+            "claude-haiku-4-5-20251001",
+            "anthropic",
+        ),
+    )
+
+    with pytest.raises(Exception, match="gemini down"):
+        call_chat_with_fallback(
+            client=_FakeClient(lambda _p, _i: (_ for _ in ()).throw(Exception("gemini down"))),
+            model_name="gemini-2.5-flash-lite",
+            system_prompt="System",
+            user_message="User",
+            max_tokens=128,
+            provider="gemini",
+            agent_name="Agent X",
+            document_id="doc-fo-3",
+        )
+
+
+def test_get_fallback_client_disabled_and_missing_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """LLM_FALLBACK_PROVIDER=none or a missing API key disables failover."""
+    from dischargeiq.utils import llm_client
+
+    monkeypatch.setenv("LLM_FALLBACK_PROVIDER", "none")
+    assert llm_client.get_fallback_client() is None
+
+    monkeypatch.setenv("LLM_FALLBACK_PROVIDER", "anthropic")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    assert llm_client.get_fallback_client() is None
+
+
+def test_get_fallback_client_builds_anthropic_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Default fallback is anthropic with its dated default model."""
+    from dischargeiq.utils import llm_client
+
+    monkeypatch.delenv("LLM_FALLBACK_PROVIDER", raising=False)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    llm_client._client_cache.pop("fallback:anthropic", None)
+    try:
+        fb = llm_client.get_fallback_client()
+        assert fb is not None
+        _client, model, provider = fb
+        assert provider == "anthropic"
+        assert model == llm_client.DEFAULT_ANTHROPIC_MODEL
+    finally:
+        llm_client._client_cache.pop("fallback:anthropic", None)

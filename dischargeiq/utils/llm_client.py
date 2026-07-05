@@ -3,9 +3,12 @@ File: dischargeiq/utils/llm_client.py
 Owner: Likitha Shankar
 Description: Central LLM routing — builds an OpenAI-compatible client for anthropic,
   openrouter, openai, ollama, or gemini from LLM_PROVIDER/LLM_MODEL and validates API keys with
-  clear ValueError messages. call_chat_with_fallback adds OpenRouter-only retries for
-  empty completions, developer-instruction role merge, and 429 backoff.
-Key functions/classes: require_provider_api_key, get_llm_client, call_chat_with_fallback
+  clear ValueError messages. call_chat_with_fallback adds OpenRouter retries for
+  empty completions, developer-instruction role merge, and 429 backoff, plus one
+  cross-provider failover attempt (LLM_FALLBACK_PROVIDER, default anthropic) when
+  the primary provider fails after its retries.
+Key functions/classes: require_provider_api_key, get_llm_client, get_fallback_client,
+  call_chat_with_fallback
 Edge cases handled:
   - OpenRouter empty content and rate limits retry with backoff; role fallback on
     unsupported developer-message errors; Ollama uses placeholder API key string.
@@ -260,6 +263,45 @@ def _is_openrouter_rate_limit_error(exc: Exception) -> bool:
     return "429" in message or "rate limit" in message or "rate-limited" in message
 
 
+def get_fallback_client() -> tuple[OpenAI, str, str] | None:
+    """
+    Build the cross-provider fallback client, if one is configured.
+
+    Reads LLM_FALLBACK_PROVIDER (default: "anthropic"; "none" disables). The
+    fallback fires only when its API key is present, so a missing key silently
+    disables cross-provider failover rather than breaking the primary path.
+
+    Returns:
+        tuple[OpenAI, str, str] | None: (client, model_name, provider_name),
+            or None when fallback is disabled or unconfigured.
+    """
+    fallback = os.environ.get("LLM_FALLBACK_PROVIDER", "anthropic").lower()
+    if fallback in ("none", "") or fallback not in _PROVIDER_DEFAULTS:
+        return None
+    config = _PROVIDER_DEFAULTS[fallback]
+    key_env = config["api_key_env"]
+    api_key = (os.environ.get(key_env, "") if key_env else "ollama").strip()
+    if not api_key:
+        return None
+
+    cache_key = f"fallback:{fallback}"
+    if cache_key in _client_cache:
+        client, model = _client_cache[cache_key]
+        return client, model, fallback
+
+    # LLM_MODEL belongs to the primary provider — the fallback always uses its
+    # own provider default so a Gemini model name is never sent to Anthropic.
+    model = config["default_model"]
+    client = OpenAI(
+        base_url=config["base_url"],
+        api_key=api_key,
+        timeout=60.0,
+        max_retries=1,
+    )
+    _client_cache[cache_key] = (client, model)
+    return client, model, fallback
+
+
 def call_chat_with_fallback(
     client: OpenAI,
     model_name: str,
@@ -271,7 +313,14 @@ def call_chat_with_fallback(
     document_id: str,
 ) -> str:
     """
-    Execute one chat completion with OpenRouter-specific resilience.
+    Execute one chat completion with per-provider retries and cross-provider failover.
+
+    Primary call runs on the given client with OpenRouter-specific resilience
+    (empty-completion retries, role merge, 429 backoff). If the primary provider
+    fails after its retries, one attempt is made on the fallback provider from
+    get_fallback_client() (default: Anthropic, when ANTHROPIC_API_KEY is set).
+    The original exception is re-raised if the fallback also fails or is not
+    configured.
 
     Args:
         client: OpenAI-compatible client from get_llm_client() or agent client.
@@ -288,7 +337,54 @@ def call_chat_with_fallback(
 
     Raises:
         ValueError: If the provider returns empty content.
-        Exception: Re-raises provider exceptions after fallback/retry exhaustion.
+        Exception: Re-raises primary provider exceptions after fallback/retry exhaustion.
+    """
+    try:
+        return _call_chat_once(
+            client, model_name, system_prompt, user_message,
+            max_tokens, provider, agent_name, document_id,
+        )
+    except Exception as primary_exc:
+        fb = get_fallback_client()
+        if fb is None or fb[2] == provider:
+            raise
+        fb_client, fb_model, fb_provider = fb
+        logger.warning(
+            "%s primary provider '%s' failed for '%s' — failing over to '%s' (%s): %s",
+            agent_name, provider, document_id, fb_provider, fb_model, primary_exc,
+        )
+        try:
+            return _call_chat_once(
+                fb_client, fb_model, system_prompt, user_message,
+                max_tokens, fb_provider, agent_name, document_id,
+            )
+        except Exception as fallback_exc:
+            logger.error(
+                "%s fallback provider '%s' also failed for '%s': %s",
+                agent_name, fb_provider, document_id, fallback_exc,
+            )
+            raise primary_exc from fallback_exc
+
+
+def _call_chat_once(
+    client: OpenAI,
+    model_name: str,
+    system_prompt: str,
+    user_message: str,
+    max_tokens: int,
+    provider: str,
+    agent_name: str,
+    document_id: str,
+) -> str:
+    """
+    Run one chat completion on a single provider with that provider's retries.
+
+    This is the pre-failover body of call_chat_with_fallback: OpenRouter gets
+    3 attempts with empty-completion retries, role-merge fallback, and 429
+    backoff; every other provider gets a single attempt.
+
+    Args/Returns/Raises: same contract as call_chat_with_fallback, minus the
+    cross-provider failover.
     """
     messages = [
         {"role": "system", "content": system_prompt},
