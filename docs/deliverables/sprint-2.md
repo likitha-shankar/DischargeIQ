@@ -10,8 +10,8 @@ discharge document with the camera, get 6th-grade output back - live.
 | 2.1 | Flutter core UI (themes, state, camera + detail screens) | Head start: app already has upload → results → quiz flow |
 | 2.2 | Camera + ML Kit OCR pipeline | ✅ `7a2bf9c` - [task-2.2](tasks/task-2.2.md) (edge detection deferred) |
 | 2.3 | Client-to-server integration | ✅ - PDF upload + OCR-text path (`e5de64b`) both live |
-| 2.4 | TestFlight + Play Internal Testing distribution | ◻ - blocked on developer account verification |
-| 2.5 | Beta onboarding (15 testers → 10–20 active installs) | ◻ |
+| 2.4 | TestFlight + Play Internal Testing distribution | ◑ - iOS build config TestFlight-ready (`132569e`, `2788b58`); Apple-login steps in [TESTFLIGHT.md](../beta/TESTFLIGHT.md). Play deferred until first payout. |
+| 2.5 | Beta onboarding (15 testers → 10–20 active installs) | ◑ - onboarding + direct-install APK flow written ([ONBOARDING.md](../beta/ONBOARDING.md)); Android APK build blocked on Android SDK install |
 
 ## Risk note
 
