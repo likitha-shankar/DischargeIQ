@@ -27,10 +27,10 @@ git checkout main       # come back - nothing is lost
 | `task-3.2-quiz-web` | Quiz tab on the Streamlit fallback | `de6d126` |
 | `task-3.3-clinician-dashboard` | Clinician dashboard (deltas, flagged gaps) | `d86fc3c` |
 | `task-3.4-gap-tooling` | Quiz-gap report: prompt-tuning evidence pipeline | `aef022a` |
-| `task-3.2-game-v3` (pending commit) | Quiz game v3: Master-it rounds, XP/levels, badges, bests | - |
-| `hardening-rejected-docs` (pending commit) | Non-discharge docs: `rejected` status + dedicated screens | - |
-| `task-2.5-android-apk` (pending commit) | Android SDK + release APKs (arm64 30.9MB), ML Kit R8 fix | - |
-| `task-5.1-clinician-review` (pending commit) | Clinician review portal: 0-5 rubric, Tranche 4 gate | - |
+| `task-3.2-game-v3` | Quiz game v3: Master-it rounds, XP/levels, badges, bests | `a0b4dbe` |
+| `hardening-rejected-docs` | Non-discharge docs: `rejected` status + dedicated screens | `5d66d52` |
+| `task-2.5-android-apk` | Android SDK + release APKs (arm64 30.9MB), ML Kit R8 fix | `61ac8af` |
+| `task-5.1-clinician-review` | Clinician review portal: 0-5 rubric, Tranche 4 gate | `a5f5f43` |
 
 `git log --oneline` between two tags shows exactly what a sprint added.
 Reverting would destroy later work; checkout/tags show history non-destructively.

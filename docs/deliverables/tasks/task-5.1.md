@@ -5,7 +5,7 @@ score the locked 50-document corpus outputs on a 0-5 rubric with a
 zero-tolerance hallucination flag - the instrument that produces the Tranche 4
 gate evidence (median ≥ 4.0, zero hallucinations).
 
-**Commit / tag:** pending review - suggested tag `task-5.1-clinician-review`
+**Commit / tag:** `a5f5f43` / `task-5.1-clinician-review`
 
 **Design:**
 - Separate Streamlit entry (`ui/clinician_review.py`, port 8503). Run:

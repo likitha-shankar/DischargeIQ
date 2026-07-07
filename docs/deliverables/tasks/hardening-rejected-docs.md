@@ -4,7 +4,7 @@
 one clear screen and a retry - never seven empty tabs, an ungrounded chatbot,
 and a quiz generated from nothing.
 
-**Commit / tag:** pending review - suggested tag `hardening-rejected-docs`
+**Commit / tag:** `5d66d52` / `hardening-rejected-docs`
 
 **Audit finding (severity: high, UX + trust):** the router (Task 1.3)
 correctly gated non-discharge documents at the API, but the rejection was

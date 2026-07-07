@@ -4,7 +4,7 @@
 DischargeIQ without waiting on store accounts (decision: direct install while
 Apple/Play accounts are pending; Play deferred to first LOF payout).
 
-**Commit / tag:** pending review - suggested tag `task-2.5-android-apk`
+**Commit / tag:** `61ac8af` / `task-2.5-android-apk`
 
 **What was blocked and how it was unblocked:**
 - Android SDK was not installed on the dev Mac. Installed via

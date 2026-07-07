@@ -29,7 +29,7 @@ improved/perfect scores (research-informed: rare celebrations register as
 meaningful; no timers or speed points, which pressure older or unwell
 patients).
 
-## Game layer v3 (Jul 7) - pending review, suggested tag `task-3.2-game-v3`
+## Game layer v3 (Jul 7) - `a0b4dbe` / `task-3.2-game-v3`
 
 Both surfaces, same rules:
 - **"Master it" round:** after a mastery review, the post retake re-asks ONLY
