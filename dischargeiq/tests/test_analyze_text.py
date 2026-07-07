@@ -82,6 +82,40 @@ def test_analyze_text_runs_pipeline_without_touching_disk():
     assert any("camera scan" in w for w in body["extraction_warnings"])
 
 
+def test_router_rejection_returns_rejected_status():
+    """
+    A non-discharge document (router should_process=False) must come back as
+    pipeline_status="rejected" with a patient-readable rejection_reason, and
+    no downstream agent may run - both UIs branch to a dedicated screen on
+    this status instead of rendering empty results tabs.
+    """
+    reject = {
+        "document_type": "unknown", "confidence": 0.9,
+        "should_process": False,
+        "reason": "Document appears to be a plumbing invoice.",
+    }
+    with ExitStack() as stack:
+        stack.enter_context(patch(
+            "dischargeiq.pipeline.orchestrator.run_router_agent",
+            return_value=reject,
+        ))
+        # Any agent call after a rejection is a bug - fail loudly.
+        for agent in ("run_extraction_agent", "run_diagnosis_agent",
+                      "run_medication_agent", "run_recovery_agent",
+                      "run_escalation_agent", "run_patient_simulator_agent"):
+            stack.enter_context(patch(
+                f"dischargeiq.pipeline.orchestrator.{agent}",
+                side_effect=AssertionError(f"{agent} ran on a rejected document"),
+            ))
+        resp = _client.post("/analyze/text", json={"text": _OCR_TEXT})
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["pipeline_status"] == "rejected"
+    assert body["rejection_reason"] == "Document appears to be a plumbing invoice."
+    assert any("rejected by router" in w for w in body["extraction_warnings"])
+
+
 def test_analyze_text_rejects_too_short():
     """A failed scan (near-empty text) is a 422 with retake guidance."""
     resp = _client.post("/analyze/text", json={"text": "blurry"})

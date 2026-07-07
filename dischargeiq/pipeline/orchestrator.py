@@ -319,6 +319,10 @@ async def _run_pipeline_internal(
         logger.warning(
             "Router rejected document '%s': %s", pdf_path, router_result.get("reason", "")
         )
+        # pipeline_status="rejected" is the FIRST-CLASS signal for "this is not
+        # a discharge document" - both UIs branch on it to show a dedicated
+        # try-another-document screen instead of empty results tabs. The
+        # extraction_warnings entry is kept for logs and older clients.
         return PipelineResponse(
             extraction=ExtractionOutput(primary_diagnosis="Not a discharge document"),
             diagnosis_explanation="",
@@ -329,7 +333,8 @@ async def _run_pipeline_internal(
             extraction_warnings=[
                 f"Document rejected by router: {router_result.get('reason', 'Not a discharge summary')}"
             ],
-            pipeline_status="partial",
+            pipeline_status="rejected",
+            rejection_reason=router_result.get("reason", "This does not look like a hospital discharge document."),
         )
 
     # ── Agent 1 - Extraction ─────────────────────────────────────────────────

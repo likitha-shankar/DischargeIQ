@@ -52,6 +52,12 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
   }
 
   Future<void> _maybeStartTour() async {
+    // No tour on a rejected document - the tab bar it points at isn't there.
+    if (!mounted ||
+        '${context.read<DischargeProvider>().result?['pipeline_status']}' ==
+            'rejected') {
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
     final done = prefs.getBool('tour_completed') ?? false;
     if (!done && mounted) {
@@ -71,6 +77,14 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
     final r = dp.result;
     if (r == null) {
       return const Scaffold(body: Center(child: Text('No result')));
+    }
+
+    // Router gate: not a discharge document → dedicated screen. Rendering the
+    // tabs would show seven empty sections plus an ungrounded chat and quiz.
+    if ('${r['pipeline_status']}' == 'rejected') {
+      return _RejectedDocumentScreen(
+        reason: '${r['rejection_reason'] ?? 'This does not look like a hospital discharge document.'}',
+      );
     }
 
     return Scaffold(
@@ -272,6 +286,71 @@ Future<void> _openChat(BuildContext context, Map<String, dynamic> result) async 
   );
 }
 
+
+/// Full-screen notice for a document the router rejected (bill, EOB, random
+/// PDF). One action: go back and try another document.
+class _RejectedDocumentScreen extends StatelessWidget {
+  const _RejectedDocumentScreen({required this.reason});
+
+  final String reason;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: kTeal,
+        foregroundColor: Colors.white,
+        title: const Text('DischargeIQ'),
+      ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.description_outlined, size: 60, color: kTier2),
+                const SizedBox(height: 16),
+                Text(
+                  "This doesn't look like a discharge document",
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 10),
+                Text(reason,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5)),
+                const SizedBox(height: 10),
+                Text(
+                  'DischargeIQ works with the discharge summary your hospital '
+                  'gave you when you went home - it usually lists your '
+                  'diagnosis, medications, and follow-up appointments.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(height: 1.5, color: Theme.of(context).textTheme.bodySmall?.color),
+                ),
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                      backgroundColor: kTeal,
+                      padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 14)),
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.upload_file_outlined),
+                  label: const Text('Try another document'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 /// Thin banner shown when the pipeline ran with warnings or partial output.
 class _PipelineStatusBanner extends StatelessWidget {

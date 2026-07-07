@@ -66,10 +66,13 @@ Streamlit). Comprehension-lift target: 13% baseline → 50–70%.
   health check is `GET /api/health` (plain `/health` returns Streamlit HTML).
   Deployed from outside the repo (no URL reference in source by design).
 - **Failure mode:** The pipeline is designed to return **`pipeline_status` of
-  `"complete"`, `"complete_with_warnings"`, or `"partial"`** (not to crash on bad PDFs or
-  LLM failures). `"partial"` runs may occur when an agent fails, rate limits hit (429),
-  timeouts occur, or keys are missing. `"complete_with_warnings"` means all agents ran
-  but extraction completeness warnings were raised.
+  `"complete"`, `"complete_with_warnings"`, `"partial"`, or `"rejected"`** (not to crash
+  on bad PDFs or LLM failures). `"partial"` runs may occur when an agent fails, rate
+  limits hit (429), timeouts occur, or keys are missing. `"complete_with_warnings"` means
+  all agents ran but extraction completeness warnings were raised. `"rejected"` (July 2026)
+  means the router gated a non-discharge document (bill, EOB, invoice) BEFORE any agent
+  ran; `rejection_reason` carries the router's one-sentence explanation and both UIs show
+  a dedicated "try another document" screen instead of results tabs.
 
 ### LLM and environment configuration
 
@@ -309,7 +312,8 @@ class PipelineResponse(BaseModel):
     escalation_guide: str
     fk_scores: dict
     extraction_warnings: list
-    pipeline_status: str            # "complete" | "complete_with_warnings" | "partial"
+    pipeline_status: str            # "complete" | "complete_with_warnings" | "partial" | "rejected"
+    rejection_reason: Optional[str] = None  # set only when status == "rejected" (router gate)
     patient_simulator: Optional[PatientSimulatorOutput] = None  # None if Agent 6 skipped/failed
 ```
 

@@ -62,8 +62,12 @@ class PipelineResponse(BaseModel):
         escalation_guide: Three-tier warning-sign decision tree from Agent 5.
         fk_scores: Flesch-Kincaid grade for each agent's text output.
         extraction_warnings: Completeness warnings from utils/warnings.py.
-        pipeline_status: "complete", "complete_with_warnings", or "partial"
-            - never raises unhandled exceptions.
+        pipeline_status: "complete", "complete_with_warnings", "partial", or
+            "rejected" (router gate: not a discharge document) - never raises
+            unhandled exceptions.
+        rejection_reason: Router's one-sentence explanation, set only when
+            pipeline_status == "rejected". UIs show it on the dedicated
+            "not a discharge document" screen.
     """
 
     extraction: ExtractionOutput
@@ -73,5 +77,6 @@ class PipelineResponse(BaseModel):
     escalation_guide: str
     fk_scores: dict
     extraction_warnings: list
-    pipeline_status: Literal["complete", "complete_with_warnings", "partial"]
+    pipeline_status: Literal["complete", "complete_with_warnings", "partial", "rejected"]
+    rejection_reason: Optional[str] = None
     patient_simulator: Optional[PatientSimulatorOutput] = None

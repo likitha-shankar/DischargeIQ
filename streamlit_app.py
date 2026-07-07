@@ -5810,6 +5810,13 @@ def _render_summary_screen() -> None:
     active_tab = st.session_state[_S_ACTIVE_TAB]
     pdf_session_id = st.session_state[_S_PDF_SESSION_ID]
 
+    # Router gate: a rejected document (bill, EOB, random PDF) must not get
+    # the full results experience - empty tabs, an ungrounded chat, and a quiz
+    # over nothing would only confuse the patient. Dedicated screen instead.
+    if result.get("pipeline_status") == "rejected":
+        _render_rejected_screen(result)
+        return
+
     _inject_beforeunload_warning()
 
     _render_app_header(result)
@@ -5859,6 +5866,39 @@ def _render_summary_screen() -> None:
     # Guided tour - injected after all DOM elements are in place so
     # Driver.js can find the tab bar and chat panel on the first run.
     _inject_guided_tour()
+
+
+def _render_rejected_screen(result: dict) -> None:
+    """
+    Full-page notice for a document the router rejected as not a discharge
+    summary. Shows the router's one-sentence reason and a single action:
+    try another document. No tabs, no chat, no quiz - there is nothing to
+    ground them on.
+
+    Args:
+        result: PipelineResponse dict with pipeline_status == "rejected".
+    """
+    reason = result.get("rejection_reason") or (
+        "This does not look like a hospital discharge document."
+    )
+    st.markdown(
+        "<div style='text-align:center;padding:64px 16px 8px;'>"
+        "<div style='font-size:52px;line-height:1;'>📄</div>"
+        "<h2 style='margin:16px 0 8px;'>This doesn't look like a discharge document</h2>"
+        f"<p style='margin:0 auto;max-width:480px;opacity:0.8;line-height:1.5;'>{html.escape(reason)}</p>"
+        "<p style='margin:14px auto 0;max-width:480px;opacity:0.65;font-size:14px;line-height:1.5;'>"
+        "DischargeIQ works with the discharge summary your hospital gave you "
+        "when you went home - it usually lists your diagnosis, medications, "
+        "and follow-up appointments.</p>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+    _pad_l, center, _pad_r = st.columns([1.2, 1, 1.2])
+    if center.button(
+        "Try another document", type="primary", key="rejected_retry", use_container_width=True
+    ):
+        _reset_session()
+        st.rerun()
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
