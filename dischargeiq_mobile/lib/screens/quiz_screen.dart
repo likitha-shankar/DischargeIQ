@@ -3,8 +3,13 @@
 /// The gamified teach-back loop (Sprint 3) - the comprehension-lift feature:
 ///
 ///   intro → baseline quiz (no feedback) → learning cards → post-quiz
-///   (with feedback) → results (score ring, lift banner, domain chips)
-///   → mastery path: failed domains force a focused review before retake.
+///   (with feedback) → results (score ring, XP, lift banner, mastery badges)
+///   → mastery path: failed domains force a focused review, then a short
+///     "Master it" round that re-asks ONLY the missed questions.
+///
+/// Game layer (v3): XP + levels, per-domain mastery badges, and personal
+/// bests persist on-device via services/game_store.dart - engagement state
+/// only, never clinical data.
 ///
 /// Measurement protocol (work plan §3a): the SAME frozen question set is used
 /// pre and post; post presents them in shuffled order; the baseline shows no
@@ -20,6 +25,8 @@ import 'dart:math' show Random;
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/models/quiz.dart';
 import 'package:dischargeiq_mobile/services/api_service.dart';
+import 'package:dischargeiq_mobile/services/game_store.dart';
+import 'package:dischargeiq_mobile/widgets/game_widgets.dart';
 import 'package:dischargeiq_mobile/widgets/quiz_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
@@ -57,6 +64,21 @@ class _QuizBodyState extends State<QuizBody> {
   int _learnIndex = 0;
   // Consecutive correct answers in the post phase (accuracy streak, no timer).
   int _streak = 0;
+  // Game layer (v3): persisted XP/bests, XP earned by the round just scored,
+  // and whether the current post round re-asks only the missed questions.
+  GameStats? _stats;
+  int _xpGained = 0;
+  bool _masteryRound = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Fire-and-forget load: the intro renders without stats and fills in the
+    // welcome-back card once the store answers (fresh install → empty stats).
+    GameStore.load().then((s) {
+      if (mounted) setState(() => _stats = s);
+    });
+  }
 
   // ── Flow actions ─────────────────────────────────────────────────────────
 
@@ -95,6 +117,12 @@ class _QuizBodyState extends State<QuizBody> {
   List<int?> get _answers =>
       _phase == _Phase.post ? _postAnswers : _preAnswers;
 
+  /// Questions in the round being presented. The pre phase and a normal post
+  /// round cover every question; a mastery round covers only the missed ones
+  /// (_postOrder is then shorter than _questions).
+  int get _roundLength =>
+      _phase == _Phase.post ? _postOrder.length : _questions.length;
+
   void _select(int option) {
     // First tap in the post phase locks the answer and drives streak +
     // haptics; a correct pick extends the streak, a miss quietly resets it
@@ -113,11 +141,13 @@ class _QuizBodyState extends State<QuizBody> {
   }
 
   Future<void> _next() async {
-    if (_current < _questions.length - 1) {
+    if (_current < _roundLength - 1) {
       setState(() => _current++);
       return;
     }
-    // Last question answered - score this phase.
+    // Last question answered - score this phase. A mastery round still sends
+    // the FULL answer set (kept correct answers + fresh retries) as phase
+    // "post", so the server contract and the stored delta stay unchanged.
     final isPre = _phase == _Phase.pre;
     final answers = [for (final a in _answers) a ?? -1];
     QuizScoreResult? scored;
@@ -133,6 +163,7 @@ class _QuizBodyState extends State<QuizBody> {
       // Server unreachable → score locally so the flow never dead-ends.
       scored = _scoreLocally(isPre ? 'pre' : 'post', answers);
     }
+    if (!isPre) _awardXpAndPersist(scored);
     setState(() {
       if (isPre) {
         _preResult = scored;
@@ -145,6 +176,35 @@ class _QuizBodyState extends State<QuizBody> {
         _phase = _Phase.results;
       }
     });
+  }
+
+  /// Compute XP for the round just scored, fold it into the persisted stats,
+  /// and save. XP counts only questions ASKED this round (_postOrder), so a
+  /// mastery retake cannot re-earn XP for answers carried over as correct.
+  void _awardXpAndPersist(QuizScoreResult scored) {
+    final stats = _stats ?? GameStats();
+    var gained = kXpQuizFinished;
+    for (final i in _postOrder) {
+      if (_postAnswers[i] == _questions[i].correctIndex) gained += kXpPerCorrect;
+    }
+    // Full-mastery bonus fires only on the transition into mastery, so a
+    // repeat perfect round doesn't farm the bonus.
+    final wasMastered = _postResult?.failedDomains.isEmpty ?? false;
+    if (scored.failedDomains.isEmpty && !wasMastered) gained += kXpAllMastered;
+    stats.xp += gained;
+    for (final e in scored.domainScores.entries) {
+      if (e.value['correct'] == e.value['total']) stats.masteredDomains.add(e.key);
+    }
+    // History/bests track full runs; a mastery retake only improves bests.
+    if (!_masteryRound) {
+      stats.recordRun(
+          prePercent: _preResult?.percent ?? 0, postPercent: scored.percent);
+    } else if (scored.percent > stats.bestPostPercent) {
+      stats.bestPostPercent = scored.percent;
+    }
+    _stats = stats;
+    _xpGained = gained;
+    GameStore.save(stats);
   }
 
   QuizScoreResult _scoreLocally(String phase, List<int> answers) {
@@ -182,9 +242,27 @@ class _QuizBodyState extends State<QuizBody> {
   }
 
   void _startPost() {
+    // Coming back from a mastery review: re-ask ONLY the questions missed in
+    // the last post round. Correct answers carry over untouched, so the
+    // patient's effort is respected and the retake is short and winnable.
+    final missed = _postResult == null
+        ? <int>[]
+        : [
+            for (var i = 0; i < _questions.length; i++)
+              if (_postAnswers[i] != _questions[i].correctIndex) i
+          ];
+    final mastery = _reviewDomains.isNotEmpty && missed.isNotEmpty;
     setState(() {
-      _postAnswers = List.filled(_questions.length, null);
-      _postOrder = List.generate(_questions.length, (i) => i)..shuffle(Random());
+      _masteryRound = mastery;
+      if (mastery) {
+        for (final i in missed) {
+          _postAnswers[i] = null;
+        }
+        _postOrder = [...missed]..shuffle(Random());
+      } else {
+        _postAnswers = List.filled(_questions.length, null);
+        _postOrder = List.generate(_questions.length, (i) => i)..shuffle(Random());
+      }
       _current = 0;
       _streak = 0;
       _phase = _Phase.post;
@@ -254,6 +332,10 @@ class _QuizBodyState extends State<QuizBody> {
 
   Widget _intro() {
     return _CenteredScroll(children: [
+      if (_stats != null && _stats!.quizzesCompleted > 0) ...[
+        WelcomeBackCard(stats: _stats!),
+        const SizedBox(height: 18),
+      ],
       const Icon(Icons.psychology_alt_outlined, size: 56, color: kTealMid),
       const SizedBox(height: 14),
       Text('Test your understanding',
@@ -301,10 +383,12 @@ class _QuizBodyState extends State<QuizBody> {
       children: [
         QuizProgressBar(
           current: _current + 1,
-          total: _questions.length,
+          total: _roundLength,
           label: isPre
-              ? 'Before you learn - question ${_current + 1} of ${_questions.length}'
-              : 'After learning - question ${_current + 1} of ${_questions.length}',
+              ? 'Before you learn - question ${_current + 1} of $_roundLength'
+              : (_masteryRound
+                  ? 'Master it - question ${_current + 1} of $_roundLength'
+                  : 'After learning - question ${_current + 1} of $_roundLength'),
         ),
         // Accuracy streak, post phase only (the baseline gives no feedback).
         if (!isPre && _streak >= 2 && answered) ...[
@@ -326,7 +410,7 @@ class _QuizBodyState extends State<QuizBody> {
               backgroundColor: kTealMid,
               padding: const EdgeInsets.symmetric(vertical: 14)),
           onPressed: answered ? _next : null,
-          child: Text(_current < _questions.length - 1
+          child: Text(_current < _roundLength - 1
               ? 'Next'
               : (isPre ? 'Finish & start learning' : 'See my results')),
         ),
@@ -421,17 +505,26 @@ class _QuizBodyState extends State<QuizBody> {
       children: [
         const SizedBox(height: 8),
         Center(child: ScoreRing(percent: post.percent)),
+        if (_xpGained > 0) ...[
+          const SizedBox(height: 12),
+          Center(child: XpGainChip(gained: _xpGained)),
+        ],
         const SizedBox(height: 18),
         if (pre != null)
           LiftBanner(prePercent: pre.percent, postPercent: post.percent),
         const SizedBox(height: 18),
+        if (_stats != null) ...[
+          XpLevelBar(stats: _stats!),
+          const SizedBox(height: 18),
+        ],
         Text('How you did by topic',
             style: Theme.of(context)
                 .textTheme
                 .titleSmall
                 ?.copyWith(fontWeight: FontWeight.w700)),
         const SizedBox(height: 10),
-        DomainChips(result: post),
+        MasteryBadges(
+            result: post, everMastered: _stats?.masteredDomains ?? const {}),
         const SizedBox(height: 22),
         if (mastered)
           Container(
@@ -467,6 +560,8 @@ class _QuizBodyState extends State<QuizBody> {
               _preResult = null;
               _postResult = null;
               _reviewDomains = {};
+              _masteryRound = false;
+              _xpGained = 0;
             }),
             child: const Text('Start over'),
           ),

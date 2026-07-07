@@ -2,9 +2,9 @@
 ///
 /// Reusable visual pieces for the teach-back quiz flow (Sprint 3):
 /// question card with tappable options, step progress bar, animated score
-/// ring, per-domain result chips, the comprehension-lift banner, the
-/// answer-streak chip, and the milestone confetti overlay.
-/// Pure presentation - all state lives in QuizScreen.
+/// ring, the comprehension-lift banner, the answer-streak chip, and the
+/// milestone confetti overlay. Game-layer widgets (XP bar, mastery badges)
+/// live in game_widgets.dart. Pure presentation - all state lives in QuizScreen.
 ///
 /// Game-design notes (from patient-education gamification research):
 /// celebrations are GATED to milestones (improved score, perfect score) so
@@ -286,42 +286,6 @@ class ScoreRing extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// Per-domain result chips - green when fully correct, amber otherwise.
-class DomainChips extends StatelessWidget {
-  const DomainChips({super.key, required this.result});
-
-  final QuizScoreResult result;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (final e in result.domainScores.entries)
-          Chip(
-            avatar: Icon(
-              kDomainIcons[e.key] ?? Icons.quiz_outlined,
-              size: 16,
-              color: e.value['correct'] == e.value['total'] ? kTier3 : kTier2,
-            ),
-            label: Text(
-              '${kDomainLabels[e.key] ?? e.key}  '
-              '${e.value['correct']}/${e.value['total']}',
-              style: const TextStyle(fontSize: 12.5),
-            ),
-            side: BorderSide(
-              color: e.value['correct'] == e.value['total'] ? kTier3 : kTier2,
-            ),
-            backgroundColor:
-                e.value['correct'] == e.value['total'] ? kTier3Bg : kTier2Bg,
-            labelStyle: const TextStyle(color: kTextPrimaryLight),
-          ),
-      ],
     );
   }
 }

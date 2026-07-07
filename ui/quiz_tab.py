@@ -7,6 +7,11 @@ Description: "Test yourself" tab for the Streamlit fallback surface (Sprint 3,
   with the comprehension lift. Mirrors the mobile flow so demos are equivalent
   on either surface; the phone app remains the primary product.
 Key functions/classes: render_quiz_tab
+Game layer (v3, mirrors the mobile app): XP + levels, per-domain mastery
+  badges, session-scoped personal bests, and a "Master it" retake that
+  re-asks only the missed questions. Game state lives in st.session_state
+  (the fallback surface has no device storage); the phone app persists the
+  same state on-device via game_store.dart.
 Edge cases handled:
   - /quiz/generate failure → friendly retry, never a stack trace.
   - /quiz/score failure → local scoring fallback so the flow never dead-ends.
@@ -34,6 +39,19 @@ _S_POST_RESULT = "quiz_post_result"
 _S_LEARN_IDX = "quiz_learn_idx"
 _S_REVIEW_DOMAINS = "quiz_review_domains"  # mastery path filter
 _S_CELEBRATED = "quiz_celebrated"  # balloons fired once for this results view
+_S_MASTERY_ROUND = "quiz_mastery_round"  # post round re-asks only missed questions
+_S_ROUND_NONCE = "quiz_round_nonce"  # bumped per post round → fresh widget keys
+_S_XP_GAINED = "quiz_xp_gained"    # XP earned by the round just scored
+# Game stats survive "Start over" - they are cross-quiz engagement state.
+_S_GAME = "quiz_game_stats"
+
+# XP rules and level thresholds - keep in sync with the mobile app
+# (dischargeiq_mobile/lib/services/game_store.dart). Accuracy-based only:
+# no speed bonuses, which pressure older or unwell patients.
+_XP_PER_CORRECT = 10
+_XP_QUIZ_FINISHED = 25
+_XP_ALL_MASTERED = 50
+_LEVEL_THRESHOLDS = [0, 100, 250, 450, 700, 1000, 1400, 1900]
 
 # Short, 5th-grade-level praise lines for correct post-quiz answers.
 _PRAISE = ["You got it!", "Nice work!", "That's right!", "Great memory!", "Well done!"]
@@ -77,16 +95,50 @@ def render_quiz_tab(result: dict, session_id: str, api_base: str) -> None:
 
 
 def _reset() -> None:
-    """Clear all quiz state (Start over)."""
+    """Clear per-quiz state (Start over). Game stats (_S_GAME) survive -
+    XP and personal bests span quizzes by design."""
     for key in (
         _S_PHASE, _S_QUESTIONS, _S_POST_ORDER, _S_CURRENT, _S_PRE_ANSWERS,
         _S_POST_ANSWERS, _S_PRE_RESULT, _S_POST_RESULT, _S_LEARN_IDX,
-        _S_REVIEW_DOMAINS, _S_CELEBRATED,
+        _S_REVIEW_DOMAINS, _S_CELEBRATED, _S_MASTERY_ROUND, _S_XP_GAINED,
+        _S_ROUND_NONCE,
     ):
         st.session_state.pop(key, None)
 
 
+def _game() -> dict:
+    """Session-scoped game stats, created on first use."""
+    return st.session_state.setdefault(_S_GAME, {
+        "xp": 0, "quizzes": 0, "best_post": 0.0, "best_lift": 0.0,
+        "mastered": set(), "history": [],  # newest-first [(pre, post), ...]
+    })
+
+
+def _level(xp: int) -> int:
+    """1-based level for a cumulative XP total."""
+    return sum(1 for t in _LEVEL_THRESHOLDS if xp >= t) or 1
+
+
+def _level_progress(xp: int) -> tuple[float, int]:
+    """(progress 0..1 toward the next level, XP still needed); (1.0, 0) at max."""
+    lvl = _level(xp)
+    if lvl >= len(_LEVEL_THRESHOLDS):
+        return 1.0, 0
+    floor, ceil = _LEVEL_THRESHOLDS[lvl - 1], _LEVEL_THRESHOLDS[lvl]
+    return (xp - floor) / (ceil - floor), ceil - xp
+
+
 def _render_intro(result: dict, session_id: str, api_base: str) -> None:
+    # Returning player (this browser session): level + personal bests.
+    game = _game()
+    if game["quizzes"] > 0:
+        best_lift = game["best_lift"]
+        st.info(
+            f"🏅 Welcome back - **Level {_level(game['xp'])}**   ·   "
+            f"Personal best: **{game['best_post']:.0f}%**"
+            + (f"   ·   Biggest jump: **+{best_lift:.0f} pts**" if best_lift > 0 else "")
+            + f"   ·   Quizzes done: {game['quizzes']}"
+        )
     # Centered hero block matching the app's visual language: the plain
     # left-aligned markdown looked unfinished next to the other tabs.
     st.markdown(
@@ -150,9 +202,15 @@ def _render_quiz_phase(phase: str, session_id: str, api_base: str) -> None:
     answers_key = _S_PRE_ANSWERS if is_pre else _S_POST_ANSWERS
     question = questions[q_index]
 
-    label = "Before you learn" if is_pre else "After learning"
-    st.markdown(f"**{label} - question {current + 1} of {len(questions)}**")
-    st.progress((current + 1) / len(questions))
+    # A mastery round re-asks only the missed questions, so the round is the
+    # post order's length, not the full question count.
+    round_len = len(questions) if is_pre else len(st.session_state[_S_POST_ORDER])
+    label = (
+        "Before you learn" if is_pre
+        else ("Master it" if st.session_state.get(_S_MASTERY_ROUND) else "After learning")
+    )
+    st.markdown(f"**{label} - question {current + 1} of {round_len}**")
+    st.progress((current + 1) / round_len)
 
     domain = question.get("domain", "diagnosis")
     st.caption(f"{_DOMAIN_ICONS.get(domain, '❓')} {_DOMAIN_LABELS.get(domain, domain)}")
@@ -163,7 +221,9 @@ def _render_quiz_phase(phase: str, session_id: str, api_base: str) -> None:
         options=range(len(question["options"])),
         format_func=lambda i: question["options"][i],
         index=None,
-        key=f"quiz_radio_{phase}_{q_index}",
+        # The nonce keeps a mastery round's radios fresh - reusing the first
+        # post round's key would resurface the stale (wrong) selection.
+        key=f"quiz_radio_{phase}_{st.session_state.get(_S_ROUND_NONCE, 0)}_{q_index}",
         label_visibility="collapsed",
     )
     if choice is not None:
@@ -186,7 +246,7 @@ def _render_quiz_phase(phase: str, session_id: str, api_base: str) -> None:
                     f"{question['explanation']}"
                 )
 
-    last = current >= len(questions) - 1
+    last = current >= round_len - 1
     next_label = (
         "Next" if not last
         else ("Finish & start learning" if is_pre else "See my results")
@@ -231,8 +291,48 @@ def _finish_phase(phase: str, session_id: str, api_base: str) -> None:
         st.session_state[_S_CURRENT] = 0
         st.session_state[_S_PHASE] = "learn"
     else:
+        _award_xp(scored)
         st.session_state[_S_POST_RESULT] = scored
         st.session_state[_S_PHASE] = "results"
+
+
+def _award_xp(scored: dict) -> None:
+    """
+    Fold the just-scored post round into the session game stats.
+
+    XP counts only questions ASKED this round (the post order), so a mastery
+    retake cannot re-earn XP for answers carried over as correct. The
+    full-mastery bonus fires only on the transition into mastery. Mirrors
+    _awardXpAndPersist in the mobile app's quiz_screen.dart.
+    """
+    game = _game()
+    questions = st.session_state[_S_QUESTIONS]
+    answers = st.session_state[_S_POST_ANSWERS]
+    gained = _XP_QUIZ_FINISHED + sum(
+        _XP_PER_CORRECT
+        for i in st.session_state[_S_POST_ORDER]
+        if answers[i] == questions[i]["correct_index"]
+    )
+    previous = st.session_state.get(_S_POST_RESULT) or {}
+    was_mastered = previous != {} and not previous.get("failed_domains")
+    if not scored.get("failed_domains") and not was_mastered:
+        gained += _XP_ALL_MASTERED
+    game["xp"] += gained
+    for domain, bucket in (scored.get("domain_scores") or {}).items():
+        if bucket["correct"] == bucket["total"]:
+            game["mastered"].add(domain)
+    post_pct = float(scored.get("percent", 0.0))
+    if st.session_state.get(_S_MASTERY_ROUND):
+        # A mastery retake only improves bests; the run was already recorded.
+        game["best_post"] = max(game["best_post"], post_pct)
+    else:
+        pre_pct = float((st.session_state.get(_S_PRE_RESULT) or {}).get("percent", 0.0))
+        game["quizzes"] += 1
+        game["best_post"] = max(game["best_post"], post_pct)
+        game["best_lift"] = max(game["best_lift"], post_pct - pre_pct)
+        game["history"].insert(0, (pre_pct, post_pct))
+        del game["history"][20:]
+    st.session_state[_S_XP_GAINED] = gained
 
 
 def _streak_through(questions: list, order: list[int], answers: list, upto: int) -> int:
@@ -343,15 +443,40 @@ def _render_learn(result: dict) -> None:
             key=f"quiz_learn_next_{idx}",
         ):
             if last:
-                order = list(range(len(st.session_state[_S_QUESTIONS])))
-                random.shuffle(order)
-                st.session_state[_S_POST_ORDER] = order
-                st.session_state[_S_POST_ANSWERS] = [None] * len(order)
-                st.session_state[_S_CURRENT] = 0
-                st.session_state[_S_PHASE] = "post"
+                _start_post_round()
             else:
                 st.session_state[_S_LEARN_IDX] = idx + 1
             st.rerun()
+
+
+def _start_post_round() -> None:
+    """
+    Enter the post phase. After a mastery review, re-ask ONLY the questions
+    missed in the last post round - correct answers carry over untouched, so
+    the retake is short and winnable. First post round asks everything.
+    """
+    questions = st.session_state[_S_QUESTIONS]
+    answers = st.session_state[_S_POST_ANSWERS]
+    reviewing = bool(st.session_state.get(_S_REVIEW_DOMAINS))
+    missed = (
+        [i for i, q in enumerate(questions) if answers[i] != q["correct_index"]]
+        if reviewing and st.session_state.get(_S_POST_RESULT) else []
+    )
+    if missed:
+        st.session_state[_S_MASTERY_ROUND] = True
+        for i in missed:
+            answers[i] = None
+        random.shuffle(missed)
+        st.session_state[_S_POST_ORDER] = missed
+    else:
+        st.session_state[_S_MASTERY_ROUND] = False
+        order = list(range(len(questions)))
+        random.shuffle(order)
+        st.session_state[_S_POST_ORDER] = order
+        st.session_state[_S_POST_ANSWERS] = [None] * len(order)
+    st.session_state[_S_ROUND_NONCE] = st.session_state.get(_S_ROUND_NONCE, 0) + 1
+    st.session_state[_S_CURRENT] = 0
+    st.session_state[_S_PHASE] = "post"
 
 
 def _render_results() -> None:
@@ -367,6 +492,16 @@ def _render_results() -> None:
     b.metric("After learning", f"{post_pct:.0f}%", delta=f"{lift:+.0f} pts")
     c.metric("Score", f"{post.get('score', 0)}/{post.get('total', 0)}")
 
+    # Game layer: XP earned this round + level progress.
+    game = _game()
+    gained = st.session_state.get(_S_XP_GAINED, 0)
+    progress, to_next = _level_progress(game["xp"])
+    st.markdown(
+        f"⚡ **+{gained} XP**   ·   🏅 **Level {_level(game['xp'])}**"
+        + (f" - {to_next} XP to the next level" if to_next else " - top level!")
+    )
+    st.progress(progress)
+
     if lift > 0:
         st.success(f"🎉 Your understanding went up **{lift:.0f} points**!")
     elif not post.get("failed_domains"):
@@ -380,11 +515,19 @@ def _render_results() -> None:
         st.balloons()
 
     st.markdown("**How you did by topic**")
+    # Three-step mastery ladder per domain; a badge earned in any earlier
+    # quiz this session never downgrades (non-punitive, mirrors mobile).
     for domain, bucket in (post.get("domain_scores") or {}).items():
-        full = bucket["correct"] == bucket["total"]
+        if domain in game["mastered"] or bucket["correct"] == bucket["total"]:
+            icon, label = "🏆", "Mastered"
+        elif bucket["correct"] * 2 >= bucket["total"]:
+            icon, label = "🟢", "Almost there"
+        else:
+            icon, label = "🟡", "Keep learning"
         st.markdown(
-            f"{'✅' if full else '🟡'} {_DOMAIN_ICONS.get(domain, '')} "
-            f"{_DOMAIN_LABELS.get(domain, domain)}: {bucket['correct']}/{bucket['total']}"
+            f"{icon} {_DOMAIN_ICONS.get(domain, '')} "
+            f"{_DOMAIN_LABELS.get(domain, domain)} - {label} "
+            f"({bucket['correct']}/{bucket['total']})"
         )
 
     failed = post.get("failed_domains") or []

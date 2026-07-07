@@ -19,3 +19,34 @@ widgets/quiz_widgets.dart}` + "Test yourself" tab in results;
 **Resilience:** if the API is unreachable mid-quiz, scoring falls back to a
 local computation - the flow never dead-ends. `flutter analyze` clean; debug
 APK builds; Streamlit boots clean.
+
+---
+
+## Game layer v2 (Jul 5) - `477d10e` / `task-3.2-game-v2`
+
+Accuracy streak chip, haptics, praise lines, confetti gated to
+improved/perfect scores (research-informed: rare celebrations register as
+meaningful; no timers or speed points, which pressure older or unwell
+patients).
+
+## Game layer v3 (Jul 7) - pending review, suggested tag `task-3.2-game-v3`
+
+Both surfaces, same rules:
+- **"Master it" round:** after a mastery review, the post retake re-asks ONLY
+  the missed questions - correct answers carry over, the retake is short and
+  winnable. Scoring still submits the full answer set as phase `post`, so the
+  server contract and the stored comprehension delta are unchanged.
+- **XP + levels:** 10 XP per correct answer, 25 per finished round, 50 bonus
+  on first full mastery; 8 level thresholds (100 -> 1900 XP). Anti-farming:
+  XP counts only questions asked in the round; the mastery bonus fires once
+  per transition into mastery.
+- **Mastery badges:** per-domain three-step ladder (Keep learning / Almost
+  there / Mastered); a badge once earned never downgrades.
+- **Personal bests + welcome-back:** best score, biggest lift, quizzes done,
+  level. Mobile persists on-device via SharedPreferences
+  (`lib/services/game_store.dart` - engagement state only, never clinical
+  data); Streamlit is session-scoped (fallback surface has no device store).
+
+Files: `lib/services/game_store.dart` + `lib/widgets/game_widgets.dart` (new),
+`lib/screens/quiz_screen.dart` + `ui/quiz_tab.py` (wired), `DomainChips`
+deleted from `quiz_widgets.dart`. Tests: `test/game_store_test.dart` (5 green).
