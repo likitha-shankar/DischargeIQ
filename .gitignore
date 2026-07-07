@@ -89,3 +89,6 @@ THERACARE_HANDOFF.md
 
 # Local-only archive of design mockups, demo videos, and superseded docs
 _archive/
+
+# Node dependencies (reinstall with npm install; package-lock.json is tracked)
+node_modules/

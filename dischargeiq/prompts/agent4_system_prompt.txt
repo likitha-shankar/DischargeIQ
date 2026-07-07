@@ -1,5 +1,5 @@
 # File: dischargeiq/prompts/agent4_system_prompt.txt
-# Owner: Suchitra Rajkumar
+# Owner: Likitha Shankar
 # Description: System instructions for Agent 4 - week-by-week recovery guide at low
 #   reading level; integrates activity/dietary restrictions in plain language with
 #   banned clinical terms mapped to lay phrases.

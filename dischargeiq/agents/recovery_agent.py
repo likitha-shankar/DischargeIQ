@@ -2,7 +2,7 @@
 agents/recovery_agent.py
 
 Agent 4 - Recovery Trajectory Agent.
-Owner: Suchithra
+Owner: Likitha Shankar
 
 Consumes ExtractionOutput.primary_diagnosis and procedures_performed from
 Agent 1 and produces a plain-language week-by-week recovery guide.

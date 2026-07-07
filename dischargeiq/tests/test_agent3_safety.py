@@ -1,6 +1,6 @@
 """
 File: dischargeiq/tests/test_agent3_safety.py
-Owner: Deepesh Kumar Appar Senthilkumar
+Owner: Likitha Shankar
 Description: Safety guardrail tests for Agent 3 (medication rationale). Verifies that
   the LLM output never instructs patients to stop, discontinue, or reduce a medication -
   a hard rule that must hold for every document and every provider configuration.

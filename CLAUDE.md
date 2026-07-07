@@ -174,13 +174,9 @@ Additional scripts and stress runners are documented in **`README.md`**.
   agents on the OpenAI-compat path. If both providers fail, behavior is the old
   one: **partial** with section-level warnings.
 
-## Team (Plan B assignments)
+## Team
 
-- Likitha - Team Lead, Backend + LLM
-- Suchithra - Strong, Frontend + LLM
-- Deepesh - Strong, Anything
-- Rushi - Weak, Anything
-- Manusha - Weak, Data Infra
+Solo project - Likitha Shankar (sole developer: backend, frontend, LLM, data).
 
 ## Tech stack
 

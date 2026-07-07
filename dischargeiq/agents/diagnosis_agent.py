@@ -2,7 +2,7 @@
 agents/diagnosis_agent.py
 
 Agent 2 - Diagnosis Explanation Agent.
-Owner: Deepesh Kumar
+Owner: Likitha Shankar
 
 Consumes ExtractionOutput.primary_diagnosis (and secondary_diagnoses,
 procedures_performed) from Agent 1 and produces a plain-language paragraph

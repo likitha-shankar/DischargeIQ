@@ -1,6 +1,6 @@
 <!--
 File: templates/diabetes.md
-Owner: Deepesh Kumar
+Owner: Likitha Shankar
 Description: Clinician-reviewed diabetes discharge education template (ADA-aligned)
   with plain-language body and reviewer notes for benchmarking Agent 2 output.
 Used by: Reference / eval material; not loaded automatically by the pipeline.
@@ -10,7 +10,6 @@ Critical rules: No unexplained jargon; maintain reviewed FK and clinical sign-of
 # Diabetes Management - Patient Explanation Template
 
 **Guideline reference:** ADA Standards of Medical Care in Diabetes 2024
-**Reviewed by:** Rushi Eshwar Neelam
 **FK Grade:** 4.3
 **Date:** April 23, 2026
 

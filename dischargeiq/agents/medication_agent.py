@@ -2,7 +2,7 @@
 agents/medication_agent.py
 
 Agent 3 - Medication Rationale Agent.
-Owner: Suchithra
+Owner: Likitha Shankar
 
 Consumes ExtractionOutput.medications and ExtractionOutput.primary_diagnosis
 from Agent 1 and produces a plain-language, per-medication explanation that

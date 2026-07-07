@@ -1,6 +1,6 @@
 <!--
 File: templates/hip_replacement.md
-Owner: Deepesh Kumar
+Owner: Likitha Shankar
 Description: Clinician-reviewed hip replacement recovery template (AAOS-aligned)
   with structured patient text and reviewer notes for literacy checks.
 Used by: Reference / eval material; not loaded automatically by the pipeline.
@@ -10,7 +10,6 @@ Critical rules: Maintain post-op precautions tone; keep FK/clinical metadata acc
 # Hip Replacement - Patient Explanation Template
 
 **Guideline reference:** AAOS Clinical Practice Guidelines for Total Hip Arthroplasty (2023)
-**Reviewed by:** Deepesh Kumar
 **FK Grade:** 1.7
 **Date:** April 21, 2026
 

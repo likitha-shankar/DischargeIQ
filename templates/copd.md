@@ -1,6 +1,6 @@
 <!--
 File: templates/copd.md
-Owner: Deepesh Kumar
+Owner: Likitha Shankar
 Description: Clinician-reviewed plain-language COPD discharge education template
   (GOLD-aligned) with FK grade metadata and reviewer notes for Agent 2 quality reference.
 Used by: Reference / eval material; not loaded automatically by the pipeline.
@@ -10,7 +10,6 @@ Critical rules: Keep patient text at low reading level; guideline citation in he
 # COPD - Patient Explanation Template
 
 **Guideline reference:** GOLD 2024 Global Strategy for Prevention, Diagnosis and Management of COPD
-**Reviewed by:** Rushi Eshwar Neelam
 **FK Grade:** 3.3
 **Date:** April 23, 2026
 

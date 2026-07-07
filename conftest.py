@@ -1,6 +1,6 @@
 """
 File: conftest.py
-Owner: Deepesh Kumar Appar Senthilkumar
+Owner: Likitha Shankar
 Description: Root pytest configuration shared by all test directories.
   Provides an autouse rate-limiter fixture that enforces a minimum gap between
   consecutive ``@pytest.mark.slow`` tests to stay within Anthropic free-tier

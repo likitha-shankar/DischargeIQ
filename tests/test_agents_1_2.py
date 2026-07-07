@@ -1,6 +1,6 @@
 """
 File: tests/test_agents_1_2.py
-Owner: Deepesh Kumar
+Owner: Likitha Shankar
 Description: Manual integration runner that walks PDFs under test-data/, runs
   extract_text_from_pdf + run_extraction_agent then run_diagnosis_agent, and prints
   per-file outcomes for Agent 1→2 debugging (not pytest-discovered by default).

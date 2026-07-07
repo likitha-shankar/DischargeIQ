@@ -1,6 +1,6 @@
 # LLM-as-Judge API Cost Estimate
 **Batch evaluation (LLM-as-Judge)**
-*Owner: Rushi | Model: claude-sonnet-4-20250514*
+*Owner: Likitha Shankar | Model: claude-sonnet-4-20250514*
 
 ---
 

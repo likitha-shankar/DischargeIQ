@@ -1,6 +1,6 @@
 """
 File: dischargeiq/tests/test_agent5_safety.py
-Owner: Deepesh Kumar Appar Senthilkumar
+Owner: Likitha Shankar
 Description: Safety guardrail tests for Agent 5 (escalation guide). Verifies that the
   LLM output uses unambiguous, imperative language - no hedging, no conditional phrases
   that could leave a patient unsure whether to seek care. Also checks structural

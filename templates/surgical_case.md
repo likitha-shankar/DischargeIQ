@@ -1,6 +1,6 @@
 <!--
 File: templates/surgical_case.md
-Owner: Deepesh Kumar
+Owner: Likitha Shankar
 Description: Clinician-reviewed laparoscopic / perioperative discharge template
   (ACC/ACS-aligned) with patient narrative and reviewer notes for Agent 2 benchmarking.
 Used by: Reference / eval material; not loaded automatically by the pipeline.
@@ -10,7 +10,6 @@ Critical rules: Preserve perioperative safety tone; keep FK and sign-off metadat
 # Laparoscopic Surgery - Patient Explanation Template
 
 **Guideline reference:** ACC/ACS Perioperative Care Guidelines (2024)
-**Reviewed by:** Deepesh Kumar
 **FK Grade:** 1.1
 **Date:** April 21, 2026
 

@@ -19,8 +19,7 @@
 | Sponsor       | Leap of Faith Health Tech                                                                          |
 | LOF Pillar    | Patient Engagement                                                                                 |
 | Sub-domain    | Post-Acute Care - Discharge Comprehension                                                          |
-| Team Lead     | Likitha Shankar                                                                                    |
-| Team Members  | Suchithra Rajkumar, Deepesh Kumar Appar Senthilkumar, Manusha Boorgula, Rushi Eshwar Reddy Neelam  |
+| Developer     | Likitha Shankar (solo project)                                                                     |
 
 ---
 

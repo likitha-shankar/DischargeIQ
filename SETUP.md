@@ -504,12 +504,7 @@ exist locally only.
 
 ---
 
-## Team
+## Developer
 
-| Name                               | Role                                                             |
-|------------------------------------|------------------------------------------------------------------|
-| Likitha Shankar                    | Team Lead - Pipeline, Agent 1, Agent 5, Agent 6, FastAPI, Streamlit |
-| Suchithra Rajkumar                 | Agent 3 (Medication), Agent 4 (Recovery)                         |
-| Deepesh Kumar Appar Senthilkumar   | Agent 2 (Diagnosis)                                              |
-| Manusha Boorgula                   | General contributions                                            |
-| Rushi Eshwar Reddy Neelam          | General contributions                                            |
+Solo project - Likitha Shankar (full pipeline, all six agents, FastAPI,
+Streamlit, Flutter app).

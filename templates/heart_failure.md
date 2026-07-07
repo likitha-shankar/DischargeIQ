@@ -1,6 +1,6 @@
 <!--
 File: templates/heart_failure.md
-Owner: Deepesh Kumar
+Owner: Likitha Shankar
 Description: Clinician-reviewed heart failure template (ACC/AHA-aligned) with
   patient-facing narrative and reviewer notes (e.g. weight monitoring threshold).
 Used by: Reference / eval material; not loaded automatically by the pipeline.
@@ -10,7 +10,6 @@ Critical rules: Plain language only in template text; preserve guideline referen
 # Heart Failure - Patient Explanation Template
 
 **Guideline reference:** ACC/AHA 2022 Guideline for the Management of Heart Failure
-**Reviewed by:** Rushi Eshwar Neelam
 **FK Grade:** 1.8
 **Date:** April 23, 2026
 
