@@ -27,20 +27,25 @@ git checkout main       # come back - nothing is lost
 | `task-3.2-quiz-web` | Quiz tab on the Streamlit fallback | `de6d126` |
 | `task-3.3-clinician-dashboard` | Clinician dashboard (deltas, flagged gaps) | `d86fc3c` |
 | `task-3.4-gap-tooling` | Quiz-gap report: prompt-tuning evidence pipeline | `aef022a` |
+| `task-3.2-game-v3` (pending commit) | Quiz game v3: Master-it rounds, XP/levels, badges, bests | - |
+| `hardening-rejected-docs` (pending commit) | Non-discharge docs: `rejected` status + dedicated screens | - |
+| `task-2.5-android-apk` (pending commit) | Android SDK + release APKs (arm64 30.9MB), ML Kit R8 fix | - |
+| `task-5.1-clinician-review` (pending commit) | Clinician review portal: 0-5 rubric, Tranche 4 gate | - |
 
 `git log --oneline` between two tags shows exactly what a sprint added.
 Reverting would destroy later work; checkout/tags show history non-destructively.
 
-## Status at a glance (July 5, 2026 - Week 2)
+## Status at a glance (July 7, 2026 - Week 2)
 
 | Level | Item | Status |
 |---|---|---|
 | Tranche 1 | Mobilization (work plan) | ✅ plan v2 delivered |
 | Sprint 1 | Cloud backend + extraction pipeline (1.1–1.6) | ✅ complete |
-| Sprint 2 | Mobile bridge + OCR (2.1–2.5) | ◑ 2.2/2.3 done - store distribution (2.4/2.5) blocked on dev account |
-| Sprint 3 | Teach-back loop (3.1–3.3) | ✅ built early (3.4 tuning awaits tester data) |
+| Sprint 2 | Mobile bridge + OCR (2.1–2.5) | ◑ 2.2/2.3/2.5 done (release APKs built) - 2.4 TestFlight waits on the $99 Apple enrollment |
+| Sprint 3 | Teach-back loop (3.1–3.3) | ✅ built early, game layer at v3 (3.4 tuning awaits tester data) |
 | Sprint 4 | NotebookLM media + corpus lock | ◻ corpus already generated; lock at Week 8 |
-| Sprints 5–6 | Clinical validation + packaging | ◻ Month 3 |
+| Sprint 5 | Clinical validation | ◑ 5.1 review portal built early - 5.2 scoring waits on LOF reviewers |
+| Sprint 6 | Final packaging | ◻ Month 3 |
 
 The teach-back loop (Sprint 3 core) was pulled forward because it is the
 headline metric - comprehension lift from ~13% baseline to a measured 50–70%.

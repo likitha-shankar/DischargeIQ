@@ -2,7 +2,7 @@
 
 | Task | Deliverable | Status |
 |---|---|---|
-| 5.1 | Clinician onboarding (role-based Streamlit portal, 0–5 rubric) | ◻ |
+| 5.1 | Clinician onboarding (role-based Streamlit portal, 0–5 rubric) | ✅ built early (Week 2) - [task-5.1](tasks/task-5.1.md) |
 | 5.2 | Two clinicians independently score the locked 50-doc corpus | ◻ - LOF to connect reviewers |
 | 5.3 | Adversarial safety audit (prompt injection, dosage forcing, zero hallucinations) | ◻ - builds on existing adversarial suite |
 | 5.4 | Fix pass for documents scoring below 4.0 | ◻ |
