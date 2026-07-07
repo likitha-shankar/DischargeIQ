@@ -38,5 +38,14 @@ Build: `flutter build apk --release --split-per-abi`
 share the arm64 APK (Drive/AirDrop), tester enables "install unknown apps",
 opens the file, done.
 
+**Beta kit (`scripts/build_beta_kit.sh`):** one command assembles a shareable
+`dist/beta_kit/` folder + `dist/DischargeIQ-beta-kit.zip` (~14MB) containing
+the arm64 APK (renamed `DischargeIQ.apk`), the onboarding guide as
+`READ-ME-FIRST.md`, three synthetic sample documents (heart failure, COPD, hip
+replacement), and a MANIFEST. The release APK points at the hosted Cloud Run
+backend (`lib/config.dart`), so testers need no local server on any network.
+`dist/` is gitignored (build artifact). Send the zip, or upload the APK to
+Drive and share the link.
+
 **Verified:** clean `assembleRelease` (45.7s after Gradle warm-up), all three
 split APKs + universal produced with the ML Kit proguard fix.
