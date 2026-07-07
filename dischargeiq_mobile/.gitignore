@@ -19,3 +19,7 @@ android/local.properties
 # IDE (local)
 .idea/
 *.iml
+
+# Flutter per-machine generated plugin symlinks (regenerated on build)
+**/flutter/ephemeral/
+**/.plugin_symlinks/
