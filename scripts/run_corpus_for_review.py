@@ -71,6 +71,7 @@ async def generate_outputs(limit: int | None, force: bool) -> tuple[int, int, in
     _OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     generated = skipped = failed = 0
+    quota_strikes = 0
     for pdf in pdfs:
         if limit is not None and generated >= limit:
             break
@@ -88,6 +89,30 @@ async def generate_outputs(limit: int | None, force: bool) -> tuple[int, int, in
             logger.error("Pipeline failed for %s: %s", pdf.name, exc)
             failed += 1
             continue
+
+        # Quota circuit breaker (lesson from the Jul 7 run: a provider whose
+        # daily quota is exhausted fails EVERY document in ~2s - continuing
+        # burns the remaining quota on retries and fills the review set with
+        # unusable JSON). Two consecutive quota/credit failures -> abort;
+        # the run is resumable, so nothing already saved is lost.
+        warnings_text = " ".join(response.extraction_warnings)
+        if "Agent 1 error" in warnings_text and (
+            "429" in warnings_text or "credit balance" in warnings_text.lower()
+        ):
+            quota_strikes += 1
+            failed += 1
+            logger.error(
+                "%s: provider quota/credit failure (%d/2) - output NOT saved",
+                pdf.name, quota_strikes,
+            )
+            if quota_strikes >= 2:
+                logger.error(
+                    "Provider quota exhausted - aborting. Re-run this script "
+                    "after the quota resets; existing outputs are kept."
+                )
+                break
+            continue
+        quota_strikes = 0
 
         payload = response.model_dump()
         payload["_review_meta"] = {

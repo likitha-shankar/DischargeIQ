@@ -20,9 +20,11 @@ rejected as infeasible at beta scale.
   shown only when the audio exists (5-min cache; network errors degrade the
   same as 404). Caption clarifies the audio is general for the condition,
   the written summary is specific to the patient's document.
-- Mobile player: deferred - needs an audio dependency (`just_audio` or
-  `audioplayers`) decision; Streamlit demonstrates the flow for the
-  Tranche 3 gate.
+- Mobile: `AudioExplainerCard` (`lib/widgets/audio_explainer.dart`,
+  dependency: `audioplayers`) at the top of the What Happened tab - HEAD
+  probe first, renders NOTHING on 404/network error, big 48dp play target
+  for older patients, streams from `/media/{document_type}`. Release APK
+  builds clean with the dependency (arm64 31.1MB).
 
 **What stays manual (the workflow, documented in
 `dischargeiq/media/README.md`):** generate 5 Audio Overviews in NotebookLM

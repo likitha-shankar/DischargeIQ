@@ -5,6 +5,7 @@ import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/services/api_service.dart';
 import 'package:dischargeiq_mobile/screens/quiz_screen.dart';
 import 'package:dischargeiq_mobile/screens/settings_screen.dart';
+import 'package:dischargeiq_mobile/widgets/audio_explainer.dart';
 import 'package:dischargeiq_mobile/widgets/guided_tour.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -134,6 +135,7 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
                   child: _DiagnosisBody(
                     explanation: '${r['diagnosis_explanation'] ?? ''}',
                     extraction: r['extraction'],
+                    documentType: '${r['document_type'] ?? ''}',
                   ),
                 ),
                 KeyedSubtree(
@@ -746,9 +748,16 @@ class _AnsweredConceptsExpanderState extends State<_AnsweredConceptsExpander> {
 
 /// Diagnosis tab - "At a glance" badges + Agent 2 explanation text.
 class _DiagnosisBody extends StatelessWidget {
-  const _DiagnosisBody({required this.explanation, required this.extraction});
+  const _DiagnosisBody({
+    required this.explanation,
+    required this.extraction,
+    this.documentType = '',
+  });
   final String explanation;
   final dynamic extraction;
+
+  /// Router classification - drives the per-diagnosis audio explainer.
+  final String documentType;
 
   @override
   Widget build(BuildContext context) {
@@ -765,6 +774,8 @@ class _DiagnosisBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (documentType.isNotEmpty && documentType != 'unknown')
+            AudioExplainerCard(documentType: documentType),
           if (primaryDx.isNotEmpty || secList.isNotEmpty) ...[
             if (primaryDx.isNotEmpty) ...[
               _DxLabel(label: 'Your main condition', dark: dark),
