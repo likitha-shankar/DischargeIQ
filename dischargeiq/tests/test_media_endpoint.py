@@ -40,3 +40,20 @@ def test_serves_existing_file(tmp_path, monkeypatch):
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "audio/mp4"
     assert resp.content == b"fake-audio-bytes"
+
+
+def test_video_endpoint_serves_mp4_and_404s_cleanly(tmp_path, monkeypatch):
+    """Video kind: mp4 served with video MIME; missing video is a clean 404
+    even when the AUDIO for the same diagnosis exists (kinds are independent)."""
+    (tmp_path / "copd.mp4").write_bytes(b"fake-video-bytes")
+    (tmp_path / "diabetes.m4a").write_bytes(b"audio-only")
+    monkeypatch.setattr(media, "_MEDIA_DIR", tmp_path)
+
+    ok = _client.get("/media/copd/video")
+    assert ok.status_code == 200
+    assert ok.headers["content-type"] == "video/mp4"
+
+    missing = _client.get("/media/diabetes/video")
+    assert missing.status_code == 404
+    assert "video not generated" in missing.json()["detail"].lower()
+    assert _client.get("/media/nope/video").status_code == 404

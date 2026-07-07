@@ -2202,28 +2202,35 @@ def _inject_pdf_modal(
 # ── Section: Diagnosis ───────────────────────────────────────────────────────
 
 @st.cache_data(ttl=300, show_spinner=False)
-def _fetch_audio_explainer(document_type: str) -> bytes | None:
+def _fetch_media_explainer(document_type: str, kind: str) -> bytes | None:
     """
-    Fetch the per-diagnosis audio explainer, or None when unavailable.
+    Fetch the per-diagnosis audio (podcast) or video explainer, or None.
 
     404 is the NORMAL "not generated yet" case (fallback rule 6.5) - the
     caller simply hides the player. Any network error degrades the same way;
-    audio must never break the text experience. 5-minute cache so tab
-    switches don't refetch megabytes of audio.
+    media must never break the text experience. 5-minute cache so tab
+    switches don't refetch megabytes.
+
+    Args:
+        document_type: Router label from PipelineResponse.document_type.
+        kind: "audio" or "video" - picks the endpoint path.
     """
+    suffix = "/video" if kind == "video" else ""
     try:
-        resp = requests.get(f"{_API_BASE}/media/{document_type}", timeout=10)
+        resp = requests.get(f"{_API_BASE}/media/{document_type}{suffix}", timeout=20)
         if resp.status_code == 200 and resp.content:
             return resp.content
     except requests.RequestException as exc:
-        logger.debug("Audio explainer fetch failed (non-fatal): %s", exc)
+        logger.debug("%s explainer fetch failed (non-fatal): %s", kind, exc)
     return None
 
 
 def _render_audio_explainer(result: dict) -> None:
     """
-    Render the 'Listen instead' audio player when a per-diagnosis explainer
-    exists for this document's router classification. Silent no-op otherwise.
+    Render the 'listen or watch' explainer block when per-diagnosis media
+    exists for this document's router classification. Audio and video are
+    independent: either, both, or neither may exist. Silent no-op when
+    neither does.
 
     Args:
         result: PipelineResponse dict (uses document_type).
@@ -2231,11 +2238,22 @@ def _render_audio_explainer(result: dict) -> None:
     document_type = result.get("document_type")
     if not document_type or document_type == "unknown":
         return
-    audio = _fetch_audio_explainer(document_type)
-    if audio is None:
+    audio = _fetch_media_explainer(document_type, "audio")
+    video = _fetch_media_explainer(document_type, "video")
+    if audio is None and video is None:
         return
-    st.markdown("**🎧 Prefer to listen?** A short audio guide to your condition:")
-    st.audio(audio, format="audio/mp4")
+    if audio is not None and video is not None:
+        listen_tab, watch_tab = st.tabs(["🎧 Listen (podcast)", "🎬 Watch"])
+        with listen_tab:
+            st.audio(audio, format="audio/mp4")
+        with watch_tab:
+            st.video(video, format="video/mp4")
+    elif audio is not None:
+        st.markdown("**🎧 Prefer to listen?** A short audio guide to your condition:")
+        st.audio(audio, format="audio/mp4")
+    else:
+        st.markdown("**🎬 Prefer to watch?** A short video guide to your condition:")
+        st.video(video, format="video/mp4")
     st.caption(
         "General guide for your condition - your written summary below is "
         "specific to YOUR discharge document."
