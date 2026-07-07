@@ -40,7 +40,7 @@ Reverting would destroy later work; checkout/tags show history non-destructively
 | Level | Item | Status |
 |---|---|---|
 | Tranche 1 | Mobilization (work plan) | ✅ plan v2 delivered |
-| Sprint 1 | Cloud backend + extraction pipeline (1.1–1.6) | ✅ complete |
+| Sprint 1 | Cloud backend + extraction pipeline (1.1–1.6) | ✅ complete - Cloud Run live on Gemini (rev `dischargeiq-00003-pmg`, Jul 7) |
 | Sprint 2 | Mobile bridge + OCR (2.1–2.5) | ◑ 2.2/2.3/2.5 done (release APKs built) - 2.4 TestFlight waits on the $99 Apple enrollment |
 | Sprint 3 | Teach-back loop (3.1–3.3) | ✅ built early, game layer at v3 (3.4 tuning awaits tester data) |
 | Sprint 4 | NotebookLM media + corpus lock | ◻ corpus already generated; lock at Week 8 |
