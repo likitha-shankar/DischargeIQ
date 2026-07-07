@@ -1,0 +1,30 @@
+# Cloud Build upload excludes for `gcloud run deploy --source .`
+# The backend image (Dockerfile) only needs the Python app; keep the mobile
+# app, frontend node_modules, archives, and build artifacts out of the upload
+# so builds are fast and cheap.
+
+.git/
+.gitignore
+
+# Mobile app (not part of the backend image) - ~1.8GB of Flutter build output
+dischargeiq_mobile/
+
+# Frontend deps (reinstalled, never shipped in the backend image)
+frontend/**/node_modules/
+
+# Local-only archive and distribution artifacts
+_archive/
+dist/
+
+# Python caches and local venv
+.venv/
+**/__pycache__/
+*.pyc
+
+# Local env and logs (secrets come from Cloud Run env vars, not the image)
+.env
+logs/
+evaluation/corpus_outputs/
+
+# iOS/desktop bits not used by the backend
+ios/
