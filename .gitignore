@@ -85,3 +85,7 @@ DischargeIQ\ Mobile.html
 # Research and handoff documents
 SHADOW_STUDY.md
 THERACARE_HANDOFF.md
+.gstack/
+
+# Local-only archive of design mockups, demo videos, and superseded docs
+_archive/
