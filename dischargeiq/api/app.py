@@ -25,7 +25,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from dischargeiq.api.middleware import RateLimitMiddleware, SecurityHeadersMiddleware
-from dischargeiq.api.routes import analyze, chat, health, pdf, progress, quiz
+from dischargeiq.api.routes import analyze, chat, health, media, pdf, progress, quiz
 from dischargeiq.db.history import get_db_pool
 
 logger = logging.getLogger(__name__)
@@ -114,6 +114,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(analyze.router)
     app.include_router(chat.router)
+    app.include_router(media.router)
     app.include_router(pdf.router)
     app.include_router(progress.router)
     app.include_router(quiz.router)

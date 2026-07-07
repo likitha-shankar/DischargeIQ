@@ -591,6 +591,9 @@ async def _run_pipeline_internal(
         fk_scores=fk_scores,
         extraction_warnings=extraction_warnings,
         pipeline_status=pipeline_status,
+        # Router classification rides along for per-diagnosis media lookup
+        # (GET /media/{document_type}) and analytics.
+        document_type=router_result.get("document_type", "unknown"),
         patient_simulator=patient_simulator_result,
     )
 

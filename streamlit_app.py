@@ -2201,6 +2201,47 @@ def _inject_pdf_modal(
 
 # ── Section: Diagnosis ───────────────────────────────────────────────────────
 
+@st.cache_data(ttl=300, show_spinner=False)
+def _fetch_audio_explainer(document_type: str) -> bytes | None:
+    """
+    Fetch the per-diagnosis audio explainer, or None when unavailable.
+
+    404 is the NORMAL "not generated yet" case (fallback rule 6.5) - the
+    caller simply hides the player. Any network error degrades the same way;
+    audio must never break the text experience. 5-minute cache so tab
+    switches don't refetch megabytes of audio.
+    """
+    try:
+        resp = requests.get(f"{_API_BASE}/media/{document_type}", timeout=10)
+        if resp.status_code == 200 and resp.content:
+            return resp.content
+    except requests.RequestException as exc:
+        logger.debug("Audio explainer fetch failed (non-fatal): %s", exc)
+    return None
+
+
+def _render_audio_explainer(result: dict) -> None:
+    """
+    Render the 'Listen instead' audio player when a per-diagnosis explainer
+    exists for this document's router classification. Silent no-op otherwise.
+
+    Args:
+        result: PipelineResponse dict (uses document_type).
+    """
+    document_type = result.get("document_type")
+    if not document_type or document_type == "unknown":
+        return
+    audio = _fetch_audio_explainer(document_type)
+    if audio is None:
+        return
+    st.markdown("**🎧 Prefer to listen?** A short audio guide to your condition:")
+    st.audio(audio, format="audio/mp4")
+    st.caption(
+        "General guide for your condition - your written summary below is "
+        "specific to YOUR discharge document."
+    )
+
+
 def _render_section_diagnosis(result: dict) -> None:
     """
     Render the diagnosis tab: explanation paragraph, citation chip, FK
@@ -2218,6 +2259,8 @@ def _render_section_diagnosis(result: dict) -> None:
         '<div class="diq-section-title">🩺&nbsp; What Happened to You</div>',
         unsafe_allow_html=True,
     )
+
+    _render_audio_explainer(result)
 
     # "At a glance" block: labelled headers + teal pill badge bullets for
     # primary and secondary diagnoses, rendered above the Agent 2 text so

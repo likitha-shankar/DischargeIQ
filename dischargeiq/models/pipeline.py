@@ -79,4 +79,9 @@ class PipelineResponse(BaseModel):
     extraction_warnings: list
     pipeline_status: Literal["complete", "complete_with_warnings", "partial", "rejected"]
     rejection_reason: Optional[str] = None
+    # Router classification (heart_failure, copd, diabetes, hip_replacement,
+    # surgical, unknown). Drives per-diagnosis media lookup (Sprint 4) and
+    # analytics. None on legacy responses; "unknown" when the router could
+    # not classify but let the document through.
+    document_type: Optional[str] = None
     patient_simulator: Optional[PatientSimulatorOutput] = None
