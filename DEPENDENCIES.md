@@ -24,27 +24,28 @@ cd frontend/explainer/engine && npx license-checker --summary
 
 - **No AGPL and no network-copyleft components** anywhere in the tree - the
   category the LOF guide specifically bans.
-- **No pure GPL-only components.** Python is overwhelmingly MIT / BSD /
-  Apache-2.0. Two weak-copyleft items are flagged below with reasoning.
-- All licenses are permissive or weak-copyleft used as unmodified libraries.
+- **No pure GPL-only components. No LGPL-only components.** Python is
+  overwhelmingly MIT / BSD / Apache-2.0.
+- The take-home PDF now uses `reportlab` (BSD); the previous LGPL `fpdf2`
+  dependency was removed (2026-07-07) to keep the tree copyleft-free.
+- One transitive tri-licensed item remains, flagged below - it carries no
+  copyleft obligation on our code.
 
-### Flagged (weak copyleft - documented for LOF visibility)
+### Flagged (informational - no obligation on DischargeIQ)
 
 | Package | License | Why it is used | Risk assessment |
 |---|---|---|---|
-| `fpdf2` 2.8.7 | LGPL-3.0-only | Generates the take-home plain-language summary PDF (`streamlit_app.py`) | **Low.** LGPL permits use of an unmodified library via pip import. fpdf2 is not modified and not statically linked into a distributed binary. If LOF prefers zero copyleft, swap for `reportlab` (BSD, already installed) or `pypdf` (BSD). |
-| `pyphen` 0.17.2 | Tri-licensed: GPLv2+ **OR** LGPLv2+ **OR** MPL 1.1 | Transitive via `textstat` (Flesch-Kincaid readability scoring - hard rule 4) | **Low.** Tri-license lets us use it under LGPLv2+ or MPL 1.1; we do **not** take the GPL option. No pure-GPL obligation. |
+| `pyphen` 0.17.2 | Tri-licensed: GPLv2+ **OR** LGPLv2+ **OR** MPL 1.1 | Transitive via `textstat` (Flesch-Kincaid readability scoring - hard rule 4) | **None.** Tri-license lets us use it under LGPLv2+ or MPL 1.1; we do **not** take the GPL option. No pure-GPL obligation, and it is a transitive readability helper, not linked into any distributed binary. |
 
-Neither is AGPL. Neither triggers a copyleft obligation on DischargeIQ's own
-Apache-2.0 code. If LOF requires written approval for any weak-copyleft
-component, `fpdf2` is the only one worth raising (and is trivially swappable).
+Nothing in the tree is AGPL, GPL-only, or LGPL-only. No component triggers a
+copyleft obligation on DischargeIQ's own Apache-2.0 code.
 
-## Python (backend) - 81 packages
+## Python (backend) - 80 packages
 
 License distribution: ~33 MIT, ~22 BSD, ~13 Apache-2.0, 1 MPL-2.0
-(`certifi`), 1 LGPL-3.0 (`fpdf2`), 1 tri-license (`pyphen`), remainder
-dual/permissive. Direct dependencies are pinned in `requirements.txt`; the
-table below is the full resolved tree.
+(`certifi`), 1 tri-license (`pyphen`, transitive), remainder dual/permissive.
+No LGPL-only or GPL-only packages. Direct dependencies are pinned in
+`requirements.txt`; the table below is the full resolved tree.
 
 | Name | Version | License |
 |---|---|---|
@@ -72,7 +73,6 @@ table below is the full resolved tree.
 | docstring_parser | 0.18.0 | MIT |
 | fastapi | 0.136.1 | MIT |
 | fonttools | 4.62.1 | MIT |
-| **fpdf2** | 2.8.7 | **LGPL-3.0-only** (flagged above) |
 | gitdb | 4.0.12 | BSD |
 | google-auth | 2.55.1 | Apache-2.0 |
 | h11 | 0.16.0 | MIT |

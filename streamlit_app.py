@@ -1351,82 +1351,79 @@ def _empty_generation_message(result: dict, section_label: str) -> None:
         st.caption(f"{section_label} is not available for this document.")
 
 
-def _pdf_safe_txt(text: str) -> str:
-    """FPDF core fonts are latin-1; replace unsupported characters."""
+def _pdf_para_txt(text: str) -> str:
+    """
+    Escape text for a reportlab Paragraph (mini-XML markup) and turn line
+    breaks into <br/>. Unlike the old fpdf2 path this keeps full Unicode -
+    em-dashes and accented characters render correctly.
+    """
     if not text:
         return ""
-    return text.encode("latin-1", "replace").decode("latin-1")
+    return html.escape(text).replace("\n", "<br/>")
 
 
 def _build_summary_pdf_bytes(result: dict) -> bytes:
     """
     Build a simple take-home PDF from the current pipeline result (post-demo).
 
-    Uses fpdf2 (already in requirements.txt). Not a clinical record - patient
-    education summary only.
+    Uses reportlab (BSD-licensed, already in requirements.txt) - chosen over
+    fpdf2 (LGPL) to keep the dependency tree free of copyleft. Not a clinical
+    record - patient education summary only.
     """
-    from fpdf import FPDF
+    import io
 
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.add_page()
-    pdf.set_font("Helvetica", size=10)
+    from reportlab.lib.enums import TA_LEFT
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.multi_cell(0, 8, txt=_pdf_safe_txt("DischargeIQ: Plain-language summary"))
-    pdf.set_font("Helvetica", "", 9)
-    pdf.multi_cell(
-        0,
-        4,
-        txt=_pdf_safe_txt(
-            "AI-generated for education only. Not medical advice. "
-            "Confirm all instructions and warning signs with your care team "
-            "before relying on this document."
-        ),
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=letter,
+        topMargin=0.7 * inch, bottomMargin=0.7 * inch,
+        leftMargin=0.75 * inch, rightMargin=0.75 * inch,
+        title="DischargeIQ plain-language summary",
     )
-    pdf.ln(3)
+    title_style = ParagraphStyle("diq_title", fontName="Helvetica-Bold", fontSize=16, spaceAfter=6)
+    note_style = ParagraphStyle("diq_note", fontName="Helvetica", fontSize=8.5, textColor="#555555", spaceAfter=10, leading=11)
+    head_style = ParagraphStyle("diq_head", fontName="Helvetica-Bold", fontSize=12, spaceBefore=8, spaceAfter=3)
+    body_style = ParagraphStyle("diq_body", fontName="Helvetica", fontSize=10, leading=14, alignment=TA_LEFT)
 
     ext = result.get("extraction") or {}
     patient = _clean_str(ext.get("patient_name")) or "Patient"
     ddate = _clean_str(ext.get("discharge_date"))
-    pdf.multi_cell(0, 5, txt=_pdf_safe_txt(f"Patient: {patient}"))
+
+    story = [
+        Paragraph("DischargeIQ: Plain-language summary", title_style),
+        Paragraph(
+            "AI-generated for education only. Not medical advice. Confirm all "
+            "instructions and warning signs with your care team before relying "
+            "on this document.",
+            note_style,
+        ),
+        Paragraph(_pdf_para_txt(f"Patient: {patient}"), body_style),
+    ]
     if ddate:
-        pdf.multi_cell(0, 5, txt=_pdf_safe_txt(f"Discharge date: {ddate}"))
-    pdf.ln(2)
+        story.append(Paragraph(_pdf_para_txt(f"Discharge date: {ddate}"), body_style))
+    story.append(Spacer(1, 8))
 
     def add_section(title: str, body: str) -> None:
-        pdf.set_font("Helvetica", "B", 11)
-        pdf.multi_cell(0, 6, txt=_pdf_safe_txt(title))
-        pdf.set_font("Helvetica", "", 10)
         content = body.strip() if body.strip() else "(Not generated.)"
-        pdf.multi_cell(0, 5, txt=_pdf_safe_txt(content))
-        pdf.ln(2)
+        story.append(Paragraph(_pdf_para_txt(title), head_style))
+        story.append(Paragraph(_pdf_para_txt(content), body_style))
 
-    add_section(
-        "1. What happened to you",
-        _clean_str(result.get("diagnosis_explanation", "")),
-    )
-    add_section(
-        "2. Your medications explained",
-        _clean_str(result.get("medication_rationale", "")),
-    )
-    add_section(
-        "3. Your recovery timeline",
-        _clean_str(result.get("recovery_trajectory", "")),
-    )
-    add_section(
-        "4. Warning signs: when to get help",
-        _clean_str(result.get("escalation_guide", "")),
-    )
+    add_section("1. What happened to you", _clean_str(result.get("diagnosis_explanation", "")))
+    add_section("2. Your medications explained", _clean_str(result.get("medication_rationale", "")))
+    add_section("3. Your recovery timeline", _clean_str(result.get("recovery_trajectory", "")))
+    add_section("4. Warning signs: when to get help", _clean_str(result.get("escalation_guide", "")))
 
     dx = _clean_str(ext.get("primary_diagnosis", ""))
-    meds = ext.get("medications") or []
-    med_lines = []
-    for m in meds:
-        if isinstance(m, dict):
-            nm = _clean_str(m.get("name"))
-            if nm:
-                med_lines.append(nm)
+    med_lines = [
+        _clean_str(m.get("name"))
+        for m in (ext.get("medications") or [])
+        if isinstance(m, dict) and _clean_str(m.get("name"))
+    ]
     detail_lines = [f"Primary diagnosis: {dx}"] if dx else []
     if med_lines:
         detail_lines.append("Medications noted: " + ", ".join(med_lines))
@@ -1435,10 +1432,8 @@ def _build_summary_pdf_bytes(result: dict) -> bytes:
         "\n".join(detail_lines) if detail_lines else "",
     )
 
-    out = pdf.output(dest="S")
-    if isinstance(out, str):
-        return out.encode("latin-1", "replace")
-    return bytes(out)
+    doc.build(story)
+    return buffer.getvalue()
 
 
 def _hidden_click_target(label: str, key: str) -> bool:
