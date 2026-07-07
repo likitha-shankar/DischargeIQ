@@ -9,6 +9,26 @@ Maintained for: Course team and Cursor/Claude context; keep "Current project sta
 
 # DischargeIQ - Project Context for AI Agents
 
+## LOF LABS program rules (binding - read every run)
+
+Full rules: **[docs/LOF_LABS_RULES.md](docs/LOF_LABS_RULES.md)** (authoritative;
+wins over any older text here). Compact version:
+
+- **Solo project.** Likitha Shankar is the sole developer. Never add other
+  names to code, docs, commits, licenses, or headers.
+- **13 weeks, 4 phases, 3 gates** (NOT "tranches" - ignore that older word).
+  Gate 1 concept (Wk2, $500), Gate 2 working prototype (Wk6, $1,250), Gate 3
+  feature-complete beta (Wk10, $1,250), Final demo (Wk13, $2,000). One-week
+  cure window per gate. Judged against a fixed bar, not other teams.
+- **Every gate checks:** LICENSE at root (Apache-2.0, done), current
+  `DEPENDENCIES.md` manifest (done), no GPL/AGPL/network-copyleft deps, and no
+  clinical OR synthetic/eval data in a PUBLIC repo without written approval.
+- **Repo:** authoritative repo must be the LOF-controlled org (pending access).
+  Until then it lives at `github.com/likitha-shankar/DischargeIQ`. Confirm repo
+  privacy before pushing (synthetic corpus is committed).
+- No unsupported clinical claims; assist/summarize/educate/triage only (already
+  the HITL framing + hard rules below).
+
 ## What this project is
 
 DischargeIQ is two things working together:
@@ -43,9 +63,10 @@ discharge documents.
 as the source of truth for “what is happening now.” Older sections below (e.g.
 dated milestones) may be stale.
 
-**Summer engagement (July 2026):** DischargeIQ is now a funded 12-week Leap of
-Faith project. Work plan: `docs/deliverables/README.md` maps every deliverable
-to commits and demo tags. New since June: supervisor/router agent, cross-provider
+**Summer engagement (July 2026):** DischargeIQ is a funded LOF LABS project
+(13 weeks, 4 phases, 3 gates - see the program-rules section at the top of
+this file and `docs/LOF_LABS_RULES.md`). Work plan:
+`docs/deliverables/README.md` maps every deliverable to commits and demo tags. New since June: supervisor/router agent, cross-provider
 LLM failover, Vertex AI (BAA) provider path, locked 50-doc synthetic corpus
 (`test-data/synthetic/` + Neon `synthetic_corpus`), and the teach-back quiz loop
 (`/quiz/generate`, `/quiz/score`, `quiz_scores` table, quiz UIs on mobile and
