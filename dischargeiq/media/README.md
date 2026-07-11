@@ -10,9 +10,11 @@ task 6.5). Media is an enhancement - comprehension must never depend on it.
 ## Generation workflow (once per diagnosis, ~10 min audio / ~15 min video)
 
 1. Open NotebookLM (notebooklm.google.com) with the project Google account.
-2. New notebook → add sources: the clinician-reviewed template for the
-   diagnosis (`dischargeiq/templates/<name>.md`) plus, optionally, one
-   representative synthetic discharge PDF from `test-data/`.
+2. New notebook → add ONE source: the ready-made NotebookLM source doc for the
+   diagnosis in `dischargeiq/media/sources/<router_label>.md`. These are the
+   clinician-reviewed template text (verbatim, no added facts) pre-formatted
+   with bulleting and phonetic hints - the Task 4.2 pacing/pronunciation lever.
+   (Optionally also add one representative synthetic PDF from `test-data/`.)
 3. Generate an **Audio Overview** (podcast) and, if wanted, a **Video
    Overview**. In "customize", instruct:
    "Explain this to a patient who just got home from the hospital.
