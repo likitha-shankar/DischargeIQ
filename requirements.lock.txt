@@ -1,0 +1,29 @@
+# File: requirements.lock.txt
+# Owner: Likitha Shankar
+# Description: Fully pinned versions of the DischargeIQ backend direct
+#   dependencies, resolved from the working .venv (Python 3.14). Sprint 6,
+#   Task 6.2 (production build) uses this exact set so a release build is
+#   reproducible. requirements.txt keeps minimal >= ranges for day-to-day
+#   development; this lock is the frozen production contract.
+# Usage: pip install -r requirements.lock.txt   (production / release builds)
+# Regenerate: bump requirements.txt, reinstall, re-run the resolver in
+#   docs/deliverables/tasks/task-6.2.md, then commit the new pins.
+# Locked: 2026-07-08
+
+textstat==0.7.13
+fastapi==0.136.1
+uvicorn==0.46.0
+python-multipart==0.0.26
+pypdf==6.10.2
+anthropic==0.97.0
+openai==2.32.0
+pdfplumber==0.11.9
+pydantic==2.13.3
+asyncpg==0.31.0
+python-dotenv==1.2.2
+streamlit==1.56.0
+requests==2.33.1
+reportlab==4.4.10
+deepdiff==9.0.0
+google-auth==2.55.1
+pytest==8.4.2
