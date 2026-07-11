@@ -4,7 +4,7 @@ LOF LABS gate requirement: a current manifest of third-party libraries,
 frameworks, packages, models, tools, and datasets, with licenses.
 
 **Project license:** Apache License 2.0 (see [LICENSE](LICENSE)).
-**Last regenerated:** 2026-07-07.
+**Last regenerated:** 2026-07-11.
 
 ## How to regenerate
 
@@ -15,9 +15,6 @@ frameworks, packages, models, tools, and datasets, with licenses.
 
 # Flutter (mobile) - licenses are declared per package on pub.dev
 cd dischargeiq_mobile && flutter pub deps
-
-# npm (3D explainer frontend)
-cd frontend/explainer/engine && npx license-checker --summary
 ```
 
 ## Compliance summary
@@ -146,22 +143,20 @@ Declared in `dischargeiq_mobile/pubspec.yaml`. All permissive.
 | audioplayers | MIT | Per-diagnosis audio explainer |
 | video_player | BSD-3-Clause | Per-diagnosis video explainer |
 
-## npm (3D explainer frontend) - direct dependencies
+## npm
 
-Declared in `frontend/explainer/engine/package.json`. `node_modules/` is
-gitignored (reinstall with `npm install`).
-
-| Package | License | Purpose |
-|---|---|---|
-| three | MIT | 3D anatomy rendering |
-| vite | MIT | Build tool (dev dependency) |
+None. The 3D anatomy explainer prototype (three.js/vite) was removed from the
+tree on 2026-07-11 - it is out of scope per the accepted work plan ("3D
+anatomy visualization: replaced by NotebookLM media") and is archived locally
+outside version control.
 
 ## Models, services, and datasets (non-package)
 
 | Item | Type | Terms | Notes |
 |---|---|---|---|
 | Google Gemini API | LLM (primary) | Google APIs Terms of Service | Default provider; `gemini-2.5-flash-lite`. For real patient data the Vertex AI (BAA) path is required. |
-| Anthropic Claude API | LLM (fallback) | Anthropic Commercial Terms | Cross-provider failover only. |
+| Anthropic Claude API | LLM (fallback option) | Anthropic Commercial Terms | Cross-provider failover path. |
+| OpenRouter | LLM (fallback option) | OpenRouter Terms of Service | Alternate failover path (`LLM_FALLBACK_PROVIDER=openrouter`); free-tier models used for demo capacity. |
 | Google ML Kit Text Recognition | On-device model | Google APIs Terms | Runs on-device; the photo never leaves the phone. Latin script only. |
 | NotebookLM | Media generation tool | Google Terms of Service | Manual generation of per-diagnosis audio/video explainers (no API). |
 | Neon PostgreSQL | Hosted database | Neon Terms of Service | History, quiz scores, corpus metadata, clinician review scores. |

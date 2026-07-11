@@ -1,6 +1,6 @@
 # Cloud Build upload excludes for `gcloud run deploy --source .`
 # The backend image (Dockerfile) only needs the Python app; keep the mobile
-# app, frontend node_modules, archives, and build artifacts out of the upload
+# app, archives, and build artifacts out of the upload
 # so builds are fast and cheap.
 
 .git/
@@ -10,7 +10,6 @@
 dischargeiq_mobile/
 
 # Frontend deps (reinstalled, never shipped in the backend image)
-frontend/**/node_modules/
 
 # Local-only archive and distribution artifacts
 _archive/
