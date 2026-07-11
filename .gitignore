@@ -57,12 +57,14 @@ htmlcov/
 # Nested egg-info (e.g. if package installed with pip install -e .)
 **/*.egg-info/
 
-# Flutter / Dart build artifacts (dischargeiq_mobile/ - on hold, local only)
+# Flutter / Dart build artifacts (dischargeiq_mobile/)
+# pubspec.lock is TRACKED on purpose (Work Plan v2 task 3.6: locked dependency
+# versions across backend and client - the Dart counterpart of
+# requirements.lock.txt).
 dischargeiq_mobile/build/
 dischargeiq_mobile/.dart_tool/
 dischargeiq_mobile/.flutter-plugins
 dischargeiq_mobile/.flutter-plugins-dependencies
-dischargeiq_mobile/pubspec.lock
 
 # Claude Flow tool artifacts
 .claude-flow/
