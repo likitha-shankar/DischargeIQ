@@ -162,56 +162,38 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _showThemeSheet(BuildContext context, ThemeProvider tp) async {
-    var selected = tp.mode;
+    // Applies immediately on tap - the whole app re-themes behind the sheet,
+    // which IS the preview. No confirm step to learn.
+    Widget option(BuildContext ctx, ThemeMode mode, IconData icon, String label) {
+      final selected = tp.mode == mode;
+      return ListTile(
+        leading: Icon(icon, color: selected ? kTeal : null),
+        title: Text(label),
+        trailing: selected ? const Icon(Icons.check, color: kTeal) : null,
+        onTap: () => tp.setMode(mode),
+      );
+    }
+
     await showModalBottomSheet<void>(
       context: context,
       builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setSt) {
-            void pick(ThemeMode m) => setSt(() => selected = m);
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ListTile(
-                    title: const Text('Follow system default'),
-                    trailing: selected == ThemeMode.system
-                        ? const Icon(Icons.check, color: kTeal)
-                        : null,
-                    onTap: () => pick(ThemeMode.system),
-                  ),
-                  ListTile(
-                    title: const Text('Always light'),
-                    trailing: selected == ThemeMode.light
-                        ? const Icon(Icons.check, color: kTeal)
-                        : null,
-                    onTap: () => pick(ThemeMode.light),
-                  ),
-                  ListTile(
-                    title: const Text('Always dark'),
-                    trailing: selected == ThemeMode.dark
-                        ? const Icon(Icons.check, color: kTeal)
-                        : null,
-                    onTap: () => pick(ThemeMode.dark),
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      tp.setMode(selected);
-                      Navigator.pop(ctx);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: kTeal,
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Apply'),
-                  ),
-                ],
-              ),
-            );
-          },
+        return AnimatedBuilder(
+          animation: tp,
+          builder: (ctx, _) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                option(ctx, ThemeMode.system, Icons.brightness_auto_outlined,
+                    'Follow system default'),
+                option(ctx, ThemeMode.light, Icons.light_mode_outlined,
+                    'Always light'),
+                option(ctx, ThemeMode.dark, Icons.dark_mode_outlined,
+                    'Always dark'),
+              ],
+            ),
+          ),
         );
       },
     );

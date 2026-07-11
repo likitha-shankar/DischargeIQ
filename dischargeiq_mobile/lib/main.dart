@@ -1,5 +1,6 @@
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/providers/theme_provider.dart';
+import 'package:dischargeiq_mobile/screens/intro_screen.dart';
 import 'package:dischargeiq_mobile/screens/results_screen.dart';
 import 'package:dischargeiq_mobile/screens/upload_screen.dart';
 import 'package:dischargeiq_mobile/theme.dart';
@@ -40,11 +41,26 @@ class DischargeIQApp extends StatelessWidget {
   }
 }
 
-class _HomeGate extends StatelessWidget {
+class _HomeGate extends StatefulWidget {
   const _HomeGate();
 
   @override
+  State<_HomeGate> createState() => _HomeGateState();
+}
+
+class _HomeGateState extends State<_HomeGate> {
+  // Cinematic landing intro (mirror of the web version): plays once per cold
+  // app launch - process-scoped, so backgrounding the app does not replay it,
+  // but a fresh open does (same behavior as the web's per-session replay).
+  static bool _introDone = false;
+
+  @override
   Widget build(BuildContext context) {
+    if (!_introDone) {
+      return IntroScreen(
+        onDone: () => setState(() => _introDone = true),
+      );
+    }
     return Consumer<DischargeProvider>(
       builder: (context, dp, _) {
         if (dp.hasResult) return const ResultsScreen();

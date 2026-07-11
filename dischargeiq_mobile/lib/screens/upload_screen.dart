@@ -1,10 +1,13 @@
 import 'dart:typed_data';
 
 import 'package:dischargeiq_mobile/config.dart';
+import 'package:dischargeiq_mobile/providers/theme_provider.dart';
 import 'package:dischargeiq_mobile/screens/loading_screen.dart';
 import 'package:dischargeiq_mobile/screens/scan_screen.dart';
+import 'package:dischargeiq_mobile/screens/settings_screen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 /// Design A (light) / Design B (dark) upload; follows [ThemeData] brightness.
 class UploadScreen extends StatefulWidget {
@@ -46,14 +49,14 @@ class _UploadScreenState extends State<UploadScreen> {
             SizedBox(
               height: 52,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.only(left: 16, right: 4),
                 child: Row(
                   children: [
                     Text(
                       'DischargeIQ',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
                         color: _dark ? kTealGlow : kTextPrimaryLight,
                       ),
                     ),
@@ -61,8 +64,33 @@ class _UploadScreenState extends State<UploadScreen> {
                     Text(
                       'Patient education only',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 11,
                         color: _dark ? kTextHintDark : kTextHintLight,
+                      ),
+                    ),
+                    // Theme toggle on the landing page itself - patients should
+                    // not have to find Settings to switch light/dark.
+                    IconButton(
+                      tooltip: _dark ? 'Switch to light mode' : 'Switch to dark mode',
+                      icon: Icon(
+                        _dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                        size: 20,
+                        color: _dark ? kTealGlow : kTeal,
+                      ),
+                      onPressed: () => context
+                          .read<ThemeProvider>()
+                          .setMode(_dark ? ThemeMode.light : ThemeMode.dark),
+                    ),
+                    IconButton(
+                      tooltip: 'Settings',
+                      icon: Icon(
+                        Icons.settings_outlined,
+                        size: 20,
+                        color: _dark ? kTextHintDark : kTextSecondaryLight,
+                      ),
+                      onPressed: () => Navigator.push<void>(
+                        context,
+                        MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
                       ),
                     ),
                   ],
@@ -72,8 +100,21 @@ class _UploadScreenState extends State<UploadScreen> {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
+                // Single calm entrance: fade + small upward drift. No looping
+                // motion anywhere - same no-pressure principle as the quiz.
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, t, child) => Opacity(
+                    opacity: t,
+                    child: Transform.translate(
+                      offset: Offset(0, 14 * (1 - t)),
+                      child: child,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
@@ -88,7 +129,7 @@ class _UploadScreenState extends State<UploadScreen> {
                       child: Text(
                         'Your discharge, simplified',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w500,
                           color: _dark ? kTealGlow : kTeal,
                         ),
@@ -121,16 +162,19 @@ class _UploadScreenState extends State<UploadScreen> {
                       'Upload your PDF. Get plain answers. Go home ready.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 13,
                         color: _dark ? kTextSecondaryDark : kTextSecondaryLight,
                       ),
                     ),
                     const SizedBox(height: 20),
                     ..._stepTiles(),
                     const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: _pickFile,
-                      child: CustomPaint(
+                    Semantics(
+                      button: true,
+                      label: 'Choose your discharge PDF file',
+                      child: GestureDetector(
+                        onTap: _pickFile,
+                        child: CustomPaint(
                         foregroundPainter: _DashedBorderPainter(
                           color: _dark ? kTealGlow.withValues(alpha: 0.3) : kTealGlow,
                           strokeWidth: 1.5,
@@ -162,7 +206,7 @@ class _UploadScreenState extends State<UploadScreen> {
                               Text(
                                 'Tap to choose your discharge PDF',
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 12.5,
                                   color: _dark ? kTextHintDark : kTextSecondaryLight,
                                 ),
                               ),
@@ -170,26 +214,30 @@ class _UploadScreenState extends State<UploadScreen> {
                               Text(
                                 'PDF format · Up to 200MB',
                                 style: TextStyle(
-                                  fontSize: 9,
+                                  fontSize: 11,
                                   color: _dark ? kTextHintDark : kTextHintLight,
                                 ),
                               ),
                             ],
                           ),
                         ),
+                        ),
                       ),
                     ),
                     if (_fileName != null) ...[
                       const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                         decoration: BoxDecoration(
-                          color: kTealPale,
+                          color: _dark ? kTeal.withValues(alpha: 0.3) : kTealPale,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           '${_fileName!} · ${_kb(_bytes?.length ?? 0)}',
-                          style: const TextStyle(fontSize: 10, color: kTeal),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _dark ? kTealGlow : kTeal,
+                          ),
                         ),
                       ),
                     ],
@@ -256,19 +304,20 @@ class _UploadScreenState extends State<UploadScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.lock_outline, size: 12, color: _dark ? kTextHintDark : kTextHintLight),
+                        Icon(Icons.lock_outline, size: 13, color: _dark ? kTextHintDark : kTextHintLight),
                         const SizedBox(width: 4),
                         Text(
                           'Private · Deleted when you close the app',
                           style: TextStyle(
-                            fontSize: 9,
+                            fontSize: 11,
                             color: _dark ? kTextHintDark : kTextHintLight,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                  ],
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -302,8 +351,8 @@ class _UploadScreenState extends State<UploadScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 20,
-                height: 20,
+                width: 24,
+                height: 24,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: _dark ? kTealGlow.withValues(alpha: 0.15) : kTealPale,
@@ -312,13 +361,13 @@ class _UploadScreenState extends State<UploadScreen> {
                 child: Text(
                   s.$1,
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: _dark ? kTealLight : kTeal,
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -326,15 +375,16 @@ class _UploadScreenState extends State<UploadScreen> {
                     Text(
                       s.$2,
                       style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
                         color: _dark ? kTextPrimaryDark : kTextPrimaryLight,
                       ),
                     ),
+                    const SizedBox(height: 1),
                     Text(
                       s.$3,
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: 11.5,
                         color: _dark ? kTextSecondaryDark : kTextSecondaryLight,
                       ),
                     ),
