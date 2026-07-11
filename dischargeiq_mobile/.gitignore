@@ -23,3 +23,15 @@ android/local.properties
 # Flutter per-machine generated plugin symlinks (regenerated on build)
 **/flutter/ephemeral/
 **/.plugin_symlinks/
+
+# macOS desktop target - out of scope (app is iOS + Android); Flutter-generated
+# runner scaffolding is build noise. Already-tracked ephemeral files are kept.
+macos/Podfile
+macos/Podfile.lock
+macos/.gitignore
+macos/Flutter/Flutter-Debug.xcconfig
+macos/Flutter/Flutter-Release.xcconfig
+macos/Runner.xcodeproj/
+macos/Runner.xcworkspace/
+macos/Runner/
+macos/RunnerTests/
