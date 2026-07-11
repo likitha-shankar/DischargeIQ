@@ -3,7 +3,7 @@
 | Task | Deliverable | Status |
 |---|---|---|
 | 4.1 | Media generation workflow (care plan → NotebookLM audio/video → app) | ◑ scaffolding built early - [task-4.1](tasks/task-4.1.md): per-diagnosis strategy, `/media/{document_type}` endpoint, Streamlit player with text fallback. Remaining: generate the 5 NotebookLM audios |
-| 4.2 | Media quality pass (pronunciation, source formatting) | ◻ |
+| 4.2 | Media quality pass (pronunciation, source formatting) | ◑ - NotebookLM-ready source docs built for all 5 diagnoses (`dischargeiq/media/sources/`): reviewed template text verbatim, reformatted with bulleting + phonetic hints (the pacing/pronunciation lever). Remaining: run the actual audio generation + listen-through |
 | 4.3 | Spanish support (stretch, cut first if velocity slips) | ◻ |
 | 4.4 | Lock the 50-document clinical trial corpus | ✅ tooling ready - [task-4.4](tasks/task-4.4.md): `scripts/lock_corpus.py` + `corpus_lock.json` (SHA-256 per file + combined hash, `--verify` drift check). Re-run at Week 8 for the final lock |
 

@@ -35,17 +35,30 @@ git checkout main       # come back - nothing is lost
 `git log --oneline` between two tags shows exactly what a sprint added.
 Reverting would destroy later work; checkout/tags show history non-destructively.
 
-## Status at a glance (July 7, 2026 - Week 2)
+## Status at a glance (July 8, 2026 - Week 2)
 
 | Level | Item | Status |
 |---|---|---|
 | Tranche 1 | Mobilization (work plan) | ✅ plan v2 delivered |
 | Sprint 1 | Cloud backend + extraction pipeline (1.1–1.6) | ✅ complete - Cloud Run live on Gemini (rev `dischargeiq-00003-pmg`, Jul 7) |
-| Sprint 2 | Mobile bridge + OCR (2.1–2.5) | ◑ 2.2/2.3/2.5 done (release APKs built) - 2.4 TestFlight waits on the $99 Apple enrollment |
+| Sprint 2 | Mobile bridge + OCR (2.1–2.5) | ◑ 2.2/2.3/2.5 done (release APKs built) - 2.4 TestFlight on paid-hold ($99 Apple enrollment) |
 | Sprint 3 | Teach-back loop (3.1–3.3) | ✅ built early, game layer at v3 (3.4 tuning awaits tester data) |
-| Sprint 4 | NotebookLM media + corpus lock | ◻ corpus already generated; lock at Week 8 |
-| Sprint 5 | Clinical validation | ◑ 5.1 review portal built early - 5.2 scoring waits on LOF reviewers |
-| Sprint 6 | Final packaging | ◻ Month 3 |
+| Sprint 4 | NotebookLM media + corpus lock | ◑ 4.4 lock tooling ready; 4.1/4.2 scaffolding + NotebookLM source docs built - actual audio gen remains |
+| Sprint 5 | Clinical validation | ◑ 5.1 portal + 5.3 adversarial suite built - 5.2 scoring waits on LOF reviewers; 5.3 needs a valid live run |
+| Sprint 6 | Final packaging | ◑ 6.3 integration-readiness docs + 6.5 media-fallback tests done; 6.2 Python deps locked (release builds on paid-hold) |
 
 The teach-back loop (Sprint 3 core) was pulled forward because it is the
 headline metric - comprehension lift from ~13% baseline to a measured 50–70%.
+
+## Paid-hold list (features built, activation deferred until payment)
+
+Per the July 2026 instruction to hold paid items while getting features ready:
+
+- **iOS TestFlight (Task 2.4):** config TestFlight-ready; blocked on the $99
+  Apple Developer enrollment. Android ships as a direct-install APK meanwhile.
+- **Google Play Internal Testing (Task 2.5):** deferred to first LOF payout;
+  direct-install APK covers Android beta now.
+- **Release iOS/Android production builds (Task 6.2):** depend on the store
+  accounts above. Python backend deps are locked (`requirements.lock.txt`).
+- **Adversarial audit valid run (Task 5.3):** suite runnable; a clean result
+  needs real LLM quota (paid tier) or the Vertex/BAA path.
