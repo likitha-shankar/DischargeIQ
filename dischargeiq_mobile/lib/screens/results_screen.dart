@@ -3,6 +3,7 @@ import 'dart:math' show max, min;
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/services/api_service.dart';
+import 'package:dischargeiq_mobile/services/calendar_link.dart';
 import 'package:dischargeiq_mobile/services/game_store.dart';
 import 'package:dischargeiq_mobile/screens/quiz_screen.dart';
 import 'package:dischargeiq_mobile/screens/settings_screen.dart';
@@ -11,6 +12,7 @@ import 'package:dischargeiq_mobile/widgets/guided_tour.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Six-tab discharge summary with optional first-run guided tour.
 class ResultsScreen extends StatefulWidget {
@@ -74,7 +76,7 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
         behavior: SnackBarBehavior.floating,
         content: Text(
           '⭐ Star earned: ${kSectionStarLabels[key]} read '
-          '($earned of ${kSectionStarKeys.length})',
+          '($earned of ${kAllStarKeys.length})',
         ),
       ),
     );
@@ -1603,6 +1605,37 @@ class _AppointmentsBody extends StatelessWidget {
 
   final dynamic extraction;
 
+  /// Task 2.2 calendar action: open the Google Calendar event template for
+  /// this appointment, then award the one-time calendar star. The star is
+  /// earned for taking the action; whether the patient saves the event in
+  /// Google Calendar afterwards is unknowable from here.
+  Future<void> _addToCalendar(BuildContext context, Map appointment) async {
+    final url = buildCalendarLink(
+      provider: appointment['provider'] as String?,
+      specialty: appointment['specialty'] as String?,
+      reason: appointment['reason'] as String?,
+      dateText: appointment['date'] as String?,
+    );
+    final opened = await launchUrl(url, mode: LaunchMode.externalApplication);
+    if (!opened || !context.mounted) return;
+    final isNew = await SectionStarStore.award(kCalendarStarKey);
+    if (!isNew || !context.mounted) return;
+    final earned = (await SectionStarStore.load()).length;
+    if (!context.mounted) return;
+    // Same quiet once-per-star feedback as the reading stars
+    // (calm-celebration rule in docs/GAMIFICATION_STRATEGY.md).
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          '⭐ Star earned: ${kSectionStarLabels[kCalendarStarKey]} '
+          '($earned of ${kAllStarKeys.length})',
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final list = (extraction is Map) ? extraction['follow_up_appointments'] as List? : null;
@@ -1618,27 +1651,48 @@ class _AppointmentsBody extends StatelessWidget {
         if (a is! Map) return const SizedBox.shrink();
         return Card(
           color: dark ? kCardDark : kCardLight,
-          child: ListTile(
-            title: Text('${a['specialty'] ?? a['provider'] ?? 'Appointment'}'),
-            subtitle: Text(
-              '${a['date'] ?? 'Date TBD'}\n${a['reason'] ?? ''}',
-              style: TextStyle(color: dark ? kTextSecondaryDark : kTextSecondaryLight),
-            ),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: dark ? kTeal.withValues(alpha: 0.25) : kTealPale,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '${a['date'] ?? 'TBD'}',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: dark ? kTealGlow : kTeal,
-                  fontWeight: FontWeight.w600,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ListTile(
+                title: Text('${a['specialty'] ?? a['provider'] ?? 'Appointment'}'),
+                subtitle: Text(
+                  '${a['date'] ?? 'Date TBD'}\n${a['reason'] ?? ''}',
+                  style: TextStyle(color: dark ? kTextSecondaryDark : kTextSecondaryLight),
+                ),
+                trailing: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: dark ? kTeal.withValues(alpha: 0.25) : kTealPale,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${a['date'] ?? 'TBD'}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: dark ? kTealGlow : kTeal,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.only(left: 8, right: 8, bottom: 6),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () => _addToCalendar(context, a),
+                    icon: const Icon(Icons.calendar_month_outlined, size: 18),
+                    label: const Text('Add to calendar'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: dark ? kTealGlow : kTeal,
+                      // 48dp touch target, same rule as the audio play button.
+                      minimumSize: const Size(48, 48),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },

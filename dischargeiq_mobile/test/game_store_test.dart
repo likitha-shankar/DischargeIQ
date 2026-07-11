@@ -82,7 +82,8 @@ void main() {
   });
 
   test('star keys and labels agree with each other', () {
-    expect(kSectionStarKeys.toSet(), kSectionStarLabels.keys.toSet());
-    expect(kSectionStarKeys.length, 5);
+    expect(kAllStarKeys.toSet(), kSectionStarLabels.keys.toSet());
+    expect(kSectionStarKeys.length, 5); // tab-mapped reading stars only
+    expect(kAllStarKeys.length, 6); // + the add-to-calendar action star
   });
 }

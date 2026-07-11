@@ -20,6 +20,10 @@ dependencies:
   google_mlkit_text_recognition: ^0.15.0
   audioplayers: ^6.7.1
   video_player: ^2.11.1
+  # Add-to-calendar deep link on the Appointments tab (Task 2.2): opens the
+  # Google Calendar event template in the browser/app - no calendar
+  # permissions requested, nothing written on the patient's behalf.
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:

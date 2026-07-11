@@ -212,13 +212,14 @@ class WelcomeBackCard extends StatelessWidget {
   }
 }
 
-/// Discharge-process star row (Task 2.2): one star per results section read.
-/// Pure presentation; earned keys come from SectionStarStore. Shown on the
-/// quiz intro so the patient sees reading progress before testing themselves.
+/// Discharge-process star row (Task 2.2): one star per results section read,
+/// plus the add-to-calendar action star. Pure presentation; earned keys come
+/// from SectionStarStore. Shown on the quiz intro so the patient sees their
+/// progress before testing themselves.
 class SectionStarsRow extends StatelessWidget {
   const SectionStarsRow({super.key, required this.earned});
 
-  /// Earned star keys (subset of kSectionStarKeys).
+  /// Earned star keys (subset of kAllStarKeys).
   final Set<String> earned;
 
   @override
@@ -227,7 +228,7 @@ class SectionStarsRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Reading stars  ·  ${earned.length} of ${kSectionStarKeys.length}',
+          'Discharge stars  ·  ${earned.length} of ${kAllStarKeys.length}',
           style: const TextStyle(
               fontSize: 13, fontWeight: FontWeight.w600, color: kTextPrimaryLight),
         ),
@@ -236,7 +237,7 @@ class SectionStarsRow extends StatelessWidget {
           spacing: 10,
           runSpacing: 6,
           children: [
-            for (final key in kSectionStarKeys)
+            for (final key in kAllStarKeys)
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

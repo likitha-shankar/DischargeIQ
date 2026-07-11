@@ -142,6 +142,7 @@ Declared in `dischargeiq_mobile/pubspec.yaml`. All permissive.
 | google_mlkit_text_recognition | MIT (plugin) | On-device OCR - see model note below |
 | audioplayers | MIT | Per-diagnosis audio explainer |
 | video_player | BSD-3-Clause | Per-diagnosis video explainer |
+| url_launcher | BSD-3-Clause | Add-to-calendar deep link (Appointments tab) |
 
 ## npm
 

@@ -146,12 +146,23 @@ const List<String> kSectionStarKeys = [
   'recovery',
 ];
 
+/// Action star (Task 2.2, second half): earned once when the patient adds a
+/// follow-up appointment to their calendar from the Appointments tab. Kept
+/// out of [kSectionStarKeys] because that list maps 1:1 onto tab indices.
+const String kCalendarStarKey = 'calendar_added';
+
+/// Every earnable discharge-process star, in display order. Star counts and
+/// the star row render from this list; tab-award logic uses only
+/// [kSectionStarKeys].
+const List<String> kAllStarKeys = [...kSectionStarKeys, kCalendarStarKey];
+
 const Map<String, String> kSectionStarLabels = {
   'what_happened': 'What happened',
   'medications': 'Medications',
   'appointments': 'Appointments',
   'warning_signs': 'Warning signs',
   'recovery': 'Recovery',
+  kCalendarStarKey: 'Appointment saved',
 };
 
 /// Stars live under their OWN SharedPreferences key, not inside [GameStats]:
