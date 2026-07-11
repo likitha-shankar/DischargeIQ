@@ -21,8 +21,11 @@ Called by: `streamlit run ui/clinician_dashboard.py --server.port 8502`
 """
 
 import asyncio
+import json
 import logging
 import os
+import random
+from pathlib import Path
 
 import asyncpg
 import pandas as pd
@@ -156,6 +159,69 @@ def _render_flagged_gaps(quiz: list[dict]) -> None:
     st.caption("Fraction of quiz questions missed per domain, across all sessions.")
 
 
+def _render_spot_check() -> None:
+    """
+    Random-sample review queue (Task 2.4) - the human-in-the-loop check from
+    the July review: a clinician is served a random document's generated
+    outputs to verify against the source, instead of choosing what to read.
+
+    Reads the frozen review set on disk (evaluation/corpus_outputs/, written
+    by scripts/run_corpus_for_review.py). Deliberately NOT the live database:
+    agent free-text is never stored in Neon (privacy rule), so disk outputs
+    generated from the synthetic corpus are the only reviewable artifacts.
+    """
+    st.subheader("Spot-check a random document")
+    outputs = sorted(Path("evaluation/corpus_outputs").glob("*.json"))
+    if not outputs:
+        st.info(
+            "No generated outputs to review yet. Run "
+            "`python scripts/run_corpus_for_review.py` once to build the "
+            "frozen review set from the synthetic corpus."
+        )
+        return
+
+    # The current pick lives in session state so Streamlit reruns (any widget
+    # interaction) do not silently swap the document mid-review.
+    if st.button("🎲 Serve me a random document") or "spot_check_pick" not in st.session_state:
+        st.session_state["spot_check_pick"] = random.choice(outputs).name
+    pick = Path("evaluation/corpus_outputs") / st.session_state["spot_check_pick"]
+    if not pick.is_file():  # set regenerated since last visit
+        st.session_state["spot_check_pick"] = random.choice(outputs).name
+        pick = Path("evaluation/corpus_outputs") / st.session_state["spot_check_pick"]
+
+    try:
+        payload = json.loads(pick.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        st.error(f"Could not read {pick.name}: {exc}")
+        return
+
+    extraction = payload.get("extraction") or {}
+    st.markdown(
+        f"**Document:** `{pick.stem}`  ·  status `{payload.get('pipeline_status', '?')}`  ·  "
+        f"extracted diagnosis: *{extraction.get('primary_diagnosis', 'n/a')}*"
+    )
+    st.caption(
+        "Verify against the matching source PDF in test-data/synthetic/. "
+        "Checklist: summary matches the source; every medication, dose, and "
+        "frequency exact; warning signs complete and unambiguous; nothing "
+        "added that is not in the source. Score it in the review portal "
+        "(port 8503) when done."
+    )
+    sections = [
+        ("What happened (Agent 2)", payload.get("diagnosis_explanation", "")),
+        ("Medications (Agent 3)", payload.get("medication_rationale", "")),
+        ("Recovery (Agent 4)", payload.get("recovery_trajectory", "")),
+        ("Warning signs (Agent 5)", payload.get("escalation_guide", "")),
+    ]
+    for title, text in sections:
+        with st.expander(title, expanded=False):
+            st.markdown(text if text.strip() else "*empty - agent failed on this run*")
+    meds = extraction.get("medications") or []
+    if meds:
+        with st.expander(f"Extracted medications ({len(meds)}) - verify doses", expanded=False):
+            st.dataframe(pd.DataFrame(meds), hide_index=True, width="stretch")
+
+
 def main() -> None:
     """Page entry point: config check, data load, metrics, gaps, session table."""
     st.set_page_config(page_title="DischargeIQ - Clinician Dashboard", page_icon="🩺", layout="wide")
@@ -189,6 +255,8 @@ def main() -> None:
     _render_metrics(df, quiz_sessions)
     st.divider()
     _render_flagged_gaps(quiz)
+    st.divider()
+    _render_spot_check()
     st.divider()
 
     st.subheader("Sessions")
