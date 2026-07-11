@@ -69,6 +69,8 @@ class _QuizBodyState extends State<QuizBody> {
   GameStats? _stats;
   int _xpGained = 0;
   bool _masteryRound = false;
+  // Discharge-process reading stars (Task 2.2) - separate store from GameStats.
+  Set<String> _sectionStars = {};
 
   @override
   void initState() {
@@ -77,6 +79,9 @@ class _QuizBodyState extends State<QuizBody> {
     // welcome-back card once the store answers (fresh install → empty stats).
     GameStore.load().then((s) {
       if (mounted) setState(() => _stats = s);
+    });
+    SectionStarStore.load().then((s) {
+      if (mounted) setState(() => _sectionStars = s);
     });
   }
 
@@ -334,6 +339,10 @@ class _QuizBodyState extends State<QuizBody> {
     return _CenteredScroll(children: [
       if (_stats != null && _stats!.quizzesCompleted > 0) ...[
         WelcomeBackCard(stats: _stats!),
+        const SizedBox(height: 18),
+      ],
+      if (_sectionStars.isNotEmpty) ...[
+        SectionStarsRow(earned: _sectionStars),
         const SizedBox(height: 18),
       ],
       const Icon(Icons.psychology_alt_outlined, size: 56, color: kTealMid),

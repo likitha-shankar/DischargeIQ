@@ -135,6 +135,61 @@ class GameStats {
       };
 }
 
+/// Discharge-process step stars (Task 2.2, per the July review: gamify the
+/// PROCESS of working through the instructions, not just the quiz).
+/// Key order matches the first five results tabs.
+const List<String> kSectionStarKeys = [
+  'what_happened',
+  'medications',
+  'appointments',
+  'warning_signs',
+  'recovery',
+];
+
+const Map<String, String> kSectionStarLabels = {
+  'what_happened': 'What happened',
+  'medications': 'Medications',
+  'appointments': 'Appointments',
+  'warning_signs': 'Warning signs',
+  'recovery': 'Recovery',
+};
+
+/// Stars live under their OWN SharedPreferences key, not inside [GameStats]:
+/// QuizBody holds a GameStats instance in memory across a whole quiz run and
+/// saves it at round ends, which would silently clobber stars awarded from
+/// the results tabs in between. A separate key removes the race entirely.
+class SectionStarStore {
+  static const _kKey = 'section_stars';
+
+  /// Set of earned star keys; corrupt or missing data yields an empty set -
+  /// losing stars must never break the results screen.
+  static Future<Set<String>> load() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return (prefs.getStringList(_kKey) ?? const []).toSet();
+    } catch (_) {
+      return {};
+    }
+  }
+
+  /// Award one star. Atomic load-modify-save so concurrent awards from
+  /// different screens cannot lose each other. Returns true only when the
+  /// star is NEW - callers use that to show feedback exactly once, ever
+  /// (calm-celebration rule: a star can only be earned once).
+  static Future<bool> award(String key) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final earned = (prefs.getStringList(_kKey) ?? const []).toSet();
+      if (earned.contains(key)) return false;
+      earned.add(key);
+      await prefs.setStringList(_kKey, earned.toList()..sort());
+      return true;
+    } catch (_) {
+      return false; // best-effort engagement state, never blocks the UI
+    }
+  }
+}
+
 /// Loads and saves [GameStats] as one JSON string in SharedPreferences.
 class GameStore {
   static const _kKey = 'quiz_game_stats';

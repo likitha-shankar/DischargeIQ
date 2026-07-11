@@ -8,6 +8,7 @@ library;
 
 import 'package:dischargeiq_mobile/services/game_store.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   test('level rises with XP and progress stays in 0..1', () {
@@ -63,5 +64,25 @@ void main() {
     expect(stats.level, 1);
     expect(stats.history, isEmpty);
     expect(stats.masteredDomains, isEmpty);
+  });
+
+  // ── Section stars (Task 2.2) ─────────────────────────────────────────────
+  // SectionStarStore touches SharedPreferences; setMockInitialValues gives it
+  // an in-memory backend so these still run without platform channels.
+
+  test('section star awarded once, persists, and count is stable', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+
+    expect(await SectionStarStore.load(), isEmpty);
+    expect(await SectionStarStore.award('medications'), isTrue);
+    expect(await SectionStarStore.award('medications'), isFalse); // once, ever
+    expect(await SectionStarStore.award('recovery'), isTrue);
+    expect(await SectionStarStore.load(), {'medications', 'recovery'});
+  });
+
+  test('star keys and labels agree with each other', () {
+    expect(kSectionStarKeys.toSet(), kSectionStarLabels.keys.toSet());
+    expect(kSectionStarKeys.length, 5);
   });
 }

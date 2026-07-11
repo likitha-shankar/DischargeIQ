@@ -211,3 +211,53 @@ class WelcomeBackCard extends StatelessWidget {
     );
   }
 }
+
+/// Discharge-process star row (Task 2.2): one star per results section read.
+/// Pure presentation; earned keys come from SectionStarStore. Shown on the
+/// quiz intro so the patient sees reading progress before testing themselves.
+class SectionStarsRow extends StatelessWidget {
+  const SectionStarsRow({super.key, required this.earned});
+
+  /// Earned star keys (subset of kSectionStarKeys).
+  final Set<String> earned;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Reading stars  ·  ${earned.length} of ${kSectionStarKeys.length}',
+          style: const TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w600, color: kTextPrimaryLight),
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 10,
+          runSpacing: 6,
+          children: [
+            for (final key in kSectionStarKeys)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    earned.contains(key) ? Icons.star_rounded : Icons.star_outline_rounded,
+                    size: 18,
+                    color: earned.contains(key) ? const Color(0xFFF5B300) : Colors.black26,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    kSectionStarLabels[key] ?? key,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: earned.contains(key) ? kTextPrimaryLight : Colors.black45,
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}

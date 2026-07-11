@@ -3,6 +3,7 @@ import 'dart:math' show max, min;
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/services/api_service.dart';
+import 'package:dischargeiq_mobile/services/game_store.dart';
 import 'package:dischargeiq_mobile/screens/quiz_screen.dart';
 import 'package:dischargeiq_mobile/screens/settings_screen.dart';
 import 'package:dischargeiq_mobile/widgets/audio_explainer.dart';
@@ -36,7 +37,47 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabLabels.length, vsync: this);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeStartTour());
+    // Discharge-process stars (Task 2.2): viewing a content tab earns its
+    // star once, ever. Listener fires on settled tab changes; the initial
+    // tab (What happened) is awarded after the first frame.
+    _tabController.addListener(_onTabSettled);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _maybeStartTour();
+      _awardSectionStar(0);
+    });
+  }
+
+  void _onTabSettled() {
+    if (!_tabController.indexIsChanging) {
+      _awardSectionStar(_tabController.index);
+    }
+  }
+
+  Future<void> _awardSectionStar(int tabIndex) async {
+    // Only the five content sections carry stars; quiz and AI review do not.
+    if (tabIndex < 0 || tabIndex >= kSectionStarKeys.length || !mounted) return;
+    // No stars on a rejected document - there is nothing to read.
+    if ('${context.read<DischargeProvider>().result?['pipeline_status']}' ==
+        'rejected') {
+      return;
+    }
+    final key = kSectionStarKeys[tabIndex];
+    final isNew = await SectionStarStore.award(key);
+    if (!isNew || !mounted) return;
+    final earned = (await SectionStarStore.load()).length;
+    if (!mounted) return;
+    // Quiet, once-per-star feedback - a snackbar, never confetti
+    // (calm-celebration rule in docs/GAMIFICATION_STRATEGY.md).
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          '⭐ Star earned: ${kSectionStarLabels[key]} read '
+          '($earned of ${kSectionStarKeys.length})',
+        ),
+      ),
+    );
   }
 
   Future<void> _startTour() async {
@@ -68,6 +109,7 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabSettled);
     _tabController.dispose();
     super.dispose();
   }
