@@ -124,3 +124,20 @@ class QuizScoreResponse(BaseModel):
     domain_scores: dict[str, dict[str, int]]
     failed_domains: list[str]
     comprehension_delta: Optional[float] = None
+
+
+class CaseAudioRequest(BaseModel):
+    """
+    Request body for POST /media/case (per-case TTS explainer, decision D-5).
+
+    Fields:
+        session_id: Client session identifier (same one used by /chat).
+        pipeline_payload: The PipelineResponse dict the client already holds.
+                          Sent by the client (like /chat's pipeline_context)
+                          so audio generation is stateless server-side and
+                          safe under Cloud Run multi-instance routing; the
+                          client caches the returned WAV on device.
+    """
+
+    session_id: str
+    pipeline_payload: dict

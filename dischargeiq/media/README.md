@@ -39,6 +39,15 @@ task 6.5). Media is an enhancement - comprehension must never depend on it.
 
 6. Restart the backend (or redeploy) - no code change needed.
 
+## Per-CASE audio (Task 2.5, decision D-5) - not files in this directory
+
+`POST /media/case` generates a two-host explainer from the patient's OWN
+pipeline output (script LLM + Gemini TTS, `utils/case_audio.py`), on demand.
+No file lands here - the client caches the returned WAV on device. Gated by
+`CASE_AUDIO_ENABLED` (default off) until the Task 4.2 listen-through approves
+the prompt/voice mechanism on sampled cases. The per-diagnosis files above
+remain the zero-quota fallback layer.
+
 ## Rules
 
 - English first; Spanish variants (task 4.3, stretch) would be

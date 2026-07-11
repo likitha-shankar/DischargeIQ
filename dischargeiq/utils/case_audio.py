@@ -109,19 +109,20 @@ def _wrap_pcm_as_wav(pcm: bytes, sample_rate: int = _PCM_SAMPLE_RATE) -> bytes:
     )
 
 
-def synthesize_dialogue(script: str, out_path: str | Path) -> Path:
+def synthesize_dialogue_bytes(script: str) -> bytes:
     """
-    Render a Sam/Alex dialogue script to a WAV file via Gemini TTS.
+    Render a Sam/Alex dialogue script to WAV bytes via Gemini TTS.
 
     One multi-speaker generateContent call; the returned 24 kHz PCM is
-    wrapped as WAV so the /media audio endpoint can serve it directly.
+    wrapped as WAV. This is the serving primitive: POST /media/case returns
+    these bytes directly (on-demand model, decision D-5), and the CLI wraps
+    them in a file for the pre-generated per-diagnosis slots.
 
     Args:
         script: Dialogue text in "Sam: ... / Alex: ..." format.
-        out_path: Destination file path; parent directories are created.
 
     Returns:
-        Path: The written WAV file.
+        bytes: Complete WAV file contents.
 
     Raises:
         ValueError: If GOOGLE_API_KEY is missing.
@@ -152,9 +153,27 @@ def synthesize_dialogue(script: str, out_path: str | Path) -> Path:
     resp.raise_for_status()
     part = resp.json()["candidates"][0]["content"]["parts"][0]["inlineData"]
     pcm = base64.b64decode(part["data"])
+    logger.info("TTS audio synthesized (%.1fs)", len(pcm) / _PCM_SAMPLE_RATE / 2)
+    return _wrap_pcm_as_wav(pcm)
 
+
+def synthesize_dialogue(script: str, out_path: str | Path) -> Path:
+    """
+    Render a dialogue script to a WAV file (CLI / pre-generated slots).
+
+    Thin file wrapper around synthesize_dialogue_bytes - see that function
+    for the TTS contract and raised exceptions.
+
+    Args:
+        script: Dialogue text in "Sam: ... / Alex: ..." format.
+        out_path: Destination file path; parent directories are created.
+
+    Returns:
+        Path: The written WAV file.
+    """
+    wav = synthesize_dialogue_bytes(script)
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_bytes(_wrap_pcm_as_wav(pcm))
-    logger.info("TTS audio written: %s (%.1fs)", out, len(pcm) / _PCM_SAMPLE_RATE / 2)
+    out.write_bytes(wav)
+    logger.info("TTS audio written: %s", out)
     return out

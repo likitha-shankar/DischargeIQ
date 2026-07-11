@@ -92,6 +92,10 @@ _RATE_LIMITS: dict[str, tuple[int, float]] = {
     "/chat": (30, 60.0),
     "/quiz/generate": (10, 60.0),
     "/quiz/score": (30, 60.0),
+    # Per-case TTS: 2 model calls (script + audio synthesis), the single most
+    # expensive endpoint per request. Clients cache the WAV, so retries are
+    # user error or abuse - cap tightly.
+    "/media/case": (4, 60.0),
 }
 
 _rate_lock = threading.Lock()

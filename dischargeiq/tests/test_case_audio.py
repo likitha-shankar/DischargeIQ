@@ -87,3 +87,60 @@ def test_synthesize_dialogue_writes_valid_wav(tmp_path, monkeypatch):
     speakers = {c["speaker"] for c in body["generationConfig"]["speechConfig"]
                 ["multiSpeakerVoiceConfig"]["speakerVoiceConfigs"]}
     assert speakers == {"Sam", "Alex"}
+
+
+# ── POST /media/case serving path (decision D-5: on-demand, flag-gated) ──────
+
+from fastapi.testclient import TestClient  # noqa: E402
+
+from dischargeiq.main import app  # noqa: E402
+
+_client = TestClient(app)
+
+_CASE_BODY = {"session_id": "case-audio-test", "pipeline_payload": _PAYLOAD}
+
+
+def test_media_case_404_when_flag_off(monkeypatch):
+    """Flag off must look exactly like 'no media file': 404, text fallback."""
+    monkeypatch.delenv("CASE_AUDIO_ENABLED", raising=False)
+    resp = _client.post("/media/case", json=_CASE_BODY)
+    assert resp.status_code == 404
+
+
+def test_media_case_returns_wav_when_enabled(monkeypatch):
+    """Flag on + both model calls mocked -> WAV bytes with audio/wav type."""
+    monkeypatch.setenv("CASE_AUDIO_ENABLED", "true")
+    fake_wav = b"RIFF....WAVEfmt fake"
+    from dischargeiq.api.routes import media as media_route
+
+    with patch.object(media_route, "build_dialogue_script", return_value=_SCRIPT), \
+         patch.object(media_route, "synthesize_dialogue_bytes", return_value=fake_wav):
+        resp = _client.post("/media/case", json=_CASE_BODY)
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "audio/wav"
+    assert resp.content == fake_wav
+
+
+def test_media_case_422_on_empty_payload(monkeypatch):
+    """Nothing to narrate -> 422 before any model call is attempted."""
+    monkeypatch.setenv("CASE_AUDIO_ENABLED", "1")
+    resp = _client.post(
+        "/media/case",
+        json={"session_id": "s", "pipeline_payload": {}},
+    )
+    assert resp.status_code == 422
+
+
+def test_media_case_502_when_tts_fails(monkeypatch):
+    """Model/TTS failure degrades to 502 with a text-fallback message, not 500."""
+    monkeypatch.setenv("CASE_AUDIO_ENABLED", "1")
+    from dischargeiq.api.routes import media as media_route
+
+    with patch.object(media_route, "build_dialogue_script", return_value=_SCRIPT), \
+         patch.object(
+             media_route, "synthesize_dialogue_bytes",
+             side_effect=RuntimeError("quota exhausted"),
+         ):
+        resp = _client.post("/media/case", json=_CASE_BODY)
+    assert resp.status_code == 502
+    assert "written summary" in resp.json()["detail"]
