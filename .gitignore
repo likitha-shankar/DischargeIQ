@@ -92,3 +92,5 @@ _archive/
 
 # Node dependencies (reinstall with npm install; package-lock.json is tracked)
 node_modules/
+.env.bak*
+.env.bak-jul10

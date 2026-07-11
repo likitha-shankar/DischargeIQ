@@ -380,9 +380,11 @@ def get_fallback_client() -> tuple[OpenAI, str, str] | None:
         client, model = _client_cache[cache_key]
         return client, model, fallback
 
-    # LLM_MODEL belongs to the primary provider - the fallback always uses its
-    # own provider default so a Gemini model name is never sent to Anthropic.
-    model = config["default_model"]
+    # LLM_MODEL belongs to the primary provider - the fallback uses its own
+    # provider default so a Gemini model name is never sent to Anthropic.
+    # LLM_FALLBACK_MODEL overrides that default (e.g. an OpenRouter :free
+    # model for zero-cost demo capacity when the primary quota is exhausted).
+    model = os.environ.get("LLM_FALLBACK_MODEL", "").strip() or config["default_model"]
     client = OpenAI(
         base_url=config["base_url"],
         api_key=api_key,

@@ -316,6 +316,9 @@ def test_get_fallback_client_builds_anthropic_default(monkeypatch: pytest.Monkey
     from dischargeiq.utils import llm_client
 
     monkeypatch.delenv("LLM_FALLBACK_PROVIDER", raising=False)
+    # LLM_FALLBACK_MODEL overrides the provider default - isolate it so a
+    # developer .env (e.g. an OpenRouter :free model) cannot leak in.
+    monkeypatch.delenv("LLM_FALLBACK_MODEL", raising=False)
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
     llm_client._client_cache.pop("fallback:anthropic", None)
     try:
