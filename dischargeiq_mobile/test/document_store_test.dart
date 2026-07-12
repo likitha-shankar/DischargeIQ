@@ -9,7 +9,6 @@ library;
 
 import 'dart:convert' show jsonEncode;
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:dischargeiq_mobile/services/document_store.dart';
 import 'package:flutter/services.dart';

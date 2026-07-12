@@ -11,6 +11,9 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   http: ^1.2.2
+  # Direct dep (not just transitive via http): MediaType for the enhanced-scan
+  # multipart photo upload.
+  http_parser: ^4.0.2
   file_picker: ^8.1.4
   provider: ^6.1.2
   shared_preferences: ^2.2.2
@@ -24,6 +27,15 @@ dependencies:
   # Google Calendar event template in the browser/app - no calendar
   # permissions requested, nothing written on the patient's behalf.
   url_launcher: ^6.3.1
+  # On-device document library (decision D-6): saved analyses live in the
+  # app's private documents directory, never on the server.
+  path_provider: ^2.1.5
+  # Read-aloud (accessibility): on-device text-to-speech for every results
+  # section. Nothing leaves the phone.
+  flutter_tts: ^4.2.0
+  # "View original" on results: renders the uploaded PDF via the platform's
+  # native PDF engine (PDFKit on iOS).
+  pdfx: ^2.9.2
 
 dev_dependencies:
   flutter_test:

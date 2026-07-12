@@ -34,6 +34,18 @@ class DischargeIQApp extends StatelessWidget {
           theme: lightTheme,
           darkTheme: darkTheme,
           themeMode: theme.mode,
+          // Accessibility text size (Settings → Text size): multiplies on
+          // top of the phone's own accessibility setting, app-wide. Clamped
+          // so system-max + Extra large cannot break layouts entirely.
+          builder: (context, child) {
+            final mq = MediaQuery.of(context);
+            final total =
+                (mq.textScaler.scale(1.0) * theme.textSize.scale).clamp(0.8, 2.2);
+            return MediaQuery(
+              data: mq.copyWith(textScaler: TextScaler.linear(total)),
+              child: child ?? const SizedBox.shrink(),
+            );
+          },
           home: const _HomeGate(),
         );
       },

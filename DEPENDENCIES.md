@@ -143,6 +143,11 @@ Declared in `dischargeiq_mobile/pubspec.yaml`. All permissive.
 | audioplayers | MIT | Per-diagnosis audio explainer |
 | video_player | BSD-3-Clause | Per-diagnosis video explainer |
 | url_launcher | BSD-3-Clause | Add-to-calendar deep link (Appointments tab) |
+| path_provider | BSD-3-Clause | On-device document library (private app storage) |
+| http_parser | BSD-3-Clause | Multipart content types for the enhanced-scan upload |
+| pdfx | MIT | "View original" PDF rendering (native PDFKit on iOS) |
+| flutter_tts | MIT | Read-aloud accessibility (on-device TTS) |
+| Material Symbols (hand glyph) | Apache-2.0 | App icon's cupped-hand path, from Google's volunteer_activism symbol (`dischargeiq_mobile/design/appicon.svg`) |
 
 ## npm
 

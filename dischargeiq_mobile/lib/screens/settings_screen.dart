@@ -1,6 +1,7 @@
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/providers/theme_provider.dart';
+import 'package:dischargeiq_mobile/services/read_aloud.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,6 +18,43 @@ const _kAgentHelp =
     'Recovery: outlines a simple timeline for getting back to normal.\n\n'
     'Warning signs: three-tier guide for when to call 911, go to the ER, or call your doctor.\n\n'
     'Quality check: simulates a confused patient to find gaps in the discharge document.';
+
+/// Read-aloud toggle (accessibility): shows/hides the speaker button on the
+/// results screen. Default on - the patients who need it most are the least
+/// likely to go looking for a setting.
+class _ReadAloudTile extends StatefulWidget {
+  const _ReadAloudTile();
+
+  @override
+  State<_ReadAloudTile> createState() => _ReadAloudTileState();
+}
+
+class _ReadAloudTileState extends State<_ReadAloudTile> {
+  bool _enabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    ReadAloud.enabled().then((v) {
+      if (mounted) setState(() => _enabled = v);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      title: const Text('Read aloud'),
+      subtitle: const Text(
+          'Show a speaker button that reads each results section out loud'),
+      activeThumbColor: kTeal,
+      value: _enabled,
+      onChanged: (v) {
+        setState(() => _enabled = v);
+        ReadAloud.setEnabled(v);
+      },
+    );
+  }
+}
 
 /// Theme persistence uses SharedPreferences key `theme_mode` (see [ThemeProvider]).
 class SettingsScreen extends StatelessWidget {
@@ -52,6 +90,15 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
+          Consumer<ThemeProvider>(
+            builder: (context, tp, _) => ListTile(
+              title: const Text('Text size'),
+              subtitle: Text(tp.textSize.label),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showTextSizeSheet(context, tp),
+            ),
+          ),
+          const _ReadAloudTile(),
           _sectionHeader(context, 'Help'),
           ListTile(
             leading: const Icon(Icons.explore_outlined, color: kTeal),
@@ -108,7 +155,7 @@ class SettingsScreen extends StatelessWidget {
           _sectionHeader(context, 'About'),
           const ListTile(
             title: Text('DischargeIQ'),
-            subtitle: Text('Version 1.0 · CS 595 · IIT Chicago · Spring 2026'),
+            subtitle: Text('Version 1.0'),
           ),
           ListTile(
             title: const Text('Disclaimer'),
@@ -138,7 +185,9 @@ class SettingsScreen extends StatelessWidget {
             leading: Icon(Icons.lock_outline, color: kTeal),
             title: Text('Your data'),
             subtitle: Text(
-              'Your discharge documents are never stored. All data is deleted when you close the app.',
+              'Your documents and results are saved only on this phone so you '
+              'can reopen them anytime. Nothing is stored on our servers. '
+              'Deleting the app deletes everything.',
             ),
           ),
         ],
@@ -158,6 +207,39 @@ class SettingsScreen extends StatelessWidget {
           letterSpacing: 0.5,
         ),
       ),
+    );
+  }
+
+  /// Text size picker - applies instantly (the sheet itself grows, which IS
+  /// the preview). Three simple steps, no slider (accessibility, Task 3.5).
+  Future<void> _showTextSizeSheet(BuildContext context, ThemeProvider tp) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) {
+        return AnimatedBuilder(
+          animation: tp,
+          builder: (ctx, _) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final option in TextSizeOption.values)
+                  ListTile(
+                    leading: Icon(Icons.text_fields,
+                        size: 18 + 6 * TextSizeOption.values.indexOf(option).toDouble(),
+                        color: tp.textSize == option ? kTeal : null),
+                    title: Text(option.label),
+                    trailing: tp.textSize == option
+                        ? const Icon(Icons.check, color: kTeal)
+                        : null,
+                    onTap: () => tp.setTextSize(option),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

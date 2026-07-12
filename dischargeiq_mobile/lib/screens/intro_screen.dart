@@ -51,6 +51,7 @@ class _IntroScreenState extends State<IntroScreen> {
   bool _subtitle = false;
   bool _decorGone = false;
   bool _stageGone = false;
+  bool _fastExit = false; // skip pressed - shorten every exit animation
   bool _done = false;
 
   @override
@@ -109,22 +110,21 @@ class _IntroScreenState extends State<IntroScreen> {
     });
   }
 
-  /// Skip mirrors the web path: decorations and content fade, stage fades
-  /// 400ms later, advance at 1200ms.
+  /// Skip is INSTANT-feeling: one quick fade (250ms) and out. The web's
+  /// leisurely 1.2s exit choreography reads as lag on a phone tap.
   void _skip() {
     for (final t in _timers) {
       t.cancel();
     }
     _typeTimer?.cancel();
     setState(() {
+      _fastExit = true;
       _decorGone = true;
       _phraseGone = true;
       _logoVisible = false;
+      _stageGone = true;
     });
-    _timers.add(Timer(const Duration(milliseconds: 400), () {
-      if (mounted) setState(() => _stageGone = true);
-    }));
-    _timers.add(Timer(const Duration(milliseconds: 1200), _finish));
+    _timers.add(Timer(const Duration(milliseconds: 260), _finish));
   }
 
   void _finish() {
@@ -151,7 +151,7 @@ class _IntroScreenState extends State<IntroScreen> {
         backgroundColor: _kStage,
         body: AnimatedOpacity(
           opacity: _stageGone ? 0 : 1,
-          duration: const Duration(milliseconds: 700),
+          duration: Duration(milliseconds: _fastExit ? 220 : 700),
           curve: _kEaseOut,
           child: Stack(
             fit: StackFit.expand,

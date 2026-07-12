@@ -1,8 +1,12 @@
 import 'dart:typed_data';
 
 import 'package:dischargeiq_mobile/config.dart';
+import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/providers/theme_provider.dart';
 import 'package:dischargeiq_mobile/screens/loading_screen.dart';
+import 'package:dischargeiq_mobile/services/document_store.dart';
+import 'package:dischargeiq_mobile/services/game_store.dart';
+import 'package:dischargeiq_mobile/widgets/garden_widgets.dart';
 import 'package:dischargeiq_mobile/screens/scan_screen.dart';
 import 'package:dischargeiq_mobile/screens/settings_screen.dart';
 import 'package:file_picker/file_picker.dart';
@@ -46,55 +50,69 @@ class _UploadScreenState extends State<UploadScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(
-              height: 52,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 16, right: 4),
-                child: Row(
-                  children: [
-                    Text(
-                      'DischargeIQ',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        color: _dark ? kTealGlow : kTextPrimaryLight,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      'Patient education only',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: _dark ? kTextHintDark : kTextHintLight,
-                      ),
-                    ),
-                    // Theme toggle on the landing page itself - patients should
-                    // not have to find Settings to switch light/dark.
-                    IconButton(
-                      tooltip: _dark ? 'Switch to light mode' : 'Switch to dark mode',
-                      icon: Icon(
-                        _dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-                        size: 20,
-                        color: _dark ? kTealGlow : kTeal,
-                      ),
-                      onPressed: () => context
-                          .read<ThemeProvider>()
-                          .setMode(_dark ? ThemeMode.light : ThemeMode.dark),
-                    ),
-                    IconButton(
-                      tooltip: 'Settings',
-                      icon: Icon(
-                        Icons.settings_outlined,
-                        size: 20,
-                        color: _dark ? kTextHintDark : kTextSecondaryLight,
-                      ),
-                      onPressed: () => Navigator.push<void>(
-                        context,
-                        MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
-                      ),
-                    ),
-                  ],
+            // Header strip: own background so it reads as a bar, title and
+            // the full (never truncated) tagline stacked on the left.
+            Container(
+              decoration: BoxDecoration(
+                color: _dark ? kSurfaceDark : kTealPale.withValues(alpha: 0.55),
+                border: Border(
+                  bottom: BorderSide(
+                    color: _dark ? kBorderDark : kBorderLight,
+                    width: 0.5,
+                  ),
                 ),
+              ),
+              padding: const EdgeInsets.only(left: 16, right: 4, top: 6, bottom: 6),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'DischargeIQ',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            color: _dark ? kTealGlow : kTeal,
+                          ),
+                        ),
+                        Text(
+                          'Patient education only',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            color: _dark ? kTextSecondaryDark : kTextSecondaryLight,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Theme toggle on the landing page itself - patients should
+                  // not have to find Settings to switch light/dark.
+                  IconButton(
+                    tooltip: _dark ? 'Switch to light mode' : 'Switch to dark mode',
+                    icon: Icon(
+                      _dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                      size: 20,
+                      color: _dark ? kTealGlow : kTeal,
+                    ),
+                    onPressed: () => context
+                        .read<ThemeProvider>()
+                        .setMode(_dark ? ThemeMode.light : ThemeMode.dark),
+                  ),
+                  IconButton(
+                    tooltip: 'Settings',
+                    icon: Icon(
+                      Icons.settings_outlined,
+                      size: 20,
+                      color: _dark ? kTextSecondaryDark : kTextSecondaryLight,
+                    ),
+                    onPressed: () => Navigator.push<void>(
+                      context,
+                      MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -307,7 +325,7 @@ class _UploadScreenState extends State<UploadScreen> {
                         Icon(Icons.lock_outline, size: 13, color: _dark ? kTextHintDark : kTextHintLight),
                         const SizedBox(width: 4),
                         Text(
-                          'Private · Deleted when you close the app',
+                          'Private · Saved only on this phone, never shared',
                           style: TextStyle(
                             fontSize: 11,
                             color: _dark ? kTextHintDark : kTextHintLight,
@@ -315,6 +333,9 @@ class _UploadScreenState extends State<UploadScreen> {
                         ),
                       ],
                     ),
+                      const SizedBox(height: 20),
+                      _GardenSection(dark: _dark),
+                      _RecentDocuments(dark: _dark),
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -401,6 +422,213 @@ class _UploadScreenState extends State<UploadScreen> {
   static String _kb(int b) {
     if (b < 1024) return '$b B';
     return '${(b / 1024).toStringAsFixed(1)} KB';
+  }
+}
+
+/// Recovery Garden + quests on the landing page. Hidden until the patient
+/// has ANY progress - a brand-new user sees a clean landing, not an empty
+/// garden asking to be filled.
+class _GardenSection extends StatefulWidget {
+  const _GardenSection({required this.dark});
+
+  final bool dark;
+
+  @override
+  State<_GardenSection> createState() => _GardenSectionState();
+}
+
+class _GardenSectionState extends State<_GardenSection> {
+  Set<String>? _stars;
+  GameStats? _stats;
+
+  @override
+  void initState() {
+    super.initState();
+    SectionStarStore.load().then((s) {
+      if (mounted) setState(() => _stars = s);
+    });
+    GameStore.load().then((s) {
+      if (mounted) setState(() => _stats = s);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final stars = _stars;
+    final stats = _stats;
+    if (stars == null || stats == null) return const SizedBox.shrink();
+    final hasProgress =
+        stars.isNotEmpty || stats.xp > 0 || stats.quizzesCompleted > 0;
+    if (!hasProgress) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: RecoveryGardenCard(stars: stars, stats: stats, dark: widget.dark),
+    );
+  }
+}
+
+/// On-device library (decision D-6): past analyses reopen instantly from
+/// phone storage - no re-upload, no pipeline quota. Long-press to delete.
+class _RecentDocuments extends StatefulWidget {
+  const _RecentDocuments({required this.dark});
+
+  final bool dark;
+
+  @override
+  State<_RecentDocuments> createState() => _RecentDocumentsState();
+}
+
+class _RecentDocumentsState extends State<_RecentDocuments> {
+  List<SavedDocument> _docs = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    final docs = await DocumentStore.list();
+    if (mounted) setState(() => _docs = docs);
+  }
+
+  Future<void> _open(SavedDocument doc) async {
+    final loaded = await DocumentStore.load(doc.id);
+    if (loaded == null || !mounted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open that document.')),
+        );
+      }
+      return;
+    }
+    final (result, pdf) = loaded;
+    // Setting the provider result flips _HomeGate straight to the results
+    // screen - same path a fresh analysis takes, zero API calls.
+    context.read<DischargeProvider>().setResult(
+          result,
+          pdfBytes: pdf,
+          fileName: doc.fileName,
+        );
+  }
+
+  Future<void> _confirmDelete(SavedDocument doc) async {
+    final yes = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete this document?'),
+        content: Text('"${doc.fileName}" will be removed from this phone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: kMedDiscontinued),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (yes == true) {
+      await DocumentStore.delete(doc.id);
+      await _refresh();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_docs.isEmpty) return const SizedBox.shrink();
+    final dark = widget.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'YOUR SAVED DOCUMENTS',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.6,
+            color: dark ? kTealGlow : kTeal,
+          ),
+        ),
+        const SizedBox(height: 8),
+        for (final doc in _docs)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Material(
+              color: dark ? kCardDark : kSurfaceLight,
+              borderRadius: BorderRadius.circular(10),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () => _open(doc),
+                onLongPress: () => _confirmDelete(doc),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Row(
+                    children: [
+                      Icon(
+                        doc.hasPdf
+                            ? Icons.picture_as_pdf_outlined
+                            : Icons.document_scanner_outlined,
+                        size: 20,
+                        color: dark ? kTealGlow : kTeal,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              doc.diagnosis.isEmpty ? doc.fileName : doc.diagnosis,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+                              ),
+                            ),
+                            Text(
+                              '${doc.fileName} · ${_friendlyDate(doc.savedAt)}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: dark ? kTextSecondaryDark : kTextSecondaryLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right,
+                          size: 18,
+                          color: dark ? kTextHintDark : kTextHintLight),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        Text(
+          'Tap to reopen · Hold to delete · Stored only on this phone',
+          style: TextStyle(
+            fontSize: 10.5,
+            color: dark ? kTextHintDark : kTextHintLight,
+          ),
+        ),
+      ],
+    );
+  }
+
+  static String _friendlyDate(DateTime d) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final that = DateTime(d.year, d.month, d.day);
+    if (that == today) return 'today';
+    if (that == today.subtract(const Duration(days: 1))) return 'yesterday';
+    return '${d.month}/${d.day}/${d.year}';
   }
 }
 

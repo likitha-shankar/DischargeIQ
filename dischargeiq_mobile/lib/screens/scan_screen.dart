@@ -15,22 +15,16 @@ library;
 import 'dart:io';
 
 import 'package:dischargeiq_mobile/config.dart';
+import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/screens/loading_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
-/// One captured page: recognized text + basic quality info.
-class _ScannedPage {
-  _ScannedPage({required this.text, required this.blockCount});
-
-  final String text;
-  final int blockCount;
-
-  /// Practical scan-quality proxy: a real discharge page yields hundreds of
-  /// characters. Below this the photo was likely blurry, dark, or cropped.
-  bool get looksPoor => text.trim().length < 120;
-}
+/// Practical scan-quality proxy: a real discharge page yields hundreds of
+/// characters. Below this the photo was likely blurry, dark, or cropped.
+bool _looksPoor(ScannedPageData p) => p.text.trim().length < 120;
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -41,7 +35,10 @@ class ScanScreen extends StatefulWidget {
 
 class _ScanScreenState extends State<ScanScreen> {
   final _picker = ImagePicker();
-  final List<_ScannedPage> _pages = [];
+  // Pages live in the provider so they survive analyze → results → "add more
+  // pages" round trips. This is a reference, not a copy - mutations persist.
+  late final List<ScannedPageData> _pages =
+      context.read<DischargeProvider>().scanPages;
   bool _busy = false;
 
   bool get _dark => Theme.of(context).brightness == Brightness.dark;
@@ -62,13 +59,14 @@ class _ScanScreenState extends State<ScanScreen> {
       try {
         final result =
             await recognizer.processImage(InputImage.fromFile(File(shot.path)));
-        final page = _ScannedPage(
+        final page = ScannedPageData(
           text: result.text,
           blockCount: result.blocks.length,
+          imagePath: shot.path,
         );
         if (!mounted) return;
         setState(() => _pages.add(page));
-        if (page.looksPoor) {
+        if (_looksPoor(page)) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text(
               'That page captured very little text. Retake it with the full '
@@ -97,17 +95,61 @@ class _ScanScreenState extends State<ScanScreen> {
 
   Future<void> _analyze() async {
     final text = _combinedText;
-    await Navigator.push<void>(
+    final outcome = await Navigator.push<Object?>(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<Object?>(
         builder: (_) => LoadingScreen(
           ocrText: text,
           fileName: 'camera-scan-${_pages.length}p',
         ),
       ),
     );
+    // 'add_pages' = patient backed out to add a page - stay here, pages kept.
+    if (outcome == 'add_pages') return;
     // LoadingScreen pops back here after setting the provider result; the
     // upload screen underneath reacts to the provider and shows results.
+    if (mounted && context.mounted) Navigator.of(context).maybePop();
+  }
+
+  /// Opt-in enhanced cloud read: uploads the ORIGINAL PHOTOS so Gemini vision
+  /// can transcribe handwriting the on-device recognizer cannot. Requires an
+  /// explicit confirmation because it breaks the default photos-stay-on-phone
+  /// rule - the patient must know and choose.
+  Future<void> _analyzeEnhanced() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Use enhanced reading?'),
+        content: const Text(
+          'Your page photos will be uploaded securely so a stronger reader '
+          'can transcribe handwriting. Photos are processed in memory and '
+          'never stored on the server.\n\nUse the standard scan if you prefer '
+          'photos to stay on this phone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: kTeal),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Upload & read'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final outcome = await Navigator.push<Object?>(
+      context,
+      MaterialPageRoute<Object?>(
+        builder: (_) => LoadingScreen(
+          imagePaths: [for (final p in _pages) p.imagePath],
+          fileName: 'enhanced-scan-${_pages.length}p',
+        ),
+      ),
+    );
+    if (outcome == 'add_pages') return;
     if (mounted && context.mounted) Navigator.of(context).maybePop();
   }
 
@@ -121,6 +163,18 @@ class _ScanScreenState extends State<ScanScreen> {
         backgroundColor: kTeal,
         foregroundColor: Colors.white,
         title: const Text('Scan your document'),
+        actions: [
+          // Pages persist across the app on purpose (add-more-pages flow);
+          // this is the explicit way to abandon a scan session.
+          if (_pages.isNotEmpty)
+            TextButton(
+              onPressed: _busy
+                  ? null
+                  : () => setState(_pages.clear),
+              child: const Text('Start over',
+                  style: TextStyle(color: Colors.white, fontSize: 13)),
+            ),
+        ],
       ),
       body: SafeArea(
         child: Padding(
@@ -135,8 +189,10 @@ class _ScanScreenState extends State<ScanScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Photograph each page of your discharge papers. Reading '
-                  'happens on your phone - the photos are never uploaded.',
+                  'Photograph each page of your discharge papers. Standard '
+                  'reading happens on your phone - photos are not uploaded. '
+                  'For handwritten notes, use "Enhanced read" below (uploads '
+                  'photos securely, with your permission).',
                   style: TextStyle(
                     fontSize: 13,
                     height: 1.4,
@@ -175,10 +231,10 @@ class _ScanScreenState extends State<ScanScreen> {
                               color: _dark ? kCardDark : kCardLight,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: p.looksPoor
+                                color: _looksPoor(p)
                                     ? kTier2
                                     : (_dark ? kBorderDark : kBorderLight),
-                                width: p.looksPoor ? 1.5 : 1,
+                                width: _looksPoor(p) ? 1.5 : 1,
                               ),
                             ),
                             child: Column(
@@ -190,7 +246,7 @@ class _ScanScreenState extends State<ScanScreen> {
                                         style: const TextStyle(
                                             fontWeight: FontWeight.w700)),
                                     const SizedBox(width: 8),
-                                    if (p.looksPoor)
+                                    if (_looksPoor(p))
                                       const Text('⚠ low text - retake?',
                                           style: TextStyle(
                                               fontSize: 12, color: kTier2)),
@@ -259,6 +315,20 @@ class _ScanScreenState extends State<ScanScreen> {
                       ? 'Analyze'
                       : 'Analyze ${_pages.length} ${_pages.length == 1 ? "page" : "pages"}',
                 ),
+              ),
+              const SizedBox(height: 8),
+              // Enhanced cloud read: available whenever pages exist - no
+              // minimum-text gate, because handwriting often yields almost
+              // nothing on-device (which is exactly when this path helps).
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: _dark ? kTealGlow : kTeal,
+                  side: BorderSide(color: _dark ? kTealGlow : kTeal),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                onPressed: (_pages.isNotEmpty && !_busy) ? _analyzeEnhanced : null,
+                icon: const Icon(Icons.auto_fix_high_outlined, size: 18),
+                label: const Text('Handwritten or hard to read? Enhanced read'),
               ),
             ],
           ),
