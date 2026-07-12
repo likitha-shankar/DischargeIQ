@@ -52,7 +52,9 @@ from dischargeiq.utils.scorer import fk_check, log_fk_score
 
 logger = logging.getLogger(__name__)
 
-_MAX_TOKENS = 1000
+# 1600, not 1000: a week-by-week timeline at 6th-grade verbosity was hitting
+# the old cap and truncating mid-sentence in the patient-facing UI.
+_MAX_TOKENS = 1600
 
 
 def _build_user_message(extraction: ExtractionOutput) -> str:
