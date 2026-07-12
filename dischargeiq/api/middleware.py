@@ -89,6 +89,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 _RATE_LIMITS: dict[str, tuple[int, float]] = {
     "/analyze": (5, 60.0),    # max_requests, window_seconds
     "/analyze/text": (5, 60.0),  # same cost as /analyze (full pipeline)
+    # Enhanced scan: vision transcription per page + the full pipeline -
+    # the costliest analyze variant. Tight cap.
+    "/analyze/image": (3, 60.0),
     "/chat": (30, 60.0),
     "/quiz/generate": (10, 60.0),
     "/quiz/score": (30, 60.0),
