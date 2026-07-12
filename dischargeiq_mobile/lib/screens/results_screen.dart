@@ -2,12 +2,16 @@ import 'dart:math' show max, min;
 
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
-import 'package:dischargeiq_mobile/services/api_service.dart';
 import 'package:dischargeiq_mobile/services/calendar_link.dart';
+import 'package:dischargeiq_mobile/services/document_store.dart' show isUnusableRun;
 import 'package:dischargeiq_mobile/services/game_store.dart';
+import 'package:dischargeiq_mobile/services/read_aloud.dart';
+import 'package:dischargeiq_mobile/screens/original_document_screen.dart';
 import 'package:dischargeiq_mobile/screens/quiz_screen.dart';
+import 'package:dischargeiq_mobile/screens/scan_screen.dart';
 import 'package:dischargeiq_mobile/screens/settings_screen.dart';
 import 'package:dischargeiq_mobile/widgets/audio_explainer.dart';
+import 'package:dischargeiq_mobile/widgets/chat_sheet.dart';
 import 'package:dischargeiq_mobile/widgets/guided_tour.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -43,6 +47,7 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
     // star once, ever. Listener fires on settled tab changes; the initial
     // tab (What happened) is awarded after the first frame.
     _tabController.addListener(_onTabSettled);
+    _loadReadAloudPref();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeStartTour();
       _awardSectionStar(0);
@@ -51,6 +56,12 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
 
   void _onTabSettled() {
     if (!_tabController.indexIsChanging) {
+      // Stop speech when the tab changes - reading the OLD tab's text over
+      // the new tab's content would be disorienting.
+      if (_speaking) {
+        ReadAloud.stop();
+        setState(() => _speaking = false);
+      }
       _awardSectionStar(_tabController.index);
     }
   }
@@ -109,8 +120,59 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
     }
   }
 
+  // Read-aloud (accessibility): speaker button reads the CURRENT tab.
+  bool _speaking = false;
+  bool _readAloudEnabled = true;
+
+  Future<void> _loadReadAloudPref() async {
+    final enabled = await ReadAloud.enabled();
+    if (mounted) setState(() => _readAloudEnabled = enabled);
+  }
+
+  /// Plain text of the currently visible tab, for text-to-speech.
+  String _currentTabText(Map<String, dynamic> r) {
+    final ex = r['extraction'];
+    switch (_tabController.index) {
+      case 0:
+        return 'What happened. ${r['diagnosis_explanation'] ?? ''}';
+      case 1:
+        return 'Your medications. ${r['medication_rationale'] ?? ''}';
+      case 2:
+        final appts = (ex is Map) ? ex['follow_up_appointments'] as List? : null;
+        if (appts == null || appts.isEmpty) {
+          return 'No follow-up appointments were listed in this document.';
+        }
+        return 'Your appointments. ${[
+          for (final a in appts.whereType<Map>())
+            '${a['specialty'] ?? a['provider'] ?? 'Appointment'}, '
+                '${a['date'] ?? 'date to be decided'}. ${a['reason'] ?? ''}'
+        ].join(' Next: ')}';
+      case 3:
+        return 'Warning signs. ${r['escalation_guide'] ?? ''}';
+      case 4:
+        return 'Your recovery. ${r['recovery_trajectory'] ?? ''}';
+      default:
+        return 'This tab is interactive. Please use the screen for it.';
+    }
+  }
+
+  Future<void> _toggleReadAloud(Map<String, dynamic> r) async {
+    if (_speaking) {
+      await ReadAloud.stop();
+      if (mounted) setState(() => _speaking = false);
+      return;
+    }
+    ReadAloud.onDone = () {
+      if (mounted) setState(() => _speaking = false);
+    };
+    setState(() => _speaking = true);
+    await ReadAloud.speak(_currentTabText(r));
+  }
+
   @override
   void dispose() {
+    ReadAloud.onDone = null;
+    ReadAloud.stop();
     _tabController.removeListener(_onTabSettled);
     _tabController.dispose();
     super.dispose();
@@ -132,12 +194,65 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
       );
     }
 
+    // Dead-run gate: a partial where nothing usable came back (extraction
+    // failed or every section empty - typically exhausted model quota).
+    // Seven hollow tabs with "Extraction failed" as a diagnosis reads as a
+    // broken app; a single honest try-again screen does not.
+    if (isUnusableRun(r)) {
+      return const _AnalysisFailedScreen();
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: kTeal,
         foregroundColor: Colors.white,
         title: const Text('DischargeIQ'),
+        // Home: back to the landing page. Safe - the analysis is already in
+        // the on-device library, so nothing is lost.
+        leading: IconButton(
+          tooltip: 'Home',
+          icon: const Icon(Icons.home_outlined, color: Colors.white),
+          onPressed: () => context.read<DischargeProvider>().clear(),
+        ),
         actions: [
+          // "View original": the exact document this analysis was built
+          // from - PDF bytes or scanned page photos. Hidden when neither
+          // survives (e.g. a scan session reopened from the library).
+          Builder(builder: (context) {
+            final dp2 = context.watch<DischargeProvider>();
+            final hasPhotos =
+                dp2.isScanSession && dp2.scanPages.isNotEmpty;
+            final hasPdf = dp2.lastPdfBytes != null;
+            if (!hasPhotos && !hasPdf) return const SizedBox.shrink();
+            return IconButton(
+              tooltip: 'View your original document',
+              icon: const Icon(Icons.article_outlined, color: Colors.white),
+              onPressed: () => Navigator.push<void>(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => hasPhotos
+                      ? OriginalPhotosScreen(
+                          imagePaths: [
+                            for (final p in dp2.scanPages) p.imagePath
+                          ],
+                        )
+                      : OriginalPdfScreen(
+                          pdfBytes: dp2.lastPdfBytes!,
+                          fileName: dp2.lastFileName,
+                        ),
+                ),
+              ),
+            );
+          }),
+          if (_readAloudEnabled)
+            IconButton(
+              tooltip: _speaking ? 'Stop reading' : 'Read this section aloud',
+              icon: Icon(
+                _speaking ? Icons.stop_circle_outlined : Icons.volume_up_outlined,
+                color: Colors.white,
+              ),
+              onPressed: () => _toggleReadAloud(r),
+            ),
           IconButton(
             icon: const Icon(Icons.settings_outlined, color: Colors.white),
             onPressed: () async {
@@ -148,6 +263,8 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
               if (res == 'start_tour' && mounted) {
                 await _startTour();
               }
+              // Settings may have flipped the read-aloud toggle.
+              _loadReadAloudPref();
             },
           ),
         ],
@@ -170,6 +287,10 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
       body: Column(
         children: [
           _PipelineStatusBanner(status: '${r['pipeline_status'] ?? ''}'),
+          // Scan sessions: patients often photograph only page 1 of a
+          // multi-page packet. One tap returns to the scan screen with all
+          // captured pages intact to add the rest and re-analyze.
+          if (dp.isScanSession) _AddPagesRow(pageCount: dp.scanPages.length),
           Expanded(
             child: TabBarView(
               controller: _tabController,
@@ -224,7 +345,7 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
       ),
       floatingActionButton: FloatingActionButton.extended(
         key: TourKeys.chat,
-        onPressed: () => _openChat(context, r),
+        onPressed: () => showChatSheet(context, r),
         backgroundColor: kTeal,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.chat_bubble_outline),
@@ -234,102 +355,71 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
   }
 }
 
-Future<void> _openChat(BuildContext context, Map<String, dynamic> result) async {
-  final ctrl = TextEditingController();
-  final messages = <Map<String, String>>[];
-  var sending = false;
-  await showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    builder: (ctx) {
-      return StatefulBuilder(
-        builder: (ctx, setSt) {
-          Future<void> send() async {
-            final q = ctrl.text.trim();
-            if (q.isEmpty || sending) return;
-            setSt(() {
-              sending = true;
-              messages.add({'role': 'you', 'text': q});
-            });
-            ctrl.clear();
-            try {
-              final data = await ApiService().chat(
-                message: q,
-                sessionId: DateTime.now().millisecondsSinceEpoch.toString(),
-                pipelineContext: result,
-              );
-              setSt(() {
-                messages.add({'role': 'ai', 'text': '${data['reply'] ?? ''}'});
-              });
-            } catch (_) {
-              setSt(() {
-                messages.add({'role': 'ai', 'text': 'Could not reach chat right now.'});
-              });
-            } finally {
-              setSt(() => sending = false);
-            }
-          }
+/// Full-screen notice for a run where analysis could not produce anything
+/// usable. Honest, jargon-free, one action. Never mentions API keys.
+class _AnalysisFailedScreen extends StatelessWidget {
+  const _AnalysisFailedScreen();
 
-          return SafeArea(
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 12,
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 12,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Ask about your discharge', style: TextStyle(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 260,
-                    child: ListView.builder(
-                      itemCount: messages.length,
-                      itemBuilder: (c, i) {
-                        final m = messages[i];
-                        final isYou = m['role'] == 'you';
-                        return Align(
-                          alignment: isYou ? Alignment.centerRight : Alignment.centerLeft,
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(vertical: 4),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isYou ? kTeal.withValues(alpha: 0.12) : Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(m['text'] ?? ''),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: ctrl,
-                          decoration: const InputDecoration(hintText: 'Ask in plain language...'),
-                          onSubmitted: (_) => send(),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: sending ? null : send,
-                        style: ElevatedButton.styleFrom(backgroundColor: kTeal, foregroundColor: Colors.white),
-                        child: Text(sending ? '...' : 'Send'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: kTeal,
+        foregroundColor: Colors.white,
+        title: const Text('DischargeIQ'),
+      ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.cloud_off_outlined, size: 60, color: kTier2),
+                const SizedBox(height: 16),
+                Text(
+                  "We couldn't read your document right now",
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Our reading service is very busy at the moment. Nothing is '
+                  'wrong with your document, and nothing was lost.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Please try again in a few minutes. If it keeps happening, '
+                  'try later today - your paper document always has the '
+                  'complete instructions.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      height: 1.5,
+                      color: Theme.of(context).textTheme.bodySmall?.color),
+                ),
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                      backgroundColor: kTeal,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 26, vertical: 14)),
+                  onPressed: () =>
+                      context.read<DischargeProvider>().clear(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try again'),
+                ),
+              ],
             ),
-          );
-        },
-      );
-    },
-  );
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 
@@ -398,6 +488,51 @@ class _RejectedDocumentScreen extends StatelessWidget {
   }
 }
 
+/// One-tap path back to the scan screen for multi-page documents. Shown only
+/// on camera-scan sessions; the provider keeps the captured pages alive, so
+/// nothing has to be re-photographed.
+class _AddPagesRow extends StatelessWidget {
+  const _AddPagesRow({required this.pageCount});
+
+  final int pageCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Material(
+      color: dark ? kTeal.withValues(alpha: 0.2) : kTealPale,
+      child: InkWell(
+        onTap: () => Navigator.push<void>(
+          context,
+          MaterialPageRoute<void>(builder: (_) => const ScanScreen()),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          child: Row(
+            children: [
+              Icon(Icons.add_a_photo_outlined,
+                  size: 16, color: dark ? kTealGlow : kTeal),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  pageCount > 0
+                      ? 'Built from $pageCount scanned page${pageCount == 1 ? '' : 's'}. '
+                          'Missing some? Add the rest.'
+                      : 'Did your document have more pages? Add the rest.',
+                  style: TextStyle(
+                      fontSize: 12, color: dark ? kTealGlow : kTeal),
+                ),
+              ),
+              Icon(Icons.chevron_right,
+                  size: 16, color: dark ? kTealGlow : kTeal),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Thin banner shown when the pipeline ran with warnings or partial output.
 class _PipelineStatusBanner extends StatelessWidget {
   const _PipelineStatusBanner({required this.status});
@@ -412,8 +547,9 @@ class _PipelineStatusBanner extends StatelessWidget {
     final bg = isPartial ? kTier1Bg : kTier2Bg;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final label = isPartial
-        ? 'Some sections could not be generated. Retry or check your API key.'
-        : 'Analysis complete with warnings. Some sections may be incomplete.';
+        ? 'Some sections are missing - our reading service was busy. '
+            'Upload again in a few minutes to fill them in.'
+        : 'Ready, with a note: a few details were not found in your document.';
     return Container(
       color: dark ? color.withValues(alpha: 0.18) : bg,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -440,18 +576,94 @@ class _RichTextSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 15,
-          height: 1.45,
-          color: dark ? kTextPrimaryDark : kTextPrimaryLight,
-        ),
-      ),
+      child: PatientText(text: text),
     );
+  }
+}
+
+/// Renders agent text the way a patient should see it, not the way the model
+/// wrote it: `**bold**` becomes bold, `- ` / `* ` lines become real bullets,
+/// raw markdown symbols never reach the screen. Deliberately tiny - the
+/// agents only ever emit bold and bullets, so a markdown package would be
+/// dead weight.
+class PatientText extends StatelessWidget {
+  const PatientText({super.key, required this.text, this.fontSize = 15});
+
+  final String text;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final base = TextStyle(
+      fontSize: fontSize,
+      height: 1.5,
+      color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+    );
+    final children = <Widget>[];
+    for (final rawLine in text.split('\n')) {
+      final line = rawLine.trimRight();
+      if (line.trim().isEmpty) {
+        children.add(const SizedBox(height: 8));
+        continue;
+      }
+      final bullet = RegExp(r'^\s*[-*•]\s+').firstMatch(line);
+      if (bullet != null) {
+        children.add(Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 5),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(top: fontSize * 0.42),
+                child: Container(
+                  width: 5.5,
+                  height: 5.5,
+                  decoration: BoxDecoration(
+                    color: dark ? kTealGlow : kTeal,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(children: _boldSpans(line.substring(bullet.end), base)),
+                ),
+              ),
+            ],
+          ),
+        ));
+      } else {
+        children.add(Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text.rich(TextSpan(children: _boldSpans(line, base))),
+        ));
+      }
+    }
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+  }
+
+  /// Split `a **b** c` into styled spans; unmatched `**` renders literally.
+  static List<InlineSpan> _boldSpans(String line, TextStyle base) {
+    final spans = <InlineSpan>[];
+    final parts = line.split('**');
+    if (parts.length.isEven) {
+      // Unbalanced markers - show the line untouched rather than guessing.
+      return [TextSpan(text: line, style: base)];
+    }
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i].isEmpty) continue;
+      spans.add(TextSpan(
+        text: parts[i],
+        style: i.isOdd
+            ? base.copyWith(fontWeight: FontWeight.w700)
+            : base,
+      ));
+    }
+    return spans;
   }
 }
 
@@ -1439,14 +1651,16 @@ class _RecoveryBody extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Text(
-            trajectory.isEmpty ? 'No recovery timeline available.' : trajectory,
-            style: TextStyle(
-              fontSize: 14,
-              height: 1.6,
-              color: dark ? kTextPrimaryDark : kTextPrimaryLight,
-            ),
-          ),
+          trajectory.isEmpty
+              ? Text(
+                  'No recovery timeline available.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.6,
+                    color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+                  ),
+                )
+              : PatientText(text: trajectory, fontSize: 14),
         ],
       ),
     );

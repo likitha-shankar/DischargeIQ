@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/services/api_service.dart';
+import 'package:dischargeiq_mobile/services/document_store.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -29,18 +30,22 @@ const _kPillLabels = [
 
 /// Full-screen loading with hospital→home animation while `/analyze` runs.
 ///
-/// Two input modes: a picked PDF (pdfBytes) or camera-scanned text (ocrText,
-/// Sprint 2 OCR path). Exactly one must be provided.
+/// Three input modes: a picked PDF (pdfBytes), camera-scanned text (ocrText,
+/// Sprint 2 OCR path), or photo files for the opt-in enhanced cloud read
+/// (imagePaths - the only mode where photos leave the phone). Exactly one
+/// must be provided.
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({
     super.key,
     this.pdfBytes,
     this.ocrText,
+    this.imagePaths,
     required this.fileName,
-  }) : assert(pdfBytes != null || ocrText != null);
+  }) : assert(pdfBytes != null || ocrText != null || imagePaths != null);
 
   final Uint8List? pdfBytes;
   final String? ocrText;
+  final List<String>? imagePaths;
   final String fileName;
 
   @override
@@ -52,6 +57,16 @@ class _LoadingScreenState extends State<LoadingScreen> with TickerProviderStateM
   late final AnimationController _legs;
   int _msgIndex = 0;
   Timer? _msgTimer;
+  Timer? _progressTimer;
+
+  // Client-minted session id lets us poll GET /progress/{id} DURING the run
+  // for real per-agent updates. The backend accepts it (unused-UUID check).
+  late final String _sessionId = _uuidV4();
+
+  // Real progress, when the poller has it. Null until the first live update
+  // arrives; the fake 4s message cycler covers the gap.
+  String? _liveMessage;
+  int _liveAgent = 0;
 
   bool get _dark => Theme.of(context).brightness == Brightness.dark;
 
@@ -62,26 +77,72 @@ class _LoadingScreenState extends State<LoadingScreen> with TickerProviderStateM
     _legs = AnimationController(vsync: this, duration: const Duration(milliseconds: 400))..repeat(reverse: true);
 
     _msgTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (!mounted) return;
+      if (!mounted || _liveMessage != null) return; // live updates take over
       setState(() {
         _msgIndex = (_msgIndex + 1) % _kStatusMessages.length;
       });
     });
 
+    // Live progress poll (Streamlit polls the same endpoint). Errors are
+    // ignored: worst case the screen falls back to the message cycler.
+    _progressTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
+      try {
+        final p = await ApiService().getProgress(_sessionId);
+        if (!mounted || '${p['status']}' != 'running') return;
+        final message = '${p['message'] ?? ''}';
+        if (message.isEmpty) return;
+        setState(() {
+          _liveMessage = message;
+          _liveAgent = (p['current_agent'] as num?)?.toInt() ?? 0;
+        });
+      } catch (_) {
+        // Keep the fake cycler; never surface polling noise to the patient.
+      }
+    });
+
     Future<void>.delayed(Duration.zero, _runAnalyze);
+  }
+
+  /// Minimal RFC-4122 v4 UUID (no dependency needed for one id).
+  static String _uuidV4() {
+    final rng = math.Random.secure();
+    final b = List<int>.generate(16, (_) => rng.nextInt(256));
+    b[6] = (b[6] & 0x0f) | 0x40; // version 4
+    b[8] = (b[8] & 0x3f) | 0x80; // variant 10
+    final hex = [for (final x in b) x.toRadixString(16).padLeft(2, '0')].join();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
+        '${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
   }
 
   Future<void> _runAnalyze() async {
     try {
-      final data = widget.ocrText != null
-          ? await ApiService().analyzeText(widget.ocrText!)
-          : await ApiService().analyze(widget.pdfBytes!, widget.fileName);
+      final Map<String, dynamic> data;
+      if (widget.imagePaths != null) {
+        data = await ApiService()
+            .analyzeImages(widget.imagePaths!, sessionId: _sessionId);
+      } else if (widget.ocrText != null) {
+        data = await ApiService()
+            .analyzeText(widget.ocrText!, sessionId: _sessionId);
+      } else {
+        data = await ApiService()
+            .analyze(widget.pdfBytes!, widget.fileName, sessionId: _sessionId);
+      }
       if (!mounted) return;
       context.read<DischargeProvider>().setResult(
             data,
             pdfBytes: widget.pdfBytes,
             fileName: widget.fileName,
           );
+      // On-device library (D-6): keep this analysis on the phone so closing
+      // the app no longer loses it. Fire-and-forget - never blocks the UI.
+      // Dead runs (quota-exhausted partials) are not worth reopening.
+      if (!isUnusableRun(data)) {
+        unawaited(DocumentStore.save(
+          result: data,
+          fileName: widget.fileName,
+          pdfBytes: widget.pdfBytes,
+        ));
+      }
       Navigator.of(context).pop();
     } catch (err) {
       if (!mounted) return;
@@ -95,12 +156,16 @@ class _LoadingScreenState extends State<LoadingScreen> with TickerProviderStateM
   @override
   void dispose() {
     _msgTimer?.cancel();
+    _progressTimer?.cancel();
     _walk.dispose();
     _legs.dispose();
     super.dispose();
   }
 
   int get _activePill {
+    // Real agent number wins (1-based from the backend); fake cycler covers
+    // the gap before the first live update arrives.
+    if (_liveAgent > 0) return (_liveAgent - 1).clamp(0, _kPillLabels.length - 1);
     if (_msgIndex < _kPillLabels.length) return _msgIndex;
     return _kPillLabels.length - 1;
   }
@@ -222,7 +287,7 @@ class _LoadingScreenState extends State<LoadingScreen> with TickerProviderStateM
                 duration: const Duration(milliseconds: 350),
                 transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
                 child: Text(
-                  _kStatusMessages[_msgIndex],
+                  _liveMessage ?? _kStatusMessages[_msgIndex],
                   key: ValueKey<int>(_msgIndex),
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -277,6 +342,25 @@ class _LoadingScreenState extends State<LoadingScreen> with TickerProviderStateM
                   );
                 }),
               ),
+              // Scan sessions only: escape hatch for "I forgot a page".
+              // Popping abandons this analysis (the in-flight result is
+              // discarded via the !mounted guard) and returns to the scan
+              // screen with every already-captured page intact.
+              if (widget.ocrText != null || widget.imagePaths != null) ...[
+                const SizedBox(height: 20),
+                TextButton.icon(
+                  // 'add_pages' tells the scan screen underneath to stay put
+                  // instead of popping itself back to the landing.
+                  onPressed: () => Navigator.of(context).maybePop('add_pages'),
+                  icon: Icon(Icons.add_a_photo_outlined,
+                      size: 16, color: _dark ? kTealGlow : kTeal),
+                  label: Text(
+                    'Forgot a page? Go back and add it',
+                    style: TextStyle(
+                        fontSize: 12.5, color: _dark ? kTealGlow : kTeal),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

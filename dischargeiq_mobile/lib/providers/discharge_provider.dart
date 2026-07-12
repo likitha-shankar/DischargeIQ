@@ -2,11 +2,30 @@ import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 
+/// One camera-scanned page. Lives in the provider so pages SURVIVE the
+/// scan → analyze → results round trip: a patient who scanned only page 1
+/// can come back, add page 2, and re-analyze without re-photographing.
+class ScannedPageData {
+  const ScannedPageData({
+    required this.text,
+    required this.blockCount,
+    required this.imagePath,
+  });
+
+  final String text;
+  final int blockCount;
+  final String imagePath;
+}
+
 /// In-memory pipeline result and last upload metadata (cleared when app closes).
 class DischargeProvider extends ChangeNotifier {
   Map<String, dynamic>? _result;
   Uint8List? _lastPdfBytes;
   String _lastFileName = 'document.pdf';
+
+  /// Scan-session pages. Mutated in place by the scan screen; intentionally
+  /// not wired into notifyListeners (only the scan screen reads it).
+  final List<ScannedPageData> scanPages = [];
 
   Map<String, dynamic>? get result => _result;
   Uint8List? get lastPdfBytes => _lastPdfBytes;
@@ -14,13 +33,23 @@ class DischargeProvider extends ChangeNotifier {
 
   bool get hasResult => _result != null;
 
+  /// True when the current result came from the camera-scan path - the only
+  /// path where "add more pages" makes sense.
+  bool get isScanSession =>
+      _lastFileName.startsWith('camera-scan') ||
+      _lastFileName.startsWith('enhanced-scan');
+
   void setResult(
     Map<String, dynamic> data, {
     Uint8List? pdfBytes,
     String? fileName,
   }) {
     _result = data;
-    if (pdfBytes != null) _lastPdfBytes = pdfBytes;
+    if (pdfBytes != null) {
+      _lastPdfBytes = pdfBytes;
+      // A fresh PDF analysis makes any old camera-scan session stale.
+      scanPages.clear();
+    }
     if (fileName != null) _lastFileName = fileName;
     notifyListeners();
   }
