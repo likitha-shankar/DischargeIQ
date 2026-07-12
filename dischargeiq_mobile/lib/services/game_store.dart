@@ -201,6 +201,60 @@ class SectionStarStore {
   }
 }
 
+/// Daily gentle check-in (gamification wave 3): once per day the garden
+/// asks "How are you feeling?". No streaks, no loss state - a missed day
+/// simply never comes up. Entries: "YYYY-MM-DD|mood", newest last, capped.
+class CheckinStore {
+  static const _kKey = 'daily_checkins';
+  static const _kCap = 90;
+
+  static String _today() {
+    final now = DateTime.now();
+    return '${now.year.toString().padLeft(4, '0')}-'
+        '${now.month.toString().padLeft(2, '0')}-'
+        '${now.day.toString().padLeft(2, '0')}';
+  }
+
+  /// All stored entries as (date, mood) pairs.
+  static Future<List<(String, String)>> load() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return [
+        for (final e in prefs.getStringList(_kKey) ?? const [])
+          if (e.contains('|')) (e.split('|')[0], e.split('|')[1])
+      ];
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// True when today's check-in is already recorded.
+  static Future<bool> doneToday() async {
+    final today = _today();
+    return (await load()).any((e) => e.$1 == today);
+  }
+
+  /// Record today's mood ('good' | 'okay' | 'rough'). One per day - a
+  /// second tap the same day is ignored. Returns total check-in count.
+  static Future<int> record(String mood) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final entries = (prefs.getStringList(_kKey) ?? const []).toList();
+      final today = _today();
+      if (!entries.any((e) => e.startsWith('$today|'))) {
+        entries.add('$today|$mood');
+        if (entries.length > _kCap) {
+          entries.removeRange(0, entries.length - _kCap);
+        }
+        await prefs.setStringList(_kKey, entries);
+      }
+      return entries.length;
+    } catch (_) {
+      return 0; // best-effort engagement state, never blocks the UI
+    }
+  }
+}
+
 /// Loads and saves [GameStats] as one JSON string in SharedPreferences.
 class GameStore {
   static const _kKey = 'quiz_game_stats';

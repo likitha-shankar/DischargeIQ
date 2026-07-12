@@ -224,13 +224,18 @@ class SectionStarsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Theme-aware: this row sits directly on the screen background (no card),
+    // so hardcoded light-mode colors were unreadable in dark mode.
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final primary = dark ? kTextPrimaryDark : kTextPrimaryLight;
+    final faint = dark ? Colors.white38 : Colors.black45;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Discharge stars  ·  ${earned.length} of ${kAllStarKeys.length}',
-          style: const TextStyle(
-              fontSize: 13, fontWeight: FontWeight.w600, color: kTextPrimaryLight),
+          style: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w600, color: primary),
         ),
         const SizedBox(height: 6),
         Wrap(
@@ -244,14 +249,16 @@ class SectionStarsRow extends StatelessWidget {
                   Icon(
                     earned.contains(key) ? Icons.star_rounded : Icons.star_outline_rounded,
                     size: 18,
-                    color: earned.contains(key) ? const Color(0xFFF5B300) : Colors.black26,
+                    color: earned.contains(key)
+                        ? const Color(0xFFF5B300)
+                        : (dark ? Colors.white24 : Colors.black26),
                   ),
                   const SizedBox(width: 3),
                   Text(
                     kSectionStarLabels[key] ?? key,
                     style: TextStyle(
                       fontSize: 12,
-                      color: earned.contains(key) ? kTextPrimaryLight : Colors.black45,
+                      color: earned.contains(key) ? primary : faint,
                     ),
                   ),
                 ],

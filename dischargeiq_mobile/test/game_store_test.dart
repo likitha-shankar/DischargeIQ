@@ -86,4 +86,17 @@ void main() {
     expect(kSectionStarKeys.length, 5); // tab-mapped reading stars only
     expect(kAllStarKeys.length, 6); // + the add-to-calendar action star
   });
+
+  test('daily check-in records once per day and counts days', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+    expect(await CheckinStore.doneToday(), isFalse);
+    expect(await CheckinStore.record('good'), 1);
+    expect(await CheckinStore.doneToday(), isTrue);
+    // Second answer the same day is ignored - no double counting.
+    expect(await CheckinStore.record('rough'), 1);
+    final entries = await CheckinStore.load();
+    expect(entries.length, 1);
+    expect(entries.first.$2, 'good');
+  });
 }
