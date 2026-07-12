@@ -1,0 +1,154 @@
+/// services/document_store.dart
+///
+/// On-device document library (decision D-6): every successful analysis is
+/// saved to the app's PRIVATE documents directory - the analysis result JSON
+/// plus the original PDF when one exists - so the patient can reopen past
+/// documents without re-uploading (and without re-burning pipeline quota).
+/// Nothing here ever touches the server or the database; deleting the app
+/// deletes the library. Every method is best-effort: storage failures must
+/// never break the analyze flow.
+library;
+
+import 'dart:convert' show jsonDecode, jsonEncode;
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:path_provider/path_provider.dart';
+
+/// True when a partial run produced nothing a patient can use: extraction
+/// failed (the orchestrator's sentinel) or every narrative section is empty.
+/// Typical cause: model quota exhausted mid-run. Shared by the results
+/// screen (render a friendly failed screen), the loading screen (skip
+/// saving), and the library (purge legacy entries).
+bool isUnusableRun(Map<String, dynamic> r) {
+  if ('${r['pipeline_status']}' != 'partial') return false;
+  final ex = r['extraction'];
+  final extractionFailed =
+      ex is! Map || '${ex['primary_diagnosis'] ?? ''}' == 'Extraction failed';
+  final allEmpty = [
+    'diagnosis_explanation',
+    'medication_rationale',
+    'recovery_trajectory',
+    'escalation_guide',
+  ].every((k) {
+    final t = '${r[k] ?? ''}'.trim();
+    return t.isEmpty || t == 'null';
+  });
+  return extractionFailed || allEmpty;
+}
+
+/// One saved analysis: metadata for the list row + file locations.
+class SavedDocument {
+  const SavedDocument({
+    required this.id,
+    required this.fileName,
+    required this.diagnosis,
+    required this.savedAt,
+    required this.hasPdf,
+  });
+
+  final String id;
+  final String fileName;
+  final String diagnosis;
+  final DateTime savedAt;
+  final bool hasPdf;
+}
+
+class DocumentStore {
+  static Future<Directory> _dir() async {
+    final base = await getApplicationDocumentsDirectory();
+    final dir = Directory('${base.path}/saved_documents');
+    if (!await dir.exists()) await dir.create(recursive: true);
+    return dir;
+  }
+
+  /// Persist one successful analysis. Rejected documents are not saved -
+  /// there is nothing for the patient to come back to.
+  static Future<void> save({
+    required Map<String, dynamic> result,
+    required String fileName,
+    Uint8List? pdfBytes,
+  }) async {
+    try {
+      if ('${result['pipeline_status']}' == 'rejected') return;
+      final dir = await _dir();
+      final id = DateTime.now().millisecondsSinceEpoch.toString();
+      final extraction = result['extraction'];
+      final diagnosis = (extraction is Map)
+          ? '${extraction['primary_diagnosis'] ?? 'Discharge summary'}'
+          : 'Discharge summary';
+      if (pdfBytes != null) {
+        await File('${dir.path}/$id.pdf').writeAsBytes(pdfBytes);
+      }
+      await File('${dir.path}/$id.json').writeAsString(jsonEncode({
+        'file_name': fileName,
+        'diagnosis': diagnosis,
+        'saved_at': DateTime.now().toIso8601String(),
+        'result': result,
+      }));
+    } catch (_) {
+      // Best-effort: a full disk or sandbox hiccup must not fail the analysis.
+    }
+  }
+
+  /// All saved documents, newest first. Corrupt entries are skipped.
+  static Future<List<SavedDocument>> list() async {
+    try {
+      final dir = await _dir();
+      final docs = <SavedDocument>[];
+      await for (final f in dir.list()) {
+        if (f is! File || !f.path.endsWith('.json')) continue;
+        try {
+          final meta = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
+          final id = f.uri.pathSegments.last.replaceAll('.json', '');
+          docs.add(SavedDocument(
+            id: id,
+            fileName: '${meta['file_name'] ?? 'document'}',
+            diagnosis: '${meta['diagnosis'] ?? ''}',
+            savedAt: DateTime.tryParse('${meta['saved_at']}') ?? DateTime(2000),
+            hasPdf: await File('${dir.path}/$id.pdf').exists(),
+          ));
+        } catch (_) {
+          continue; // skip one bad file, keep the rest of the library
+        }
+      }
+      docs.sort((a, b) => b.savedAt.compareTo(a.savedAt));
+      return docs;
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Load one saved analysis result (and PDF bytes when present).
+  /// Returns null when the entry is missing or unreadable. Legacy entries
+  /// saved before the dead-run filter existed are purged here on contact -
+  /// the library self-heals instead of resurfacing a quota-dead analysis.
+  static Future<(Map<String, dynamic>, Uint8List?)?> load(String id) async {
+    try {
+      final dir = await _dir();
+      final meta = jsonDecode(await File('${dir.path}/$id.json').readAsString())
+          as Map<String, dynamic>;
+      final result = (meta['result'] as Map).cast<String, dynamic>();
+      if (isUnusableRun(result)) {
+        await delete(id);
+        return null;
+      }
+      final pdfFile = File('${dir.path}/$id.pdf');
+      final pdf = await pdfFile.exists() ? await pdfFile.readAsBytes() : null;
+      return (result, pdf);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Remove one saved document (json + pdf). Best-effort.
+  static Future<void> delete(String id) async {
+    try {
+      final dir = await _dir();
+      for (final ext in const ['.json', '.pdf']) {
+        final f = File('${dir.path}/$id$ext');
+        if (await f.exists()) await f.delete();
+      }
+    } catch (_) {}
+  }
+}
