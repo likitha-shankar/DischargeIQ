@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:dischargeiq_mobile/services/scan_session_store.dart';
 import 'package:flutter/foundation.dart';
 
 /// One camera-scanned page. Lives in the provider so pages SURVIVE the
@@ -47,8 +46,10 @@ class DischargeProvider extends ChangeNotifier {
     _result = data;
     if (pdfBytes != null) {
       _lastPdfBytes = pdfBytes;
-      // A fresh PDF analysis makes any old camera-scan session stale.
+      // A fresh PDF analysis makes any old camera-scan session stale -
+      // in memory and on disk.
       scanPages.clear();
+      ScanSessionStore.clear();
     }
     if (fileName != null) _lastFileName = fileName;
     notifyListeners();

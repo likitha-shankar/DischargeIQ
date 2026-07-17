@@ -17,6 +17,7 @@ import 'dart:io';
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/screens/loading_screen.dart';
+import 'package:dischargeiq_mobile/services/scan_session_store.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
@@ -43,6 +44,23 @@ class _ScanScreenState extends State<ScanScreen> {
 
   bool get _dark => Theme.of(context).brightness == Brightness.dark;
 
+  @override
+  void initState() {
+    super.initState();
+    // Restore a scan session interrupted by an app restart. Only when the
+    // in-memory session is empty - a live session always wins.
+    if (_pages.isEmpty) {
+      ScanSessionStore.load().then((saved) {
+        if (mounted && saved.isNotEmpty && _pages.isEmpty) {
+          setState(() => _pages.addAll(saved));
+        }
+      });
+    }
+  }
+
+  /// Persist after every mutation so a crash never loses scanned pages.
+  void _persist() => ScanSessionStore.save(List.of(_pages));
+
   Future<void> _capture(ImageSource source) async {
     setState(() => _busy = true);
     try {
@@ -66,6 +84,7 @@ class _ScanScreenState extends State<ScanScreen> {
         );
         if (!mounted) return;
         setState(() => _pages.add(page));
+        _persist();
         if (_looksPoor(page)) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text(
@@ -170,7 +189,7 @@ class _ScanScreenState extends State<ScanScreen> {
             TextButton(
               onPressed: _busy
                   ? null
-                  : () => setState(_pages.clear),
+                  : () { setState(_pages.clear); _persist(); },
               child: const Text('Start over',
                   style: TextStyle(color: Colors.white, fontSize: 13)),
             ),
@@ -189,9 +208,11 @@ class _ScanScreenState extends State<ScanScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Photograph each page of your discharge papers. Standard '
-                  'reading happens on your phone - photos are not uploaded. '
-                  'For handwritten notes, use "Enhanced read" below (uploads '
+                  'Photograph each page of your discharge papers. Lay one '
+                  'page at a time on a clear surface and fill the frame - '
+                  'the camera reads everything it can see. Standard reading '
+                  'happens on your phone - photos are not uploaded. For '
+                  'handwritten notes, use "Enhanced read" below (uploads '
                   'photos securely, with your permission).',
                   style: TextStyle(
                     fontSize: 13,
@@ -220,12 +241,21 @@ class _ScanScreenState extends State<ScanScreen> {
                           ],
                         ),
                       )
-                    : ListView.separated(
+                    // Long-press-drag to reorder: page order = reading order
+                    // for OCR text, so the patient can fix out-of-order shots
+                    // instead of retaking them.
+                    : ReorderableListView.builder(
                         itemCount: _pages.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        onReorder: (from, to) => setState(() {
+                          if (to > from) to--;
+                          _pages.insert(to, _pages.removeAt(from));
+                          _persist();
+                        }),
                         itemBuilder: (context, i) {
                           final p = _pages[i];
                           return Container(
+                            key: ObjectKey(p),
+                            margin: const EdgeInsets.only(bottom: 10),
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: _dark ? kCardDark : kCardLight,
@@ -242,6 +272,12 @@ class _ScanScreenState extends State<ScanScreen> {
                               children: [
                                 Row(
                                   children: [
+                                    Icon(Icons.drag_indicator,
+                                        size: 18,
+                                        color: _dark
+                                            ? kTextHintDark
+                                            : kTextHintLight),
+                                    const SizedBox(width: 4),
                                     Text('Page ${i + 1}',
                                         style: const TextStyle(
                                             fontWeight: FontWeight.w700)),
@@ -254,8 +290,10 @@ class _ScanScreenState extends State<ScanScreen> {
                                     IconButton(
                                       icon: const Icon(Icons.delete_outline, size: 20),
                                       tooltip: 'Remove page',
-                                      onPressed: () =>
-                                          setState(() => _pages.removeAt(i)),
+                                      onPressed: () {
+                                        setState(() => _pages.removeAt(i));
+                                        _persist();
+                                      },
                                     ),
                                   ],
                                 ),
