@@ -18,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from dischargeiq.agents.quiz_agent import run_quiz_agent
 from dischargeiq.api.dependencies import get_db_pool
+from dischargeiq.api.middleware import verify_api_key
 from dischargeiq.api.schemas import (
     QuizGenerateRequest,
     QuizGenerateResponse,
@@ -28,7 +29,9 @@ from dischargeiq.db.quiz import get_latest_pre_percent, save_quiz_score
 from dischargeiq.services.quiz import score_quiz
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+# verify_api_key is a no-op until DISCHARGEIQ_API_KEY is set; once set, both
+# quiz endpoints (LLM cost + DB writes) require the same Bearer token as /analyze.
+router = APIRouter(dependencies=[Depends(verify_api_key)])
 
 
 @router.post("/quiz/generate", response_model=QuizGenerateResponse)

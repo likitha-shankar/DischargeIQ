@@ -132,8 +132,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         max_requests, window = _RATE_LIMITS[path]
+        # X-Forwarded-For is client-forgeable EXCEPT its last entry, which the
+        # trusted proxy in front of us (Cloud Run's frontend / local nginx)
+        # appends itself. Taking the FIRST entry would let any client rotate a
+        # fake XFF header and bypass rate limiting entirely; the LAST entry is
+        # the peer the proxy actually saw.
         fwd = request.headers.get("X-Forwarded-For", "")
-        ip = fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else "unknown")
+        ip = fwd.split(",")[-1].strip() if fwd else (request.client.host if request.client else "unknown")
         now = time.monotonic()
         cutoff = now - window
 
@@ -159,6 +164,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     headers={"Retry-After": str(retry_after)},
                 )
             _rate_windows[path][ip].append(now)
+            # Drop IP buckets whose newest request has aged out of the window,
+            # so the map cannot grow without bound across many distinct client
+            # IPs (a scanner sweeping IPs would otherwise leak one list per IP).
+            for bucket_ip in [
+                k for k, v in _rate_windows[path].items() if not v or v[-1] <= cutoff
+            ]:
+                del _rate_windows[path][bucket_ip]
 
         return await call_next(request)
 

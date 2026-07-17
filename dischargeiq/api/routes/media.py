@@ -31,9 +31,10 @@ import logging
 import os
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse, Response
 
+from dischargeiq.api.middleware import verify_api_key
 from dischargeiq.api.schemas import CaseAudioRequest
 from dischargeiq.utils.case_audio import (
     build_dialogue_script,
@@ -118,7 +119,10 @@ def _case_audio_enabled() -> bool:
     }
 
 
-@router.post("/media/case")
+# Guarded individually (not router-level): the GET endpoints serve static
+# per-diagnosis files and must stay freely fetchable by media players; this
+# POST is the most expensive endpoint per request (script LLM + TTS).
+@router.post("/media/case", dependencies=[Depends(verify_api_key)])
 async def generate_case_audio(request: CaseAudioRequest):
     """
     Generate the per-case two-host audio explainer for one session.
