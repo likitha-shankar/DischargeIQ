@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Medication reminders: Android 13+ requires explicit declaration or
+         the permission dialog never appears and reminders silently fail. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:label="dischargeiq_mobile"
         android:name="${applicationName}"
