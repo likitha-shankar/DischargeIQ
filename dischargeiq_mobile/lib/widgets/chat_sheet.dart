@@ -9,6 +9,7 @@
 library;
 
 import 'package:dischargeiq_mobile/config.dart';
+import 'package:dischargeiq_mobile/screens/results_screen.dart' show PatientText;
 import 'package:dischargeiq_mobile/services/api_service.dart';
 import 'package:flutter/material.dart';
 
@@ -33,11 +34,19 @@ Future<void> showChatSheet(BuildContext context, Map<String, dynamic> result) {
 }
 
 class _ChatMessage {
-  const _ChatMessage({required this.fromPatient, required this.text, this.failed = false});
+  const _ChatMessage({
+    required this.fromPatient,
+    required this.text,
+    this.failed = false,
+    this.retryQuestion,
+  });
 
   final bool fromPatient;
   final String text;
   final bool failed;
+
+  /// The question that produced a failed answer - powers the Retry chip.
+  final String? retryQuestion;
 }
 
 class _ChatSheet extends StatefulWidget {
@@ -49,10 +58,16 @@ class _ChatSheet extends StatefulWidget {
   State<_ChatSheet> createState() => _ChatSheetState();
 }
 
+/// Chat history per session, kept for the app's lifetime so closing and
+/// reopening the sheet does not wipe the conversation. In-memory only -
+/// chat content never touches disk or server storage.
+final Map<String, List<_ChatMessage>> _chatHistoryBySession = {};
+
 class _ChatSheetState extends State<_ChatSheet> {
   final _ctrl = TextEditingController();
   final _scroll = ScrollController();
-  final List<_ChatMessage> _messages = [];
+  late final List<_ChatMessage> _messages =
+      _chatHistoryBySession.putIfAbsent(_sessionId, () => []);
   bool _sending = false;
 
   bool get _dark => Theme.of(context).brightness == Brightness.dark;
@@ -61,6 +76,13 @@ class _ChatSheetState extends State<_ChatSheet> {
   /// the analyze session (the old sheet minted a new id per message).
   String get _sessionId =>
       '${widget.result['pdf_session_id'] ?? DateTime.now().millisecondsSinceEpoch}';
+
+  @override
+  void initState() {
+    super.initState();
+    // Reopened with prior history: land at the latest message.
+    if (_messages.isNotEmpty) _autoscroll();
+  }
 
   @override
   void dispose() {
@@ -91,12 +113,12 @@ class _ChatSheetState extends State<_ChatSheet> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _messages.add(const _ChatMessage(
+        _messages.add(_ChatMessage(
           fromPatient: false,
           failed: true,
-          text: 'I could not answer just now - the connection or the reading '
-              'service is busy. Your written summary in the tabs has all the '
-              'same information. Please try again in a moment.',
+          retryQuestion: q,
+          text: 'I could not answer just now. Your written summary in the '
+              'tabs has the same information.',
         ));
       });
     } finally {
@@ -274,9 +296,34 @@ class _ChatSheetState extends State<_ChatSheet> {
                 bottomRight: Radius.circular(m.fromPatient ? 4 : 16),
               ),
             ),
-            child: SelectableText(
-              m.text,
-              style: TextStyle(fontSize: 14.5, height: 1.4, color: textColor),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (m.fromPatient || m.failed)
+                  SelectableText(
+                    m.text,
+                    style:
+                        TextStyle(fontSize: 14.5, height: 1.4, color: textColor),
+                  )
+                else
+                  // Assistant answers go through the shared patient renderer
+                  // so any markdown the model emits looks intentional.
+                  PatientText(text: m.text),
+                if (m.failed && m.retryQuestion != null) ...[
+                  const SizedBox(height: 8),
+                  ActionChip(
+                    avatar: Icon(Icons.refresh,
+                        size: 16, color: dark ? kTealGlow : kTeal),
+                    label: const Text('Try again'),
+                    labelStyle: TextStyle(
+                        fontSize: 12.5, color: dark ? kTealGlow : kTeal),
+                    backgroundColor:
+                        dark ? kTeal.withValues(alpha: 0.25) : kTealPale,
+                    side: BorderSide.none,
+                    onPressed: _sending ? null : () => _send(m.retryQuestion!),
+                  ),
+                ],
+              ],
             ),
           ),
         );
