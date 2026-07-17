@@ -46,7 +46,11 @@ from openai import OpenAI, RateLimitError
 from pydantic import ValidationError
 
 from dischargeiq.models.extraction import ExtractionOutput
-from dischargeiq.utils.llm_client import call_chat_with_fallback, get_llm_client
+from dischargeiq.utils.llm_client import (
+    call_chat_with_fallback,
+    get_fallback_client,
+    get_llm_client,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -625,6 +629,55 @@ def _remove_stray_tokens(text: str) -> str:
     return "\n".join(filtered_lines)
 
 
+def _check_grounding(raw_text: str, result: "ExtractionOutput") -> list[str]:
+    """
+    Deterministic hallucination guard: flag extracted values with no textual
+    support in the source document.
+
+    For each medication name and follow-up provider, at least one alphabetic
+    token of 4+ characters must appear in the raw document text
+    (case-insensitive). A value where NO token matches is a strong
+    fabrication signal - Agent 1 is prompted to copy names verbatim, so a
+    fully absent name cannot have come from the document. Zero LLM calls,
+    zero cost, runs on every extraction.
+
+    Deliberately conservative to avoid false positives:
+        - Only names are checked. Doses/frequencies are excluded (the
+          normaliser rewrites abbreviations) and dates are excluded (the
+          LLM may reformat "March 24" as "2026-03-24").
+        - One matching token clears the value, so "Albuterol (ProAir HFA)"
+          is grounded if either "albuterol" or "proair" appears.
+        - Values with no 4+ char alphabetic tokens are skipped entirely.
+
+    Args:
+        raw_text: Full discharge-document text (the string sent to the LLM).
+        result:   Validated ExtractionOutput, post-normalisation.
+
+    Returns:
+        list[str]: One warning per ungrounded value; [] when all grounded.
+    """
+    source = raw_text.lower()
+    warnings: list[str] = []
+
+    def _ungrounded(value: str) -> bool:
+        tokens = [t for t in re.findall(r"[a-zA-Z]{4,}", value)]
+        return bool(tokens) and not any(t.lower() in source for t in tokens)
+
+    for med in result.medications:
+        if _ungrounded(med.name):
+            warnings.append(
+                f"Medication '{med.name}' was not found in the document "
+                "text - please verify it against your discharge papers."
+            )
+    for appt in result.follow_up_appointments:
+        if appt.provider and _ungrounded(appt.provider):
+            warnings.append(
+                f"Follow-up provider '{appt.provider}' was not found in the "
+                "document text - please verify it against your discharge papers."
+            )
+    return warnings
+
+
 def _parse_and_validate(raw_response: str) -> ExtractionOutput:
     """
     Parse the LLM's raw text response into a validated ExtractionOutput model.
@@ -952,7 +1005,37 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
 
     system_prompt = _load_system_prompt()
     raw_response = _call_llm(system_prompt, pdf_text)
-    result = _parse_and_validate(raw_response)
+    try:
+        result = _parse_and_validate(raw_response)
+    except (json.JSONDecodeError, ValidationError) as parse_exc:
+        # Malformed JSON is a model failure just like a 429: the provider
+        # answered, but with output no downstream agent can use. Give the
+        # cross-provider fallback (llm_client.get_fallback_client) one shot
+        # before declaring the run partial - observed live July 2026 when
+        # gemini-2.5-flash returned truncated JSON on prod while the
+        # Anthropic fallback parsed cleanly.
+        fallback = get_fallback_client()
+        if fallback is None:
+            raise
+        fb_client, fb_model, fb_provider = fallback
+        logger.warning(
+            "Agent 1 response unparseable on primary provider (%s) - "
+            "retrying once on fallback '%s' (%s)",
+            parse_exc,
+            fb_provider,
+            fb_model,
+        )
+        raw_response = call_chat_with_fallback(
+            client=fb_client,
+            model_name=fb_model,
+            system_prompt=system_prompt,
+            user_message=_build_user_message(pdf_text),
+            max_tokens=4096,
+            provider=fb_provider,
+            agent_name="Agent 1",
+            document_id="extraction-json-retry",
+        )
+        result = _parse_and_validate(raw_response)
 
     # Post-LLM deterministic normalisation - route and frequency abbreviations
     # are expanded on every medication entry so downstream agents see
@@ -967,11 +1050,16 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
     # medications entry.
     dose_conflict_warnings = _check_dose_conflicts(pdf_text, result.medications)
 
-    # Merge pre-warnings, dose-conflict warnings, and LLM-added warnings.
-    # A set-based dedupe keeps the list clean if the LLM happened to emit
-    # the same sentence independently.
+    # Deterministic grounding check (runtime hallucination guard): any
+    # medication or provider name with zero textual support in the source
+    # document gets a patient-facing verify warning.
+    grounding_warnings = _check_grounding(pdf_text, result)
+
+    # Merge pre-warnings, deterministic-check warnings, and LLM-added
+    # warnings. A set-based dedupe keeps the list clean if the LLM happened
+    # to emit the same sentence independently.
     existing_warnings = set(result.extraction_warnings)
-    for warning in (*pre_warnings, *dose_conflict_warnings):
+    for warning in (*pre_warnings, *dose_conflict_warnings, *grounding_warnings):
         if warning not in existing_warnings:
             result.extraction_warnings.append(warning)
             existing_warnings.add(warning)

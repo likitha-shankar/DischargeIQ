@@ -509,6 +509,18 @@ def _call_chat_once(
                     f"{agent_name}: empty choices for '{document_id}' "
                     f"(provider={provider}, model={model_name})"
                 )
+            # A completion cut off by the token budget is unusable for
+            # patient-facing text (observed live July 2026: gemini-2.5-flash
+            # spends its budget on thinking tokens, truncating every section
+            # mid-sentence). Raising here lets call_chat_with_fallback route
+            # the request to the fallback provider instead of shipping a
+            # half-sentence to a patient.
+            finish_reason = getattr(response.choices[0], "finish_reason", None)
+            if finish_reason == "length":
+                raise ValueError(
+                    f"{agent_name}: completion truncated by max_tokens for "
+                    f"'{document_id}' (provider={provider}, model={model_name})"
+                )
             content = response.choices[0].message.content
             if not content:
                 # OpenRouter free routing sometimes returns empty content when

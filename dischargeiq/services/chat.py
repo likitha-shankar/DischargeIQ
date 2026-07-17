@@ -19,10 +19,11 @@ Dependencies:
 
 import json
 import logging
+import os
 import re
 from typing import Optional
 
-from dischargeiq.utils.llm_client import get_llm_client
+from dischargeiq.utils.llm_client import call_chat_with_fallback, get_llm_client
 
 logger = logging.getLogger(__name__)
 
@@ -168,18 +169,21 @@ class ChatService:
         system_prompt = self._build_system_prompt(pipeline_context)
 
         client, model_name = get_llm_client()
-        response = client.chat.completions.create(
-            model=model_name,
+        # Same cross-provider failover the pipeline agents use: a Gemini
+        # quota 429 must degrade to the fallback provider, not surface to
+        # the patient as "the assistant is unavailable" (observed live
+        # July 2026 - chat was the one LLM path without failover).
+        provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
+        raw_reply = call_chat_with_fallback(
+            client=client,
+            model_name=model_name,
+            system_prompt=system_prompt,
+            user_message=clean_message,
             max_tokens=_CHAT_MAX_TOKENS,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": clean_message},
-            ],
-        )
-        if not response.choices:
-            raise RuntimeError("LLM returned no choices for chat request")
-
-        raw_reply = (response.choices[0].message.content or "").strip()
+            provider=provider,
+            agent_name="Chat",
+            document_id="chat",
+        ).strip()
         if not raw_reply:
             raw_reply = (
                 "I could not find an answer in your discharge summary. "

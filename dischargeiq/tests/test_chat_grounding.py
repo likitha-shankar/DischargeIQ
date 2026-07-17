@@ -201,8 +201,10 @@ def test_curly_apostrophe_refusal_is_detected():
 def test_empty_choices_returns_friendly_500():
     """
     LLM provider returns choices=[] (rare but seen on some OpenRouter free-tier
-    failures): the endpoint must surface a friendly 500 instead of crashing
-    with an opaque IndexError.
+    failures) AND no fallback provider is configured: the endpoint must surface
+    a friendly 500 instead of crashing with an opaque IndexError. (With a
+    fallback configured, chat now fails over like the pipeline agents do -
+    that path is covered by the failover test below.)
     """
     fake_response = SimpleNamespace(choices=[])
     completions = MagicMock()
@@ -210,7 +212,9 @@ def test_empty_choices_returns_friendly_500():
     chat = SimpleNamespace(completions=completions)
     fake_client = SimpleNamespace(chat=chat)
 
-    with patch(_MOCK_LLM, return_value=(fake_client, "fake-model")):
+    with patch(_MOCK_LLM, return_value=(fake_client, "fake-model")), \
+            patch("dischargeiq.utils.llm_client.get_fallback_client",
+                  return_value=None):
         resp = _client.post("/chat", json={
             "message": "What is my diagnosis?",
             "session_id": "test-session",
@@ -222,6 +226,38 @@ def test_empty_choices_returns_friendly_500():
     assert "assistant is unavailable" in body["detail"].lower(), (
         f"Expected user-friendly 500 message, got: {body!r}"
     )
+
+
+def test_primary_failure_fails_over_to_fallback_provider():
+    """
+    Chat parity with the pipeline agents: when the primary provider fails,
+    the configured fallback provider answers and the patient gets a 200.
+    """
+    fake_response = SimpleNamespace(choices=[])
+    completions = MagicMock()
+    completions.create.return_value = fake_response
+    chat = SimpleNamespace(completions=completions)
+    failing_client = SimpleNamespace(chat=chat)
+
+    ok = SimpleNamespace(choices=[SimpleNamespace(
+        message=SimpleNamespace(content="Your main diagnosis is listed in your summary."),
+        finish_reason="stop",
+    )])
+    fb_completions = MagicMock()
+    fb_completions.create.return_value = ok
+    fb_client = SimpleNamespace(chat=SimpleNamespace(completions=fb_completions))
+
+    with patch(_MOCK_LLM, return_value=(failing_client, "fake-model")), \
+            patch("dischargeiq.utils.llm_client.get_fallback_client",
+                  return_value=(fb_client, "fb-model", "anthropic")):
+        resp = _client.post("/chat", json={
+            "message": "What is my diagnosis?",
+            "session_id": "test-session",
+            "pipeline_context": _minimal_context(),
+        })
+
+    assert resp.status_code == 200, f"Expected 200 via fallback, got {resp.status_code}"
+    assert "diagnosis" in resp.json()["reply"].lower()
 
 
 def test_injection_attempt_is_handled_safely():

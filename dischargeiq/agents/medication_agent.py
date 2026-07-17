@@ -57,6 +57,18 @@ logger = logging.getLogger(__name__)
 
 _MAX_TOKENS = 1000
 
+# Real-world discharge summaries carry far longer medication lists than the
+# synthetic corpus (observed live: 16 drugs vs ~5) - a flat budget truncates
+# the rationale mid-drug on BOTH providers. Scale with the list, capped so a
+# pathological document cannot run up cost.
+_TOKENS_PER_MEDICATION = 180
+_MAX_TOKENS_CEILING = 4096
+
+
+def _token_budget(medication_count: int) -> int:
+    """Output-token budget for one rationale: flat floor, per-drug scaling, hard cap."""
+    return min(_MAX_TOKENS_CEILING, max(_MAX_TOKENS, _TOKENS_PER_MEDICATION * medication_count))
+
 
 def _format_medication_line(med: Medication) -> str:
     """
@@ -221,6 +233,7 @@ def run_medication_agent(
 
     provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     client, model = get_native_agent_client(provider)
+    max_tokens = _token_budget(len(extraction.medications))
 
     if provider != "anthropic":
         try:
@@ -229,7 +242,7 @@ def run_medication_agent(
                 model_name=model,
                 system_prompt=system_prompt,
                 user_message=user_message,
-                max_tokens=_MAX_TOKENS,
+                max_tokens=max_tokens,
                 provider=provider,
                 agent_name="Agent 3",
                 document_id=document_id,
@@ -241,7 +254,7 @@ def run_medication_agent(
         try:
             response = client.messages.create(
                 model=model,
-                max_tokens=_MAX_TOKENS,
+                max_tokens=max_tokens,
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_message}],
             )
