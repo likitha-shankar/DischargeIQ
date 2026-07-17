@@ -36,6 +36,16 @@ dependencies:
   # "View original" on results: renders the uploaded PDF via the platform's
   # native PDF engine (PDFKit on iOS).
   pdfx: ^2.9.2
+  # Caregiver share (P-1) + understanding cards: native share sheet. The
+  # patient chooses recipient and channel - nothing is sent automatically.
+  share_plus: ^10.1.4
+  # Medication reminders: LOCAL notifications only - schedules live on the
+  # phone, nothing syncs anywhere. Adverse drug events are the most common
+  # post-discharge complication; a missed-dose nudge is the highest-value
+  # feature the competitor scan surfaced.
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.10.0
+  flutter_timezone: ^3.0.1
 
 dev_dependencies:
   flutter_test:
