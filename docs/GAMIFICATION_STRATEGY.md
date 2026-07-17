@@ -122,7 +122,19 @@ identity, and none of it is sent to or stored with any clinical record.
 | XP, levels, mastery badges, personal bests, calm celebration | Built (mobile + web) |
 | "Master it" missed-questions retake loop | Built |
 | On-device persistence of reward state | Built (mobile) |
-| Stars for reading sections and adding a calendar appointment | Open (the discharge-process step layer) |
+| Stars for reading sections and adding a calendar appointment | Built (wave 2: `SectionStarStore` + calendar star) |
+| Recovery Garden - growth visual over stars, mastery, and quests | Built (wave 2: `garden_widgets.dart`; no punishment states) |
+| "First week home" quests - three named journeys over existing state | Built (wave 2: `quests.dart`; progress only counts up) |
+| Daily mood check-in with rough-patch care-team nudge | Built (wave 3: `CheckinStore`, `consecutiveRoughDays`) |
+| Medical matching puzzle built from the patient's own extraction | Built (wave 4: `puzzle.dart`; teach popup per match, nothing fabricated) |
+| Medication reminder schedule from Agent 1 extraction | Built (feature B1: `medication_schedule.dart`; suggest-only, patient-editable) |
+| Daily garden nudge - opt-in, one gentle 10am notification, no guilt copy | Built (wave 5: `ReminderService.enableGardenReminder`, bell toggle on garden card) |
+| Mood-adaptive coach - one next step sized to today's check-in mood | Built (wave 5: `garden_coach.dart`; rough days are asked LESS, never more) |
+| Named garden companion (butterfly) - emotional-ownership mechanic | Built (wave 5: `CompanionStore`; name personalizes the daily nudge copy) |
+| Seed-blooms-tomorrow return hook - quiz/puzzle plants a seed, never wilts | Built (wave 5: `SeedStore`; bloom acknowledged on next garden visit) |
+| Garden seasons - sky/canopy shift with the real calendar, sun always out | Built (wave 6: `seasonOf()` in `garden_widgets.dart`; delight only, no weather punishment) |
+| Companion cheer - small heart when today's effort planted a seed | Built (wave 6: `companionCheering` in the garden painter) |
+| "Show your garden" share card - painting rendered to PNG, native share sheet | Built (wave 6: patient-initiated, composed on-device, no server) |
 
 ## Sources
 

@@ -99,4 +99,20 @@ void main() {
     expect(entries.length, 1);
     expect(entries.first.$2, 'good');
   });
+
+  test('rough-day escalation counts only an unbroken run', () {
+    expect(consecutiveRoughDays([]), 0);
+    expect(consecutiveRoughDays([('2026-07-12', 'good')]), 0);
+    expect(consecutiveRoughDays([
+      ('2026-07-10', 'rough'), ('2026-07-11', 'rough'), ('2026-07-12', 'rough'),
+    ]), 3);
+    // A gap day breaks the run even if earlier days were rough.
+    expect(consecutiveRoughDays([
+      ('2026-07-09', 'rough'), ('2026-07-11', 'rough'), ('2026-07-12', 'rough'),
+    ]), 2);
+    // An okay day breaks it too.
+    expect(consecutiveRoughDays([
+      ('2026-07-10', 'rough'), ('2026-07-11', 'okay'), ('2026-07-12', 'rough'),
+    ]), 1);
+  });
 }

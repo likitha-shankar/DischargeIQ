@@ -282,3 +282,208 @@ class GameStore {
     }
   }
 }
+
+/// Consecutive rough days ending at the most recent check-in. Pure function
+/// (testable): entries are (YYYY-MM-DD, mood), any order. A gap day breaks
+/// the run - we only escalate on a genuinely unbroken rough stretch (B3).
+int consecutiveRoughDays(List<(String, String)> entries) {
+  final byDate = {for (final e in entries) e.$1: e.$2};
+  final dates = byDate.keys.toList()..sort();
+  if (dates.isEmpty) return 0;
+  var run = 0;
+  var cursor = DateTime.parse(dates.last);
+  while (true) {
+    final key = '${cursor.year.toString().padLeft(4, '0')}-'
+        '${cursor.month.toString().padLeft(2, '0')}-'
+        '${cursor.day.toString().padLeft(2, '0')}';
+    if (byDate[key] == 'rough') {
+      run++;
+      cursor = cursor.subtract(const Duration(days: 1));
+    } else {
+      break;
+    }
+  }
+  return run;
+}
+
+/// Personal-best moves per puzzle level (gamification wave 4). Fewer moves is
+/// better; the only comparison is against the patient's own past - never other
+/// patients (same no-leaderboard rule as the rest of the game layer).
+class PuzzleScoreStore {
+  static const _kKey = 'puzzle_best_moves';
+
+  static Future<Map<String, int>> _all() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_kKey);
+      if (raw == null || raw.isEmpty) return {};
+      return {
+        for (final e in (jsonDecode(raw) as Map).entries)
+          '${e.key}': (e.value as num).toInt()
+      };
+    } catch (_) {
+      return {};
+    }
+  }
+
+  /// Best (fewest) moves recorded for [level], or null if never finished.
+  static Future<int?> best(String level) async => (await _all())[level];
+
+  /// Record a finished round. Returns true only when it beats the old best
+  /// (or is the first finish) - callers use it for the "new best" callout.
+  static Future<bool> record(String level, int moves) async {
+    try {
+      final all = await _all();
+      final prev = all[level];
+      if (prev != null && moves >= prev) return false;
+      all[level] = moves;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_kKey, jsonEncode(all));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+}
+
+/// The patient's chosen garden companion: a kind (butterfly, bird, turtle,
+/// frog - self-selected so the garden never assumes a taste) and a name.
+/// Emotional-ownership mechanic (gamification wave 5): a named companion
+/// turns the daily nudge from "the app wants you back" into "someone in
+/// your garden does".
+class CompanionStore {
+  static const _kNameKey = 'companion_name';
+  static const _kKindKey = 'companion_kind';
+
+  /// Valid companion kinds, in picker order.
+  static const List<String> kinds = [
+    'butterfly',
+    'bird',
+    'turtle',
+    'frog',
+    'bee',
+    'ladybug',
+    'cat',
+    'bunny',
+  ];
+
+  /// Emoji per kind, used in captions and the picker.
+  static const Map<String, String> kindEmoji = {
+    'butterfly': '🦋',
+    'bird': '🐦',
+    'turtle': '🐢',
+    'frog': '🐸',
+    'bee': '🐝',
+    'ladybug': '🐞',
+    'cat': '🐱',
+    'bunny': '🐰',
+  };
+
+  /// The companion's name, or '' when not named yet.
+  static Future<String> name() async {
+    try {
+      return (await SharedPreferences.getInstance()).getString(_kNameKey) ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  /// Save a name (trimmed, max 20 chars - it appears in notification copy).
+  static Future<void> setName(String value) async {
+    try {
+      final trimmed = value.trim();
+      await (await SharedPreferences.getInstance()).setString(
+          _kNameKey, trimmed.substring(0, trimmed.length.clamp(0, 20)));
+    } catch (_) {
+      // Best-effort engagement state, never blocks the UI.
+    }
+  }
+
+  /// The chosen kind; defaults to 'butterfly' (the original resident).
+  static Future<String> kind() async {
+    try {
+      final k =
+          (await SharedPreferences.getInstance()).getString(_kKindKey) ?? '';
+      return kinds.contains(k) ? k : 'butterfly';
+    } catch (_) {
+      return 'butterfly';
+    }
+  }
+
+  /// Save the chosen kind; unknown values are ignored.
+  static Future<void> setKind(String value) async {
+    if (!kinds.contains(value)) return;
+    try {
+      await (await SharedPreferences.getInstance())
+          .setString(_kKindKey, value);
+    } catch (_) {
+      // Best-effort engagement state.
+    }
+  }
+}
+
+/// State of the "seed that blooms tomorrow" return hook (wave 5): finishing
+/// a quiz or puzzle plants a seed; it blooms the NEXT day the garden is
+/// visited. Appointment mechanic with no punishment: an unvisited seed
+/// simply waits - it never wilts, dies, or expires.
+enum SeedState { none, planted, bloomed }
+
+class SeedStore {
+  static const _kDateKey = 'seed_planted_date';
+  static const _kBloomsKey = 'seed_blooms_count';
+
+  static String _dateKeyOf(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
+
+  /// Plant a seed today (finishing a quiz or puzzle calls this). Planting
+  /// again the same day is a no-op; planting over an unbloomed older seed
+  /// refreshes the date so it still blooms tomorrow, never retroactively.
+  static Future<void> plant({DateTime? now}) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_kDateKey, _dateKeyOf(now ?? DateTime.now()));
+    } catch (_) {
+      // Best-effort engagement state.
+    }
+  }
+
+  /// Current state: [SeedState.planted] the day it was planted,
+  /// [SeedState.bloomed] any later day, [SeedState.none] otherwise.
+  static Future<SeedState> state({DateTime? now}) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final planted = prefs.getString(_kDateKey);
+      if (planted == null || planted.isEmpty) return SeedState.none;
+      return planted == _dateKeyOf(now ?? DateTime.now())
+          ? SeedState.planted
+          : SeedState.bloomed;
+    } catch (_) {
+      return SeedState.none;
+    }
+  }
+
+  /// Acknowledge a bloom: clears the seed and adds one to the lifetime bloom
+  /// count. Returns the new total.
+  static Future<int> acknowledgeBloom() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final total = (prefs.getInt(_kBloomsKey) ?? 0) + 1;
+      await prefs.setInt(_kBloomsKey, total);
+      await prefs.remove(_kDateKey);
+      return total;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  /// Lifetime bloom count (shown as "N flowers grown from your effort").
+  static Future<int> blooms() async {
+    try {
+      return (await SharedPreferences.getInstance()).getInt(_kBloomsKey) ?? 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+}

@@ -25,10 +25,13 @@ import 'dart:math' show Random;
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/models/quiz.dart';
 import 'package:dischargeiq_mobile/services/api_service.dart';
+import 'package:dischargeiq_mobile/screens/puzzle_screen.dart';
 import 'package:dischargeiq_mobile/services/game_store.dart';
 import 'package:dischargeiq_mobile/widgets/game_widgets.dart';
 import 'package:dischargeiq_mobile/widgets/quiz_widgets.dart';
+import 'package:dischargeiq_mobile/services/share_summary.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 
 enum _Phase { intro, loading, pre, learn, post, results, error }
@@ -210,6 +213,9 @@ class _QuizBodyState extends State<QuizBody> {
     _stats = stats;
     _xpGained = gained;
     GameStore.save(stats);
+    // Return hook (wave 5): a finished quiz plants a seed that blooms in
+    // the garden tomorrow.
+    SeedStore.plant();
   }
 
   QuizScoreResult _scoreLocally(String phase, List<int> answers) {
@@ -370,6 +376,29 @@ class _QuizBodyState extends State<QuizBody> {
         onPressed: _start,
         icon: const Icon(Icons.play_arrow_rounded),
         label: const Text('Start the quiz'),
+      ),
+      const SizedBox(height: 14),
+      // Medical matching puzzle (wave 4): a lighter, no-fail way to learn the
+      // same content. Pure engagement, separate from the measured quiz above.
+      OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(
+            foregroundColor: kTeal,
+            side: const BorderSide(color: kTeal),
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12)),
+        onPressed: () => Navigator.push<void>(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => PuzzleScreen(
+              extraction: (widget.result['extraction'] as Map?)
+                      ?.cast<String, dynamic>() ??
+                  const {},
+              diagnosisExplanation:
+                  '${widget.result['diagnosis_explanation'] ?? ''}',
+            ),
+          ),
+        ),
+        icon: const Icon(Icons.extension_outlined, size: 18),
+        label: const Text('Or play the matching puzzle'),
       ),
     ]);
   }
@@ -534,6 +563,26 @@ class _QuizBodyState extends State<QuizBody> {
         const SizedBox(height: 10),
         MasteryBadges(
             result: post, everMastered: _stats?.masteredDomains ?? const {}),
+        // Understanding cards (wave 3): a mastered topic becomes a shareable
+        // plain-language card - competence worth showing the family.
+        if ((_stats?.masteredDomains ?? const {}).isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              icon: const Icon(Icons.ios_share, size: 16),
+              label: const Text('Share what you\'ve mastered',
+                  style: TextStyle(fontSize: 13)),
+              onPressed: () {
+                final cards = [
+                  for (final d in _stats!.masteredDomains)
+                    buildUnderstandingCard(widget.result, d)
+                ].join('\n\n----------\n\n');
+                Share.share(cards);
+              },
+            ),
+          ),
+        ],
         const SizedBox(height: 22),
         if (mastered)
           Container(
