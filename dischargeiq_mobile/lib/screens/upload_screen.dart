@@ -4,8 +4,10 @@ import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/providers/theme_provider.dart';
 import 'package:dischargeiq_mobile/screens/loading_screen.dart';
+import 'package:dischargeiq_mobile/screens/puzzle_screen.dart';
 import 'package:dischargeiq_mobile/services/document_store.dart';
 import 'package:dischargeiq_mobile/services/game_store.dart';
+import 'package:dischargeiq_mobile/services/scan_session_store.dart';
 import 'package:dischargeiq_mobile/widgets/garden_widgets.dart';
 import 'package:dischargeiq_mobile/screens/scan_screen.dart';
 import 'package:dischargeiq_mobile/screens/settings_screen.dart';
@@ -440,6 +442,7 @@ class _GardenSection extends StatefulWidget {
 class _GardenSectionState extends State<_GardenSection> {
   Set<String>? _stars;
   GameStats? _stats;
+  bool _hasSavedDoc = false;
 
   @override
   void initState() {
@@ -450,6 +453,79 @@ class _GardenSectionState extends State<_GardenSection> {
     GameStore.load().then((s) {
       if (mounted) setState(() => _stats = s);
     });
+    DocumentStore.list().then((docs) {
+      if (mounted) setState(() => _hasSavedDoc = docs.isNotEmpty);
+    });
+  }
+
+  /// Landing-garden puzzle entry: the garden has no loaded document, so we
+  /// reopen a saved analysis and launch the puzzle from its extraction.
+  /// One saved document opens directly; several show a picker so the
+  /// patient chooses which document to practice on (not just the newest).
+  /// Zero API calls - the analysis is already on the phone.
+  Future<void> _playPuzzle() async {
+    final docs = await DocumentStore.list();
+    if (docs.isEmpty || !mounted) return;
+    var pickedId = docs.first.id;
+    if (docs.length > 1) {
+      final choice = await showModalBottomSheet<String>(
+        context: context,
+        showDragHandle: true,
+        builder: (ctx) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(20, 4, 20, 8),
+                child: Text('Practice which document?',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              ),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final d in docs)
+                      ListTile(
+                        leading: const Icon(Icons.description_outlined),
+                        title: Text(d.diagnosis,
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(d.fileName,
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                        onTap: () => Navigator.pop(ctx, d.id),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (choice == null || !mounted) return;
+      pickedId = choice;
+    }
+    final loaded = await DocumentStore.load(pickedId);
+    if (loaded == null || !mounted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Could not open your last document for the puzzle.'),
+        ));
+      }
+      return;
+    }
+    final (result, _) = loaded;
+    if (!mounted) return;
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => PuzzleScreen(
+          extraction:
+              (result['extraction'] as Map?)?.cast<String, dynamic>() ?? const {},
+          diagnosisExplanation: '${result['diagnosis_explanation'] ?? ''}',
+        ),
+      ),
+    );
   }
 
   @override
@@ -460,9 +536,30 @@ class _GardenSectionState extends State<_GardenSection> {
     final hasProgress =
         stars.isNotEmpty || stats.xp > 0 || stats.quizzesCompleted > 0;
     if (!hasProgress) return const SizedBox.shrink();
+    final dark = widget.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
-      child: RecoveryGardenCard(stars: stars, stats: stats, dark: widget.dark),
+      child: Column(
+        children: [
+          RecoveryGardenCard(stars: stars, stats: stats, dark: dark),
+          if (_hasSavedDoc) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: dark ? kTealGlow : kTeal,
+                  side: BorderSide(color: dark ? kTealGlow : kTeal),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                onPressed: _playPuzzle,
+                icon: const Icon(Icons.extension_outlined, size: 18),
+                label: const Text('Play the medicine puzzle'),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -503,6 +600,10 @@ class _RecentDocumentsState extends State<_RecentDocuments> {
       return;
     }
     final (result, pdf) = loaded;
+    // A library reopen is NOT the live scan session: clear any in-memory
+    // scan pages so the "add more pages" affordance cannot mix documents.
+    context.read<DischargeProvider>().scanPages.clear();
+    ScanSessionStore.clear();
     // Setting the provider result flips _HomeGate straight to the results
     // screen - same path a fresh analysis takes, zero API calls.
     context.read<DischargeProvider>().setResult(
