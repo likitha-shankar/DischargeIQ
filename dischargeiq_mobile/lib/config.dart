@@ -14,9 +14,10 @@ import 'package:flutter/foundation.dart';
 /// Local real-device demo: `flutter run --dart-define=API_BASE=http://<laptop-lan-ip>:8000`
 /// Phone and laptop must be on the same Wi-Fi. FastAPI must be running (start.sh).
 class ApiConfig {
-  // Hosted backend (Cloud Run, verified June 2026). `/api` prefix required.
+  // Hosted backend (Cloud Run, project dischargeiq-502723, migrated
+  // July 2026). `/api` prefix required.
   static const _cloudRunBase =
-      'https://dischargeiq-1015692703359.us-central1.run.app/api';
+      'https://dischargeiq-678599658918.us-central1.run.app/api';
 
   static String get baseUrl {
     const fromDefine = String.fromEnvironment('API_BASE');
