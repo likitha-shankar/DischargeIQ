@@ -298,16 +298,38 @@ async def _run_pipeline_internal(
     # Always non-fatal: router failures fall back to should_process=True so a
     # real discharge summary is never silently dropped by a classifier error.
     router_result = {"should_process": True}
-    # Pre-read raw text for the router (pdfplumber re-reads in Agent 1 - accepted
-    # cost; the router only needs the first ~2000 chars so it is negligible).
+    # ── Ingest ONCE ─────────────────────────────────────────────────────────
+    # The document text is read a single time here and shared by the router
+    # and Agent 1. The previous flow parsed the PDF twice (router pre-read +
+    # Agent 1 re-read) - pdfplumber costs 0.5-1.5s per parse, pure waste.
+    # Ingest failure is non-fatal at this point: the router is skipped and
+    # Agent 1's own failure path produces the standard "partial" stub.
+    ingest_result: IngestResult | None = None
+    if raw_text is not None:
+        # Mobile OCR path: text was recognized on-device (ML Kit) and sent
+        # via POST /analyze/text - there is no PDF to read. The scan-quality
+        # note keeps a human in the loop on the lossier capture path.
+        ingest_result = IngestResult(
+            text=raw_text,
+            source="ocr_photo",
+            page_count=0,
+            warnings=[
+                "This summary was created from a phone camera scan. "
+                "If something looks wrong, check the original paper document."
+            ],
+        )
+    else:
+        try:
+            ingest_result = await asyncio.to_thread(extract_document_text, pdf_path)
+        except Exception as exc:
+            logger.error("Document ingest failed for %s: %s", pdf_path, exc)
+
     try:
         if on_progress is not None:
             on_progress(0, "Router", "Classifying document type...")
-        if raw_text is not None:
-            _router_text = raw_text
-        else:
-            _router_text = (await asyncio.to_thread(extract_document_text, pdf_path)).text
-        router_result = await asyncio.to_thread(run_router_agent, _router_text)
+        if ingest_result is None:
+            raise RuntimeError("no document text available for router")
+        router_result = await asyncio.to_thread(run_router_agent, ingest_result.text)
         logger.info(
             "Router: type=%s confidence=%.2f should_process=%s",
             router_result["document_type"], router_result["confidence"], router_result["should_process"],
@@ -354,26 +376,11 @@ async def _run_pipeline_internal(
         # frozen even though the pipeline is making progress. asyncio.to_thread
         # offloads each blocking call to the default thread pool so the
         # event loop can keep serving /progress in real time.
-        # Ingest layer (DIS-O1): extract_document_text routes digital PDFs
-        # through the proven pdfplumber path today and will route scanned /
-        # photographed documents through OCR in later increments. The
-        # orchestrator only ever consumes IngestResult.text, so the routing
-        # decision stays invisible here.
-        if raw_text is not None:
-            # Mobile OCR path: text was recognized on-device (ML Kit) and sent
-            # via POST /analyze/text - there is no PDF to read. The scan-quality
-            # note keeps a human in the loop on the lossier capture path.
-            ingest_result = IngestResult(
-                text=raw_text,
-                source="ocr_photo",
-                page_count=0,
-                warnings=[
-                    "This summary was created from a phone camera scan. "
-                    "If something looks wrong, check the original paper document."
-                ],
-            )
-        else:
-            ingest_result = await asyncio.to_thread(extract_document_text, pdf_path)
+        # Text comes from the single ingest performed before the router -
+        # a None ingest_result means that read failed, which is Agent 1's
+        # standard failure path.
+        if ingest_result is None:
+            raise RuntimeError(f"document ingest failed for {pdf_path}")
         pdf_text = ingest_result.text
         extraction = await asyncio.to_thread(run_extraction_agent, pdf_text)
         # Surface ingest warnings (e.g. future OCR confidence banners) on the
@@ -468,6 +475,7 @@ async def _run_pipeline_internal(
     # _fk_log_lock around CSV writes, so concurrent agents cannot interleave
     # header rows. Priority 3 (lock) was implemented before Priority 2
     # (parallelism) to avoid introducing the race inside a single upload.
+    patient_simulator_result = None
     if agent1_succeeded:
         if on_progress is not None:
             on_progress(2, "Agents", "Analyzing your discharge summary...")
@@ -481,12 +489,11 @@ async def _run_pipeline_internal(
             extraction.model_copy(update={"procedures_performed": []})
         )
 
-        # Per-agent progress: agents 2-5 run in parallel, so without this the
-        # bar sat at step 2 for the whole ~15s burst and then leapt to the
-        # quality check - the patient saw a frozen-then-jumping bar. Each
-        # completion advances one step (2..5); completion ORDER is arbitrary,
-        # so the step number is a count and the message names the agent that
-        # actually finished.
+        # Per-agent progress: agents 2-6 run in parallel, so without this the
+        # bar sat at step 2 for the whole burst and then leapt to the end -
+        # the patient saw a frozen-then-jumping bar. Each completion advances
+        # one step (2..6); completion ORDER is arbitrary, so the step number
+        # is a count and the message names the agent that actually finished.
         _done_count = 1  # extraction already reported as step 1
         _count_lock = asyncio.Lock()
 
@@ -526,13 +533,40 @@ async def _run_pipeline_internal(
                 extraction=scope_for_agent5(extraction),
                 document_id=doc_id,
             ),
+            # Agent 6 only reads Agent 1's extraction, exactly like Agents
+            # 2-5, so it joins the same parallel burst. It used to run
+            # serially AFTER this gather - as the largest single call
+            # (4096-token budget) that added 10-20s of pure wait to every
+            # run. Its result is unpacked separately below because it
+            # returns PatientSimulatorOutput, not an FK-scored text dict.
+            _with_progress(
+                "Quality check", "Running discharge quality check...",
+                run_patient_simulator_agent,
+                extraction=extraction,
+                document_id=doc_id,
+            ),
             return_exceptions=True,
         )
+
+        # Agent 6 (last slot): non-fatal by contract - a failure here can
+        # never degrade pipeline_status, matching the old serial behavior.
+        simulator_raw = raw_results[4]
+        if isinstance(simulator_raw, Exception):
+            logger.error("Agent 6 failed for '%s': %s", pdf_path, simulator_raw)
+        else:
+            patient_simulator_result = simulator_raw
+            logger.info(
+                "Agent 6 complete: gap_score=%d missed=%d fk=%.1f",
+                patient_simulator_result.overall_gap_score,
+                sum(1 for c in patient_simulator_result.missed_concepts
+                    if not c.answered_by_doc),
+                patient_simulator_result.fk_grade,
+            )
 
         _agent_labels = ["Agent 2", "Agent 3", "Agent 4", "Agent 5"]
         _fk_keys = ["agent2", "agent3", "agent4", "agent5"]
         _agent_results: list = []
-        for i, result in enumerate(raw_results):
+        for i, result in enumerate(raw_results[:4]):
             if isinstance(result, Exception):
                 logger.error(
                     "%s failed for %s: %s", _agent_labels[i], doc_id, result
@@ -558,38 +592,10 @@ async def _run_pipeline_internal(
         recovery_trajectory = rec_r["text"] if rec_r else ""
         escalation_guide = esc_r["text"] if esc_r else ""
 
-    # ── Agent 6 - AI patient simulator (non-fatal) ──────────────────────────
-    # Surfaces "missed concepts" - questions a confused patient would ask that
-    # the document does not answer. Runs on every successful pipeline call.
-    # Never fatal: run_patient_simulator_agent() returns a safe fallback on
-    # all error paths so a simulator failure cannot degrade the pipeline status.
-    patient_simulator_result = None
-    if agent1_succeeded:
-        try:
-            if on_progress is not None:
-                on_progress(6, "Simulator", "Running discharge quality check...")
-            logger.info(
-                "Agent 6 (patient simulator) starting for '%s'", doc_id
-            )
-            patient_simulator_result = await asyncio.to_thread(
-                run_patient_simulator_agent,
-                extraction=extraction,
-                document_id=doc_id,
-            )
-            missed_n = sum(
-                1
-                for c in patient_simulator_result.missed_concepts
-                if not c.answered_by_doc
-            )
-            logger.info(
-                "Agent 6 complete: gap_score=%d missed=%d fk=%.1f",
-                patient_simulator_result.overall_gap_score,
-                missed_n,
-                patient_simulator_result.fk_grade,
-            )
-        except Exception as exc:
-            logger.error("Agent 6 failed for '%s': %s", pdf_path, exc)
-            patient_simulator_result = None
+    # Agent 6 (AI patient simulator) now runs inside the parallel gather
+    # above - see the "Quality check" entry. patient_simulator_result was
+    # unpacked there; None means Agent 1 failed or the simulator errored
+    # (non-fatal by contract).
 
     elapsed = time.monotonic() - pipeline_start
 
@@ -620,42 +626,73 @@ async def _run_pipeline_internal(
         patient_simulator=patient_simulator_result,
     )
 
-    # ── DB write (non-fatal) ────────────────────────────────────────────────
+    # ── DB write (non-fatal, background) ────────────────────────────────────
     # Persist one row per pipeline run so the history screen can list past
-    # summaries. The DB write is wrapped in try/except - a Neon outage or
-    # schema drift must never crash the pipeline or block the UI response.
+    # summaries. Runs as a fire-and-forget task: the row is bookkeeping the
+    # patient never sees, and awaiting it inline meant a slow/down Neon added
+    # its full retry ladder (1s+2s sleeps plus connection timeouts) to every
+    # response. _persist_history_background swallows and logs all errors, so
+    # the task can never surface an unhandled exception.
     db_session_id = session_id or str(uuid.uuid4())
-    try:
-        # Use the pre-computed hash passed from main.py (avoids re-reading the
-        # tmpfile). Fall back to disk read on legacy / test paths where the
-        # caller does not supply the hash (e.g. stress scripts, slow corpus tests).
-        if document_hash is None:
+    if document_hash is None:
+        # Compute the fallback hash BEFORE returning - the tmpfile is deleted
+        # by the API layer as soon as the response is sent, so the background
+        # task cannot read it later. Legacy/test path only; API routes always
+        # pass the hash in.
+        try:
             if raw_text is not None:
-                # OCR text path - there is no file on disk to hash.
                 document_hash = hashlib.sha256(raw_text.encode("utf-8")).hexdigest()
             else:
                 with open(pdf_path, "rb") as pdf_file:
                     document_hash = hashlib.sha256(pdf_file.read()).hexdigest()
-        database_url = os.getenv("DATABASE_URL")
-        if not database_url:
-            raise RuntimeError("DATABASE_URL not set")
-        await _save_history_with_retries(
-            database_url=database_url,
+        except OSError as exc:
+            logger.warning("Could not hash source for history row: %s", exc)
+    if document_hash is not None:
+        asyncio.create_task(_persist_history_background(
             session_id=db_session_id,
             document_hash=document_hash,
             extraction=extraction,
             fk_scores=fk_scores,
             pipeline_status=pipeline_status,
             pool=db_pool,
-        )
-        logger.info(
-            "Discharge history saved - session: %s", db_session_id
-        )
-    except Exception as exc:
-        logger.warning(
-            "DB write failed (non-fatal) - session: %s - %s",
-            db_session_id,
-            exc,
-        )
+        ))
 
     return response
+
+
+async def _persist_history_background(
+    session_id: str,
+    document_hash: str,
+    extraction: ExtractionOutput,
+    fk_scores: dict,
+    pipeline_status: str,
+    pool=None,
+) -> None:
+    """
+    Background wrapper around _save_history_with_retries that can never raise.
+
+    Runs as an asyncio task detached from the request so DB latency and
+    outages never delay the pipeline response. All failures are logged and
+    swallowed - history persistence is best-effort by design.
+
+    Args: same as _save_history_with_retries, minus database_url (read from
+    the environment here because the task outlives the request scope).
+    """
+    try:
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            raise RuntimeError("DATABASE_URL not set")
+        await _save_history_with_retries(
+            database_url=database_url,
+            session_id=session_id,
+            document_hash=document_hash,
+            extraction=extraction,
+            fk_scores=fk_scores,
+            pipeline_status=pipeline_status,
+            pool=pool,
+        )
+        logger.info("Discharge history saved - session: %s", session_id)
+    except Exception as exc:
+        logger.warning(
+            "DB write failed (non-fatal) - session: %s - %s", session_id, exc
+        )
