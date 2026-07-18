@@ -41,7 +41,7 @@ from dischargeiq.utils.scorer import fk_check, log_fk_score
 logger = logging.getLogger(__name__)
 
 # 5 questions × (stem + 4 options + explanation) fits well under this budget.
-_MAX_TOKENS = 1500
+_MAX_TOKENS = 2048
 
 # Below this count the quiz cannot meaningfully measure comprehension across
 # domains - fail loudly instead of returning a 1-question "quiz".

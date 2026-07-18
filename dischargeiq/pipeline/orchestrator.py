@@ -481,24 +481,47 @@ async def _run_pipeline_internal(
             extraction.model_copy(update={"procedures_performed": []})
         )
 
+        # Per-agent progress: agents 2-5 run in parallel, so without this the
+        # bar sat at step 2 for the whole ~15s burst and then leapt to the
+        # quality check - the patient saw a frozen-then-jumping bar. Each
+        # completion advances one step (2..5); completion ORDER is arbitrary,
+        # so the step number is a count and the message names the agent that
+        # actually finished.
+        _done_count = 1  # extraction already reported as step 1
+        _count_lock = asyncio.Lock()
+
+        async def _with_progress(label: str, message: str, fn, /, **kwargs):
+            result = await asyncio.to_thread(fn, **kwargs)
+            nonlocal _done_count
+            async with _count_lock:
+                _done_count += 1
+                step = _done_count
+            if on_progress is not None:
+                on_progress(step, label, message)
+            return result
+
         raw_results = await asyncio.gather(
-            asyncio.to_thread(
+            _with_progress(
+                "Diagnosis", "Diagnosis explained in plain words...",
                 run_diagnosis_agent,
                 extraction=agent2_input,
                 document_id=doc_id,
             ),
-            asyncio.to_thread(
+            _with_progress(
+                "Medications", "Medications explained...",
                 run_medication_agent,
                 extraction=scope_for_agent3(extraction),
                 document_id=doc_id,
                 safety_context=safety_ctx,
             ),
-            asyncio.to_thread(
+            _with_progress(
+                "Recovery", "Recovery plan ready...",
                 run_recovery_agent,
                 extraction=scope_for_agent4(extraction),
                 document_id=doc_id,
             ),
-            asyncio.to_thread(
+            _with_progress(
+                "Warning signs", "Warning signs organized...",
                 run_escalation_agent,
                 extraction=scope_for_agent5(extraction),
                 document_id=doc_id,

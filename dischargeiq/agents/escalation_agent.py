@@ -54,6 +54,7 @@ from dischargeiq.models.extraction import ExtractionOutput
 from dischargeiq.utils.llm_client import (
     DEFAULT_ANTHROPIC_MODEL,
     call_chat_with_fallback,
+    read_anthropic_completion,
     get_native_agent_client,
     load_agent_prompt,
 )
@@ -61,7 +62,10 @@ from dischargeiq.utils.scorer import fk_check, log_fk_score
 
 logger = logging.getLogger(__name__)
 
-_MAX_TOKENS = 1000
+# Safety-critical output gets generous headroom: a real document with 15
+# red flags plus per-symptom explanations exceeded 1000 and a truncated
+# guide silently drops whole tiers (observed live July 2026).
+_MAX_TOKENS = 2000
 
 # Compiled once at import time; was rebuilt inside run_escalation_agent() on
 # every call. agent5_system_prompt.txt forbids these phrases; we log a warning
@@ -218,9 +222,26 @@ def run_escalation_agent(
         except anthropic.APIError as e:
             logger.error("Agent 5 Anthropic call failed for '%s': %s", document_id, e)
             raise
-        # Guard: Anthropic occasionally returns an empty content array on
-        # transient errors that don't raise.
-        escalation_text = response.content[0].text.strip() if response.content else ""
+        # Empty-content and max_tokens truncation both fail loudly here -
+        # see read_anthropic_completion.
+        escalation_text = read_anthropic_completion(response, "Agent 5", document_id)
+
+    # Structural safety gate: the three tier headers are the contract with
+    # both UIs AND the patient's mental model. A guide missing the 911 tier
+    # is dangerous - fail the agent (pipeline degrades to a labeled partial)
+    # rather than ship it. Missing lower tiers log loudly but do not fail:
+    # a guide with only the 911 tier is still safe, just incomplete.
+    if escalation_text.strip() and "CALL 911" not in escalation_text.upper():
+        raise ValueError(
+            f"Agent 5 output for '{document_id}' is missing the CALL 911 tier - "
+            "refusing to ship an escalation guide without the emergency tier."
+        )
+    for tier in ("GO TO THE ER", "CALL YOUR DOCTOR"):
+        if tier not in escalation_text.upper():
+            logger.warning(
+                "Agent 5 output for '%s' is missing the '%s' tier header.",
+                document_id, tier,
+            )
 
     # Runtime ambiguity check - agent5_system_prompt.txt forbids these phrases,
     # but we log a warning if the LLM slips one through so operators can catch it.

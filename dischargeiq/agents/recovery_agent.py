@@ -45,6 +45,7 @@ from dischargeiq.models.extraction import ExtractionOutput
 from dischargeiq.utils.llm_client import (
     DEFAULT_ANTHROPIC_MODEL,
     call_chat_with_fallback,
+    read_anthropic_completion,
     get_native_agent_client,
     load_agent_prompt,
 )
@@ -54,7 +55,7 @@ logger = logging.getLogger(__name__)
 
 # 1600, not 1000: a week-by-week timeline at 6th-grade verbosity was hitting
 # the old cap and truncating mid-sentence in the patient-facing UI.
-_MAX_TOKENS = 1600
+_MAX_TOKENS = 2400
 
 
 def _build_user_message(extraction: ExtractionOutput) -> str:
@@ -184,9 +185,9 @@ def run_recovery_agent(
         except anthropic.APIError as e:
             logger.error("Agent 4 Anthropic call failed for '%s': %s", document_id, e)
             raise
-        # Guard: Anthropic occasionally returns an empty content array on
-        # transient errors that don't raise.
-        recovery_text = response.content[0].text.strip() if response.content else ""
+        # Empty-content and max_tokens truncation both fail loudly here -
+        # see read_anthropic_completion.
+        recovery_text = read_anthropic_completion(response, "Agent 4", document_id)
 
     if recovery_text.strip():
         fk_result = fk_check(recovery_text)

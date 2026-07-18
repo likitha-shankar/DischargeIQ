@@ -46,7 +46,9 @@ logger = logging.getLogger(__name__)
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 
-_MAX_TOKENS = 500
+# 500 truncated multi-comorbidity real-world documents (5+ secondary
+# diagnoses need more explanation room). Output tokens cost only when used.
+_MAX_TOKENS = 1200
 
 # FK grade ceiling for accepting an explanation. 6.0 is
 # ideal; 6.5 is the acceptable cap for complex multi-comorbidity cases where

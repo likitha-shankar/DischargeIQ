@@ -395,6 +395,33 @@ def get_fallback_client() -> tuple[OpenAI, str, str] | None:
     return client, model, fallback
 
 
+def read_anthropic_completion(response, agent_name: str, document_id: str) -> str:
+    """
+    Extract text from a native anthropic.Anthropic response with the same
+    truncation guard the OpenAI-compat path has: a completion cut off by the
+    token budget (stop_reason == "max_tokens") is unusable patient-facing
+    text and must raise rather than ship a half-sentence.
+
+    Args:
+        response:    anthropic.types.Message from client.messages.create().
+        agent_name:  Human-readable agent label for the error message.
+        document_id: Source document identifier for the error message.
+
+    Returns:
+        str: Stripped completion text; "" when content is empty (callers
+             already treat empty as a failure).
+
+    Raises:
+        ValueError: When the completion was truncated by max_tokens.
+    """
+    if getattr(response, "stop_reason", None) == "max_tokens":
+        raise ValueError(
+            f"{agent_name}: completion truncated by max_tokens for "
+            f"'{document_id}' (provider=anthropic-native)"
+        )
+    return response.content[0].text.strip() if response.content else ""
+
+
 def call_chat_with_fallback(
     client: OpenAI,
     model_name: str,

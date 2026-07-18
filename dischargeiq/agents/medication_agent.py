@@ -48,6 +48,7 @@ from dischargeiq.models.extraction import ExtractionOutput, Medication
 from dischargeiq.utils.llm_client import (
     DEFAULT_ANTHROPIC_MODEL,
     call_chat_with_fallback,
+    read_anthropic_completion,
     get_native_agent_client,
     load_agent_prompt,
 )
@@ -261,9 +262,9 @@ def run_medication_agent(
         except anthropic.APIError as e:
             logger.error("Agent 3 Anthropic call failed for '%s': %s", document_id, e)
             raise
-        # Guard: Anthropic occasionally returns an empty content array on
-        # transient errors that don't raise.
-        rationale_text = response.content[0].text.strip() if response.content else ""
+        # Empty-content and max_tokens truncation both fail loudly here -
+        # see read_anthropic_completion.
+        rationale_text = read_anthropic_completion(response, "Agent 3", document_id)
 
     if rationale_text.strip():
         fk_result = fk_check(rationale_text)

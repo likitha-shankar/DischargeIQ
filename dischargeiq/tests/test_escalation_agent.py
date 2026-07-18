@@ -95,14 +95,40 @@ def test_empty_red_flags_does_not_crash():
         red_flag_symptoms=[],
     )
     safe_reply = (
-        "If you feel something is wrong, call your doctor. "
-        "If you cannot reach your doctor and feel unsafe, go to the nearest ER."
+        "CALL 911 IMMEDIATELY\n"
+        "- You cannot breathe or are breathing very fast.\n"
+        "GO TO THE ER TODAY\n"
+        "- Fever above 101 degrees F that will not go away.\n"
+        "CALL YOUR DOCTOR\n"
+        "- If you feel something is wrong, call your doctor."
     )
     with patch(_MOCK_CLIENT_TARGET, return_value=_fake_client(safe_reply)):
         result = escalation_agent.run_escalation_agent(extraction, document_id="postop.pdf")
 
     assert result["text"] != ""
     assert isinstance(result["fk_grade"], float)
+
+
+def test_missing_911_tier_raises():
+    """
+    Structural safety gate: an escalation guide whose output lacks the
+    CALL 911 tier must FAIL the agent (pipeline degrades to a labeled
+    partial) rather than ship a guide without the emergency tier.
+    """
+    extraction = ExtractionOutput(
+        primary_diagnosis="Mild post-op pain",
+        red_flag_symptoms=[],
+    )
+    reply_without_911 = (
+        "If you feel something is wrong, call your doctor. "
+        "If you cannot reach your doctor and feel unsafe, go to the nearest ER."
+    )
+    with patch(_MOCK_CLIENT_TARGET, return_value=_fake_client(reply_without_911)):
+        try:
+            escalation_agent.run_escalation_agent(extraction, document_id="postop.pdf")
+            raise AssertionError("Expected ValueError for missing CALL 911 tier")
+        except ValueError as exc:
+            assert "CALL 911" in str(exc)
 
 
 def test_call_911_language_present_when_red_flag_critical():
