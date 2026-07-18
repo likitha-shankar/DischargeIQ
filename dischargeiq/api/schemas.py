@@ -21,14 +21,18 @@ class ChatRequest(BaseModel):
 
     Fields:
         message:          The patient's plain-language question.
-        session_id:       Browser session identifier (for future logging/history).
+        session_id:       Session identifier from POST /analyze (pdf_session_id).
         pipeline_context: Full PipelineResponse dict so the LLM is grounded
-                          in the patient's actual discharge data.
+                          in the patient's actual discharge data. Optional
+                          since July 2026: /analyze caches the context
+                          server-side per session, so clients normally send
+                          only session_id. Kept as a fallback for evicted
+                          sessions and older clients.
     """
 
     message: str
     session_id: str
-    pipeline_context: dict
+    pipeline_context: Optional[dict] = None
 
 
 class ChatResponse(BaseModel):

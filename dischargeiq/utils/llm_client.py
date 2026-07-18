@@ -6,7 +6,8 @@ Description: Central LLM routing - builds an OpenAI-compatible client for anthro
   clear ValueError messages. call_chat_with_fallback adds OpenRouter retries for
   empty completions, developer-instruction role merge, and 429 backoff, plus one
   cross-provider failover attempt (LLM_FALLBACK_PROVIDER, default anthropic) when
-  the primary provider fails after its retries.
+  the primary provider fails after its retries. A quota 429 from the primary starts
+  a process-local cooldown during which calls route straight to the fallback.
 Key functions/classes: require_provider_api_key, get_llm_client, get_fallback_client,
   call_chat_with_fallback
 Edge cases handled:
@@ -422,6 +423,49 @@ def read_anthropic_completion(response, agent_name: str, document_id: str) -> st
     return response.content[0].text.strip() if response.content else ""
 
 
+# Once a provider returns a quota 429, skip it for this many seconds and go
+# straight to the fallback. 300s balances the two 429 flavours: per-minute
+# rate limits recover well inside one probe interval, while an exhausted DAILY
+# free-tier quota (observed live July 18, 2026) keeps failing every probe until
+# midnight Pacific - and one wasted probe per 5 minutes is cheap.
+_QUOTA_COOLDOWN_SECONDS = 300.0
+
+# provider name -> time.monotonic() deadline until which the provider is
+# skipped as primary. Process-local by design: each Cloud Run instance
+# discovers quota exhaustion with exactly one failed call of its own.
+_quota_cooldown_until: dict[str, float] = {}
+
+
+def _is_quota_error(exc: Exception) -> bool:
+    """
+    Return True when an exception is a rate-limit / quota-exhaustion error (HTTP 429).
+
+    Checks the SDK's status_code attribute first, then falls back to matching
+    the "Error code: 429" prefix the OpenAI-compat SDK embeds in the message
+    (the Gemini-over-OpenAI path surfaces quota errors that way).
+
+    Args:
+        exc: Exception raised by a chat completion call.
+
+    Returns:
+        bool: True when the error indicates a 429.
+    """
+    return getattr(exc, "status_code", None) == 429 or "Error code: 429" in str(exc)
+
+
+def _in_quota_cooldown(provider: str) -> bool:
+    """
+    Return True while a provider's quota-429 cooldown window is still active.
+
+    Args:
+        provider: LLM provider identifier (e.g. "gemini").
+
+    Returns:
+        bool: True when the provider recently 429'd and should be skipped.
+    """
+    return time.monotonic() < _quota_cooldown_until.get(provider, 0.0)
+
+
 def call_chat_with_fallback(
     client: OpenAI,
     model_name: str,
@@ -442,6 +486,10 @@ def call_chat_with_fallback(
     The original exception is re-raised if the fallback also fails or is not
     configured.
 
+    A quota 429 from the primary additionally starts a process-local cooldown
+    (_QUOTA_COOLDOWN_SECONDS): while it is active, calls skip the primary and
+    go straight to the fallback instead of burning a doomed round trip per call.
+
     Args:
         client: OpenAI-compatible client from get_llm_client() or agent client.
         model_name: Model name string (for OpenRouter this may be openrouter/free).
@@ -459,13 +507,30 @@ def call_chat_with_fallback(
         ValueError: If the provider returns empty content.
         Exception: Re-raises primary provider exceptions after fallback/retry exhaustion.
     """
+    fb = get_fallback_client()
+    if fb is not None and fb[2] != provider and _in_quota_cooldown(provider):
+        # Primary recently returned a quota 429. Re-probing it on every call
+        # wastes a full LLM round trip per message (daily free-tier quotas do
+        # not recover for hours), so route straight to the fallback until the
+        # cooldown expires.
+        fb_client, fb_model, fb_provider = fb
+        logger.info(
+            "%s primary provider '%s' in quota cooldown for '%s' - using '%s' (%s) directly",
+            agent_name, provider, document_id, fb_provider, fb_model,
+        )
+        return _call_chat_once(
+            fb_client, fb_model, system_prompt, user_message,
+            max_tokens, fb_provider, agent_name, document_id,
+        )
+
     try:
         return _call_chat_once(
             client, model_name, system_prompt, user_message,
             max_tokens, provider, agent_name, document_id,
         )
     except Exception as primary_exc:
-        fb = get_fallback_client()
+        if _is_quota_error(primary_exc):
+            _quota_cooldown_until[provider] = time.monotonic() + _QUOTA_COOLDOWN_SECONDS
         if fb is None or fb[2] == provider:
             raise
         fb_client, fb_model, fb_provider = fb
@@ -484,6 +549,86 @@ def call_chat_with_fallback(
                 agent_name, fb_provider, document_id, fallback_exc,
             )
             raise primary_exc from fallback_exc
+
+
+def stream_chat_with_fallback(
+    client: OpenAI,
+    model_name: str,
+    system_prompt: str,
+    user_message: str,
+    max_tokens: int,
+    provider: str,
+    agent_name: str,
+    document_id: str,
+):
+    """
+    Yield chat completion text deltas with the same failover rules as
+    call_chat_with_fallback.
+
+    Provider order mirrors the non-streaming path: primary first (skipped
+    when its quota cooldown is active), then one fallback attempt. Failover
+    is only possible BEFORE the first delta is yielded - once text has
+    reached the client, a mid-stream provider error is re-raised as-is
+    because splicing a second provider's answer onto a half-shown one would
+    produce incoherent patient-facing text.
+
+    Args: same contract as call_chat_with_fallback.
+
+    Yields:
+        str: Incremental completion text fragments, in order.
+
+    Raises:
+        Exception: The primary provider's exception when all attempts fail
+                   before any text was yielded, or the in-flight exception
+                   on a mid-stream failure.
+    """
+    attempts = [(client, model_name, provider)]
+    fb = get_fallback_client()
+    if fb is not None and fb[2] != provider:
+        if _in_quota_cooldown(provider):
+            attempts = [fb]
+            logger.info(
+                "%s primary provider '%s' in quota cooldown for '%s' - streaming from '%s'",
+                agent_name, provider, document_id, fb[2],
+            )
+        else:
+            attempts.append(fb)
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_message},
+    ]
+    for index, (attempt_client, attempt_model, attempt_provider) in enumerate(attempts):
+        yielded_any = False
+        try:
+            stream = attempt_client.chat.completions.create(
+                model=attempt_model,
+                max_tokens=max_tokens,
+                messages=messages,
+                stream=True,
+            )
+            for chunk in stream:
+                delta = chunk.choices[0].delta.content if chunk.choices else None
+                if delta:
+                    yielded_any = True
+                    yield delta
+            if yielded_any:
+                return
+            raise ValueError(
+                f"{agent_name}: empty streamed completion for '{document_id}' "
+                f"(provider={attempt_provider}, model={attempt_model})"
+            )
+        except Exception as exc:
+            if _is_quota_error(exc):
+                _quota_cooldown_until[attempt_provider] = (
+                    time.monotonic() + _QUOTA_COOLDOWN_SECONDS
+                )
+            if yielded_any or index == len(attempts) - 1:
+                raise
+            logger.warning(
+                "%s streaming on '%s' failed for '%s' - failing over to '%s': %s",
+                agent_name, attempt_provider, document_id, attempts[index + 1][2], exc,
+            )
 
 
 def _call_chat_once(

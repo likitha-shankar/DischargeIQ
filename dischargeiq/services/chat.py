@@ -23,12 +23,20 @@ import os
 import re
 from typing import Optional
 
-from dischargeiq.utils.llm_client import call_chat_with_fallback, get_llm_client
+from dischargeiq.utils.llm_client import (
+    call_chat_with_fallback,
+    get_llm_client,
+    stream_chat_with_fallback,
+)
 
 logger = logging.getLogger(__name__)
 
 _MAX_CHAT_MESSAGE_CHARS = 2000
-_CHAT_MAX_TOKENS = 200
+# 500, not 200: the prompt targets <=80-word replies, but Anthropic Haiku on the
+# failover path regularly needs more than 200 completion tokens, which tripped
+# the truncation guard and turned every fallback into a 500 (observed live
+# July 18, 2026). Headroom is cheap; a truncated reply is a hard failure.
+_CHAT_MAX_TOKENS = 500
 
 # ── Grounding detection ────────────────────────────────────────────────────────
 # Compiled once at import time. Matches both the explicit marker the system
@@ -54,6 +62,31 @@ _GENERAL_GUIDANCE_SUFFIX = re.compile(
     r"\s*[--]\s*general medical guidance.*$",
     re.IGNORECASE | re.DOTALL,
 )
+
+def _prune_empty(value):
+    """
+    Recursively drop None, empty strings, empty lists, and empty dicts from
+    a JSON-shaped structure.
+
+    Agent 1 returns null for every field absent from the document (hard rule
+    #1), so a typical extraction carries dozens of nulls the chat model never
+    needs - pruning them cuts the embedded context by roughly a quarter.
+    False and 0 are preserved: they are real values, not absences.
+
+    Args:
+        value: Any JSON-serialisable value (dict, list, or scalar).
+
+    Returns:
+        The same structure with empty members removed. Scalars pass through.
+    """
+    if isinstance(value, dict):
+        pruned = {k: _prune_empty(v) for k, v in value.items()}
+        return {k: v for k, v in pruned.items() if v not in (None, "", [], {})}
+    if isinstance(value, list):
+        return [v for v in (_prune_empty(item) for item in value)
+                if v not in (None, "", [], {})]
+    return value
+
 
 # ── System prompt template ─────────────────────────────────────────────────────
 # Placeholder {context_json} is filled per request in _build_system_prompt().
@@ -200,6 +233,64 @@ class ChatService:
 
         return reply, source_page, not not_from_doc
 
+    def answer_stream(
+        self,
+        message: str,
+        pipeline_context: dict,
+    ):
+        """
+        Stream a grounded answer as text deltas, then one final metadata dict.
+
+        Yields ("delta", str) tuples as completion text arrives, then exactly
+        one ("done", dict) tuple whose dict matches the ChatResponse shape:
+        the FULL cleaned reply (general-guidance suffix stripped), source_page,
+        and from_document. Grounding detection needs the complete text, so the
+        client should replace its accumulated text with the final reply - the
+        two differ only when the suffix was stripped.
+
+        Args:
+            message:          Raw patient question text.
+            pipeline_context: Full PipelineResponse dict (resolved by caller).
+
+        Yields:
+            tuple[str, str | dict]: ("delta", text) fragments, then ("done", meta).
+
+        Raises:
+            Exception: Provider errors from stream_chat_with_fallback.
+        """
+        clean_message = self._sanitize(message)
+        system_prompt = self._build_system_prompt(pipeline_context)
+        client, model_name = get_llm_client()
+        provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
+
+        pieces: list[str] = []
+        for delta in stream_chat_with_fallback(
+            client=client,
+            model_name=model_name,
+            system_prompt=system_prompt,
+            user_message=clean_message,
+            max_tokens=_CHAT_MAX_TOKENS,
+            provider=provider,
+            agent_name="Chat",
+            document_id="chat",
+        ):
+            pieces.append(delta)
+            yield "delta", delta
+
+        raw_reply = "".join(pieces).strip()
+        not_from_doc = bool(_NOT_FROM_DOC_PATTERNS.search(raw_reply))
+        if not_from_doc:
+            reply = _GENERAL_GUIDANCE_SUFFIX.sub("", raw_reply).rstrip()
+            source_page = None
+        else:
+            reply = raw_reply
+            source_page = self._extract_source_page(reply, pipeline_context)
+        yield "done", {
+            "reply": reply,
+            "source_page": source_page,
+            "from_document": not not_from_doc,
+        }
+
     # ── Private helpers ───────────────────────────────────────────────────────
 
     @staticmethod
@@ -223,14 +314,18 @@ class ChatService:
             str: Formatted system prompt with embedded context JSON.
         """
         context_subset = {
-            "extraction": pipeline_context.get("extraction", {}),
+            "extraction": _prune_empty(pipeline_context.get("extraction", {})),
             "diagnosis_explanation": pipeline_context.get("diagnosis_explanation", ""),
             "medication_rationale": pipeline_context.get("medication_rationale", ""),
             "recovery_trajectory": pipeline_context.get("recovery_trajectory", ""),
             "escalation_guide": pipeline_context.get("escalation_guide", ""),
             "pipeline_status": pipeline_context.get("pipeline_status", ""),
         }
-        context_json = json.dumps(context_subset, indent=2, ensure_ascii=False)
+        # Compact separators, no indent: the pretty-printed version spent
+        # ~25% of the context tokens on whitespace and null fields the model
+        # never needed. This prompt is model-facing only - humans read the
+        # extraction in the UI, not here.
+        context_json = json.dumps(context_subset, ensure_ascii=False)
         return _CHAT_SYSTEM_TEMPLATE.format(context_json=context_json)
 
     @staticmethod

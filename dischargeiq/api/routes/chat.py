@@ -8,18 +8,51 @@ to ChatService (services/chat.py) for all domain work, and maps exceptions to
 appropriate HTTP status codes. No business logic lives here.
 """
 
+import json
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 
 from dischargeiq.api.middleware import verify_api_key
 from dischargeiq.api.schemas import ChatRequest, ChatResponse
 from dischargeiq.services.chat import chat_service
+from dischargeiq.services.session import session_store
 
 logger = logging.getLogger(__name__)
 # verify_api_key is a no-op until DISCHARGEIQ_API_KEY is set; once set, this
 # LLM-cost endpoint requires the same Bearer token as /analyze.
 router = APIRouter(dependencies=[Depends(verify_api_key)])
+
+
+def _resolve_context(request: ChatRequest) -> dict:
+    """
+    Return the pipeline context for a chat request.
+
+    Priority: the server-side context cached by /analyze (normal path - the
+    client sends only session_id), then the request's own pipeline_context
+    (fallback for evicted sessions and older clients).
+
+    Args:
+        request: The incoming ChatRequest.
+
+    Returns:
+        dict: PipelineResponse dict to ground the answer in.
+
+    Raises:
+        HTTPException 409: Neither source has context - the client must
+            re-run /analyze (or re-send pipeline_context).
+    """
+    context = session_store.get_context(request.session_id)
+    if context is not None:
+        return context
+    if request.pipeline_context is not None:
+        return request.pipeline_context
+    raise HTTPException(
+        status_code=409,
+        detail="No discharge context for this session. Please analyze the "
+               "document again.",
+    )
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -55,8 +88,10 @@ async def chat(request: ChatRequest):
     try:
         reply, source_page, from_document = chat_service.answer(
             message=request.message,
-            pipeline_context=request.pipeline_context,
+            pipeline_context=_resolve_context(request),
         )
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error("Chat LLM call failed: %s", exc)
         raise HTTPException(
@@ -73,3 +108,65 @@ async def chat(request: ChatRequest):
     )
 
     return ChatResponse(reply=reply, source_page=source_page, from_document=from_document)
+
+
+@router.post("/chat/stream")
+async def chat_stream(request: ChatRequest):
+    """
+    Stream a grounded answer as Server-Sent Events.
+
+    Event protocol (one JSON object per `data:` line):
+        {"delta": "<text fragment>"}   - repeated while the answer generates.
+        {"done": true, "reply": ..., "source_page": ..., "from_document": ...}
+                                       - final event; reply is the cleaned full
+                                         text the client should keep.
+        {"error": "<message>"}         - terminal event when the LLM fails.
+
+    The LLM stream is a sync generator, so it runs via the threadpool
+    StreamingResponse uses for sync iterators - the event loop is not blocked.
+
+    Args:
+        request: Same ChatRequest as POST /chat (pipeline_context optional).
+
+    Raises:
+        HTTPException 409: No context available for the session.
+    """
+    if not request.message.strip():
+        empty = {"done": True, "reply": "Please type a question and I'll do my "
+                 "best to help.", "source_page": None, "from_document": False}
+        return StreamingResponse(
+            iter([f"data: {json.dumps(empty)}\n\n"]), media_type="text/event-stream"
+        )
+
+    context = _resolve_context(request)
+    logger.info(
+        "POST /chat/stream - session: %s, message: %.60s…",
+        request.session_id, request.message,
+    )
+
+    def event_source():
+        """Translate ChatService (kind, payload) tuples into SSE data lines."""
+        try:
+            for kind, payload in chat_service.answer_stream(
+                message=request.message, pipeline_context=context
+            ):
+                if kind == "delta":
+                    yield f"data: {json.dumps({'delta': payload})}\n\n"
+                else:
+                    yield f"data: {json.dumps({'done': True, **payload})}\n\n"
+        except Exception as exc:
+            logger.error("Chat stream failed: %s", exc)
+            yield (
+                "data: "
+                + json.dumps({"error": "The assistant is unavailable right now. "
+                              "Please try again."})
+                + "\n\n"
+            )
+
+    return StreamingResponse(
+        event_source(),
+        media_type="text/event-stream",
+        # Defeat proxy buffering (nginx fronts this app on Cloud Run) so
+        # deltas reach the phone as they are generated, not in one flush.
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
