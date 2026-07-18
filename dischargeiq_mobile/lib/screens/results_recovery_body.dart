@@ -28,6 +28,11 @@ class _RecoveryBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const _SectionHero(
+            icon: Icons.trending_up_rounded,
+            title: 'Your recovery',
+            subtitle: 'What the coming weeks should look like',
+          ),
           if (hasRestrictions) ...[
             // Full-width, stacked: long instructions in half-width columns
             // were unreadable (patient feedback July 2026).
@@ -129,7 +134,6 @@ class _RestrictionColumn extends StatelessWidget {
       decoration: BoxDecoration(
         color: dark ? kCardDark : kCardLight,
         borderRadius: BorderRadius.circular(kRadiusField),
-        border: Border.all(color: dark ? kBorderDark : kBorderLight),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,6 +264,24 @@ List<String> _extractTierBullets(String text, String start, String? next) {
       .toList();
 }
 
+/// Per-phase accent colors for the recovery timeline. Each week gets its own
+/// calm hue so the phases read as distinct chapters instead of one long wall
+/// (user feedback July 2026: "week 1, 2, 3 is all too much info"). Cycles
+/// when a document has more phases than colors. Deliberately NO amber or red
+/// - those are reserved app-wide for warnings and escalation tiers.
+const List<Color> _kPhaseAccentsLight = [
+  kTeal, // week 1 - brand teal
+  Color(0xFF185FA5), // week 2 - calm blue
+  Color(0xFF6C5CA8), // week 3 - soft violet
+  Color(0xFF3B6D11), // week 4+ - settled green
+];
+const List<Color> _kPhaseAccentsDark = [
+  kTealGlow,
+  Color(0xFF8FB8E8),
+  Color(0xFFB3A6E3),
+  Color(0xFF9CC96B),
+];
+
 /// Recovery journey, one CARD per phase. The current week ("You are here",
 /// pinned by the discharge date) opens expanded; every other week collapses
 /// to its title + step count so the tab reads as a short list of weeks, not
@@ -283,7 +305,6 @@ class _JourneyPathState extends State<_JourneyPath> {
   Widget build(BuildContext context) {
     final dark = widget.dark;
     final here = widget.here;
-    final accent = dark ? kTealGlow : kTeal;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,16 +315,25 @@ class _JourneyPathState extends State<_JourneyPath> {
             final isHere = i == here;
             final isPast = here != null && i < here;
             final open = _open.contains(i);
+            // Each phase carries its own accent so the weeks scan as
+            // separate chapters at a glance.
+            final accent = (dark ? _kPhaseAccentsDark : _kPhaseAccentsLight)[
+                i % _kPhaseAccentsLight.length];
             return Container(
               width: double.infinity,
               margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
-                color: isHere
-                    ? (dark ? kTeal.withValues(alpha: 0.18) : kTealPale)
+                // Any OPEN week wears its phase tint (matching the "You are
+                // here" card) so the expanded chapter reads as one colored
+                // block; collapsed weeks stay neutral.
+                color: (isHere || open)
+                    ? accent.withValues(alpha: dark ? 0.18 : 0.10)
                     : (dark ? kCardDark : kCardLight),
                 borderRadius: BorderRadius.circular(kRadiusField),
+                // "You are here" keeps its accent outline; other steps are
+                // borderless tonal cards (2026 revamp).
                 border: Border.all(
-                  color: isHere ? accent : (dark ? kBorderDark : kBorderLight),
+                  color: isHere ? accent : Colors.transparent,
                   width: isHere ? 1.2 : 1,
                 ),
               ),
@@ -319,6 +349,16 @@ class _JourneyPathState extends State<_JourneyPath> {
                       padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
                       child: Row(
                         children: [
+                          // Phase color stripe - the week's identity mark.
+                          Container(
+                            width: 4,
+                            height: 30,
+                            margin: const EdgeInsets.only(right: 10),
+                            decoration: BoxDecoration(
+                              color: accent,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
                           // Week status marker: check = behind you, filled
                           // ring = now, open ring = ahead.
                           Icon(
