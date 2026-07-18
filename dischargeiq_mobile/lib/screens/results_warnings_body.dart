@@ -26,6 +26,12 @@ class _WarningsBody extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
       children: [
+        const _SectionHero(
+          icon: Icons.emergency_outlined,
+          title: 'Warning signs',
+          subtitle: 'When to call your doctor - and when to call 911',
+          tint: kTier1,
+        ),
         // Safety notice
         Container(
           padding: const EdgeInsets.all(12),

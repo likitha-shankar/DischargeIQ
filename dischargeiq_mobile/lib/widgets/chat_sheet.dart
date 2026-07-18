@@ -202,7 +202,7 @@ class _ChatSheetState extends State<_ChatSheet> {
       builder: (ctx, sheetScroll) => Container(
         decoration: BoxDecoration(
           color: dark ? kSurfaceDark : kBgLight,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: Column(
           children: [
@@ -322,7 +322,8 @@ class _ChatSheetState extends State<_ChatSheet> {
             ? kTeal
             : m.failed
                 ? (dark ? kTier2.withValues(alpha: 0.2) : kTier2Bg)
-                : (dark ? kCardDark : kSurfaceLight);
+                // Assistant bubbles: tonal teal tint, no border (2026 revamp).
+                : (dark ? kCardDark : kTealPale.withValues(alpha: 0.55));
         final textColor = m.fromPatient
             ? Colors.white
             : m.failed
@@ -337,15 +338,11 @@ class _ChatSheetState extends State<_ChatSheet> {
                 maxWidth: MediaQuery.of(context).size.width * 0.78),
             decoration: BoxDecoration(
               color: bubbleColor,
-              border: m.fromPatient
-                  ? null
-                  : Border.all(
-                      color: dark ? kBorderDark : kBorderLight, width: 0.5),
               borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(16),
-                topRight: const Radius.circular(16),
-                bottomLeft: Radius.circular(m.fromPatient ? 16 : 4),
-                bottomRight: Radius.circular(m.fromPatient ? 4 : 16),
+                topLeft: const Radius.circular(20),
+                topRight: const Radius.circular(20),
+                bottomLeft: Radius.circular(m.fromPatient ? 20 : 6),
+                bottomRight: Radius.circular(m.fromPatient ? 6 : 20),
               ),
             ),
             child: Column(
@@ -414,11 +411,8 @@ class _ChatSheetState extends State<_ChatSheet> {
     return Container(
       padding: EdgeInsets.fromLTRB(
           12, 8, 8, 8 + MediaQuery.of(context).viewInsets.bottom),
-      decoration: BoxDecoration(
-        color: dark ? kSurfaceDark : kBgLight,
-        border: Border(
-            top: BorderSide(color: dark ? kBorderDark : kBorderLight, width: 0.5)),
-      ),
+      // Borderless floating input row - the pill field is its own surface.
+      color: dark ? kSurfaceDark : kBgLight,
       child: Row(
         children: [
           Expanded(
@@ -436,7 +430,8 @@ class _ChatSheetState extends State<_ChatSheet> {
                     fontSize: 14,
                     color: dark ? kTextHintDark : kTextHintLight),
                 filled: true,
-                fillColor: dark ? kCardDark : kSurfaceLight,
+                fillColor:
+                    dark ? kCardDark : kTealPale.withValues(alpha: 0.45),
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 border: OutlineInputBorder(

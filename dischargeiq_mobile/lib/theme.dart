@@ -9,14 +9,38 @@ import 'package:dischargeiq_mobile/config.dart';
 /// color, and padding from here. When a screen hand-rolls a style, move the
 /// decision into this file instead.
 ///
-/// Shape language: one radius family (18 cards / 14 controls / 12 fields),
-/// hairline borders instead of shadows, flat app bars, generous touch targets
+/// Shape language (2026 revamp): one radius family (24 cards / 16 controls /
+/// 14 fields), TONAL DEPTH instead of hairline borders - cards float on a
+/// teal-tinted soft shadow in light mode and sit as lighter tonal panels in
+/// dark mode. Flat app bars, pill tab indicators, generous touch targets
 /// (patients may be older, unwell, or medicated - nothing small or subtle).
 
 /// Radius tokens - the only three values any rounded corner should use.
-const double kRadiusCard = 18;
-const double kRadiusControl = 14;
-const double kRadiusField = 12;
+const double kRadiusCard = 24;
+const double kRadiusControl = 16;
+const double kRadiusField = 14;
+
+/// Soft ambient shadow under raised surfaces. Teal-tinted so depth reads as
+/// part of the brand, not grey smog; near-invisible in dark mode where the
+/// tonal fill does the lifting instead.
+List<BoxShadow> cardShadow(bool dark) => dark
+    ? const []
+    : [
+        BoxShadow(
+          color: kTeal.withValues(alpha: 0.10),
+          blurRadius: 24,
+          offset: const Offset(0, 8),
+        ),
+      ];
+
+/// The revamp's standard raised surface for hand-rolled containers - screens
+/// use this instead of inventing hairline-border decorations.
+BoxDecoration tonalCardDecoration(bool dark, {double? radius}) =>
+    BoxDecoration(
+      color: dark ? kCardDark : kCardLight,
+      borderRadius: BorderRadius.circular(radius ?? kRadiusCard),
+      boxShadow: cardShadow(dark),
+    );
 
 ThemeData _build(Brightness brightness) {
   final dark = brightness == Brightness.dark;
@@ -47,9 +71,15 @@ ThemeData _build(Brightness brightness) {
     // height for post-discharge readers; titles bold enough to scan by.
     textTheme: TextTheme(
       headlineSmall: TextStyle(
-          fontSize: 22, fontWeight: FontWeight.w800, color: textPrimary),
+          fontSize: 24,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.5,
+          color: textPrimary),
       titleLarge: TextStyle(
-          fontSize: 19, fontWeight: FontWeight.w700, color: textPrimary),
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.3,
+          color: textPrimary),
       titleMedium: TextStyle(
           fontSize: 16, fontWeight: FontWeight.w700, color: textPrimary),
       titleSmall: TextStyle(
@@ -74,14 +104,15 @@ ThemeData _build(Brightness brightness) {
       shape: Border(bottom: BorderSide(color: border, width: 0.5)),
     ),
 
-    // Cards: hairline border, no shadow - calm, paper-like surfaces.
+    // Cards: tonal depth - no border; a soft teal-tinted shadow lifts the
+    // surface in light mode, the lighter tonal fill does it in dark mode.
     cardTheme: CardThemeData(
       color: card,
-      elevation: 0,
+      elevation: dark ? 0 : 2,
+      shadowColor: kTeal.withValues(alpha: 0.18),
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(kRadiusCard),
-        side: BorderSide(color: border, width: 0.5),
       ),
     ),
 
@@ -117,18 +148,19 @@ ThemeData _build(Brightness brightness) {
       ),
     ),
 
+    // Fields: borderless tonal fill; focus is the only stroke that appears.
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: surface,
+      fillColor: dark ? kSurfaceDark : kTealPale.withValues(alpha: 0.45),
       contentPadding:
-          const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(kRadiusField),
-        borderSide: BorderSide(color: border),
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(kRadiusField),
-        borderSide: BorderSide(color: border),
+        borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(kRadiusField),
@@ -163,12 +195,12 @@ ThemeData _build(Brightness brightness) {
     ),
 
     chipTheme: ChipThemeData(
-      backgroundColor: surface,
-      selectedColor: dark ? kTeal.withValues(alpha: 0.3) : kTealPale,
+      backgroundColor: dark ? kSurfaceDark : kTealPale.withValues(alpha: 0.5),
+      selectedColor: dark ? kTeal.withValues(alpha: 0.35) : kTealPale,
       labelStyle: TextStyle(fontSize: 13, color: textPrimary),
-      side: BorderSide(color: border, width: 0.5),
+      side: BorderSide.none,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(kRadiusControl),
+        borderRadius: BorderRadius.circular(999),
       ),
     ),
 
@@ -182,10 +214,21 @@ ThemeData _build(Brightness brightness) {
       color: accent,
       linearTrackColor: dark ? Colors.white10 : kTealPale,
     ),
+    // Pill tabs: the active tab is a filled teal capsule, not an underline.
     tabBarTheme: TabBarThemeData(
-      indicatorColor: accent,
-      labelColor: accent,
+      indicator: BoxDecoration(
+        color: accent,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      indicatorSize: TabBarIndicatorSize.tab,
+      dividerColor: Colors.transparent,
+      labelColor: dark ? kBgDark : Colors.white,
       unselectedLabelColor: textSecondary,
+      labelStyle: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
+      unselectedLabelStyle:
+          const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500),
+      overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 14),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: dark ? kSurfaceDark : Colors.white,

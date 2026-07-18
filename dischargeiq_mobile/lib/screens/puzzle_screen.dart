@@ -279,8 +279,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
     final stats = await GameStore.load();
     stats.xp += kXpQuizFinished;
     await GameStore.save(stats);
-    // Return hook (wave 5): today's finished round plants a seed that
-    // blooms in the garden tomorrow.
+    // Return hook: today's finished round banks a bonus the journey card
+    // pays off tomorrow (SeedStore keeps the legacy name).
     await SeedStore.plant();
     final isBest = await PuzzleScoreStore.record(_level!.name, _moves);
     final best = await PuzzleScoreStore.best(_level!.name);
@@ -517,9 +517,11 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       fg = _dark ? kTextPrimaryDark : kTextPrimaryLight;
       border = _dark ? kTealGlow : kTeal;
     } else {
-      bg = _dark ? kCardDark : kCardLight;
+      // Idle tiles are tonal chips - no hairline border (2026 revamp);
+      // state borders (selected/hinted/wrong) stay as the interaction signal.
+      bg = _dark ? kCardDark : kTealPale.withValues(alpha: 0.4);
       fg = _dark ? kTextPrimaryDark : kTextPrimaryLight;
-      border = _dark ? kBorderDark : kBorderLight;
+      border = Colors.transparent;
     }
 
     return AnimatedScale(
@@ -532,15 +534,15 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         constraints: const BoxConstraints(maxWidth: 260, minWidth: 90),
         child: Material(
           color: bg,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           child: InkWell(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             onTap: matched ? null : () => _tap(i),
             child: Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                     color: border, width: (selected || hinted || wrong) ? 2 : 0.5),
               ),

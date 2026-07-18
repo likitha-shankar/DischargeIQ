@@ -51,6 +51,11 @@ class _DischargeCheckBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const _SectionHero(
+            icon: Icons.fact_check_outlined,
+            title: 'Discharge check',
+            subtitle: 'What your paperwork may have missed',
+          ),
           // HITL notice
           Container(
             padding: const EdgeInsets.all(12),
@@ -86,7 +91,6 @@ class _DischargeCheckBody extends StatelessWidget {
             decoration: BoxDecoration(
               color: dark ? kCardDark : kCardLight,
               borderRadius: BorderRadius.circular(kRadiusField),
-              border: Border.all(color: dark ? kBorderDark : kBorderLight),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,7 +278,6 @@ class _AnsweredConceptsExpanderState extends State<_AnsweredConceptsExpander> {
       decoration: BoxDecoration(
         color: widget.dark ? kCardDark : kCardLight,
         borderRadius: BorderRadius.circular(kRadiusField),
-        border: Border.all(color: widget.dark ? kBorderDark : kBorderLight),
       ),
       child: Column(
         children: [

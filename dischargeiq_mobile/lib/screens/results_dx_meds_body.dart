@@ -29,6 +29,11 @@ class _DiagnosisBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const _SectionHero(
+            icon: Icons.monitor_heart_outlined,
+            title: 'What happened',
+            subtitle: 'Your diagnosis, explained in plain words',
+          ),
           if (documentType.isNotEmpty && documentType != 'unknown')
             AudioExplainerCard(documentType: documentType),
           if (primaryDx.isNotEmpty || secList.isNotEmpty) ...[
@@ -182,6 +187,11 @@ class _MedicationsBody extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
       children: [
+        const _SectionHero(
+          icon: Icons.medication_outlined,
+          title: 'Your medications',
+          subtitle: 'What each one is for and how to take it',
+        ),
         if (medList.isNotEmpty) ...[
           // Medication reminders (competitor-gap B1): patient-confirmed
           // daily nudges, scheduled locally on the phone only.
