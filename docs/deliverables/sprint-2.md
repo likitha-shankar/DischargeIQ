@@ -11,7 +11,7 @@ discharge document with the camera, get 6th-grade output back - live.
 | 2.2 | Camera + ML Kit OCR pipeline | ✅ `7a2bf9c` - [task-2.2](tasks/task-2.2.md) (edge detection deferred) |
 | 2.3 | Client-to-server integration | ✅ - PDF upload + OCR-text path (`e5de64b`) both live |
 | 2.4 | TestFlight + Play Internal Testing distribution | ◑ - iOS build config TestFlight-ready (`132569e`, `2788b58`); Apple-login steps in [TESTFLIGHT.md](../beta/TESTFLIGHT.md). Play deferred until first payout. |
-| 2.5 | Beta onboarding (15 testers → 10–20 active installs) | ✅ build ready - Android SDK installed, release APKs built (arm64 30.9MB) - [task-2.5](tasks/task-2.5.md); onboarding in [ONBOARDING.md](../beta/ONBOARDING.md). Remaining: recruit the 15 testers |
+| 2.5 | Beta onboarding (15 testers → 10–20 active installs) | ✅ build ready - Android SDK installed, release APKs built (arm64 30.9MB) - [task-1.10](tasks/task-1.10-android-apk.md); onboarding in [ONBOARDING.md](../beta/ONBOARDING.md). Remaining: recruit the 15 testers |
 
 ## Risk note
 
