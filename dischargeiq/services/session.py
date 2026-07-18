@@ -51,9 +51,13 @@ class SessionStore:
     def __init__(self) -> None:
         self._pdf: OrderedDict[str, bytes] = OrderedDict()
         self._simulator: OrderedDict[str, dict] = OrderedDict()
+        self._context: OrderedDict[str, dict] = OrderedDict()
+        self._result_by_hash: OrderedDict[str, dict] = OrderedDict()
         self._progress: dict[str, dict] = {}
         self._pdf_lock = threading.Lock()
         self._simulator_lock = threading.Lock()
+        self._context_lock = threading.Lock()
+        self._result_lock = threading.Lock()
         self._progress_lock = threading.Lock()
 
     # ── PDF store ─────────────────────────────────────────────────────────────
@@ -124,6 +128,73 @@ class SessionStore:
         """
         with self._simulator_lock:
             return self._simulator.get(session_id)
+
+    # ── Chat context store ────────────────────────────────────────────────────
+
+    def store_context(self, session_id: str, payload: dict) -> None:
+        """
+        Store the PipelineResponse dict for a session so POST /chat can ground
+        answers without the client re-uploading ~17KB of context per message.
+
+        Capped at _PDF_STORE_MAX entries with the same oldest-first eviction as
+        the PDF store; an evicted session simply falls back to the client
+        re-sending pipeline_context.
+
+        Args:
+            session_id: The session key associated with this pipeline run.
+            payload:    PipelineResponse.model_dump() dict from /analyze.
+        """
+        with self._context_lock:
+            if len(self._context) >= _PDF_STORE_MAX:
+                self._context.popitem(last=False)
+            self._context[session_id] = payload
+
+    def get_context(self, session_id: str) -> Optional[dict]:
+        """
+        Return the stored PipelineResponse dict, or None if missing/evicted.
+
+        Args:
+            session_id: UUID returned by POST /analyze as pdf_session_id.
+
+        Returns:
+            dict | None: PipelineResponse dict, or None if not stored.
+        """
+        with self._context_lock:
+            return self._context.get(session_id)
+
+    # ── Pipeline result cache (keyed by document hash) ────────────────────────
+
+    def store_result_for_hash(self, document_hash: str, payload: dict) -> None:
+        """
+        Cache a finished pipeline result keyed by its source document hash.
+
+        Re-uploading an identical document (common during demos and testing)
+        then costs zero LLM requests instead of a full 7-call pipeline run.
+        Callers must only cache successful runs - a cached "partial" would
+        pin a transient LLM failure to that document until eviction.
+
+        Args:
+            document_hash: SHA-256 of the source PDF bytes or scanned text.
+            payload:       Serialised PipelineResponse dict (route-level shape).
+        """
+        with self._result_lock:
+            if len(self._result_by_hash) >= _PDF_STORE_MAX:
+                self._result_by_hash.popitem(last=False)
+            self._result_by_hash[document_hash] = payload
+
+    def get_result_for_hash(self, document_hash: str) -> Optional[dict]:
+        """
+        Return the cached pipeline result for a document hash, or None.
+
+        Args:
+            document_hash: SHA-256 of the source PDF bytes or scanned text.
+
+        Returns:
+            dict | None: Cached PipelineResponse dict, or None if never
+            cached or evicted.
+        """
+        with self._result_lock:
+            return self._result_by_hash.get(document_hash)
 
     # ── Progress store ────────────────────────────────────────────────────────
 

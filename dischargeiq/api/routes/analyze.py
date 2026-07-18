@@ -344,6 +344,31 @@ async def _execute_pipeline(
         HTTPException 504: Pipeline wall-clock timeout.
         HTTPException 500: Any other pipeline error.
     """
+    # Identical document seen before (same hash): serve the cached result
+    # under the NEW session id and skip all 7 LLM calls. Demo rehearsals and
+    # repeat testing re-upload the same synthetic PDFs constantly - on the
+    # Gemini free tier (20 requests/day) one cached repeat pays for itself.
+    cached = session_store.get_result_for_hash(document_hash)
+    if cached is not None:
+        logger.info(
+            "Analyze cache hit - '%s', hash: %.12s… (0 LLM calls)",
+            doc_label, document_hash,
+        )
+        result_dict = {**cached, "pdf_session_id": pdf_session_id}
+        if result_dict.get("patient_simulator") is not None:
+            session_store.store_simulator(
+                pdf_session_id, result_dict["patient_simulator"]
+            )
+        session_store.store_context(pdf_session_id, result_dict)
+        session_store.set_progress(pdf_session_id, {
+            "status": "complete",
+            "current_agent": 7,
+            "agent_name": "Complete",
+            "message": "Almost ready...",
+        })
+        asyncio.create_task(cleanup_progress_after_delay(pdf_session_id))
+        return result_dict
+
     try:
         def update_progress(agent_num: int, agent_name: str, message: str) -> None:
             session_store.set_progress(pdf_session_id, {
@@ -381,6 +406,18 @@ async def _execute_pipeline(
             session_store.store_simulator(
                 pdf_session_id, result.patient_simulator.model_dump()
             )
+
+        # Cache the full response server-side so /chat can ground answers from
+        # session_id alone - clients no longer re-send ~17KB of context per
+        # chat message. Evicted/restarted sessions fall back to the client
+        # sending pipeline_context (ChatRequest keeps the field as optional).
+        session_store.store_context(pdf_session_id, result_dict)
+
+        # Only successful runs are cacheable by hash: a cached "partial"
+        # (transient LLM failure) or "rejected" would stick to the document
+        # and block legitimate retries.
+        if result.pipeline_status in ("complete", "complete_with_warnings"):
+            session_store.store_result_for_hash(document_hash, result_dict)
 
         return result_dict
 
