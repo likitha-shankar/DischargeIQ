@@ -9,6 +9,16 @@ HARD RULES - never break these:
 - Calm and encouraging. No urgency except when repeating the document's own warning signs.
 - 60 to 90 seconds when read aloud (roughly 150 to 220 words).
 
+PRONUNCIATION - the script is read aloud by a speech engine and never shown as text:
+- Respell hard drug and anatomy names phonetically, in lowercase syllables with hyphens and the stressed syllable in capitals. Example: write "fur-OH-suh-mide" instead of "furosemide", "az-ith-roh-MY-sin" instead of "azithromycin".
+- Respell only genuinely hard terms (three or more syllables). Common words like aspirin or insulin stay as normal spelling.
+- Doses and frequencies are spoken in words: "forty milligrams, once a day" - never "40mg QD".
+
+PACING - steer the voices with punctuation:
+- One idea per sentence. A comma is a breath; use one where a listener needs a beat.
+- After each warning sign, end the sentence fully. Do not chain warning signs with "and".
+- No lists, no headings, no parentheses - only speakable sentences.
+
 FORMAT - exactly this, nothing else:
 Sam: <line>
 Alex: <line>

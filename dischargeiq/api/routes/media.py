@@ -27,8 +27,12 @@ Sprint 6 task 6.5). Media never blocks comprehension.
 """
 
 import asyncio
+import hashlib
+import json
 import logging
 import os
+import threading
+from collections import OrderedDict
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -110,6 +114,39 @@ async def get_media_video(document_type: str):
     return _serve(document_type, "video")
 
 
+# Generated-WAV cache keyed by a hash of the narratable payload content.
+# One entry is ~4MB (80s of 24kHz PCM WAV), so the cap stays small; 8 entries
+# comfortably covers demo/rehearsal repeats without pressuring instance
+# memory. Same document -> same audio, zero LLM/TTS calls on a repeat.
+_AUDIO_CACHE_MAX = 8
+_audio_cache: OrderedDict[str, bytes] = OrderedDict()
+_audio_cache_lock = threading.Lock()
+
+
+def _payload_audio_key(payload: dict) -> str:
+    """
+    Hash the narratable sections of a pipeline payload for the audio cache.
+
+    Only the fields build_dialogue_script actually reads participate, so
+    irrelevant payload differences (session ids, fk scores) still hit.
+
+    Args:
+        payload: PipelineResponse dict from the client.
+
+    Returns:
+        str: SHA-256 hex digest of the narratable content.
+    """
+    narratable = {
+        "extraction": payload.get("extraction"),
+        "diagnosis_explanation": payload.get("diagnosis_explanation", ""),
+        "medication_rationale": payload.get("medication_rationale", ""),
+        "recovery_trajectory": payload.get("recovery_trajectory", ""),
+        "escalation_guide": payload.get("escalation_guide", ""),
+    }
+    blob = json.dumps(narratable, sort_keys=True, default=str)
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+
+
 def _case_audio_enabled() -> bool:
     """Feature flag, read per request so tests and ops can flip it live."""
     return os.environ.get("CASE_AUDIO_ENABLED", "").strip().lower() in {
@@ -141,6 +178,14 @@ async def generate_case_audio(request: CaseAudioRequest):
         # Same semantics as a missing media file: hide the player, show text.
         raise HTTPException(status_code=404, detail="Per-case audio is not enabled.")
     logger.info("POST /media/case - session: %s", request.session_id)
+
+    cache_key = _payload_audio_key(request.pipeline_payload)
+    with _audio_cache_lock:
+        cached = _audio_cache.get(cache_key)
+    if cached is not None:
+        logger.info("Per-case audio cache hit - session: %s", request.session_id)
+        return Response(content=cached, media_type="audio/wav")
+
     try:
         script = await asyncio.to_thread(build_dialogue_script, request.pipeline_payload)
         wav = await asyncio.to_thread(synthesize_dialogue_bytes, script)
@@ -153,4 +198,8 @@ async def generate_case_audio(request: CaseAudioRequest):
             status_code=502,
             detail="Audio is unavailable right now. The written summary has everything.",
         )
+    with _audio_cache_lock:
+        if len(_audio_cache) >= _AUDIO_CACHE_MAX:
+            _audio_cache.popitem(last=False)
+        _audio_cache[cache_key] = wav
     return Response(content=wav, media_type="audio/wav")
