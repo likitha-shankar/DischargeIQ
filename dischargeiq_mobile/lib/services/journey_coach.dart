@@ -1,11 +1,11 @@
-/// services/garden_coach.dart
+/// services/journey_coach.dart
 ///
-/// Mood-adaptive suggestion for the Recovery Garden (gamification wave 5).
-/// Takes what the app already knows - today's mood check-in, earned stars,
-/// quiz mastery - and offers ONE gentle next step sized to how the patient
-/// feels. Evidence basis: affect-adaptive design (adapting content to the
-/// player's emotional state) sustains engagement; here the affect signal is
-/// the self-reported daily mood, no sensors.
+/// Mood-adaptive suggestion for the Recovery Journey card. Takes what the
+/// app already knows - today's mood check-in, earned stars, quiz mastery -
+/// and offers ONE gentle next step sized to how the patient feels.
+/// Evidence basis: affect-adaptive design (adapting content to the player's
+/// emotional state) sustains engagement; here the affect signal is the
+/// self-reported daily mood, no sensors.
 ///
 /// Design rules (docs/GAMIFICATION_STRATEGY.md): the suggestion is an
 /// invitation, never a task. Rough days get LESS asked of them, never more.
@@ -53,7 +53,8 @@ CoachSuggestion? suggestNextStep({
       return const CoachSuggestion(
         kind: CoachKind.rest,
         text: 'No pressure today. If you feel up to it later, the matching '
-            'game takes two gentle minutes - or just rest. The garden keeps.',
+            'game takes two gentle minutes - or just rest. Your progress '
+            'keeps.',
       );
     case 'okay':
       if (unreadSections.isNotEmpty) {
@@ -61,7 +62,7 @@ CoachSuggestion? suggestNextStep({
         return CoachSuggestion(
           kind: CoachKind.read,
           text: 'One small step is plenty: the "$label" section is a short '
-              'read, and a flower blooms when you finish it.',
+              'read, and it checks off a milestone.',
         );
       }
       return const CoachSuggestion(
@@ -73,7 +74,7 @@ CoachSuggestion? suggestNextStep({
       if (everythingDone) {
         return const CoachSuggestion(
           kind: CoachKind.celebrate,
-          text: 'Your garden is in full bloom - you know this plan well. '
+          text: 'Every milestone is checked off - you know this plan well. '
               'A replay of anything is purely for fun.',
         );
       }
@@ -81,15 +82,15 @@ CoachSuggestion? suggestNextStep({
         return const CoachSuggestion(
           kind: CoachKind.quiz,
           text: 'Feeling steady? A "Test yourself" round could master '
-              'another topic and grow a tree.',
+              'another topic and raise a flag on your ridge.',
         );
       }
       if (unreadSections.isNotEmpty) {
         final label = kSectionStarLabels[unreadSections.first] ?? 'a section';
         return CoachSuggestion(
           kind: CoachKind.read,
-          text: 'A good day to read the "$label" section - a flower blooms '
-              'when you finish it.',
+          text: 'A good day to read the "$label" section - it checks off a '
+              'milestone.',
         );
       }
       return const CoachSuggestion(

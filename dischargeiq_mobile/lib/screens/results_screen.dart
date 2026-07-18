@@ -83,15 +83,17 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
   Future<void> _awardSectionStar(int tabIndex) async {
     // Only the five content sections carry stars; quiz and AI review do not.
     if (tabIndex < 0 || tabIndex >= kSectionStarKeys.length || !mounted) return;
+    final provider = context.read<DischargeProvider>();
     // No stars on a rejected document - there is nothing to read.
-    if ('${context.read<DischargeProvider>().result?['pipeline_status']}' ==
-        'rejected') {
-      return;
-    }
+    if ('${provider.result?['pipeline_status']}' == 'rejected') return;
+    // Stars are per-document; an unsaved run (dead/unusable) has no id and
+    // earns nothing - there is no journey entry it could ever light up.
+    final docId = provider.activeDocId;
+    if (docId == null) return;
     final key = kSectionStarKeys[tabIndex];
-    final isNew = await SectionStarStore.award(key);
+    final isNew = await SectionStarStore.award(docId, key);
     if (!isNew || !mounted) return;
-    final earned = (await SectionStarStore.load()).length;
+    final earned = (await SectionStarStore.load(docId)).length;
     if (!mounted) return;
     // Quiet, once-per-star feedback - a snackbar, never confetti
     // (calm-celebration rule in docs/GAMIFICATION_STRATEGY.md).
@@ -217,15 +219,15 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
     }
 
     return Scaffold(
+      // Flat themed app bar (2026 revamp): the pill tab capsules need the
+      // light surface behind them, not the old solid-teal band.
       appBar: AppBar(
-        backgroundColor: kTeal,
-        foregroundColor: Colors.white,
         title: const Text('DischargeIQ'),
         // Home: back to the landing page. Safe - the analysis is already in
         // the on-device library, so nothing is lost.
         leading: IconButton(
           tooltip: 'Home',
-          icon: const Icon(Icons.home_outlined, color: Colors.white),
+          icon: const Icon(Icons.home_outlined),
           onPressed: () => context.read<DischargeProvider>().clear(),
         ),
         actions: [
@@ -240,7 +242,7 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
             if (!hasPhotos && !hasPdf) return const SizedBox.shrink();
             return IconButton(
               tooltip: 'View your original document',
-              icon: const Icon(Icons.article_outlined, color: Colors.white),
+              icon: const Icon(Icons.article_outlined),
               onPressed: () => Navigator.push<void>(
                 context,
                 MaterialPageRoute<void>(
@@ -263,7 +265,6 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
               tooltip: _speaking ? 'Stop reading' : 'Read this section aloud',
               icon: Icon(
                 _speaking ? Icons.stop_circle_outlined : Icons.volume_up_outlined,
-                color: Colors.white,
               ),
               onPressed: () => _toggleReadAloud(r),
             ),
@@ -271,11 +272,11 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
           // recipient in the native share sheet - nothing auto-sends.
           IconButton(
             tooltip: 'Share with a family member',
-            icon: const Icon(Icons.ios_share, color: Colors.white),
+            icon: const Icon(Icons.ios_share),
             onPressed: () => Share.share(buildCaregiverSummary(r)),
           ),
           IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Colors.white),
+            icon: const Icon(Icons.settings_outlined),
             onPressed: () async {
               final res = await Navigator.push<Object?>(
                 context,
@@ -290,16 +291,16 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Container(
+          preferredSize: const Size.fromHeight(56),
+          child: Padding(
             key: TourKeys.tabBar,
-            color: kTeal,
+            padding: const EdgeInsets.fromLTRB(12, 2, 12, 8),
+            // Pill capsule tabs from the app theme (2026 revamp) - the
+            // active section is a filled teal pill, no underline, no band.
             child: TabBar(
               controller: _tabController,
               isScrollable: true,
-              indicatorColor: Colors.white,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
+              tabAlignment: TabAlignment.start,
               tabs: [for (final t in _tabLabels) Tab(text: t)],
             ),
           ),
@@ -671,3 +672,64 @@ class _PipelineStatusBanner extends StatelessWidget {
   }
 }
 
+
+/// Shared tab hero (2026 revamp): every section opens with an icon squircle,
+/// a big title, and a one-line purpose - the patient always knows what the
+/// tab is FOR before reading it. Tinted with the section's accent color;
+/// safety tabs pass their own semantic tint (never decorative).
+class _SectionHero extends StatelessWidget {
+  const _SectionHero({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.tint,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  /// Accent for the icon chip; defaults to the app teal.
+  final Color? tint;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final accent = tint ?? (dark ? kTealGlow : kTeal);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: dark ? 0.22 : 0.14),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Icon(icon, size: 27, color: accent),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    height: 1.3,
+                    color: dark ? kTextSecondaryDark : kTextSecondaryLight,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

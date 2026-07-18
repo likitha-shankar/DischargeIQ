@@ -8,7 +8,7 @@ import 'package:dischargeiq_mobile/screens/puzzle_screen.dart';
 import 'package:dischargeiq_mobile/services/document_store.dart';
 import 'package:dischargeiq_mobile/services/game_store.dart';
 import 'package:dischargeiq_mobile/services/scan_session_store.dart';
-import 'package:dischargeiq_mobile/widgets/garden_widgets.dart';
+import 'package:dischargeiq_mobile/widgets/journey_widgets.dart';
 import 'package:dischargeiq_mobile/screens/scan_screen.dart';
 import 'package:dischargeiq_mobile/screens/settings_screen.dart';
 import 'package:file_picker/file_picker.dart';
@@ -159,10 +159,11 @@ class _UploadScreenState extends State<UploadScreen> {
                     Text.rich(
                       TextSpan(
                         style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
                           color: _dark ? kTextPrimaryDark : kTextPrimaryLight,
-                          height: 1.25,
+                          height: 1.2,
                         ),
                         children: [
                           const TextSpan(text: 'Understand everything\nthe doctor told '),
@@ -198,28 +199,30 @@ class _UploadScreenState extends State<UploadScreen> {
                         foregroundPainter: _DashedBorderPainter(
                           color: _dark ? kTealGlow.withValues(alpha: 0.3) : kTealGlow,
                           strokeWidth: 1.5,
-                          radius: 12,
+                          radius: 20,
                         ),
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: _dark ? kTeal.withValues(alpha: 0.12) : kSurfaceLight,
-                            borderRadius: BorderRadius.circular(12),
+                            color: _dark
+                                ? kTeal.withValues(alpha: 0.12)
+                                : kTealPale.withValues(alpha: 0.35),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           child: Column(
                             children: [
                               Container(
-                                width: 40,
-                                height: 40,
+                                width: 54,
+                                height: 54,
                                 decoration: BoxDecoration(
                                   color: _dark ? kTeal.withValues(alpha: 0.3) : kTealPale,
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(18),
                                 ),
                                 child: Icon(
                                   Icons.arrow_upward_rounded,
                                   color: _dark ? kTealGlow : kTeal,
-                                  size: 22,
+                                  size: 28,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -264,7 +267,7 @@ class _UploadScreenState extends State<UploadScreen> {
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
-                      height: 52,
+                      height: 56,
                       child: ElevatedButton(
                         onPressed: _bytes == null
                             ? null
@@ -282,14 +285,15 @@ class _UploadScreenState extends State<UploadScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: kTeal,
                           foregroundColor: Colors.white,
+                          elevation: 0,
                           disabledBackgroundColor: kTeal.withValues(alpha: 0.4),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
                         child: const Text(
                           'Upload & Analyze',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
                         ),
                       ),
                     ),
@@ -310,7 +314,7 @@ class _UploadScreenState extends State<UploadScreen> {
                           foregroundColor: _dark ? kTealGlow : kTeal,
                           side: BorderSide(color: _dark ? kTealGlow : kTeal),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
                         icon: const Icon(Icons.photo_camera_outlined, size: 18),
@@ -336,7 +340,7 @@ class _UploadScreenState extends State<UploadScreen> {
                       ],
                     ),
                       const SizedBox(height: 20),
-                      _GardenSection(dark: _dark),
+                      _JourneySection(dark: _dark),
                       _RecentDocuments(dark: _dark),
                       const SizedBox(height: 24),
                     ],
@@ -363,12 +367,10 @@ class _UploadScreenState extends State<UploadScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: _dark ? kTeal.withValues(alpha: 0.15) : kSurfaceLight,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: _dark ? kTealMid.withValues(alpha: 0.2) : kBorderLight,
-              width: 0.5,
-            ),
+            color: _dark
+                ? kTeal.withValues(alpha: 0.15)
+                : kTealPale.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -427,38 +429,67 @@ class _UploadScreenState extends State<UploadScreen> {
   }
 }
 
-/// Recovery Garden + quests on the landing page. Hidden until the patient
+/// Recovery Journey + quests on the landing page. Hidden until the patient
 /// has ANY progress - a brand-new user sees a clean landing, not an empty
-/// garden asking to be filled.
-class _GardenSection extends StatefulWidget {
-  const _GardenSection({required this.dark});
+/// progress card asking to be filled.
+class _JourneySection extends StatefulWidget {
+  const _JourneySection({required this.dark});
 
   final bool dark;
 
   @override
-  State<_GardenSection> createState() => _GardenSectionState();
+  State<_JourneySection> createState() => _JourneySectionState();
 }
 
-class _GardenSectionState extends State<_GardenSection> {
+class _JourneySectionState extends State<_JourneySection> {
   Set<String>? _stars;
   GameStats? _stats;
-  bool _hasSavedDoc = false;
+  List<SavedDocument> _docs = const [];
+
+  /// Which document's journey is showing; null until the list loads.
+  /// Defaults to the newest document - the one the patient is living with.
+  String? _selectedDocId;
 
   @override
   void initState() {
     super.initState();
-    SectionStarStore.load().then((s) {
-      if (mounted) setState(() => _stars = s);
-    });
     GameStore.load().then((s) {
       if (mounted) setState(() => _stats = s);
     });
-    DocumentStore.list().then((docs) {
-      if (mounted) setState(() => _hasSavedDoc = docs.isNotEmpty);
+    _loadDocsAndStars();
+  }
+
+  /// Load the saved-document list, run the one-time legacy-star migration
+  /// (old global stars belong to the OLDEST document - the only one that
+  /// existed when they were earned), then load stars for the selection.
+  Future<void> _loadDocsAndStars() async {
+    final docs = await DocumentStore.list(); // newest first
+    if (docs.isNotEmpty) {
+      await SectionStarStore.migrateLegacy(docs.last.id);
+    }
+    if (!mounted) return;
+    final selected = _selectedDocId ?? (docs.isEmpty ? null : docs.first.id);
+    final stars = selected == null
+        ? <String>{}
+        : await SectionStarStore.load(selected);
+    if (!mounted) return;
+    setState(() {
+      _docs = docs;
+      _selectedDocId = selected;
+      _stars = stars;
     });
   }
 
-  /// Landing-garden puzzle entry: the garden has no loaded document, so we
+  Future<void> _pickDoc(String docId) async {
+    final stars = await SectionStarStore.load(docId);
+    if (!mounted) return;
+    setState(() {
+      _selectedDocId = docId;
+      _stars = stars;
+    });
+  }
+
+  /// Landing-card puzzle entry: the landing page has no loaded document, so we
   /// reopen a saved analysis and launch the puzzle from its extraction.
   /// One saved document opens directly; several show a picker so the
   /// patient chooses which document to practice on (not just the newest).
@@ -541,8 +572,22 @@ class _GardenSectionState extends State<_GardenSection> {
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(
         children: [
-          RecoveryGardenCard(stars: stars, stats: stats, dark: dark),
-          if (_hasSavedDoc) ...[
+          RecoveryJourneyCard(
+            stars: stars,
+            stats: stats,
+            dark: dark,
+            // Reading stars and quests are per-document; with more than one
+            // saved analysis the patient picks which journey to look at.
+            docPicker: _docs.length > 1
+                ? _JourneyDocPicker(
+                    docs: _docs,
+                    selectedId: _selectedDocId,
+                    dark: dark,
+                    onPick: _pickDoc,
+                  )
+                : null,
+          ),
+          if (_docs.isNotEmpty) ...[
             const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
@@ -558,6 +603,56 @@ class _GardenSectionState extends State<_GardenSection> {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Dropdown naming which saved document's journey the card is showing.
+/// Rendered by the journey card under its title; only exists when the
+/// patient has more than one saved analysis.
+class _JourneyDocPicker extends StatelessWidget {
+  const _JourneyDocPicker({
+    required this.docs,
+    required this.selectedId,
+    required this.dark,
+    required this.onPick,
+  });
+
+  final List<SavedDocument> docs;
+  final String? selectedId;
+  final bool dark;
+  final ValueChanged<String> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonHideUnderline(
+      child: DropdownButton<String>(
+        value: selectedId,
+        isExpanded: true,
+        isDense: true,
+        icon: Icon(Icons.keyboard_arrow_down_rounded,
+            size: 18, color: dark ? kTealGlow : kTeal),
+        style: TextStyle(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+          color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+        ),
+        dropdownColor: dark ? kCardDark : kSurfaceLight,
+        onChanged: (id) {
+          if (id != null) onPick(id);
+        },
+        items: [
+          for (final d in docs)
+            DropdownMenuItem(
+              value: d.id,
+              child: Text(
+                d.diagnosis.isEmpty ? d.fileName : d.diagnosis,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
         ],
       ),
     );
@@ -610,6 +705,7 @@ class _RecentDocumentsState extends State<_RecentDocuments> {
           result,
           pdfBytes: pdf,
           fileName: doc.fileName,
+          docId: doc.id,
         );
   }
 

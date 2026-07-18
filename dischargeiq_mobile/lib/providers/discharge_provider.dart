@@ -21,6 +21,7 @@ class DischargeProvider extends ChangeNotifier {
   Map<String, dynamic>? _result;
   Uint8List? _lastPdfBytes;
   String _lastFileName = 'document.pdf';
+  String? _activeDocId;
 
   /// Scan-session pages. Mutated in place by the scan screen; intentionally
   /// not wired into notifyListeners (only the scan screen reads it).
@@ -29,6 +30,11 @@ class DischargeProvider extends ChangeNotifier {
   Map<String, dynamic>? get result => _result;
   Uint8List? get lastPdfBytes => _lastPdfBytes;
   String get lastFileName => _lastFileName;
+
+  /// DocumentStore id of the active analysis, or null when it was not saved
+  /// (rejected/dead runs). Scopes per-document engagement state - section
+  /// stars are awarded against this id, never globally.
+  String? get activeDocId => _activeDocId;
 
   bool get hasResult => _result != null;
 
@@ -42,8 +48,10 @@ class DischargeProvider extends ChangeNotifier {
     Map<String, dynamic> data, {
     Uint8List? pdfBytes,
     String? fileName,
+    String? docId,
   }) {
     _result = data;
+    _activeDocId = docId;
     if (pdfBytes != null) {
       _lastPdfBytes = pdfBytes;
       // A fresh PDF analysis makes any old camera-scan session stale -
@@ -59,6 +67,7 @@ class DischargeProvider extends ChangeNotifier {
     _result = null;
     _lastPdfBytes = null;
     _lastFileName = 'document.pdf';
+    _activeDocId = null;
     notifyListeners();
   }
 }

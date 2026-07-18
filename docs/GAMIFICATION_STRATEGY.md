@@ -123,18 +123,17 @@ identity, and none of it is sent to or stored with any clinical record.
 | "Master it" missed-questions retake loop | Built |
 | On-device persistence of reward state | Built (mobile) |
 | Stars for reading sections and adding a calendar appointment | Built (wave 2: `SectionStarStore` + calendar star) |
-| Recovery Garden - growth visual over stars, mastery, and quests | Built (wave 2: `garden_widgets.dart`; no punishment states) |
+| Recovery Journey - milestone-trail visual over stars, mastery, and quests | Built (wave 2 as the Recovery Garden; rethemed Jul 18 2026 to `journey_widgets.dart` - unisex, age-neutral; no punishment states) |
 | "First week home" quests - three named journeys over existing state | Built (wave 2: `quests.dart`; progress only counts up) |
 | Daily mood check-in with rough-patch care-team nudge | Built (wave 3: `CheckinStore`, `consecutiveRoughDays`) |
 | Medical matching puzzle built from the patient's own extraction | Built (wave 4: `puzzle.dart`; teach popup per match, nothing fabricated) |
 | Medication reminder schedule from Agent 1 extraction | Built (feature B1: `medication_schedule.dart`; suggest-only, patient-editable) |
-| Daily garden nudge - opt-in, one gentle 10am notification, no guilt copy | Built (wave 5: `ReminderService.enableGardenReminder`, bell toggle on garden card) |
-| Mood-adaptive coach - one next step sized to today's check-in mood | Built (wave 5: `garden_coach.dart`; rough days are asked LESS, never more) |
-| Named garden companion (butterfly) - emotional-ownership mechanic | Built (wave 5: `CompanionStore`; name personalizes the daily nudge copy) |
-| Seed-blooms-tomorrow return hook - quiz/puzzle plants a seed, never wilts | Built (wave 5: `SeedStore`; bloom acknowledged on next garden visit) |
-| Garden seasons - sky/canopy shift with the real calendar, sun always out | Built (wave 6: `seasonOf()` in `garden_widgets.dart`; delight only, no weather punishment) |
-| Companion cheer - small heart when today's effort planted a seed | Built (wave 6: `companionCheering` in the garden painter) |
-| "Show your garden" share card - painting rendered to PNG, native share sheet | Built (wave 6: patient-initiated, composed on-device, no server) |
+| Daily journey nudge - opt-in, one gentle 10am notification, no guilt copy | Built (wave 5: `ReminderService.enableGardenReminder` - legacy name; bell toggle on the journey card) |
+| Mood-adaptive coach - one next step sized to today's check-in mood | Built (wave 5: `journey_coach.dart`; rough days are asked LESS, never more) |
+| Named companion - emotional-ownership mechanic | **Retired Jul 18 2026** with the garden theme (read as childish/gendered); `CompanionStore` deleted, stored names/kinds orphaned harmlessly on-device |
+| Bonus-unlocks-tomorrow return hook - quiz/puzzle banks today's effort, never expires | Built (wave 5: `SeedStore` - legacy seed naming kept for pref-key continuity; payoff acknowledged on next visit) |
+| Scene seasons - sky shift with the real calendar, no bad-weather state | Built (wave 6: `seasonOf()` in `journey_widgets.dart`; delight only, no weather punishment) |
+| "Share your journey" card - painting rendered to PNG, native share sheet | Built (wave 6: patient-initiated, composed on-device, no server) |
 
 ## Sources
 

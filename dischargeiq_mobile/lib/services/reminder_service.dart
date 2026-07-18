@@ -1,15 +1,15 @@
 /// services/reminder_service.dart
 ///
-/// Local notification plumbing for medication reminders AND the daily garden
-/// nudge. LOCAL ONLY: the schedule lives in the phone's notification system,
+/// Local notification plumbing for medication reminders AND the daily
+/// journey nudge. LOCAL ONLY: the schedule lives in the phone's notification system,
 /// nothing is sent to or stored on any server. Wraps
 /// flutter_local_notifications with the app's safety framing: every
 /// medication body carries the verbatim dose text and a follow-your-label
-/// reminder, never advice; the garden nudge is invitation-only copy with no
+/// reminder, never advice; the journey nudge is invitation-only copy with no
 /// guilt or urgency (docs/GAMIFICATION_STRATEGY.md rule 5).
 ///
 /// Notification id map (never overlap - cancels are id-scoped):
-///   1        garden daily nudge
+///   1        journey daily nudge (channel id keeps the legacy 'garden_nudge' value)
 ///   100-199  medication reminders
 library;
 
@@ -19,10 +19,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
-import 'package:dischargeiq_mobile/services/game_store.dart' show CompanionStore;
 import 'package:dischargeiq_mobile/services/medication_schedule.dart';
 
-/// SharedPreferences key remembering the patient's garden-nudge opt-in, so
+/// SharedPreferences key remembering the patient's journey-nudge opt-in, so
 /// the toggle survives restarts and the schedule can be re-asserted on launch.
 const String kGardenReminderPrefKey = 'garden_reminder_on';
 
@@ -71,7 +70,7 @@ class ReminderService {
   /// Replace the entire MEDICATION reminder schedule with this plan: one
   /// repeating daily notification per medication per confirmed time. Only the
   /// med id block is cleared - cancelAll() here would silently kill the
-  /// garden nudge every time the patient re-saved their medication times.
+  /// journey nudge every time the patient re-saved their medication times.
   static Future<void> scheduleAll(List<MedReminder> plan) async {
     await _init();
     for (var i = _kMedIdStart; i <= _kMedIdEnd; i++) {
@@ -112,7 +111,7 @@ class ReminderService {
   }
 
   /// Turn MEDICATION reminders off - clears only the med id block so the
-  /// garden nudge (id 1) keeps its own independent on/off switch.
+  /// journey nudge (id 1) keeps its own independent on/off switch.
   static Future<void> cancelMedReminders() async {
     await _init();
     for (var i = _kMedIdStart; i <= _kMedIdEnd; i++) {
@@ -120,9 +119,9 @@ class ReminderService {
     }
   }
 
-  // ── Garden daily nudge (gamification: gentle re-entry hook) ──────────────
+  // ── Journey daily nudge (gamification: gentle re-entry hook) ─────────────
 
-  /// Whether the patient has the garden nudge switched on.
+  /// Whether the patient has the daily journey nudge switched on.
   static Future<bool> gardenReminderEnabled() async =>
       (await SharedPreferences.getInstance()).getBool(kGardenReminderPrefKey) ??
       false;
@@ -136,25 +135,21 @@ class ReminderService {
     final now = tz.TZDateTime.now(tz.local);
     var when = tz.TZDateTime(tz.local, now.year, now.month, now.day, 10);
     if (when.isBefore(now)) when = when.add(const Duration(days: 1));
-    // A named companion makes the nudge personal ("Maple found something")
-    // instead of institutional ("the app wants you back"). Re-call this
-    // method after a rename to refresh the copy - same id, so it replaces.
-    final companion = await CompanionStore.name();
     await _plugin.zonedSchedule(
       _kGardenNotifId,
-      companion.isEmpty ? 'Your recovery garden' : "$companion's garden",
-      companion.isEmpty
-          ? 'A minute with your discharge plan helps your garden grow. '
-              'Come back whenever suits you.'
-          : '$companion found something new in your garden. '
-              'Come see whenever suits you.',
+      'Your recovery journey',
+      'A minute with your discharge plan keeps your recovery moving. '
+          'Come back whenever suits you.',
       when,
       const NotificationDetails(
         iOS: DarwinNotificationDetails(),
+        // Channel id keeps the historical 'garden_nudge' value so patients
+        // who already allowed it are not re-prompted with a second channel.
         android: AndroidNotificationDetails(
           'garden_nudge',
-          'Recovery garden',
-          channelDescription: 'One gentle daily reminder to visit your garden',
+          'Recovery reminders',
+          channelDescription:
+              'One gentle daily reminder to check your recovery plan',
           // Low importance on purpose: this is an invitation, not an alert.
           importance: Importance.low,
           priority: Priority.low,
@@ -170,7 +165,7 @@ class ReminderService {
     return true;
   }
 
-  /// Opt out - cancels only the garden notification, med reminders untouched.
+  /// Opt out - cancels only the journey notification, med reminders untouched.
   static Future<void> disableGardenReminder() async {
     await _init();
     await _plugin.cancel(_kGardenNotifId);

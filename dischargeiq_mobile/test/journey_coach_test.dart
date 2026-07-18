@@ -1,20 +1,20 @@
-/// test/garden_wave5_test.dart
+/// test/journey_coach_test.dart
 ///
-/// Unit checks for gamification wave 5: the mood-adaptive coach
-/// (services/garden_coach.dart) and the seed-blooms-tomorrow return hook
+/// Unit checks for the journey gamification layer: the mood-adaptive coach
+/// (services/journey_coach.dart) and the bonus-tomorrow return hook
 /// (SeedStore in services/game_store.dart). SeedStore uses SharedPreferences,
 /// mocked with setMockInitialValues; the coach is pure Dart.
 library;
 
 import 'package:dischargeiq_mobile/services/game_store.dart';
-import 'package:dischargeiq_mobile/services/garden_coach.dart';
+import 'package:dischargeiq_mobile/services/journey_coach.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('garden coach', () {
+  group('journey coach', () {
     test('no check-in yet means no suggestion', () {
       expect(
         suggestNextStep(todayMood: null, stats: GameStats(), stars: {}),
@@ -107,23 +107,4 @@ void main() {
     });
   });
 
-  group('companion store', () {
-    test('unnamed by default, trims and caps the saved name', () async {
-      SharedPreferences.setMockInitialValues({});
-      expect(await CompanionStore.name(), '');
-      await CompanionStore.setName('  Maple  ');
-      expect(await CompanionStore.name(), 'Maple');
-      await CompanionStore.setName('x' * 40);
-      expect((await CompanionStore.name()).length, 20);
-    });
-
-    test('kind defaults to butterfly and rejects unknown values', () async {
-      SharedPreferences.setMockInitialValues({});
-      expect(await CompanionStore.kind(), 'butterfly');
-      await CompanionStore.setKind('turtle');
-      expect(await CompanionStore.kind(), 'turtle');
-      await CompanionStore.setKind('dragon'); // not a garden resident
-      expect(await CompanionStore.kind(), 'turtle');
-    });
-  });
 }

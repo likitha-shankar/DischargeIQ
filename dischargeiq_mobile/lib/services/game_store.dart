@@ -170,30 +170,52 @@ const Map<String, String> kSectionStarLabels = {
 /// saves it at round ends, which would silently clobber stars awarded from
 /// the results tabs in between. A separate key removes the race entirely.
 class SectionStarStore {
-  static const _kKey = 'section_stars';
+  /// Pre-Jul-2026 global key. Stars are per-document now; [migrateLegacy]
+  /// hands this old global set to the patient's oldest saved document once.
+  static const _kLegacyKey = 'section_stars';
 
-  /// Set of earned star keys; corrupt or missing data yields an empty set -
-  /// losing stars must never break the results screen.
-  static Future<Set<String>> load() async {
+  static String _key(String docId) => 'section_stars.$docId';
+
+  /// One-time migration: if a global (legacy) star set exists, assign it to
+  /// [docId] - callers pass the OLDEST saved document, the only one that can
+  /// have existed when the stars were earned - then drop the legacy key.
+  /// No-op when there is nothing to migrate or the target already has stars.
+  static Future<void> migrateLegacy(String docId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      return (prefs.getStringList(_kKey) ?? const []).toSet();
+      final legacy = prefs.getStringList(_kLegacyKey);
+      if (legacy == null) return;
+      if ((prefs.getStringList(_key(docId)) ?? const []).isEmpty) {
+        await prefs.setStringList(_key(docId), legacy);
+      }
+      await prefs.remove(_kLegacyKey);
+    } catch (_) {
+      // Best-effort engagement state, never blocks the UI.
+    }
+  }
+
+  /// Earned star keys for one document; corrupt or missing data yields an
+  /// empty set - losing stars must never break the results screen.
+  static Future<Set<String>> load(String docId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return (prefs.getStringList(_key(docId)) ?? const []).toSet();
     } catch (_) {
       return {};
     }
   }
 
-  /// Award one star. Atomic load-modify-save so concurrent awards from
-  /// different screens cannot lose each other. Returns true only when the
-  /// star is NEW - callers use that to show feedback exactly once, ever
-  /// (calm-celebration rule: a star can only be earned once).
-  static Future<bool> award(String key) async {
+  /// Award one star on one document. Atomic load-modify-save so concurrent
+  /// awards from different screens cannot lose each other. Returns true only
+  /// when the star is NEW - callers use that to show feedback exactly once
+  /// per document (calm-celebration rule).
+  static Future<bool> award(String docId, String key) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final earned = (prefs.getStringList(_kKey) ?? const []).toSet();
+      final earned = (prefs.getStringList(_key(docId)) ?? const []).toSet();
       if (earned.contains(key)) return false;
       earned.add(key);
-      await prefs.setStringList(_kKey, earned.toList()..sort());
+      await prefs.setStringList(_key(docId), earned.toList()..sort());
       return true;
     } catch (_) {
       return false; // best-effort engagement state, never blocks the UI
@@ -201,9 +223,9 @@ class SectionStarStore {
   }
 }
 
-/// Daily gentle check-in (gamification wave 3): once per day the garden
-/// asks "How are you feeling?". No streaks, no loss state - a missed day
-/// simply never comes up. Entries: "YYYY-MM-DD|mood", newest last, capped.
+/// Daily gentle check-in (gamification wave 3): once per day the journey
+/// card asks "How are you feeling?". No streaks, no loss state - a missed
+/// day simply never comes up. Entries: "YYYY-MM-DD|mood", newest last, capped.
 class CheckinStore {
   static const _kKey = 'daily_checkins';
   static const _kCap = 90;
@@ -346,86 +368,11 @@ class PuzzleScoreStore {
   }
 }
 
-/// The patient's chosen garden companion: a kind (butterfly, bird, turtle,
-/// frog - self-selected so the garden never assumes a taste) and a name.
-/// Emotional-ownership mechanic (gamification wave 5): a named companion
-/// turns the daily nudge from "the app wants you back" into "someone in
-/// your garden does".
-class CompanionStore {
-  static const _kNameKey = 'companion_name';
-  static const _kKindKey = 'companion_kind';
-
-  /// Valid companion kinds, in picker order.
-  static const List<String> kinds = [
-    'butterfly',
-    'bird',
-    'turtle',
-    'frog',
-    'bee',
-    'ladybug',
-    'cat',
-    'bunny',
-  ];
-
-  /// Emoji per kind, used in captions and the picker.
-  static const Map<String, String> kindEmoji = {
-    'butterfly': '🦋',
-    'bird': '🐦',
-    'turtle': '🐢',
-    'frog': '🐸',
-    'bee': '🐝',
-    'ladybug': '🐞',
-    'cat': '🐱',
-    'bunny': '🐰',
-  };
-
-  /// The companion's name, or '' when not named yet.
-  static Future<String> name() async {
-    try {
-      return (await SharedPreferences.getInstance()).getString(_kNameKey) ?? '';
-    } catch (_) {
-      return '';
-    }
-  }
-
-  /// Save a name (trimmed, max 20 chars - it appears in notification copy).
-  static Future<void> setName(String value) async {
-    try {
-      final trimmed = value.trim();
-      await (await SharedPreferences.getInstance()).setString(
-          _kNameKey, trimmed.substring(0, trimmed.length.clamp(0, 20)));
-    } catch (_) {
-      // Best-effort engagement state, never blocks the UI.
-    }
-  }
-
-  /// The chosen kind; defaults to 'butterfly' (the original resident).
-  static Future<String> kind() async {
-    try {
-      final k =
-          (await SharedPreferences.getInstance()).getString(_kKindKey) ?? '';
-      return kinds.contains(k) ? k : 'butterfly';
-    } catch (_) {
-      return 'butterfly';
-    }
-  }
-
-  /// Save the chosen kind; unknown values are ignored.
-  static Future<void> setKind(String value) async {
-    if (!kinds.contains(value)) return;
-    try {
-      await (await SharedPreferences.getInstance())
-          .setString(_kKindKey, value);
-    } catch (_) {
-      // Best-effort engagement state.
-    }
-  }
-}
-
-/// State of the "seed that blooms tomorrow" return hook (wave 5): finishing
-/// a quiz or puzzle plants a seed; it blooms the NEXT day the garden is
-/// visited. Appointment mechanic with no punishment: an unvisited seed
-/// simply waits - it never wilts, dies, or expires.
+/// State of the "bonus that unlocks tomorrow" return hook: finishing a quiz
+/// or puzzle banks today's effort (historically "plants a seed" - the pref
+/// keys keep the seed names for continuity); it pays off the NEXT day the
+/// journey card is visited. Appointment mechanic with no punishment: an
+/// unvisited bonus simply waits - it never expires.
 enum SeedState { none, planted, bloomed }
 
 class SeedStore {

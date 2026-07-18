@@ -64,13 +64,17 @@ class DocumentStore {
 
   /// Persist one successful analysis. Rejected documents are not saved -
   /// there is nothing for the patient to come back to.
-  static Future<void> save({
+  ///
+  /// Returns the new document id (callers use it to scope per-document
+  /// engagement state, e.g. SectionStarStore), or null when nothing was
+  /// saved (rejected run or write failure).
+  static Future<String?> save({
     required Map<String, dynamic> result,
     required String fileName,
     Uint8List? pdfBytes,
   }) async {
     try {
-      if ('${result['pipeline_status']}' == 'rejected') return;
+      if ('${result['pipeline_status']}' == 'rejected') return null;
       final dir = await _dir();
       final id = DateTime.now().millisecondsSinceEpoch.toString();
       final extraction = result['extraction'];
@@ -86,8 +90,10 @@ class DocumentStore {
         'saved_at': DateTime.now().toIso8601String(),
         'result': result,
       }));
+      return id;
     } catch (_) {
       // Best-effort: a full disk or sandbox hiccup must not fail the analysis.
+      return null;
     }
   }
 

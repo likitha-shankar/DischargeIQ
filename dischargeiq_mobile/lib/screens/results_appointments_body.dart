@@ -42,9 +42,12 @@ class _AppointmentsBody extends StatelessWidget {
     );
     final opened = await launchUrl(url, mode: LaunchMode.externalApplication);
     if (!opened || !context.mounted) return;
-    final isNew = await SectionStarStore.award(kCalendarStarKey);
+    // Per-document star; an unsaved run has no id and earns nothing.
+    final docId = context.read<DischargeProvider>().activeDocId;
+    if (docId == null) return;
+    final isNew = await SectionStarStore.award(docId, kCalendarStarKey);
     if (!isNew || !context.mounted) return;
-    final earned = (await SectionStarStore.load()).length;
+    final earned = (await SectionStarStore.load(docId)).length;
     if (!context.mounted) return;
     // Same quiet once-per-star feedback as the reading stars
     // (calm-celebration rule in docs/GAMIFICATION_STRATEGY.md).
@@ -64,26 +67,30 @@ class _AppointmentsBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final list = (extraction is Map) ? extraction['follow_up_appointments'] as List? : null;
     final questions = _visitQuestions;
+    const hero = _SectionHero(
+      icon: Icons.event_available_outlined,
+      title: 'Your appointments',
+      subtitle: 'Follow-ups from your paperwork, soonest first',
+    );
     if (list == null || list.isEmpty) {
-      if (questions.isEmpty) {
-        return const _RichTextSection(text: 'No follow-up appointments listed in this document.');
-      }
       final dark0 = Theme.of(context).brightness == Brightness.dark;
       return ListView(padding: const EdgeInsets.fromLTRB(16, 16, 16, 110), children: [
+        hero,
         const _RichTextSection(text: 'No follow-up appointments listed in this document.'),
-        _VisitPrepCard(questions: questions, dark: dark0),
+        if (questions.isNotEmpty) _VisitPrepCard(questions: questions, dark: dark0),
       ]);
     }
     final dark = Theme.of(context).brightness == Brightness.dark;
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
-      itemCount: list.length + (questions.isEmpty ? 0 : 1),
+      itemCount: 1 + list.length + (questions.isEmpty ? 0 : 1),
       itemBuilder: (context, i) {
+        if (i == 0) return hero;
         // Visit-prep card renders after the appointment list.
-        if (i == list.length) {
+        if (i == list.length + 1) {
           return _VisitPrepCard(questions: questions, dark: dark);
         }
-        final a = list[i];
+        final a = list[i - 1];
         if (a is! Map) return const SizedBox.shrink();
         return Card(
           color: dark ? kCardDark : kCardLight,

@@ -1,8 +1,8 @@
-/// Tests for the garden's calendar-season mapping (gamification: the garden
+/// Tests for the journey scene's calendar-season mapping (the picture
 /// lives in real time). Pure function, so no widget pumping needed.
 library;
 
-import 'package:dischargeiq_mobile/widgets/garden_widgets.dart';
+import 'package:dischargeiq_mobile/widgets/journey_widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

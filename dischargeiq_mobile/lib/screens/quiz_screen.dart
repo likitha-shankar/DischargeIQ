@@ -24,6 +24,8 @@ import 'dart:math' show Random;
 
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/models/quiz.dart';
+import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:dischargeiq_mobile/services/api_service.dart';
 import 'package:dischargeiq_mobile/screens/puzzle_screen.dart';
 import 'package:dischargeiq_mobile/services/game_store.dart';
@@ -83,9 +85,13 @@ class _QuizBodyState extends State<QuizBody> {
     GameStore.load().then((s) {
       if (mounted) setState(() => _stats = s);
     });
-    SectionStarStore.load().then((s) {
-      if (mounted) setState(() => _sectionStars = s);
-    });
+    // Stars are per-document; the quiz always runs on the active analysis.
+    final docId = context.read<DischargeProvider>().activeDocId;
+    if (docId != null) {
+      SectionStarStore.load(docId).then((s) {
+        if (mounted) setState(() => _sectionStars = s);
+      });
+    }
   }
 
   // ── Flow actions ─────────────────────────────────────────────────────────
@@ -213,8 +219,8 @@ class _QuizBodyState extends State<QuizBody> {
     _stats = stats;
     _xpGained = gained;
     GameStore.save(stats);
-    // Return hook (wave 5): a finished quiz plants a seed that blooms in
-    // the garden tomorrow.
+    // Return hook: a finished quiz banks today's effort - the journey card
+    // pays it off as a bonus tomorrow (SeedStore keeps the legacy name).
     SeedStore.plant();
   }
 

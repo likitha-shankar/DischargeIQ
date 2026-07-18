@@ -70,15 +70,33 @@ void main() {
   // SectionStarStore touches SharedPreferences; setMockInitialValues gives it
   // an in-memory backend so these still run without platform channels.
 
-  test('section star awarded once, persists, and count is stable', () async {
+  test('section star awarded once per document, scoped by doc id', () async {
     TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
 
-    expect(await SectionStarStore.load(), isEmpty);
-    expect(await SectionStarStore.award('medications'), isTrue);
-    expect(await SectionStarStore.award('medications'), isFalse); // once, ever
-    expect(await SectionStarStore.award('recovery'), isTrue);
-    expect(await SectionStarStore.load(), {'medications', 'recovery'});
+    expect(await SectionStarStore.load('docA'), isEmpty);
+    expect(await SectionStarStore.award('docA', 'medications'), isTrue);
+    expect(await SectionStarStore.award('docA', 'medications'), isFalse);
+    expect(await SectionStarStore.award('docA', 'recovery'), isTrue);
+    expect(await SectionStarStore.load('docA'), {'medications', 'recovery'});
+    // A second document starts from zero - journeys are per-document.
+    expect(await SectionStarStore.load('docB'), isEmpty);
+    expect(await SectionStarStore.award('docB', 'medications'), isTrue);
+  });
+
+  test('legacy global stars migrate to the given (oldest) document once',
+      () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({
+      'section_stars': ['medications', 'recovery'],
+    });
+
+    await SectionStarStore.migrateLegacy('oldest');
+    expect(await SectionStarStore.load('oldest'), {'medications', 'recovery'});
+    // Legacy key is consumed - a later migration call must not resurrect it
+    // onto another document.
+    await SectionStarStore.migrateLegacy('other');
+    expect(await SectionStarStore.load('other'), isEmpty);
   });
 
   test('star keys and labels agree with each other', () {

@@ -128,21 +128,26 @@ class _LoadingScreenState extends State<LoadingScreen> with TickerProviderStateM
             .analyze(widget.pdfBytes!, widget.fileName, sessionId: _sessionId);
       }
       if (!mounted) return;
+      // On-device library (D-6): keep this analysis on the phone so closing
+      // the app no longer loses it. Saved BEFORE setResult so the returned
+      // document id can scope per-document stars from the first tab view.
+      // Local file write, milliseconds - not worth a fire-and-forget race.
+      // Dead runs (quota-exhausted partials) are not worth reopening.
+      String? docId;
+      if (!isUnusableRun(data)) {
+        docId = await DocumentStore.save(
+          result: data,
+          fileName: widget.fileName,
+          pdfBytes: widget.pdfBytes,
+        );
+      }
+      if (!mounted) return;
       context.read<DischargeProvider>().setResult(
             data,
             pdfBytes: widget.pdfBytes,
             fileName: widget.fileName,
+            docId: docId,
           );
-      // On-device library (D-6): keep this analysis on the phone so closing
-      // the app no longer loses it. Fire-and-forget - never blocks the UI.
-      // Dead runs (quota-exhausted partials) are not worth reopening.
-      if (!isUnusableRun(data)) {
-        unawaited(DocumentStore.save(
-          result: data,
-          fileName: widget.fileName,
-          pdfBytes: widget.pdfBytes,
-        ));
-      }
       Navigator.of(context).pop();
     } catch (err) {
       if (!mounted) return;
