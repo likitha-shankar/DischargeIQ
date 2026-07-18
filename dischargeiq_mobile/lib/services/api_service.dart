@@ -68,6 +68,40 @@ class ApiService {
     return decoded;
   }
 
+  /// POST /chat/stream - grounded chat with live token streaming (SSE).
+  ///
+  /// Emits one map per server event: `{'delta': String}` fragments while the
+  /// answer generates, then `{'done': true, 'reply': ..., ...}`, or
+  /// `{'error': String}` on LLM failure. The server grounds from its cached
+  /// per-session context, so no pipeline_context is sent - callers should
+  /// fall back to [chat] (which re-sends the full context) when this stream
+  /// fails before producing any text.
+  Stream<Map<String, dynamic>> chatStream({
+    required String message,
+    required String sessionId,
+  }) async* {
+    final client = http.Client();
+    try {
+      final request = http.Request('POST', Uri.parse('$_base/chat/stream'))
+        ..headers['Content-Type'] = 'application/json'
+        ..body = jsonEncode({'message': message, 'session_id': sessionId});
+      final response =
+          await client.send(request).timeout(const Duration(seconds: 60));
+      if (response.statusCode != 200) {
+        throw ApiException(response.statusCode, '');
+      }
+      final lines =
+          response.stream.transform(utf8.decoder).transform(const LineSplitter());
+      await for (final line in lines) {
+        if (!line.startsWith('data: ')) continue;
+        final decoded = jsonDecode(line.substring(6));
+        if (decoded is Map<String, dynamic>) yield decoded;
+      }
+    } finally {
+      client.close();
+    }
+  }
+
   /// POST /analyze/text - run the pipeline on camera-scanned text (Sprint 2).
   /// The photo never leaves the phone: ML Kit recognizes text on-device and
   /// only the text is sent. Pipeline can take minutes → long timeout.

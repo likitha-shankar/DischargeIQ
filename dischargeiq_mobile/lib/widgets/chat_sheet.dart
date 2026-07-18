@@ -101,15 +101,8 @@ class _ChatSheetState extends State<_ChatSheet> {
     _ctrl.clear();
     _autoscroll();
     try {
-      final data = await ApiService().chat(
-        message: q,
-        sessionId: _sessionId,
-        pipelineContext: widget.result,
-      );
-      if (!mounted) return;
-      setState(() {
-        _messages.add(_ChatMessage(fromPatient: false, text: '${data['reply'] ?? ''}'));
-      });
+      final streamedText = await _sendStreaming(q);
+      if (!streamedText) await _sendBlocking(q);
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -125,6 +118,65 @@ class _ChatSheetState extends State<_ChatSheet> {
       if (mounted) setState(() => _sending = false);
       _autoscroll();
     }
+  }
+
+  /// Stream the answer live from /chat/stream, growing one assistant bubble
+  /// as deltas arrive. Returns true when any answer text was shown; false
+  /// signals the caller to retry via the blocking endpoint (which re-sends
+  /// the full pipeline context for evicted sessions and older servers).
+  Future<bool> _sendStreaming(String q) async {
+    var bubbleIndex = -1;
+    var text = '';
+    try {
+      await for (final event in ApiService()
+          .chatStream(message: q, sessionId: _sessionId)) {
+        if (!mounted) return true;
+        if (event['delta'] is String) {
+          text += event['delta'] as String;
+        } else if (event['done'] == true) {
+          // Final reply is the server-cleaned full text (grounding suffix
+          // stripped) - replace the accumulated stream with it.
+          text = '${event['reply'] ?? text}';
+        } else if (event.containsKey('error')) {
+          // Keep partial text if any was shown; otherwise let the caller
+          // fall back to the blocking endpoint.
+          if (bubbleIndex < 0) return false;
+          continue;
+        } else {
+          continue;
+        }
+        setState(() {
+          final bubble = _ChatMessage(fromPatient: false, text: text);
+          if (bubbleIndex < 0) {
+            _messages.add(bubble);
+            bubbleIndex = _messages.length - 1;
+          } else {
+            _messages[bubbleIndex] = bubble;
+          }
+        });
+        _autoscroll();
+      }
+      return bubbleIndex >= 0;
+    } catch (_) {
+      // Transport-level failure (409 no context, old server, network drop).
+      // Partial text already shown is kept; nothing shown means retry.
+      return bubbleIndex >= 0;
+    }
+  }
+
+  /// Original non-streaming path - also the fallback when streaming yields
+  /// nothing. Re-sends the full pipeline context so it works even when the
+  /// server's per-session cache was evicted.
+  Future<void> _sendBlocking(String q) async {
+    final data = await ApiService().chat(
+      message: q,
+      sessionId: _sessionId,
+      pipelineContext: widget.result,
+    );
+    if (!mounted) return;
+    setState(() {
+      _messages.add(_ChatMessage(fromPatient: false, text: '${data['reply'] ?? ''}'));
+    });
   }
 
   void _autoscroll() {
