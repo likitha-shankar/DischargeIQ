@@ -1,0 +1,586 @@
+/* ── Typography ─────────────────────────────────────────────────────── */
+/* Project-wide font is Calibri, with web-safe fallbacks. Calibri is
+   shipped on Windows; "Carlito" is the open-source Calibri-metric-
+   compatible font available via Google Fonts so non-Windows users
+   (Mac, Linux, Chromebook) still see the same letter shapes and
+   spacing. Final fallbacks are system humanist sans-serifs. */
+@import url('https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+html, body, .stApp, .stMarkdown, p, li, span, div, button, input,
+h1, h2, h3, h4, h5, h6, label, textarea, select {
+    font-family: Calibri, 'Carlito', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+p, li, span, div, button, input, label, textarea, select {
+    font-size: 1.05rem;
+    line-height: 1.55;
+}
+
+/* ── Page background ─────────────────────────────────────────────────── */
+.stApp {
+    background: linear-gradient(160deg, #f0fdf8 0%, #f8fafc 55%, #eef7f4 100%) !important;
+    background-attachment: fixed !important;
+}
+.block-container {
+    padding-top: 0.5rem !important;
+    padding-bottom: 2rem !important;
+    max-width: 100% !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* Hide Streamlit's native top toolbar ("Deploy" button etc.) so
+   our teal app header is not covered by it. */
+header[data-testid="stHeader"] { display: none !important; }
+
+/* Clear vertical space for the 56px teal app header + ~40px tab
+   bar that live outside stMain in window.parent.document.
+   Trimmed from 104px to 92px to bring section content closer
+   to the tab bar (was visibly too generous). */
+section[data-testid="stMain"] { padding-top: 92px !important; }
+
+/* Streamlit's default block-container adds ~6rem of top padding
+   even after the stMain override; collapse it so the tab bar
+   sits right above the section title. */
+section[data-testid="stMain"] .block-container {
+    padding-top: 0.5rem !important;
+}
+
+/* Remove Streamlit's default top padding on columns */
+[data-testid="column"] { padding: 0 8px; }
+
+/* ── Custom collapsible details ────────────────────────────────────
+   We use native HTML5 <details> for static expandable content (e.g.
+   the medication rationale, "Questions answered" list). This bypasses
+   Streamlit 1.56's broken Material Symbols chevron entirely. The
+   summary draws its own CSS triangle that rotates 90° when open. */
+details.diq-html-details {
+    background: #ffffff;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    margin: 6px 0 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+details.diq-html-details > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1E293B;
+    display: flex;
+    align-items: center;
+    user-select: none;
+}
+details.diq-html-details > summary::-webkit-details-marker {
+    display: none;
+}
+details.diq-html-details > summary::before {
+    content: "";
+    display: inline-block;
+    width: 0; height: 0;
+    border-left: 6px solid #475569;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    margin-right: 10px;
+    transition: transform 0.18s ease;
+    flex-shrink: 0;
+}
+details.diq-html-details[open] > summary::before {
+    transform: rotate(90deg);
+}
+details.diq-html-details > .diq-html-details-body {
+    padding: 4px 16px 14px;
+    font-size: 0.88rem;
+    color: #334155;
+    line-height: 1.55;
+    border-top: 1px solid #F1F5F9;
+}
+details.diq-html-details > .diq-html-details-body p { margin: 0 0 0.5em; }
+details.diq-html-details > .diq-html-details-body ul { margin: 0.25em 0; padding-left: 18px; }
+details.diq-html-details > .diq-html-details-body li { margin-bottom: 3px; }
+
+/* ── Citation chip styling ─────────────────────────────────────────
+   Streamlit puts each widget's key onto its container as a class
+   (e.g. `st-key-cite_med_0`). All citation buttons use keys that
+   start with `cite_`, so this selector targets ONLY citation
+   buttons and leaves other Streamlit buttons (toggles, primary
+   CTAs) untouched. */
+/* ── Verify-extraction expander - match diq-html-details style ──────────
+   st.expander renders as a native <details> element. We override its
+   default Streamlit styling so it looks identical to the medication
+   rationale toggle (diq-html-details): white card, grey border,
+   rounded corners, bold summary text, separator line on body. */
+[data-testid="stExpander"] details {
+    background: #ffffff !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03) !important;
+    margin: 6px 0 12px !important;
+}
+[data-testid="stExpander"] details summary {
+    padding: 10px 14px !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    color: #1E293B !important;
+    list-style: none !important;
+    display: flex !important;
+    align-items: center !important;
+}
+[data-testid="stExpander"] details summary::-webkit-details-marker {
+    display: none !important;
+}
+[data-testid="stExpander"] details summary [data-testid="stExpanderToggleIcon"],
+[data-testid="stExpander"] details summary [data-testid="stIconMaterial"],
+[data-testid="stExpander"] details summary svg {
+    display: none !important;
+}
+[data-testid="stExpander"] details summary::before {
+    content: "";
+    display: inline-block;
+    width: 0; height: 0;
+    border-left: 6px solid #475569;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    margin-right: 5px;
+    transition: transform 0.18s ease;
+    flex-shrink: 0;
+}
+[data-testid="stExpander"] details[open] summary::before {
+    transform: rotate(90deg);
+}
+[data-testid="stExpander"] details[open] > div {
+    border-top: 1px solid #F1F5F9 !important;
+    padding: 0 16px 14px !important;
+}
+[data-testid="stExpander"] details[open] > div > div:first-child,
+[data-testid="stExpander"] details[open] [data-testid="stVerticalBlock"]:first-child,
+[data-testid="stExpander"] details[open] > div > div:first-child > div:first-child {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+[data-testid="stExpander"] details[open] p:first-child,
+[data-testid="stExpander"] details[open] small:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+[class*="st-key-cite_"] button {
+    padding: 1px 10px !important;
+    font-size: 0.72rem !important;
+    font-weight: 500 !important;
+    color: #64748B !important;
+    background: #F8FAFC !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 999px !important;
+    min-height: 22px !important;
+    height: 22px !important;
+    box-shadow: none !important;
+    line-height: 1 !important;
+}
+[class*="st-key-cite_"] button:hover {
+    background: #F1F5F9 !important;
+    color: #0F6E56 !important;
+    border-color: #9FD9C8 !important;
+}
+
+/* ── Agent text markdown headers - keep them in scale ───────────────
+   Agent 2's diagnosis explanation often emits # / ## / ### markdown
+   headers which Streamlit renders at h1/h2/h3 default sizes (way too
+   large next to our section title). Cap them so they read as
+   sub-headings, not page-spanning banners.
+
+   IMPORTANT: scoped via `:not([style])` so the rule only matches
+   headers that have NO inline style - i.e. the ones generated by
+   plain `st.markdown("# header")` from agent text. The upload-screen
+   hero ("Understand everything" / "the doctor just told you.") uses
+   inline style="font-size:40px" and is correctly skipped. */
+section[data-testid="stMain"] [data-testid="stMarkdownContainer"] h1:not([style]) {
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+    margin: 14px 0 6px !important;
+    color: #0A2A1F !important;
+}
+section[data-testid="stMain"] [data-testid="stMarkdownContainer"] h2:not([style]) {
+    font-size: 1.02rem !important;
+    font-weight: 700 !important;
+    margin: 12px 0 4px !important;
+    color: #0F6E56 !important;
+}
+section[data-testid="stMain"] [data-testid="stMarkdownContainer"] h3:not([style]) {
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    margin: 10px 0 4px !important;
+    color: #1E293B !important;
+}
+section[data-testid="stMain"] [data-testid="stMarkdownContainer"] h4:not([style]) {
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    margin: 8px 0 4px !important;
+    color: #334155 !important;
+}
+
+/* ── Section title ───────────────────────────────────────────────────── */
+.diq-section-title {
+    font-size: 1.18rem;
+    font-weight: 800;
+    color: #0A2A1F;
+    letter-spacing: -0.01em;
+    margin: 4px 0 12px;
+    padding-bottom: 8px;
+    position: relative;
+}
+.diq-section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 40px; height: 3px;
+    background: linear-gradient(90deg, #0F6E56, #1D9E75);
+    border-radius: 3px;
+}
+
+/* ── Medication card ─────────────────────────────────────────────────── */
+.diq-med-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border-left: 4px solid #6366F1;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
+    transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+.diq-med-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 8px 28px rgba(15,110,86,0.10);
+    transform: translateY(-1px);
+}
+
+/* ── Appointment row ─────────────────────────────────────────────────── */
+.diq-appt-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 16px;
+    background: #ffffff;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s ease;
+}
+.diq-appt-row:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 4px 16px rgba(15,110,86,0.08);
+}
+.diq-appt-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0F6E56, #1D9E75);
+    flex-shrink: 0;
+    margin-top: 5px;
+    box-shadow: 0 0 0 3px rgba(29,158,117,0.15);
+}
+
+/* ── Inline caregiver questions (embedded inside card, no extra chrome) ── */
+.diq-caregiver-questions-inline {
+    background: #F0F9FF;
+    border-left: 3px solid #0EA5E9;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-top: 10px;
+}
+.diq-caregiver-questions-inline ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 0.82rem;
+    color: #0C4A6E;
+}
+.diq-caregiver-questions-inline li {
+    margin-bottom: 3px;
+    line-height: 1.35;
+}
+
+/* ── Recovery week cards ─────────────────────────────────────────────── */
+.diq-week-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #ffffff;
+    border-radius: 14px 14px 0 0;
+    border-left: 4px solid #1D9E75;
+    padding: 12px 18px 8px;
+    margin-top: 14px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 14px rgba(15,110,86,0.08);
+}
+.diq-week-badge {
+    min-width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #0F6E56, #1D9E75);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.78rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(15,110,86,0.25);
+    flex-shrink: 0;
+}
+.diq-week-header {
+    font-size: 1.0rem;
+    font-weight: 700;
+    color: #0A2A1F;
+    letter-spacing: -0.01em;
+}
+.diq-week-body {
+    background: #ffffff;
+    border-radius: 0 0 14px 14px;
+    border-left: 4px solid #1D9E75;
+    padding: 4px 22px 14px 66px;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #1E293B;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 14px rgba(15,110,86,0.08);
+}
+.diq-week-body p { margin: 0 0 0.4em; }
+.diq-week-body ul {
+    margin: 4px 0 4px 0;
+    padding-left: 0;
+    list-style: none;
+}
+.diq-week-body li {
+    margin-bottom: 6px;
+    padding-left: 18px;
+    position: relative;
+}
+.diq-week-body li::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0.5em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #1D9E75;
+    box-shadow: 0 0 0 2px rgba(29,158,117,0.18);
+}
+.diq-week-outro {
+    background: linear-gradient(135deg, #F0FDF9, #E8F8F1);
+    border: 1px solid rgba(29,158,117,0.25);
+    border-radius: 14px;
+    padding: 14px 20px;
+    margin-top: 16px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(15,110,86,0.06);
+}
+.diq-week-outro-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #0F6E56;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+}
+.diq-week-outro-body {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #0A2A1F;
+}
+.diq-week-outro-body ul {
+    margin: 4px 0;
+    padding-left: 0;
+    list-style: none;
+}
+.diq-week-outro-body li {
+    margin-bottom: 5px;
+    padding-left: 18px;
+    position: relative;
+}
+.diq-week-outro-body li::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0.5em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #0F6E56;
+    box-shadow: 0 0 0 2px rgba(15,110,86,0.18);
+}
+
+/* ── Warning card ────────────────────────────────────────────────────── */
+.diq-warning-card {
+    background: linear-gradient(135deg, #FFF5F5, #FEF2F2);
+    border-radius: 14px;
+    border: 1px solid rgba(220,38,38,0.12);
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(220,38,38,0.06);
+}
+.diq-flag-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 0;
+}
+.diq-flag-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #DC2626;
+    flex-shrink: 0;
+    margin-top: 6px;
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.15);
+}
+
+/* ── Medication status badge ─────────────────────────────────────────── */
+.diq-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #fff;
+}
+
+/* ── Changed banner ──────────────────────────────────────────────────── */
+.diq-changed-banner {
+    background: linear-gradient(135deg, #FEF9C3, #FEF3C7);
+    color: #92400E;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-top: 6px;
+    display: inline-block;
+    border: 1px solid rgba(146,64,14,0.15);
+}
+
+/* ── Diagnosis "at a glance" block ───────────────────────────────────── */
+.diq-dx-label {
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: #64748B; margin: 16px 0 8px;
+}
+.diq-dx-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 7px 0; font-size: 0.93rem; color: #1E293B; font-weight: 500;
+}
+.diq-dx-badge {
+    display: inline-block;
+    width: 4px; height: 20px;
+    background: linear-gradient(180deg, #0F6E56, #1D9E75);
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+.diq-dx-sep {
+    border: none;
+    border-top: 1px solid #E5E7EB;
+    margin: 18px 0;
+}
+
+/* ── Citation chip (p.N) ─────────────────────────────────────────────── */
+div[data-testid="stButton"]:has(button[kind="secondary"]) {
+    display: inline-flex !important;
+    width: auto !important;
+}
+button[data-testid="baseButton-secondary"],
+button[kind="secondary"] {
+    padding: 1px 6px !important;
+    font-size: 0.6rem !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    border-radius: 4px !important;
+    background: rgba(15,110,86,0.06) !important;
+    color: #0F6E56 !important;
+    border: 1px solid rgba(15,110,86,0.2) !important;
+    min-height: 0 !important;
+    height: auto !important;
+    box-shadow: none !important;
+    transition: background 0.15s ease !important;
+}
+button[data-testid="baseButton-secondary"]:hover,
+button[kind="secondary"]:hover {
+    background: rgba(15,110,86,0.12) !important;
+    color: #0A5240 !important;
+    border-color: rgba(15,110,86,0.35) !important;
+    box-shadow: none !important;
+}
+
+/* ── Recovery section ────────────────────────────────────────────────── */
+.diq-recovery-col {
+    font-size: 0.9rem; color: #334155; line-height: 1.9;
+}
+.diq-discharge-cond {
+    background: linear-gradient(135deg, #F1F5F9, #EFF6FF);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    color: #475569;
+    margin-top: 12px;
+    border: 1px solid #E2E8F0;
+}
+
+/* ── Download button ─────────────────────────────────────────────────── */
+button[data-testid="baseButton-secondary"][kind="secondary"][data-testid*="download"],
+div[data-testid="stDownloadButton"] button {
+    background: linear-gradient(135deg, #0F6E56, #1D9E75) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.82rem !important;
+    padding: 8px 16px !important;
+    box-shadow: 0 2px 8px rgba(15,110,86,0.25) !important;
+    transition: opacity 0.2s ease !important;
+}
+div[data-testid="stDownloadButton"] button:hover {
+    opacity: 0.9 !important;
+    box-shadow: 0 4px 12px rgba(15,110,86,0.35) !important;
+}
+
+/* ── Hidden click-target buttons ─────────────────────────────────────── */
+div[data-testid="stElementContainer"]:has(.diq-hidden-btn-slot),
+div[data-testid="stElementContainer"]:has(.diq-hidden-btn-slot)
+  + div[data-testid="stElementContainer"] {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    top: -9999px !important;
+    left: -9999px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+div[data-testid="stElementContainer"]:has(.diq-hidden-btn-slot)
+  + div[data-testid="stElementContainer"] {
+    pointer-events: auto !important;
+}
+
+/* ── Streamlit info/warning/error blocks ─────────────────────────────── */
+div[data-testid="stAlert"] {
+    border-radius: 12px !important;
+    border: none !important;
+    font-size: 0.88rem !important;
+}
+
+/* ── Markdown prose inside results ───────────────────────────────────── */
+.stMarkdown p {
+    font-size: 0.93rem;
+    line-height: 1.75;
+    color: #334155;
+}
+.stMarkdown li {
+    font-size: 0.91rem;
+    line-height: 1.7;
+    color: #334155;
+}
+.stMarkdown h3 {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: #0A2A1F !important;
+    margin: 14px 0 6px !important;
+}

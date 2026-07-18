@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    width:100%;height:100%;overflow:hidden;background:#04342C;
+    font-family:Calibri,'Carlito','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+    color:#E6EFE9;
+  }
+
+  /* Stage - fades to opacity 0 after logo exits, so the dark green
+     background is never replaced with white; the upload screen reveals
+     beneath it once the iframe is invisible. cubic-bezier is iOS easeOut. */
+  #stage{
+    position:fixed;inset:0;background:#04342C;
+    display:flex;align-items:center;justify-content:center;
+    transition:opacity 700ms cubic-bezier(.32,.72,0,1);
+  }
+  #stage.gone{ opacity:0; pointer-events:none; }
+
+  #vignette{
+    position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at center,
+      rgba(15,110,86,0.22) 0%, rgba(0,0,0,0.0) 55%);
+    transition:opacity 700ms cubic-bezier(.32,.72,0,1);
+  }
+  #vignette.gone{ opacity:0; }
+
+  #skip{
+    position:absolute;top:22px;right:24px;
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.18);
+    color:rgba(255,255,255,0.55);
+    font-size:11px;font-weight:500;letter-spacing:0.6px;
+    text-transform:uppercase;
+    padding:6px 14px;border-radius:999px;cursor:pointer;
+    transition:color .2s, border-color .2s, opacity .45s ease;
+    z-index:5;font-family:Calibri,'Carlito','Segoe UI',sans-serif;
+  }
+  #skip:hover{
+    color:rgba(255,255,255,0.92);
+    border-color:rgba(255,255,255,0.42);
+  }
+  #skip.gone{ opacity:0; pointer-events:none; }
+
+  /* Phrase block ---------------------------------------------------------- */
+  #phrase{
+    position:relative;text-align:center;
+    transition:opacity 600ms cubic-bezier(.32,.72,0,1);
+  }
+  #phrase.gone{ opacity:0; }
+
+  /* "HELPING" eyebrow - small caps label, intentionally smaller to read as
+     a category line rather than a body line. */
+  .helping{
+    font-family:Calibri,'Carlito','Segoe UI',sans-serif;
+    font-size:12px;font-weight:500;letter-spacing:5.5px;
+    color:rgba(190,210,200,0.55);
+    margin-bottom:24px;
+    opacity:0;transform:translateY(6px);
+    transition:opacity 700ms cubic-bezier(.32,.72,0,1),
+               transform 700ms cubic-bezier(.32,.72,0,1);
+  }
+
+  /* Body lines - five lines, all uniform 56px, single line-height, identical
+     visual weight (italic uses 600 instead of 500 to compensate for the
+     visual shrinkage italic Cormorant renders at the same point size). */
+  .line{
+    font-family:Calibri,'Carlito','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:56px;font-weight:500;line-height:1.14;
+    letter-spacing:-0.005em;color:#E6EFE9;
+    opacity:0;transform:translateY(16px);
+    transition:opacity 800ms cubic-bezier(.32,.72,0,1),
+               transform 800ms cubic-bezier(.32,.72,0,1);
+  }
+  .line.italic{
+    font-style:italic;
+    font-weight:600;
+    color:#5DCAA5;
+    margin-top:8px;
+  }
+  .show{ opacity:1 !important; transform:translateY(0) !important; }
+
+  /* Logo block ------------------------------------------------------------ */
+  #logo{
+    position:absolute;text-align:center;
+    opacity:0;transition:opacity 600ms cubic-bezier(.32,.72,0,1);
+  }
+  #logo.show{ opacity:1; }
+  #logo.gone{ opacity:0; }
+
+  /* Flexbox row keeps Discharge | caret | IQ on a shared baseline so the
+     caret always sits flush at the right edge of the typed letters,
+     regardless of how many letters have been typed so far. */
+  .wordmark-row{
+    display:flex;align-items:baseline;justify-content:center;
+    line-height:1;
+  }
+  .wordmark{
+    font-family:Calibri,'Carlito','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:78px;font-weight:600;letter-spacing:-1.5px;
+    color:#1FA47F;
+    display:inline-block;
+  }
+
+  /* IQ stays display:none until snap-in. opacity:0 alone wouldn't work
+     because the span would still reserve width and push the caret off
+     the right edge of "Discharge" while typing. */
+  #iq{ display:none; }
+  #iq.show{ display:inline-block; }
+
+  /* Caret sits between Discharge and IQ - flush against the typed text. */
+  #caret{
+    display:inline-block;width:3px;height:0.7em;
+    background:#1FA47F;margin:0 2px 0 3px;
+    align-self:center;
+    animation:blink 720ms step-start infinite;
+  }
+  #caret.gone{ display:none; }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .subtitle{
+    font-family:Calibri,'Carlito','Segoe UI',sans-serif;
+    font-size:12px;font-weight:400;letter-spacing:1.4px;
+    color:rgba(190,210,200,0.5);
+    margin-top:24px;text-transform:uppercase;
+    opacity:0;transition:opacity 800ms cubic-bezier(.32,.72,0,1);
+  }
+  .subtitle.show{ opacity:1; }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <div id="vignette"></div>
+    <button id="skip" type="button">Skip</button>
+
+    <div id="phrase">
+      <div class="helping" id="w-helping">HELPING</div>
+      <div class="line"           id="w-1">patients</div>
+      <div class="line"           id="w-2">understand</div>
+      <div class="line"           id="w-3">everything</div>
+      <div class="line"           id="w-4">the doctor</div>
+      <div class="line italic"    id="w-5">just told them.</div>
+    </div>
+
+    <div id="logo">
+      <div class="wordmark-row">
+        <span class="wordmark" id="discharge"></span><span id="caret"></span><span class="wordmark" id="iq">IQ</span>
+      </div>
+      <div class="subtitle" id="subtitle">Your discharge, simplified.</div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var advanced = false;
+
+  // 1. Expand iframe to full viewport + suppress Streamlit chrome ---------
+  function expand(){
+    var f = window.frameElement;
+    if (f) {
+      var s = f.style;
+      s.position = 'fixed'; s.inset = '0';
+      s.width = '100vw'; s.height = '100vh';
+      s.zIndex = '9999';
+      s.border = 'none'; s.margin = '0'; s.padding = '0';
+    }
+    try {
+      var pdoc = window.parent.document;
+      if (!pdoc.getElementById('diq-landing-parent-style')) {
+        var el = pdoc.createElement('style');
+        el.id = 'diq-landing-parent-style';
+        el.textContent =
+          'header[data-testid="stHeader"]{display:none!important}' +
+          'footer{display:none!important}' +
+          'div[data-testid="stDecoration"]{display:none!important}' +
+          'section[data-testid="stMain"]{padding:0!important}';
+        pdoc.head.appendChild(el);
+      }
+    } catch(e) {}
+  }
+  expand();
+  window.addEventListener('load', expand);
+
+  // 2. Advance to upload screen via the hidden Streamlit button -----------
+  // Polls every 100 ms for up to 6 s in case the parent React tree hasn't
+  // mounted the hidden button yet (it hadn't on first load - without this
+  // retry the iframe was leaving the user staring at a blank dark page).
+  function advance(){
+    if (advanced) return;
+    advanced = true;
+    var attempts = 0;
+    function tryClick(){
+      try {
+        var pdoc = window.parent.document;
+        var marker = pdoc.querySelector('span[data-diq-slot="__diq_landing_done__"]');
+        if (marker) {
+          var slot = marker.closest('div[data-testid="stElementContainer"]');
+          if (slot) {
+            var next = slot.nextElementSibling;
+            if (next) {
+              var btn = next.querySelector('button');
+              if (btn) { btn.click(); return; }
+            }
+          }
+        }
+      } catch(e) {}
+      if (++attempts < 60) setTimeout(tryClick, 100);
+    }
+    tryClick();
+  }
+
+  // 3. Skip button binding ------------------------------------------------
+  // Logo fades first (400 ms), then the dark stage fades to opacity 0
+  // (700 ms), then advance fires. Mirrors the natural completion path.
+  function bindSkip(){
+    var skip = document.getElementById('skip');
+    if (!skip) return;
+    skip.addEventListener('click', function(){
+      skip.classList.add('gone');
+      hide('vignette');
+      hide('phrase');
+      hide('logo');
+      var stage = document.getElementById('stage');
+      if (stage) {
+        setTimeout(function(){ stage.classList.add('gone'); }, 400);
+      }
+      setTimeout(advance, 1200);
+    });
+  }
+
+  // 4. Animation helpers --------------------------------------------------
+  function show(id){ var el = document.getElementById(id); if (el) el.classList.add('show'); }
+  function hide(id){ var el = document.getElementById(id); if (el) el.classList.add('gone'); }
+
+  function typewriter(id, word, perChar, doneCb){
+    var el = document.getElementById(id);
+    if (!el) { if (doneCb) doneCb(); return; }
+    var i = 0;
+    var t = setInterval(function(){
+      i += 1;
+      el.textContent = word.slice(0, i);
+      if (i >= word.length) {
+        clearInterval(t);
+        if (doneCb) doneCb();
+      }
+    }, perChar);
+  }
+
+  // 5. Animation timeline -------------------------------------------------
+  function runTimeline(){
+    // Phase A - phrase build (deliberate cadence, 400-450 ms between lines)
+    setTimeout(function(){ show('w-helping'); },  300);
+    setTimeout(function(){ show('w-1'); },        850);
+    setTimeout(function(){ show('w-2'); },       1250);
+    setTimeout(function(){ show('w-3'); },       1650);
+    setTimeout(function(){ show('w-4'); },       2050);
+    setTimeout(function(){ show('w-5'); },       2500);
+
+    // Phase B - phrase fades out (after ~2 s dwell on the full block)
+    setTimeout(function(){ hide('phrase'); },    4500);
+
+    // Phase C/D - logo typewriter, IQ snap (caret hides at the same
+    // instant so there's no caret-jump artifact), subtitle reveal.
+    setTimeout(function(){
+      var logo = document.getElementById('logo');
+      if (logo) logo.classList.add('show');
+      typewriter('discharge', 'Discharge', 90, function(){
+        setTimeout(function(){
+          show('iq');
+          hide('caret');
+          setTimeout(function(){ show('subtitle'); }, 350);
+        }, 240);
+      });
+    }, 4700);
+
+    // Phase E - graceful exit. Four beats:
+    //   7400  fade decorations (vignette, skip)
+    //   7800  logo fades out (~400 ms CSS transition on #logo)
+    //   8300  dark stage fades to opacity 0 (~700 ms); bg stays dark green
+    //   9100  advance() - stage is invisible, iframe unmount is seamless.
+    setTimeout(function(){
+      hide('vignette');
+      hide('skip');
+    },                                            7400);
+    setTimeout(function(){
+      hide('logo');
+    },                                            7800);
+    setTimeout(function(){
+      var stage = document.getElementById('stage');
+      if (stage) stage.classList.add('gone');
+    },                                            8300);
+    setTimeout(advance,                           9100);
+  }
+
+  bindSkip();
+  runTimeline();
+})();
+</script>
+</body>
+</html>
