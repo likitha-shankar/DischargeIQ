@@ -20,6 +20,16 @@ http {
     tcp_nopush     on;
     keepalive_timeout 75s;
 
+    # Compress API JSON (an /analyze response is 17-40KB - a 70-80% cut for
+    # phones on cellular). text/event-stream is deliberately NOT listed:
+    # gzip would buffer SSE and defeat live chat streaming. text/html is
+    # compressed by nginx's built-in default.
+    gzip on;
+    gzip_types application/json application/javascript text/css text/plain;
+    gzip_min_length 1024;
+    gzip_comp_level 5;
+    gzip_vary on;
+
     # Match FastAPI's per-upload limit (see /analyze in dischargeiq/main.py).
     client_max_body_size 50m;
 
