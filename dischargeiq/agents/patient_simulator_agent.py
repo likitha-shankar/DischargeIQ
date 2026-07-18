@@ -68,7 +68,10 @@ logger = logging.getLogger(__name__)
 # block - Agent 6 now emits 6-8 Q-blocks plus a per-item caregiver-question
 # array (one entry per medication/appointment/warning sign). 1800 stays well
 # inside Anthropic Haiku's per-call budget.
-_MAX_TOKENS = 1800
+# 1800 truncated real runs on BOTH providers (concept list + summary JSON
+# does not fit) - observed live July 2026; empty-fallback gap 0 looks like a
+# clean document, the opposite of the truth.
+_MAX_TOKENS = 4096
 _PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 _FK_THRESHOLD = 8.0
 

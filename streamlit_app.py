@@ -62,8 +62,12 @@ logger = logging.getLogger(__name__)
 # ── Constants ─────────────────────────────────────────────────────────────────
 
 _API_BASE = os.environ.get("API_BASE_URL", "http://localhost:8000")
+# Browser-facing URLs: on a hosted deployment the patient's browser cannot
+# reach the container's localhost - nginx exposes the backend at
+# PUBLIC_API_BASE_URL (e.g. "/api"). Server-side requests keep _API_BASE.
+_PUBLIC_API_BASE = os.environ.get("PUBLIC_API_BASE_URL", "") or _API_BASE
 _ANALYZE_URL = f"{_API_BASE}/analyze"
-_CHAT_URL = f"{_API_BASE}/chat"
+_CHAT_URL = f"{_PUBLIC_API_BASE}/chat"
 
 # Left-border colors for medication cards.
 _MED_BORDER = {
@@ -2039,7 +2043,7 @@ def _inject_pdf_modal(
         st.warning("PDF not available for this session. Please re-upload the document.")
         return
 
-    iframe_src = f"{_API_BASE}/pdf/{pdf_session_id}#page={page}" if pdf_session_id else ""
+    iframe_src = f"{_PUBLIC_API_BASE}/pdf/{pdf_session_id}#page={page}" if pdf_session_id else ""
     iframe_src_attr = "about:blank" if embed_b64 else iframe_src
 
     modal_css = """
@@ -5354,7 +5358,7 @@ def _run_analysis_with_loading() -> None:
     # id via header) reference the same record. Without this they wouldn't
     # match and the bar would stay indeterminate forever.
     progress_session_id = str(uuid.uuid4())
-    progress_url = f"{_API_BASE}/progress/{progress_session_id}"
+    progress_url = f"{_PUBLIC_API_BASE}/progress/{progress_session_id}"
 
     placeholder = st.empty()
     with placeholder.container():
