@@ -12,22 +12,29 @@ Called by: pytest (auto-discovered).
 
 import pytest
 
+from dischargeiq.api.routes import media
 from dischargeiq.services.session import session_store
 from dischargeiq.utils import llm_client
+
+
+def _clear_global_state() -> None:
+    """Reset every process-global cache/cooldown tests can pollute."""
+    llm_client._quota_cooldown_until.clear()
+    with session_store._result_lock:
+        session_store._result_by_hash.clear()
+    with media._audio_cache_lock:
+        media._audio_cache.clear()
 
 
 @pytest.fixture(autouse=True)
 def _reset_cross_test_state():
     """
     Clear process-global state that would otherwise leak between tests:
-    provider quota cooldowns (would reroute later tests to the fallback) and
+    provider quota cooldowns (would reroute later tests to the fallback),
     the document-hash result cache (would serve one test's pipeline result
-    to another test that reuses the same input text).
+    to another test reusing the same input text), and the per-case audio
+    cache (would answer 200 where a test forces a generation failure).
     """
-    llm_client._quota_cooldown_until.clear()
-    with session_store._result_lock:
-        session_store._result_by_hash.clear()
+    _clear_global_state()
     yield
-    llm_client._quota_cooldown_until.clear()
-    with session_store._result_lock:
-        session_store._result_by_hash.clear()
+    _clear_global_state()

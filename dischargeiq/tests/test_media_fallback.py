@@ -75,3 +75,99 @@ def test_failure_mode_3_selector_break(tmp_path, monkeypatch):
             code = _client.get(f"/media/{bad}{suffix}").status_code
             assert code == 404, f"/media/{bad}{suffix} returned {code}, expected 404"
     _assert_comprehension_loop_alive()
+
+
+# ── Task 3.3: forced failures on the EXECUTED media path (per-case TTS) ───────
+# The three work-plan modes for the generation pipeline: interface break,
+# generation timeout, malformed artifact. Contract in every case: a labeled
+# 4xx/5xx (never a raw 500 crash), and the teach-back loop keeps scoring.
+
+_CASE_BODY = {
+    "session_id": "media-fallback-case",
+    "pipeline_payload": {
+        "extraction": {"primary_diagnosis": "COPD"},
+        "diagnosis_explanation": "Your lungs had a flare-up.",
+        "medication_rationale": "Prednisone calms the swelling.",
+        "recovery_trajectory": "Week one: rest.",
+        "escalation_guide": "Call 911 for severe trouble breathing.",
+    },
+}
+
+
+def _clear_audio_cache():
+    with media._audio_cache_lock:
+        media._audio_cache.clear()
+    # /media/case is rate-limited 4/60s per IP; every test in this file
+    # shares the "testclient" IP, so clear the window or the later tests
+    # measure the limiter instead of the media contract.
+    from dischargeiq.api import middleware
+
+    middleware._rate_windows.clear()
+
+
+def test_case_mode_interface_break(monkeypatch):
+    """Script LLM interface break -> labeled 502, loop alive."""
+    monkeypatch.setenv("CASE_AUDIO_ENABLED", "true")
+    _clear_audio_cache()
+
+    def broken(*a, **k):
+        raise RuntimeError("script model interface broke")
+
+    monkeypatch.setattr(media, "build_dialogue_script", broken)
+    resp = _client.post("/media/case", json=_CASE_BODY)
+    assert resp.status_code == 502
+    assert "written summary" in resp.json()["detail"].lower()
+    _assert_comprehension_loop_alive()
+
+
+def test_case_mode_generation_timeout(monkeypatch):
+    """TTS timeout -> labeled 502, loop alive."""
+    import requests
+
+    monkeypatch.setenv("CASE_AUDIO_ENABLED", "true")
+    _clear_audio_cache()
+    monkeypatch.setattr(media, "build_dialogue_script", lambda p: "Sam: hi\nAlex: hi")
+
+    def timeout(*a, **k):
+        raise requests.Timeout("TTS generation timed out")
+
+    monkeypatch.setattr(media, "synthesize_dialogue_bytes", timeout)
+    resp = _client.post("/media/case", json=_CASE_BODY)
+    assert resp.status_code == 502
+    _assert_comprehension_loop_alive()
+
+
+def test_case_mode_malformed_artifact_and_flag_off(monkeypatch):
+    """Malformed TTS output is served as bytes (client player owns the error
+    path, API never 500s); flag off -> 404 identical to a missing file."""
+    monkeypatch.setenv("CASE_AUDIO_ENABLED", "true")
+    _clear_audio_cache()
+    monkeypatch.setattr(media, "build_dialogue_script", lambda p: "Sam: hi\nAlex: hi")
+    monkeypatch.setattr(media, "synthesize_dialogue_bytes", lambda s: b"not-a-wav")
+    resp = _client.post("/media/case", json=_CASE_BODY)
+    assert resp.status_code == 200  # bytes served; playback error is client-side
+    _clear_audio_cache()
+
+    monkeypatch.setenv("CASE_AUDIO_ENABLED", "false")
+    assert _client.post("/media/case", json=_CASE_BODY).status_code == 404
+    _assert_comprehension_loop_alive()
+
+
+def test_case_audio_cache_hit_skips_generation(monkeypatch):
+    """Identical payload -> cached WAV, zero script/TTS calls on repeat."""
+    monkeypatch.setenv("CASE_AUDIO_ENABLED", "true")
+    _clear_audio_cache()
+    calls = {"n": 0}
+
+    def once(p):
+        calls["n"] += 1
+        return "Sam: hi\nAlex: hi"
+
+    monkeypatch.setattr(media, "build_dialogue_script", once)
+    monkeypatch.setattr(media, "synthesize_dialogue_bytes", lambda s: b"RIFFfake")
+    first = _client.post("/media/case", json=_CASE_BODY)
+    second = _client.post("/media/case", json=_CASE_BODY)
+    assert first.status_code == second.status_code == 200
+    assert second.content == first.content
+    assert calls["n"] == 1, "cache miss on identical payload"
+    _clear_audio_cache()
