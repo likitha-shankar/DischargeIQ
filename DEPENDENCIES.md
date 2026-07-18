@@ -64,7 +64,6 @@ No LGPL-only or GPL-only packages. Direct dependencies are pinned in
 | charset-normalizer | 3.4.7 | MIT |
 | click | 8.3.3 | BSD-3-Clause |
 | cryptography | 46.0.7 | Apache-2.0 OR BSD-3-Clause |
-| deepdiff | 9.0.0 | MIT |
 | defusedxml | 0.7.1 | Python Software Foundation |
 | distro | 1.9.0 | Apache-2.0 |
 | docstring_parser | 0.18.0 | MIT |
@@ -85,7 +84,6 @@ No LGPL-only or GPL-only packages. Direct dependencies are pinned in
 | nltk | 3.9.4 | Apache-2.0 |
 | numpy | 2.4.4 | BSD-3-Clause (+ 0BSD/MIT/Zlib/CC0) |
 | openai | 2.32.0 | Apache-2.0 |
-| orderly-set | 5.5.0 | MIT |
 | packaging | 26.1 | Apache-2.0 OR BSD-2-Clause |
 | pandas | 3.0.2 | BSD |
 | pdfminer.six | 20251230 | MIT |
@@ -100,7 +98,6 @@ No LGPL-only or GPL-only packages. Direct dependencies are pinned in
 | pydantic | 2.13.3 | MIT |
 | pydantic_core | 2.46.3 | MIT |
 | pydeck | 0.9.2 | Apache-2.0 |
-| pypdf | 6.10.2 | BSD-3-Clause |
 | pypdfium2 | 5.7.1 | BSD-3-Clause / Apache-2.0 |
 | **pyphen** | 0.17.2 | **GPLv2+ / LGPLv2+ / MPL 1.1** (flagged above; used under LGPL/MPL) |
 | pytest | 8.4.2 | MIT |
