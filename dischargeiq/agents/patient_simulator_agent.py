@@ -44,7 +44,6 @@ import json
 import logging
 import os
 import re
-from pathlib import Path
 from typing import Literal
 
 import textstat
@@ -57,7 +56,11 @@ from dischargeiq.models.pipeline import (
     MissedConcept,
     PatientSimulatorOutput,
 )
-from dischargeiq.utils.llm_client import call_chat_with_fallback, get_llm_client
+from dischargeiq.utils.llm_client import (
+    call_chat_with_fallback,
+    get_llm_client,
+    load_agent_prompt,
+)
 from dischargeiq.utils.scorer import log_fk_score
 
 logger = logging.getLogger(__name__)
@@ -72,7 +75,6 @@ logger = logging.getLogger(__name__)
 # does not fit) - observed live July 2026; empty-fallback gap 0 looks like a
 # clean document, the opposite of the truth.
 _MAX_TOKENS = 4096
-_PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 _FK_THRESHOLD = 8.0
 
 _FALLBACK_OUTPUT = PatientSimulatorOutput(
@@ -86,16 +88,6 @@ _FALLBACK_OUTPUT = PatientSimulatorOutput(
 
 
 # ── Internal helpers ───────────────────────────────────────────────────────────
-
-
-def _load_system_prompt() -> str:
-    """Load agent6_system_prompt.txt."""
-    path = _PROMPTS_DIR / "agent6_system_prompt.txt"
-    if not path.exists():
-        raise FileNotFoundError(
-            f"Agent 6 system prompt not found at: {path}."
-        )
-    return path.read_text(encoding="utf-8").strip()
 
 
 def _append_bullets(lines: list[str], title: str, items: list[str]) -> None:
@@ -593,7 +585,7 @@ def _fetch_raw_simulator_output(
     document_id: str,
 ) -> str:
     """Call the LLM; return stripped text or raise."""
-    system_prompt = _load_system_prompt()
+    system_prompt = load_agent_prompt("agent6_system_prompt.txt")
     user_message = _build_simulator_user_message(extraction)
     client, model_name = get_llm_client()
     try:

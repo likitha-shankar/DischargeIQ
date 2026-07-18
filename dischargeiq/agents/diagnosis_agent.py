@@ -34,12 +34,15 @@ BLOCKED BY: Agent 1 must be done before this runs in production.
 
 import logging
 import os
-from pathlib import Path
 
 from openai import APIError, OpenAI
 
 from dischargeiq.models.extraction import ExtractionOutput
-from dischargeiq.utils.llm_client import call_chat_with_fallback, get_llm_client
+from dischargeiq.utils.llm_client import (
+    call_chat_with_fallback,
+    get_llm_client,
+    load_agent_prompt,
+)
 from dischargeiq.utils.scorer import fk_check, log_fk_score
 
 logger = logging.getLogger(__name__)
@@ -58,30 +61,7 @@ _MAX_TOKENS = 1200
 # accepting whichever of the two attempts scored lower.
 _FK_RETRY_THRESHOLD = 6.5
 
-# Paths resolved relative to this file
-_PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
-
-
 # ── Internal helpers ───────────────────────────────────────────────────────────
-
-def _load_system_prompt() -> str:
-    """
-    Load the Agent 2 system prompt from dischargeiq/prompts/agent2_system_prompt.txt.
-
-    Returns:
-        str: The full system prompt text.
-
-    Raises:
-        FileNotFoundError: If the prompt file does not exist.
-    """
-    prompt_path = _PROMPTS_DIR / "agent2_system_prompt.txt"
-    if not prompt_path.exists():
-        raise FileNotFoundError(
-            f"Agent 2 system prompt not found at: {prompt_path}. "
-            "Ensure dischargeiq/prompts/agent2_system_prompt.txt exists."
-        )
-    return prompt_path.read_text(encoding="utf-8").strip()
-
 
 def _build_user_message(extraction: ExtractionOutput) -> str:
     """
@@ -207,7 +187,7 @@ def run_diagnosis_agent(
             f"Field is empty for document '{document_id}'."
         )
 
-    system_prompt = _load_system_prompt()
+    system_prompt = load_agent_prompt("agent2_system_prompt.txt")
     user_message = _build_user_message(extraction)
 
     # get_llm_client() reads LLM_PROVIDER and LLM_MODEL from the environment.

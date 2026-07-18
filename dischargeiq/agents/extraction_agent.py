@@ -42,7 +42,6 @@ import time
 from pathlib import Path
 
 import pdfplumber
-from openai import OpenAI, RateLimitError
 from pydantic import ValidationError
 
 from dischargeiq.models.extraction import ExtractionOutput
@@ -50,14 +49,10 @@ from dischargeiq.utils.llm_client import (
     call_chat_with_fallback,
     get_fallback_client,
     get_llm_client,
+    load_agent_prompt,
 )
 
 logger = logging.getLogger(__name__)
-
-# ── Configuration ──────────────────────────────────────────────────────────────
-
-# Absolute path to the prompts directory, resolved relative to this file.
-_PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 
 # ── Deterministic post-processing tables ───────────────────────────────────────
 # LLM prompt instructions are followed inconsistently; deterministic Python
@@ -454,28 +449,6 @@ Return a single JSON object with these fields (no extra keys, no commentary):
 """
 
 
-def _load_system_prompt() -> str:
-    """
-    Load the Agent 1 system prompt from disk.
-
-    Returns:
-        str: Contents of agent1_system_prompt.txt, stripped of trailing whitespace.
-
-    Raises:
-        FileNotFoundError: If the prompt file does not exist at the expected path.
-        OSError: If the file cannot be read due to a permissions or I/O error.
-    """
-    prompt_path = _PROMPTS_DIR / "agent1_system_prompt.txt"
-    try:
-        return prompt_path.read_text(encoding="utf-8").strip()
-    except FileNotFoundError:
-        logger.error("agent1_system_prompt.txt not found at %s", prompt_path)
-        raise
-    except OSError as exc:
-        logger.error("Failed to read system prompt: %s", exc)
-        raise
-
-
 def _build_user_message(pdf_text: str) -> str:
     """
     Construct the user-turn message sent to the LLM.
@@ -495,24 +468,6 @@ def _build_user_message(pdf_text: str) -> str:
         f"REQUIRED OUTPUT FORMAT:{_SCHEMA_BLOCK}\n"
         f"DISCHARGE DOCUMENT:\n{pdf_text}"
     )
-
-
-def _is_rate_limit_error(exc: Exception) -> bool:
-    """
-    Return True if exc is an HTTP 429 rate-limit error from the LLM provider.
-
-    The openai SDK raises openai.RateLimitError for HTTP 429 responses across
-    all OpenAI-compatible providers (OpenRouter, OpenAI, Ollama). Using the
-    typed exception avoids fragile string matching against provider-specific
-    error bodies.
-
-    Args:
-        exc: The caught exception.
-
-    Returns:
-        bool: True if this is a rate-limit error worth retrying after a delay.
-    """
-    return isinstance(exc, RateLimitError)
 
 
 # Provider routing is centralised in dischargeiq/utils/llm_client.py.
@@ -1003,7 +958,7 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
     # obeyed the prompt-level instructions on this request.
     pre_warnings = _short_document_warning(pdf_text)
 
-    system_prompt = _load_system_prompt()
+    system_prompt = load_agent_prompt("agent1_system_prompt.txt")
     raw_response = _call_llm(system_prompt, pdf_text)
     try:
         result = _parse_and_validate(raw_response)
