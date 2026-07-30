@@ -83,6 +83,41 @@ def test_child_mentioned_late_does_not_flip_an_adult_document():
     assert detect_audience(text) == AUDIENCE_PATIENT
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        # No maternal age stated, newborn named: the patient is the mother.
+        "DISCHARGE SUMMARY - Postpartum. Patient delivered a newborn male at "
+        "39 weeks via vaginal delivery. Perineal repair performed.",
+        "The patient was admitted for delivery. The infant was transferred to "
+        "the nursery. Mother is stable.",
+        "Postpartum day 2. Breastfeeding well. Newborn in rooming-in.",
+    ],
+)
+def test_mothers_summary_is_not_flipped_by_a_mentioned_newborn(text):
+    """
+    A postpartum summary names the baby while the patient is the mother.
+
+    Telling a woman about "your child's" perineal repair is the same failure
+    this module prevents, inverted, so the wordless infant fallback must not
+    fire when maternal markers are present.
+    """
+    assert detect_audience(text) == AUDIENCE_PATIENT
+
+
+def test_newborns_own_summary_still_gets_caregiver_voice():
+    """The exclusion must not swallow genuine neonatal documents."""
+    assert detect_audience(
+        "Newborn male, birth weight 5 pounds, admitted to NICU for "
+        "respiratory distress."
+    ) == AUDIENCE_CAREGIVER
+    # Maternal age present, but the baby's age comes first and wins.
+    assert detect_audience(
+        "This is a 2-day-old infant born to a 29-year-old mother via "
+        "vaginal delivery."
+    ) == AUDIENCE_CAREGIVER
+
+
 def test_implausible_age_is_ignored():
     """A nonsense age is not a basis for choosing an addressee."""
     assert detect_audience("Device implanted 900 years old per record.") == (

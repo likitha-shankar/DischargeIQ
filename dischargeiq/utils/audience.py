@@ -51,6 +51,23 @@ _INFANT_WORDS = re.compile(
     flags=re.IGNORECASE,
 )
 
+# Markers that the document belongs to a mother, not to the baby it mentions.
+# A postpartum summary names the newborn while the patient is the adult who
+# delivered, so the infant-word fallback below must not fire on it: telling a
+# woman about "your child's" perineal repair is exactly the failure this
+# module exists to prevent, only inverted.
+#
+# This guards the wordless fallback ONLY. A newborn's own summary that states
+# the baby's age ("a 2-day-old infant born to a 29-year-old mother") still
+# resolves correctly, because the numeric branch takes the FIRST age it finds
+# and that is the baby's.
+_MATERNAL_MARKERS = re.compile(
+    r"\bpostpartum\b|\bpost-partum\b|\bdelivered\b|\bdelivery\b|\bgravida\b|"
+    r"\bmultipara\b|\bprimipara\b|\bG\d+P\d+\b|\bperineal\b|\bcesarean\b|"
+    r"\bc-section\b|\bepisiotomy\b|\blactation\b|\bbreastfeeding\b",
+    flags=re.IGNORECASE,
+)
+
 
 def _age_in_years(quantity: int, unit: str) -> float:
     """
@@ -108,9 +125,11 @@ def detect_audience(document_text: str) -> str:
             AUDIENCE_CAREGIVER if age_years < _CAREGIVER_AGE_MAX else AUDIENCE_PATIENT
         )
 
-    # No numeric age. "Newborn male discharged in stable condition" still needs
-    # the caregiver voice.
-    if _INFANT_WORDS.search(window):
+    # No numeric age anywhere. "Newborn male discharged in stable condition"
+    # still needs the caregiver voice - but only when the document is not
+    # plainly the mother's, in which case the newborn is mentioned rather than
+    # treated.
+    if _INFANT_WORDS.search(window) and not _MATERNAL_MARKERS.search(window):
         return AUDIENCE_CAREGIVER
 
     return AUDIENCE_PATIENT
