@@ -1,44 +1,49 @@
-# Test Data - Synthetic Discharge Summaries
+# Test Data
 
-This folder contains 10 synthetic discharge summary PDFs used for testing Agent 1 (Extraction Agent) in the DischargeIQ pipeline.
+Three corpora, kept separate on purpose. Nothing here is a real patient record.
 
-## Purpose
-These documents simulate real hospital discharge summaries and are used to:
-- Validate structured data extraction (Agent 1)
-- Test downstream agents (diagnosis explanation, medication rationale, etc.)
-- Serve as the evaluation dataset for the full pipeline
+## `*.pdf` at the top level (committed)
 
-## File List
+Three synthetic discharge summaries, one per common diagnosis:
+`heart_failure_01`, `copd_01`, `hip_replacement_01`.
 
-| File Name | Diagnosis | Source Type |
-|----------|----------|------------|
-| heart_failure_01.pdf | Heart Failure | Synthetic |
-| heart_failure_02.pdf | Heart Failure | Synthetic |
-| copd_01.pdf | COPD | Synthetic |
-| copd_02.pdf | COPD | Synthetic |
-| diabetes_01.pdf | Diabetes Management | Synthetic |
-| diabetes_02.pdf | Diabetes Management | Synthetic |
-| hip_replacement_01.pdf | Hip Replacement | Synthetic |
-| hip_replacement_02.pdf | Hip Replacement | Synthetic |
-| surgical_01.pdf | Surgical Case (Appendectomy) | Synthetic |
-| surgical_02.pdf | Surgical Case (Cholecystectomy) | Synthetic |
+These are the documents `scripts/build_beta_kit.sh` ships to beta testers, and
+`heart_failure_01.pdf` is the fixture `dischargeiq/tests/test_ingest.py` parses.
+Do not delete or rename them without updating both.
 
-## Data Characteristics
-Each document includes:
-- Patient demographics (fictional)
-- Admission and discharge details
-- Primary and secondary diagnoses
-- Procedures performed
-- Medications with dose, frequency, and duration
-- Activity and dietary restrictions
-- Follow-up appointments
-- Red flag symptoms
+Regenerate more with `scripts/generate_synthetic_corpus.py`. The larger 50-doc
+generated corpus that used to live in `test-data/synthetic/` was removed once
+the MTSamples corpus below replaced it as the realism benchmark; the generator
+script is still there if it is ever needed again.
 
-## Privacy & Compliance
-- All documents are fully synthetic.
-- No real patient data or PHI is included.
-- All names, dates, and identifiers are fictional.
+## `mtsamples/` (gitignored, 106 documents)
 
-## Notes
-- Documents are designed to resemble Epic-style discharge summaries.
-- Formatting variations are intentional to test extraction robustness.
+Real de-identified discharge summaries from
+[MTSamples](https://www.mtsamples.com/site/pages/browse.asp?type=89-Discharge+Summary),
+fetched via a community CSV mirror because the site blocks automated clients.
+
+These are transcriptions of actual dictated medical work with identifiers
+removed. They are the realism benchmark: dictated narrative, no section
+headers, missing discharge fields, pediatric patients. Expect
+`complete_with_warnings` on many of them, which is correct behaviour rather
+than a regression.
+
+Gitignored because the content is third-party sourced. Rebuild with:
+
+```
+python3 scripts/build_mtsamples_corpus.py
+```
+
+`corpus_index.json` maps each PDF back to its MTSamples sample name.
+
+## `stress-test/` (committed)
+
+Adversarial fixtures, not discharge documents. Used by
+`dischargeiq/tests/test_agent5_safety.py`, `test_all_corpus_smoke.py`, and the
+runners under `scripts/stress/`. Leave these alone.
+
+## Data under a use agreement
+
+MIMIC-IV-Note and other PhysioNet datasets must NEVER be committed here, and
+must never reach a third-party LLM API. See `docs/MIMIC_CREDENTIALING.md` and
+the `RESTRICTED_DATA_MODE` gate in `dischargeiq/utils/llm_client.py`.

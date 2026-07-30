@@ -201,7 +201,7 @@ def _render_spot_check() -> None:
         f"extracted diagnosis: *{extraction.get('primary_diagnosis', 'n/a')}*"
     )
     st.caption(
-        "Verify against the matching source PDF in test-data/synthetic/. "
+        "Verify against the matching source PDF in test-data/. "
         "Checklist: summary matches the source; every medication, dose, and "
         "frequency exact; warning signs complete and unambiguous; nothing "
         "added that is not in the source. Score it in the review portal "

@@ -97,3 +97,5 @@ _archive/
 node_modules/
 .env.bak*
 .env.bak-jul10
+# MTSamples corpus - externally sourced, rebuild with scripts/build_mtsamples_corpus.py
+test-data/mtsamples/
