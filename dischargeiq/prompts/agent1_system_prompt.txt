@@ -77,6 +77,30 @@ MEDICATION DOSE FIELD RULES:
   Never put "puff"/"puffs"/"spray"/"drop" into the frequency
   field - those are dose units, not frequency terms.
 
+INPATIENT-ONLY DRUGS ARE NOT DISCHARGE MEDICATIONS (hard rule):
+The medications list is what the patient takes AT HOME after leaving. A drug
+that was only given during the stay does NOT belong in it. This matters most in
+dictated summaries that have no "Discharge Medications" header, where drugs are
+named inside the narrative.
+- EXCLUDE a drug when the only mention of it is inside a hospital-course or
+  treatment narrative: "was given", "we started", "we instituted", "was
+  administered", "received", "ordered", "IV fluids", "per nasal cannula",
+  or any drug tied to an inpatient route (IV, IM, infusion, drip, nebulized in
+  hospital) with no corresponding take-home instruction.
+- INCLUDE a drug only when the discharge plan itself continues it. Look for
+  "continued on", "discharged on", "will continue", "sent home with", "take",
+  "give", "instructed to", "prescription", or an explicit dose the patient or
+  caregiver administers at home.
+- Worked example. Narrative: "He was given ceftriaxone 500 mg IV once daily...
+  we instituted albuterol aerosols every 6 hours." Plan: "He was continued
+  Omnicef 125 mg/5 mL one teaspoon p.o. once daily." Correct medications list
+  contains ONLY Omnicef. Ceftriaxone and albuterol are inpatient-only and must
+  be omitted, even though both appear in the document with a dose.
+- When you genuinely cannot tell whether a drug continues at home, omit it and
+  add an extraction_warnings entry naming the drug. A missing medication is
+  recoverable by the care team; a hospital-only drug presented as a take-home
+  instruction is not.
+
 MEDICATION STATUS RULES:
 - status must be exactly one of: new, changed, continued,
   discontinued, or null. Nothing else. No extra words.
