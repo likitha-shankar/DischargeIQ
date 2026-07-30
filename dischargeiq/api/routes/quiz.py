@@ -27,6 +27,8 @@ from dischargeiq.api.schemas import (
 )
 from dischargeiq.db.quiz import get_latest_pre_percent, save_quiz_score
 from dischargeiq.services.quiz import score_quiz
+from dischargeiq.services.session import session_store
+from dischargeiq.utils.audience import AUDIENCE_PATIENT
 
 logger = logging.getLogger(__name__)
 # verify_api_key is a no-op until DISCHARGEIQ_API_KEY is set; once set, both
@@ -48,9 +50,19 @@ async def generate_quiz(request: QuizGenerateRequest):
         HTTPException 502: LLM returned unusable output after retries/failover.
     """
     logger.info("POST /quiz/generate - session: %s", request.session_id)
+
+    # The client sends only the extraction, which has no age field, so the
+    # addressee comes from the pipeline context /analyze cached for this
+    # session. An evicted or unknown session falls back to the patient voice.
+    context = session_store.get_context(request.session_id) or {}
+    audience = context.get("audience", AUDIENCE_PATIENT)
+
     try:
         quiz_set = await asyncio.to_thread(
-            run_quiz_agent, request.extraction, request.session_id
+            run_quiz_agent,
+            request.extraction,
+            request.session_id,
+            audience=audience,
         )
     except ValueError as exc:
         # Distinguish "nothing to quiz on" (client sent empty extraction)
