@@ -2,71 +2,127 @@
 #
 # scripts/build_beta_kit.sh
 #
-# Sprint 2, Task 2.5 - Assemble the Android beta tester kit into a single
-# shareable folder + zip. Owner: Likitha Shankar.
+# Assemble the DischargeIQ tester kit into one shareable folder + zip.
+# Owner: Likitha Shankar.
 #
-# Bundles: the arm64 release APK (the one to send testers), the onboarding
-# guide, and three synthetic discharge PDFs (one per common diagnosis) so a
-# tester has everything to install and run without repo access.
+# Bundles the Android APK, the iOS install instructions, the onboarding guide,
+# and three synthetic discharge PDFs so a reviewer has everything needed to
+# install and run the app without repo access.
 #
-# The release APK already points at the hosted Cloud Run backend (see
-# lib/config.dart), so it works on any network with no local server.
+# ANDROID vs iOS - they are not symmetric, and the kit is honest about it:
+#   Android: the APK in this kit installs directly. Nothing else needed.
+#   iOS:     Apple does not permit installing an app from a file the way
+#            Android does. A tester must be invited to TestFlight. The kit
+#            therefore carries instructions, not an installable iOS binary.
+#            An .ipa is included ONLY if one has been built, and even then it
+#            is ad-hoc signed and installs only on pre-registered UDIDs.
+#
+# The release build already points at the hosted Cloud Run backend (see
+# dischargeiq_mobile/lib/config.dart), so it works on any network with no
+# local server.
 #
 # Output (dist/ is gitignored - build artifacts, not source):
-#   dist/beta_kit/            the folder to share
+#   dist/beta_kit/                 the folder to share
 #   dist/DischargeIQ-beta-kit.zip
 #
 # Usage:
-#   flutter build apk --release --split-per-abi   # if the APK is stale
+#   cd dischargeiq_mobile && flutter build apk --release   # if the APK is stale
 #   bash scripts/build_beta_kit.sh
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-APK="dischargeiq_mobile/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk"
 KIT="dist/beta_kit"
 SAMPLES=(heart_failure_01 copd_01 hip_replacement_01)
 
-if [ ! -f "$APK" ]; then
-  echo "ERROR: $APK not found."
-  echo "Build it first: (cd dischargeiq_mobile && flutter build apk --release --split-per-abi)"
+# Prefer the arm64 split APK when it exists (smaller), else the universal one.
+# The universal build is the safer default to hand a stranger: it runs on every
+# ABI, so a reviewer with an older or x86 device is not silently blocked.
+APK_SPLIT="dischargeiq_mobile/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk"
+APK_UNIVERSAL="dischargeiq_mobile/build/app/outputs/flutter-apk/app-release.apk"
+
+if [ -f "$APK_UNIVERSAL" ]; then
+  APK="$APK_UNIVERSAL"
+  APK_NOTE="universal (runs on all Android devices)"
+elif [ -f "$APK_SPLIT" ]; then
+  APK="$APK_SPLIT"
+  APK_NOTE="arm64 only (most modern phones; not x86 emulators)"
+else
+  echo "ERROR: no release APK found."
+  echo "Build it first: (cd dischargeiq_mobile && flutter build apk --release)"
   exit 1
 fi
 
 rm -rf "$KIT"
 mkdir -p "$KIT/sample-documents"
 
-# APK - rename to something a tester recognizes.
-cp "$APK" "$KIT/DischargeIQ.apk"
-
-# Onboarding guide.
+cp "$APK" "$KIT/DischargeIQ-android.apk"
 cp docs/beta/ONBOARDING.md "$KIT/READ-ME-FIRST.md"
+cp docs/beta/IOS_INSTALL.md "$KIT/iOS-INSTALL.md"
+
+# Include an ad-hoc .ipa only if one was actually exported. Absent is the
+# normal case - see the iOS note in the header.
+IPA=$(find dischargeiq_mobile/build/ios/ipa -name '*.ipa' 2>/dev/null | head -1 || true)
+if [ -n "$IPA" ]; then
+  cp "$IPA" "$KIT/DischargeIQ-ios.ipa"
+  IPA_LINE="  DischargeIQ-ios.ipa    - ad-hoc build; installs ONLY on pre-registered devices"
+else
+  IPA_LINE="  (no iOS binary - iPhone testers install via TestFlight, see iOS-INSTALL.md)"
+fi
 
 # Three synthetic documents, one per common diagnosis. Synthetic only -
-# never ship a real discharge document (repo hard rule 6).
+# never ship a real discharge document (repo hard rule 6). These live at the
+# top of test-data/; the generated corpus that used to hold copies was
+# removed, so do not reintroduce a test-data/synthetic/ path here.
 for name in "${SAMPLES[@]}"; do
-  src="test-data/synthetic/${name}.pdf"
-  [ -f "$src" ] && cp "$src" "$KIT/sample-documents/${name}.pdf" \
-    || echo "WARN: $src missing, skipped"
+  src="test-data/${name}.pdf"
+  if [ -f "$src" ]; then
+    cp "$src" "$KIT/sample-documents/${name}.pdf"
+  else
+    echo "WARN: $src missing, skipped"
+  fi
 done
 
-# Manifest so the tester (and you) can see exactly what's in the kit.
 {
-  echo "DischargeIQ Android Beta Kit"
+  echo "DischargeIQ Tester Kit"
   echo "Built: $(date '+%Y-%m-%d %H:%M')"
   echo "Backend: hosted Cloud Run (no local server needed)"
   echo ""
   echo "Contents:"
-  echo "  DischargeIQ.apk        - install this (arm64, modern Android phones)"
-  echo "  READ-ME-FIRST.md       - setup + what to test"
-  echo "  sample-documents/      - synthetic discharge PDFs to try (NOT real patients)"
+  echo "  DischargeIQ-android.apk - install this on Android; $APK_NOTE"
+  echo "$IPA_LINE"
+  echo "  READ-ME-FIRST.md        - setup + what to test"
+  echo "  iOS-INSTALL.md          - how iPhone testers get the app"
+  echo "  sample-documents/       - synthetic discharge PDFs to try (NOT real patients)"
+  echo ""
+  echo "No real patient data is included in this kit."
 } > "$KIT/MANIFEST.txt"
 
 ZIP="dist/DischargeIQ-beta-kit.zip"
 rm -f "$ZIP"
 (cd dist && zip -rq "$(basename "$ZIP")" beta_kit)
 
-echo "Beta kit ready:"
+echo "Kit ready:"
 echo "  Folder: $KIT"
 echo "  Zip:    $ZIP  ($(du -h "$ZIP" | cut -f1))"
-echo "Share the zip (or upload DischargeIQ.apk to Drive and send the link)."
+if [ -z "$IPA" ]; then
+  echo
+  echo "NOTE: Android installs from this zip directly."
+  echo "      iPhone testers need a TestFlight invite - see docs/beta/IOS_INSTALL.md."
+fi
+
+# The app has no local fallback: every upload goes to the hosted backend. If
+# that backend is down, a reviewer installs the kit and sees only errors, and
+# the failure looks like a broken app rather than a stopped service. Check
+# before the zip gets sent, not after.
+HEALTH_URL="$(grep -o "https://[^']*run\.app/api" dischargeiq_mobile/lib/config.dart | head -1)/health"
+STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 "$HEALTH_URL" || echo "000")
+echo
+if [ "$STATUS" = "200" ]; then
+  echo "Backend check: OK ($HEALTH_URL)"
+else
+  echo "*** DO NOT SHARE THIS KIT YET ***"
+  echo "Backend check FAILED: HTTP $STATUS at $HEALTH_URL"
+  echo "The app cannot analyze anything until that service answers 200."
+  echo "Redeploy Cloud Run (and confirm billing is active), then rebuild."
+fi
