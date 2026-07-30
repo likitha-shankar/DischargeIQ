@@ -158,6 +158,65 @@ def _get_vertex_client() -> tuple[OpenAI, str]:
     return result
 
 
+# ── Restricted-data policy gate ───────────────────────────────────────────────
+#
+# Data obtained under a use agreement (MIMIC-IV-Note and every other PhysioNet
+# credentialed dataset) may not be sent to third-party APIs. Only providers we
+# can evidence as compliant are allowed: "vertex" (GCP under BAA, zero
+# retention) and "ollama" (never leaves the machine).
+#
+# Set RESTRICTED_DATA_MODE=1 in the environment for any run touching that data.
+# See docs/MIMIC_CREDENTIALING.md.
+_RESTRICTED_DATA_PROVIDERS = frozenset({"vertex", "ollama"})
+
+
+def restricted_data_mode() -> bool:
+    """
+    Report whether this process is handling data under a use agreement.
+
+    Returns:
+        bool: True when RESTRICTED_DATA_MODE is set to a truthy value.
+    """
+    return os.environ.get("RESTRICTED_DATA_MODE", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+
+
+def enforce_restricted_data_policy(provider: str, role: str = "provider") -> None:
+    """
+    Block third-party LLM providers when handling use-agreement data.
+
+    Called at every point where a provider is resolved into a client, so no
+    code path - primary, native-SDK, or automatic failover - can reach a
+    non-compliant backend while RESTRICTED_DATA_MODE is on.
+
+    Args:
+        provider: Lowercase provider name about to be used.
+        role: What the provider is being resolved for ("provider" or
+              "fallback provider"), used only to make the error readable.
+
+    Raises:
+        ValueError: If restricted mode is on and the provider is not allowlisted.
+                    Deliberately fatal - a partial pipeline is a far better
+                    outcome than a data use agreement violation.
+    """
+    if not restricted_data_mode():
+        return
+    if provider.lower() in _RESTRICTED_DATA_PROVIDERS:
+        return
+    allowed = ", ".join(sorted(_RESTRICTED_DATA_PROVIDERS))
+    raise ValueError(
+        f"RESTRICTED_DATA_MODE is on, so {role} {provider!r} is blocked: sending "
+        f"use-agreement data to a third-party API violates the PhysioNet "
+        f"Credentialed Data Use Agreement. Allowed: {allowed}. "
+        f"Set LLM_PROVIDER=vertex and LLM_FALLBACK_PROVIDER=none, or unset "
+        f"RESTRICTED_DATA_MODE if this run uses synthetic or MTSamples data. "
+        f"See docs/MIMIC_CREDENTIALING.md."
+    )
+
+
 def require_provider_api_key(provider: str) -> None:
     """
     Ensure the API key env var for the chosen provider is set and non-empty.
@@ -205,6 +264,10 @@ def get_llm_client() -> tuple[OpenAI, str]:
             f"Unsupported LLM_PROVIDER '{provider}'. "
             f"Supported values: {supported}"
         )
+
+    # Refuse third-party APIs before any client is built when the run is
+    # handling data under a use agreement.
+    enforce_restricted_data_policy(provider)
 
     # Vertex uses OAuth tokens with expiry - handled by its own builder.
     if provider == "vertex":
@@ -304,6 +367,8 @@ def get_native_agent_client(provider: str) -> tuple:
         ImportError: If provider is "anthropic" but the anthropic package is absent.
     """
     if provider == "anthropic":
+        # This branch bypasses get_llm_client(), so it needs its own gate.
+        enforce_restricted_data_policy(provider)
         import anthropic as _anthropic  # lazy import - not needed on Gemini path
         require_provider_api_key("anthropic")
         model = os.environ.get("LLM_MODEL", DEFAULT_ANTHROPIC_MODEL)
@@ -363,6 +428,10 @@ def get_fallback_client() -> tuple[OpenAI, str, str] | None:
     fallback = os.environ.get("LLM_FALLBACK_PROVIDER", "anthropic").lower()
     if fallback in ("none", "") or fallback not in _PROVIDER_DEFAULTS:
         return None
+
+    # The default fallback is anthropic, so a plain timeout or a 429 cooldown
+    # would otherwise route restricted data to a third-party API on its own.
+    enforce_restricted_data_policy(fallback, role="fallback provider")
     if fallback == "vertex":
         # Vertex uses OAuth tokens, not a static key; unconfigured → disabled.
         try:
