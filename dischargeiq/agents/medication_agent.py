@@ -45,6 +45,7 @@ import os
 import anthropic
 
 from dischargeiq.models.extraction import ExtractionOutput, Medication
+from dischargeiq.utils.audience import AUDIENCE_PATIENT, audience_instruction
 from dischargeiq.utils.llm_client import (
     DEFAULT_ANTHROPIC_MODEL,
     call_chat_with_fallback,
@@ -120,6 +121,7 @@ def _format_medication_line(med: Medication) -> str:
 def _build_user_message(
     extraction: ExtractionOutput,
     safety_context: str = "",
+    audience: str = AUDIENCE_PATIENT,
 ) -> str:
     """
     Build the user message sent to Claude from Agent 1's ExtractionOutput.
@@ -142,6 +144,10 @@ def _build_user_message(
     Args:
         extraction:     Validated ExtractionOutput from Agent 1.
         safety_context: Optional cross-section safety block. Omitted when empty.
+        audience:       Who the explanations are written to, from
+                        utils.audience.detect_audience(). The extraction schema
+                        has no age field, so this arrives separately from the
+                        orchestrator.
 
     Returns:
         str: Formatted user message ready for the Claude API call.
@@ -156,7 +162,13 @@ def _build_user_message(
 
     medication_block = "\n".join(med_lines)
 
+    # Audience first, so the model picks its addressee before any clinical text.
+    audience_prefix = audience_instruction(audience)
+    if audience_prefix:
+        audience_prefix += "\n\n"
+
     message = (
+        f"{audience_prefix}"
         f"Primary diagnosis: {extraction.primary_diagnosis}\n\n"
         f"Medications:\n{medication_block}"
     )
@@ -178,6 +190,7 @@ def run_medication_agent(
     extraction: ExtractionOutput,
     document_id: str = "unknown",
     safety_context: str = "",
+    audience: str = AUDIENCE_PATIENT,
 ) -> dict:
     """
     Agent 3: Generate plain-language medication explanations from Agent 1 output.
@@ -224,7 +237,9 @@ def run_medication_agent(
         )
 
     system_prompt = load_agent_prompt("agent3_system_prompt.txt")
-    user_message = _build_user_message(extraction, safety_context=safety_context)
+    user_message = _build_user_message(
+        extraction, safety_context=safety_context, audience=audience
+    )
 
     logger.info(
         "Agent 3 request - document: '%s', medications: %d",

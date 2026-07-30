@@ -26,6 +26,7 @@ from pathlib import Path
 
 import requests
 
+from dischargeiq.utils.audience import AUDIENCE_PATIENT
 from dischargeiq.utils.llm_client import (
     call_chat_with_fallback,
     get_llm_client,
@@ -68,13 +69,21 @@ def build_dialogue_script(pipeline_payload: dict) -> str:
     """
     extraction = pipeline_payload.get("extraction") or {}
     sections = {
+        # Who the hosts address. The TTS prompt reads this key directly; absent
+        # or "patient" keeps the default direct-to-patient narration.
+        "audience": pipeline_payload.get("audience", AUDIENCE_PATIENT),
         "care_plan": extraction,
         "what_happened": pipeline_payload.get("diagnosis_explanation", ""),
         "medications": pipeline_payload.get("medication_rationale", ""),
         "recovery": pipeline_payload.get("recovery_trajectory", ""),
         "warning_signs": pipeline_payload.get("escalation_guide", ""),
     }
-    if not extraction and not any(v for k, v in sections.items() if k != "care_plan"):
+    # "audience" is metadata, not narratable content, and it is always
+    # populated - excluding it keeps this emptiness check meaningful.
+    _NON_CONTENT_KEYS = {"care_plan", "audience"}
+    if not extraction and not any(
+        v for k, v in sections.items() if k not in _NON_CONTENT_KEYS
+    ):
         raise ValueError("pipeline payload has no content to narrate")
 
     system_prompt = load_agent_prompt("tts_script_prompt.txt")

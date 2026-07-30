@@ -38,6 +38,7 @@ import os
 from openai import APIError, OpenAI
 
 from dischargeiq.models.extraction import ExtractionOutput
+from dischargeiq.utils.audience import AUDIENCE_PATIENT, audience_instruction
 from dischargeiq.utils.llm_client import (
     call_chat_with_fallback,
     get_llm_client,
@@ -63,7 +64,10 @@ _FK_RETRY_THRESHOLD = 6.5
 
 # ── Internal helpers ───────────────────────────────────────────────────────────
 
-def _build_user_message(extraction: ExtractionOutput) -> str:
+def _build_user_message(
+    extraction: ExtractionOutput,
+    audience: str = AUDIENCE_PATIENT,
+) -> str:
     """
     Build the user message from Agent 1's ExtractionOutput.
 
@@ -77,11 +81,22 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
 
     Args:
         extraction: Validated ExtractionOutput from Agent 1.
+        audience: Who the explanation is written to, from
+                  utils.audience.detect_audience(). The extraction schema has
+                  no age field, so this arrives separately from the orchestrator.
 
     Returns:
         str: Formatted user message for the LLM API call.
     """
-    lines = [f"Primary diagnosis: {extraction.primary_diagnosis}"]
+    lines = []
+
+    # Audience goes first so the model has picked its addressee before it
+    # reads any clinical content.
+    instruction = audience_instruction(audience)
+    if instruction:
+        lines.append(instruction)
+
+    lines.append(f"Primary diagnosis: {extraction.primary_diagnosis}")
 
     if extraction.secondary_diagnoses:
         lines.append(
@@ -149,6 +164,7 @@ def _call_llm(
 def run_diagnosis_agent(
     extraction: ExtractionOutput,
     document_id: str = "unknown",
+    audience: str = AUDIENCE_PATIENT,
 ) -> dict:
     """
     Agent 2: Generate a plain-language diagnosis explanation from Agent 1 output.
@@ -171,6 +187,11 @@ def run_diagnosis_agent(
     Args:
         extraction:   Validated ExtractionOutput from Agent 1.
         document_id:  Source document label used in FK log and console output.
+        audience:     AUDIENCE_PATIENT (default) or AUDIENCE_CAREGIVER, from
+                      utils.audience.detect_audience() on the raw document. The
+                      caregiver value switches the explanation from "your ears"
+                      to "your child's ears" for pediatric patients. Defaults to
+                      the patient voice so existing callers are unaffected.
 
     Returns:
         dict with keys: text, fk_grade, passes.
@@ -188,7 +209,7 @@ def run_diagnosis_agent(
         )
 
     system_prompt = load_agent_prompt("agent2_system_prompt.txt")
-    user_message = _build_user_message(extraction)
+    user_message = _build_user_message(extraction, audience)
 
     # get_llm_client() reads LLM_PROVIDER and LLM_MODEL from the environment.
     # Changing .env switches the provider for all agents simultaneously.

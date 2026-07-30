@@ -42,6 +42,7 @@ import os
 import anthropic
 
 from dischargeiq.models.extraction import ExtractionOutput
+from dischargeiq.utils.audience import AUDIENCE_PATIENT, audience_instruction
 from dischargeiq.utils.llm_client import (
     DEFAULT_ANTHROPIC_MODEL,
     call_chat_with_fallback,
@@ -58,7 +59,10 @@ logger = logging.getLogger(__name__)
 _MAX_TOKENS = 2400
 
 
-def _build_user_message(extraction: ExtractionOutput) -> str:
+def _build_user_message(
+    extraction: ExtractionOutput,
+    audience: str = AUDIENCE_PATIENT,
+) -> str:
     """
     Build the user message sent to the LLM from Agent 1's ExtractionOutput.
 
@@ -76,11 +80,21 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
 
     Args:
         extraction: Validated ExtractionOutput from Agent 1 (scoped for Agent 4).
+        audience: Who the timeline is written to, from
+                  utils.audience.detect_audience(). The extraction schema has no
+                  age field, so this arrives separately from the orchestrator.
 
     Returns:
         str: Formatted user message ready for the LLM API call.
     """
-    lines = [f"Primary diagnosis: {extraction.primary_diagnosis}"]
+    lines = []
+
+    # Audience first, so the model picks its addressee before any clinical text.
+    instruction = audience_instruction(audience)
+    if instruction:
+        lines.append(instruction)
+
+    lines.append(f"Primary diagnosis: {extraction.primary_diagnosis}")
 
     if extraction.secondary_diagnoses:
         lines.append(
@@ -116,6 +130,7 @@ def _build_user_message(extraction: ExtractionOutput) -> str:
 def run_recovery_agent(
     extraction: ExtractionOutput,
     document_id: str = "unknown",
+    audience: str = AUDIENCE_PATIENT,
 ) -> dict:
     """
     Agent 4: Generate a week-by-week recovery guide from Agent 1 output.
@@ -136,6 +151,11 @@ def run_recovery_agent(
     Args:
         extraction:  Validated ExtractionOutput from Agent 1.
         document_id: Source document label for FK logging and console output.
+        audience:    AUDIENCE_PATIENT (default) or AUDIENCE_CAREGIVER, from
+                     utils.audience.detect_audience() on the raw document.
+                     Switches the text to address a parent for pediatric
+                     patients. Defaults to the patient voice, so existing
+                     callers are unaffected.
 
     Returns:
         dict with keys: text, fk_grade, passes.
@@ -152,7 +172,7 @@ def run_recovery_agent(
         )
 
     system_prompt = load_agent_prompt("agent4_system_prompt.txt")
-    user_message = _build_user_message(extraction)
+    user_message = _build_user_message(extraction, audience)
 
     logger.info("Agent 4 request - document: '%s'", document_id)
 

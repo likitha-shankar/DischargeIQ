@@ -36,6 +36,7 @@ from dischargeiq.agents.recovery_agent import run_recovery_agent
 from dischargeiq.db.history import get_db_pool, save_discharge_history
 from dischargeiq.models.extraction import ExtractionOutput, FollowUpAppointment
 from dischargeiq.models.pipeline import PipelineResponse
+from dischargeiq.utils.audience import AUDIENCE_PATIENT, detect_audience
 from dischargeiq.utils.extraction_scope import (
     scope_for_agent2,
     scope_for_agent3,
@@ -368,6 +369,10 @@ async def _run_pipeline_internal(
     # - notably _extract_safety_context before Agent 3 - can reference it
     # unconditionally even if the text extraction step raised.
     pdf_text = ""
+    # Same reason: the response is built outside the try, so audience must
+    # always be bound. Patient voice is the safe default if detection is
+    # never reached.
+    audience = AUDIENCE_PATIENT
     try:
         # Each agent's LLM client (Anthropic / OpenAI / OpenRouter) is
         # synchronous and blocks the FastAPI event loop while waiting on the
@@ -483,6 +488,16 @@ async def _run_pipeline_internal(
         # Harvest cross-section safety language once - shared by Agent 3.
         safety_ctx = _extract_safety_context(pdf_text)
 
+        # Who the output is addressed to. Derived from the raw text because the
+        # locked extraction schema carries no patient age. Defaults to the
+        # patient, so adult documents behave exactly as before.
+        audience = detect_audience(pdf_text)
+        if audience != AUDIENCE_PATIENT:
+            logger.info(
+                "Document '%s' classified as pediatric; Agents 2-5 will address "
+                "the caregiver.", doc_id,
+            )
+
         # Agent 2 input: strip inpatient-only procedures_performed so the
         # explanation doesn't invent in-hospital treatments as discharge advice.
         agent2_input = scope_for_agent2(
@@ -513,6 +528,7 @@ async def _run_pipeline_internal(
                 run_diagnosis_agent,
                 extraction=agent2_input,
                 document_id=doc_id,
+                audience=audience,
             ),
             _with_progress(
                 "Medications", "Medications explained...",
@@ -520,18 +536,21 @@ async def _run_pipeline_internal(
                 extraction=scope_for_agent3(extraction),
                 document_id=doc_id,
                 safety_context=safety_ctx,
+                audience=audience,
             ),
             _with_progress(
                 "Recovery", "Recovery plan ready...",
                 run_recovery_agent,
                 extraction=scope_for_agent4(extraction),
                 document_id=doc_id,
+                audience=audience,
             ),
             _with_progress(
                 "Warning signs", "Warning signs organized...",
                 run_escalation_agent,
                 extraction=scope_for_agent5(extraction),
                 document_id=doc_id,
+                audience=audience,
             ),
             # Agent 6 only reads Agent 1's extraction, exactly like Agents
             # 2-5, so it joins the same parallel burst. It used to run
@@ -623,6 +642,9 @@ async def _run_pipeline_internal(
         # Router classification rides along for per-diagnosis media lookup
         # (GET /media/{document_type}) and analytics.
         document_type=router_result.get("document_type", "unknown"),
+        # Rides along so chat, quiz, and audio narration address the same
+        # reader as the tabs. See utils/audience.py.
+        audience=audience,
         patient_simulator=patient_simulator_result,
     )
 

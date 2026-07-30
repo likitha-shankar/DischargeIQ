@@ -23,6 +23,7 @@ import os
 import re
 from typing import Optional
 
+from dischargeiq.utils.audience import AUDIENCE_CAREGIVER
 from dischargeiq.utils.llm_client import (
     call_chat_with_fallback,
     get_llm_client,
@@ -159,6 +160,20 @@ _CHAT_SYSTEM_TEMPLATE = (
     "  This is critical for patient trust.\n\n"
 
     "DISCHARGE SUMMARY CONTEXT:\n{context_json}"
+)
+
+# Appended after the template above, and therefore last in the system prompt,
+# when the pipeline classified the patient as a young child. The template tells
+# the model to "Use 'you' and 'your'", which is right for an adult patient and
+# wrong for an infant's parent, so this has to come after it to win.
+_CAREGIVER_OVERRIDE = (
+    "\n\nWHO YOU ARE TALKING TO (overrides the tone rules above):\n"
+    "The patient is a young child. The person asking you questions is their "
+    "parent or caregiver, not the patient. Say \"your child\" for the person "
+    "who was treated, and never \"you\" when referring to them. \"You\" now "
+    "means the caregiver reading this. For example, answer \"Give your child "
+    "one teaspoon each morning\", never \"Take one teaspoon each morning\". "
+    "Every other rule above, especially the grounding rules, is unchanged."
 )
 
 
@@ -307,6 +322,11 @@ class ChatService:
         text outputs so the model draws on document-grounded context rather
         than general knowledge.
 
+        When the pipeline classified the patient as a young child, a caregiver
+        override is appended. It comes last so it wins over the template's
+        default "Use 'you' and 'your'" instruction, which is correct for an
+        adult patient and wrong for an infant's parent.
+
         Args:
             pipeline_context: Full PipelineResponse dict from the frontend.
 
@@ -326,7 +346,11 @@ class ChatService:
         # never needed. This prompt is model-facing only - humans read the
         # extraction in the UI, not here.
         context_json = json.dumps(context_subset, ensure_ascii=False)
-        return _CHAT_SYSTEM_TEMPLATE.format(context_json=context_json)
+        prompt = _CHAT_SYSTEM_TEMPLATE.format(context_json=context_json)
+
+        if pipeline_context.get("audience") == AUDIENCE_CAREGIVER:
+            prompt += _CAREGIVER_OVERRIDE
+        return prompt
 
     @staticmethod
     def _extract_source_page(reply: str, pipeline_context: dict) -> Optional[int]:

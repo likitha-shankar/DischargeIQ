@@ -68,6 +68,12 @@ class PipelineResponse(BaseModel):
         rejection_reason: Router's one-sentence explanation, set only when
             pipeline_status == "rejected". UIs show it on the dedicated
             "not a discharge document" screen.
+        audience: Who the agent text addresses - "patient" (default) or
+            "caregiver" for a pediatric patient. Derived once from the raw
+            document by utils/audience.py, because the locked extraction
+            schema carries no age field. Carried on the response so the
+            post-pipeline surfaces (chat, quiz, audio narration) address the
+            same reader as the tabs do.
     """
 
     extraction: ExtractionOutput
@@ -84,4 +90,7 @@ class PipelineResponse(BaseModel):
     # analytics. None on legacy responses; "unknown" when the router could
     # not classify but let the document through.
     document_type: Optional[str] = None
+    # Defaults to the patient voice so older stored responses and any caller
+    # that omits the field keep the pre-existing behaviour.
+    audience: Literal["patient", "caregiver"] = "patient"
     patient_simulator: Optional[PatientSimulatorOutput] = None
