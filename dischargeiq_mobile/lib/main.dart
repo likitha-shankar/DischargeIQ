@@ -6,7 +6,6 @@ import 'package:dischargeiq_mobile/screens/upload_screen.dart';
 import 'package:dischargeiq_mobile/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,37 +61,25 @@ class _HomeGate extends StatefulWidget {
 }
 
 class _HomeGateState extends State<_HomeGate> {
-  // Cinematic landing intro: plays once EVER (persisted flag), not once per
-  // launch - a patient reopening the app to check a medication should land
-  // on their content immediately. Settings offers "Watch the intro again".
+  // Cinematic landing intro: plays once per app LAUNCH, by product decision.
+  //
+  // Static, not an instance field, so it survives widget rebuilds - navigating
+  // back to the gate mid-session must not replay the animation. It resets when
+  // the process does, which is exactly the "every time you open the app"
+  // behaviour intended.
+  //
+  // This deliberately no longer persists a flag. It previously read and wrote
+  // SharedPreferences('intro_seen') to play only once ever; that key is now
+  // unused and can be ignored on existing installs. Settings still offers
+  // "Watch the intro again", which pushes IntroScreen directly and is
+  // unaffected by this gate.
   static bool _introDone = false;
-  bool _flagLoaded = _introDone;
-
-  @override
-  void initState() {
-    super.initState();
-    if (_flagLoaded) return;
-    SharedPreferences.getInstance().then((prefs) {
-      if (!mounted) return;
-      setState(() {
-        _introDone = prefs.getBool('intro_seen') ?? false;
-        _flagLoaded = true;
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    // One blank frame while the persisted flag loads - imperceptible, and
-    // avoids flashing the intro for returning patients.
-    if (!_flagLoaded) return const Scaffold(body: SizedBox.shrink());
     if (!_introDone) {
       return IntroScreen(
-        onDone: () {
-          SharedPreferences.getInstance()
-              .then((prefs) => prefs.setBool('intro_seen', true));
-          setState(() => _introDone = true);
-        },
+        onDone: () => setState(() => _introDone = true),
       );
     }
     return Consumer<DischargeProvider>(
