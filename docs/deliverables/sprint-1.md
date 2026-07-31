@@ -23,8 +23,14 @@ populated 50-document testing matrix.
    human-readable reason instead of burning 6 agent calls.
 3. Break `GOOGLE_API_KEY` in `.env`, re-run → pipeline completes on Claude
    (watch the failover log line). Restore the key.
-4. Show `test-data/synthetic/` (50 PDFs) and the `synthetic_corpus` table in
-   Neon (50 rows).
+4. Show the testing corpus. As of July 30 2026 this is
+   `test-data/mtsamples/` (106 real de-identified documents, rebuilt with
+   `python3 scripts/build_mtsamples_corpus.py` since the folder is
+   gitignored). The original 50-document synthetic corpus and its
+   `synthetic_corpus` Neon table still exist as the version-locked set;
+   restore the files with
+   `git checkout task-4.4-corpus-lock -- test-data/synthetic` if the demo
+   calls for showing the locked corpus instead.
 5. `python -m pytest dischargeiq/tests/` → all deterministic tests green.
 
 **Checkout point:** `git checkout sprint-1-complete`

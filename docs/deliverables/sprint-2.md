@@ -10,8 +10,8 @@ discharge document with the camera, get 6th-grade output back - live.
 | 2.1 | Flutter core UI (themes, state, camera + detail screens) | Head start: app already has upload → results → quiz flow |
 | 2.2 | Camera + ML Kit OCR pipeline | ✅ `7a2bf9c` - [task-2.2](tasks/task-2.2.md) (edge detection deferred) |
 | 2.3 | Client-to-server integration | ✅ - PDF upload + OCR-text path (`e5de64b`) both live |
-| 2.4 | TestFlight + Play Internal Testing distribution | ◑ - iOS build config TestFlight-ready (`132569e`, `2788b58`); Apple-login steps in [TESTFLIGHT.md](../beta/TESTFLIGHT.md). Play deferred until first payout. |
-| 2.5 | Beta onboarding (15 testers → 10–20 active installs) | ✅ build ready - Android SDK installed, release APKs built (arm64 30.9MB) - [task-1.10](tasks/task-1.10-android-apk.md); onboarding in [ONBOARDING.md](../beta/ONBOARDING.md). Remaining: recruit the 15 testers |
+| 2.4 | iOS + Android distribution | ◑ **re-scoped July 30 2026: no paid store accounts this summer.** iOS ships via free 7-day development provisioning, reinstalled over USB on expiry (see [IOS_INSTALL.md](../beta/IOS_INSTALL.md)); TestFlight stays out of scope unless LOF provides a shared Apple account. Android uses the direct-install APK plus the emulator; no Play Console. |
+| 2.5 | Beta onboarding (15 testers → 10–20 active installs) | ✅ kit ready - `scripts/build_beta_kit.sh` bundles the universal APK, onboarding guide, iOS instructions, and sample PDFs, and refuses to green-light the kit unless the hosted backend answers 200. Remaining: recruit the testers. **The install target is Android-only**; iOS needs the device physically provisioned by the developer and reinstalled every 7 days. |
 
 ## Risk note
 

@@ -35,6 +35,40 @@ git checkout main       # come back - nothing is lost
 `git log --oneline` between two tags shows exactly what a sprint added.
 Reverting would destroy later work; checkout/tags show history non-destructively.
 
+## Testing corpus change (decision, July 30 2026)
+
+The 50-document generated synthetic corpus has been replaced as the primary
+testing corpus by **106 real de-identified discharge summaries from
+MTSamples** (`test-data/mtsamples/`, built by
+`scripts/build_mtsamples_corpus.py`).
+
+Why: the synthetic documents were well-formed by construction, so they never
+exercised what real discharge paperwork actually looks like. The MTSamples
+documents are transcriptions of genuine dictated work with identifiers
+removed - narrative prose, no section headers, missing discharge fields,
+pediatric patients. They found two real defects within a day of being
+introduced (inpatient-only drugs extracted as take-home medications; adult
+second-person voice used for an infant's caregiver).
+
+Practical notes:
+
+- The corpus is **gitignored**. The content is third-party sourced and this
+  repository is public, so it is rebuilt from the script rather than
+  committed. This also satisfies the program rule against clinical or eval
+  data sitting in a public repo.
+- The synthetic corpus is **not lost**. It remains in the tags and the Neon
+  `synthetic_corpus` table is untouched. Restore with
+  `git checkout task-4.4-corpus-lock -- test-data/synthetic`.
+- Three synthetic documents (`heart_failure_01`, `copd_01`,
+  `hip_replacement_01`) stay committed at the top of `test-data/`: the beta
+  kit ships them and `test_ingest.py` parses one.
+- **Open risk for Task 5.2.** The Tranche 4 gate is a clinician median of
+  ≥ 4.0/5.0. MTSamples documents frequently lack follow-up appointments,
+  discharge dates, and structured medication lists, so a reviewer may score
+  down output whose source never contained the field. Decide before clinician
+  onboarding whether the scored corpus is MTSamples, the restored synthetic
+  set, or a mix - and say so in the rubric instructions either way.
+
 ## Status at a glance (July 8, 2026 - Week 2)
 
 | Level | Item | Status |
@@ -50,15 +84,28 @@ Reverting would destroy later work; checkout/tags show history non-destructively
 The teach-back loop (Sprint 3 core) was pulled forward because it is the
 headline metric - comprehension lift from ~13% baseline to a measured 50–70%.
 
-## Paid-hold list (features built, activation deferred until payment)
+## No-spend distribution path (decision, July 30 2026)
 
-Per the July 2026 instruction to hold paid items while getting features ready:
+Neither store account will be purchased this summer. The developer is a
+student and the $99 Apple enrollment and $25 Play registration are not
+funded. Per the research-before-spend ladder (work-plan review Flag 6), rung 1
+(an LOF-shared Apple account) remains open if LOF offers one; absent that, the
+project runs entirely on rung 2:
 
-- **iOS TestFlight (Task 2.4):** config TestFlight-ready; blocked on the $99
-  Apple Developer enrollment. Android ships as a direct-install APK meanwhile.
-- **Google Play Internal Testing (Task 2.5):** deferred to first LOF payout;
-  direct-install APK covers Android beta now.
-- **Release iOS/Android production builds (Task 6.2):** depend on the store
-  accounts above. Python backend deps are locked (`requirements.lock.txt`).
-- **Adversarial audit valid run (Task 5.3):** suite runnable; a clean result
-  needs real LLM quota (paid tier) or the Vertex/BAA path.
+- **iOS (Tasks 2.4, 6.2):** free 7-day development provisioning, proven on a
+  real iPhone. The app is rebuilt and reinstalled over USB when the profile
+  expires (`flutter build ios --release` then
+  `xcrun devicectl device install app --device <udid> <Runner.app>`). No
+  TestFlight, so iOS testers must have the device in hand with the developer.
+- **Android (Tasks 2.5, 6.2):** direct-install release APK plus the Android
+  emulator for development. No Play Console, no Internal Testing track. The
+  beta kit (`scripts/build_beta_kit.sh`) is the distribution mechanism.
+- **Effect on the beta target:** the "10–20 active installs" figure is
+  reachable on Android only. iOS coverage is limited to devices physically
+  provisioned by the developer, and each one needs a reinstall every 7 days.
+  State this explicitly at the checkpoint rather than letting it read as a
+  missed target.
+
+**Unblocked July 30:** the adversarial audit (Task 5.3) no longer waits on
+quota. Billing is restored and the Cloud Run backend reports
+`llm_provider: vertex`, which is the funded path the task required.
