@@ -361,6 +361,18 @@ def _evaluate(case: AdversarialCase, result: PipelineResponse) -> dict:
     }
 
 
+# Retry budget for a case that came back vacuous. The Vertex quota on this
+# project is per-minute, so one full case exhausts it and the next few return
+# 429 immediately. Without retries the suite can only ever validate its first
+# case, which is not a safety audit. Waiting out the window is slow but it is
+# the difference between a real result and no result.
+_VACUOUS_RETRIES = 3
+_VACUOUS_BACKOFF_SECONDS = 70
+
+# Gap between cases, for the same per-minute quota reason.
+_INTER_CASE_SECONDS = 65
+
+
 async def _run_case(case: AdversarialCase) -> dict:
     """
     Execute one adversarial case against the live pipeline.
@@ -369,6 +381,12 @@ async def _run_case(case: AdversarialCase) -> dict:
     never crash on bad input), recorded rather than propagated so the suite
     completes and reports on every case.
 
+    A vacuous result is retried rather than recorded. Vacuity means the
+    provider refused the calls, which is an environment problem, not evidence
+    about the system under test - and on a per-minute quota it clears on its
+    own. Injection cases are the ones that matter here: a corruption case is
+    legitimately sparse, so retrying it would just burn quota.
+
     Args:
         case: The adversarial case to run.
 
@@ -376,6 +394,31 @@ async def _run_case(case: AdversarialCase) -> dict:
         dict: The verdict from _evaluate, or a failure record on exception.
     """
     label = f"adversarial://{case.name}"
+    for attempt in range(1, _VACUOUS_RETRIES + 1):
+        verdict = await _attempt_case(case, label)
+        if not verdict.get("vacuous") or case.category != "injection":
+            return verdict
+        if attempt < _VACUOUS_RETRIES:
+            print(
+                f"    {case.name}: no output (attempt {attempt}/"
+                f"{_VACUOUS_RETRIES}), likely rate limited - waiting "
+                f"{_VACUOUS_BACKOFF_SECONDS}s"
+            )
+            await asyncio.sleep(_VACUOUS_BACKOFF_SECONDS)
+    return verdict
+
+
+async def _attempt_case(case: AdversarialCase, label: str) -> dict:
+    """
+    Run one case once and return its verdict.
+
+    Args:
+        case:  The adversarial case to run.
+        label: Synthetic document id used for logs.
+
+    Returns:
+        dict: The verdict from _evaluate, or a failure record on exception.
+    """
     try:
         # raw_text path: no PDF read; the injected text is the whole document.
         result = await run_pipeline(label, raw_text=case.raw_text)
@@ -422,12 +465,69 @@ def _write_reports(verdicts: list[dict], gate_passed: bool) -> None:
     _OUT_MD.write_text("\n".join(lines))
 
 
+def _load_previous_verdicts() -> dict[str, dict]:
+    """
+    Read verdicts from the last report, keyed by case name.
+
+    Only genuinely-executed verdicts are returned. A vacuous one is discarded,
+    because carrying it forward would let "the provider was down" masquerade as
+    a result.
+
+    Returns:
+        dict[str, dict]: Reusable verdicts; empty when no readable report
+        exists.
+    """
+    if not _OUT_JSON.exists():
+        return {}
+    try:
+        payload = json.loads(_OUT_JSON.read_text())
+        return {
+            v["name"]: v
+            for v in payload.get("verdicts", [])
+            if not v.get("vacuous")
+        }
+    except (OSError, ValueError, KeyError):
+        return {}
+
+
 async def _main() -> int:
-    """Run every case, write reports, return the process exit code."""
+    """
+    Run every case, write reports, return the process exit code.
+
+    Supports resuming. The Vertex quota on this project cannot serve six full
+    pipeline runs in one sitting, so a single invocation may only exercise two
+    or three cases before the rest come back empty. Passing --resume keeps the
+    cases that genuinely ran last time and retries only the ones that did not,
+    letting a complete result accumulate across quota windows instead of
+    requiring a paid tier. Vacuous verdicts are never carried forward, so this
+    cannot manufacture a pass.
+    """
+    resume = "--resume" in sys.argv
+    previous = _load_previous_verdicts() if resume else {}
+
     cases = _cases()
-    print(f"Adversarial audit: {len(cases)} cases (live pipeline)...\n")
+    print(f"Adversarial audit: {len(cases)} cases (live pipeline)...")
+    if resume:
+        print(
+            f"Resuming: reusing {len(previous)} verdict(s) that genuinely ran "
+            f"({', '.join(sorted(previous)) or 'none'})."
+        )
+    print()
+
     verdicts = []
-    for case in cases:
+    for index, case in enumerate(cases):
+        carried = previous.get(case.name)
+        if carried is not None:
+            verdicts.append(carried)
+            mark = "PASS" if carried["passed"] else "FAIL"
+            print(f"  [{mark}] {case.name}: {carried['detail']} (from previous run)")
+            continue
+        # Space the cases out. One full case uses roughly a minute's worth of
+        # the per-minute Vertex quota, so running them back to back guarantees
+        # the next one is refused and then retried anyway. Pausing up front is
+        # the same wall-clock cost without the wasted calls.
+        if index:
+            await asyncio.sleep(_INTER_CASE_SECONDS)
         verdict = await _run_case(case)
         verdicts.append(verdict)
         mark = "PASS" if verdict["passed"] else "FAIL"
