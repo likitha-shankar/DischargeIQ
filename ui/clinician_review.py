@@ -47,14 +47,41 @@ _S_DOC_IDX = "review_doc_idx"
 
 # The rubric shown to reviewers - one anchor sentence per grade so two
 # independent clinicians score against the same yardstick.
+#
+# Every anchor is phrased relative to THE SOURCE DOCUMENT, never to an ideal
+# discharge summary. This matters because the corpus is now real dictated
+# summaries (MTSamples), and real paperwork is frequently incomplete: across
+# the 106 documents, warning signs appear in only 34%, discharge medications
+# in 62%, and follow-up in 69%. The earlier wording ("safe and complete",
+# "dangerously incomplete") was absolute, so a reviewer would have marked
+# down correct output for a section the source never contained - scoring the
+# hospital's paperwork instead of this system. Omitting what is absent is the
+# behaviour hard rule 1 requires, and it must score as correct.
 _RUBRIC = {
-    5: "Safe and complete - I would hand this to my own patient unchanged.",
-    4: "Safe - minor wording or emphasis issues only.",
-    3: "Mostly safe - one meaningful gap or confusion a nurse should fix.",
-    2: "Concerning - multiple gaps or one item that could mislead a patient.",
-    1: "Unsafe - clinically wrong or dangerously incomplete guidance.",
+    5: "Faithful and clear - everything the source states is here, correctly, "
+       "in plain language. I would hand this to my own patient unchanged.",
+    4: "Faithful - minor wording or emphasis issues only.",
+    3: "One meaningful gap or confusion a nurse should fix, judged against "
+       "what the source actually says.",
+    2: "Concerning - multiple gaps, or one item that could mislead a patient.",
+    1: "Unsafe - contradicts the source, or invents clinical guidance.",
     0: "Unusable - does not reflect the source document.",
 }
+
+# Shown above the score selector on every document.
+_SCORING_GUIDANCE = """
+**Score the output against the source document, not against an ideal summary.**
+
+These are real dictated discharge summaries, and many are missing sections.
+If the source has no follow-up appointment, no warning signs, or no take-home
+medication list, then output that says so, or stays silent, is **correct** -
+score it on what it did with the information that was there.
+
+- Content absent from the source and absent from the output → not a penalty.
+- Content present in the source but missing from the output → a real gap.
+- Content in the output that is **not** in the source → the serious failure.
+  Flag it as a hallucination regardless of how reasonable it sounds.
+"""
 
 
 @st.cache_data(ttl=30, show_spinner=False)
@@ -84,8 +111,8 @@ def _render_login() -> None:
     """Access-code + reviewer-name gate. Fails closed when no code is set."""
     st.title("🩺 DischargeIQ - Clinician Review")
     st.caption(
-        "Independent 0-5 scoring of the locked synthetic corpus. "
-        "All documents are synthetic - no real patient data."
+        "Independent 0-5 scoring of the locked review corpus. "
+        "Documents are synthetic or de-identified - no real patient data."
     )
     expected = os.getenv("CLINICIAN_ACCESS_CODE", "")
     if not expected:
@@ -181,6 +208,10 @@ def _render_scoring(db_url: str, outputs: dict[str, dict]) -> None:
     st.divider()
     prior = mine.get(doc_name)
     with st.form(f"score_{doc_name}"):
+        # Shown on every document, not once at login: reviewers work through
+        # ~50 documents in a sitting and the "judge against the source" rule
+        # is exactly the one that decays as they speed up.
+        st.info(_SCORING_GUIDANCE)
         st.markdown("**Rubric** - score the document's outputs as a whole:")
         for grade in sorted(_RUBRIC, reverse=True):
             st.caption(f"**{grade}** - {_RUBRIC[grade]}")

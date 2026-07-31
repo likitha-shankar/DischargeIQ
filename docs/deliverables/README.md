@@ -62,12 +62,18 @@ Practical notes:
 - Three synthetic documents (`heart_failure_01`, `copd_01`,
   `hip_replacement_01`) stay committed at the top of `test-data/`: the beta
   kit ships them and `test_ingest.py` parses one.
-- **Open risk for Task 5.2.** The Tranche 4 gate is a clinician median of
-  ≥ 4.0/5.0. MTSamples documents frequently lack follow-up appointments,
-  discharge dates, and structured medication lists, so a reviewer may score
-  down output whose source never contained the field. Decide before clinician
-  onboarding whether the scored corpus is MTSamples, the restored synthetic
-  set, or a mix - and say so in the rubric instructions either way.
+- **Task 5.2 rubric resolved (July 30 2026).** Real documents are the point
+  of the product, so the corpus stays real and the *rubric* was fixed instead.
+  Measured across the 106 documents: warning signs appear in 34%, discharge
+  medications in 62%, follow-up in 69%, activity or diet in 53%. The old
+  anchors ("safe and complete", "dangerously incomplete") were absolute, so a
+  reviewer would have penalised correct output for a section the source never
+  contained - scoring the hospital's paperwork rather than this system. Every
+  anchor in `ui/clinician_review.py` is now phrased relative to the source,
+  and per-document guidance states the rule plainly: content absent from both
+  source and output is not a penalty; content in the output but not the source
+  is the serious failure. This keeps the gate measuring extraction fidelity,
+  which is what a median of ≥ 4.0 is supposed to certify.
 
 ## Status at a glance (July 8, 2026 - Week 2)
 
