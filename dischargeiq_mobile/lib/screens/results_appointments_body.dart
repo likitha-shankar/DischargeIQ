@@ -76,7 +76,14 @@ class _AppointmentsBody extends StatelessWidget {
       final dark0 = Theme.of(context).brightness == Brightness.dark;
       return ListView(padding: const EdgeInsets.fromLTRB(16, 16, 16, 110), children: [
         hero,
-        const _RichTextSection(text: 'No follow-up appointments listed in this document.'),
+        const EmptySection(
+          icon: Icons.event_available_outlined,
+          title: 'No appointments listed',
+          message:
+              'Your document did not name a follow-up visit. Most people still '
+              'need one. Call your doctor to ask whether you should book a '
+              'check-up, and how soon.',
+        ),
         if (questions.isNotEmpty) _VisitPrepCard(questions: questions, dark: dark0),
       ]);
     }

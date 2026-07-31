@@ -104,6 +104,27 @@ class _WarningsBody extends StatelessWidget {
           ),
         ],
 
+        // Nothing to show: the source document named no warning signs and
+        // Agent 5 produced no tiers. Common on real paperwork - warning signs
+        // appear in only ~34% of the MTSamples corpus - so this tab must say
+        // so rather than render an empty panel under the hero. The safety note
+        // is general guidance, labelled as such, because leaving a patient
+        // with no escalation information at all is its own risk.
+        if (!hasTiers && flags.isEmpty)
+          const EmptySection(
+            icon: Icons.emergency_outlined,
+            title: 'No warning signs listed',
+            message:
+                'Your document did not list specific symptoms to watch for. '
+                'That does not mean there are none. Ask your doctor or nurse '
+                'which symptoms should worry you, and write them down before '
+                'you leave.',
+            safetyNote:
+                'Call 911 for chest pain, trouble breathing, heavy bleeding, '
+                'fainting, or sudden weakness in the face or arms. This is '
+                'general advice for anyone, not taken from your paperwork.',
+          ),
+
         // 3-tier escalation cards
         if (hasTiers) ...[
           const SizedBox(height: 8),

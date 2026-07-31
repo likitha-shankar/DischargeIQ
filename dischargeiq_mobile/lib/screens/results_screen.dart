@@ -18,6 +18,7 @@ import 'package:dischargeiq_mobile/widgets/audio_explainer.dart';
 import 'package:dischargeiq_mobile/widgets/chat_sheet.dart';
 import 'package:dischargeiq_mobile/widgets/guided_tour.dart';
 import 'package:dischargeiq_mobile/widgets/source_quote.dart';
+import 'package:dischargeiq_mobile/widgets/empty_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';

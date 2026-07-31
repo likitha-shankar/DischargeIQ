@@ -87,13 +87,13 @@ class _RecoveryBody extends StatelessWidget {
           const SizedBox(height: 10),
           Builder(builder: (context) {
             if (trajectory.isEmpty) {
-              return Text(
-                'No recovery timeline available.',
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.6,
-                  color: dark ? kTextPrimaryDark : kTextPrimaryLight,
-                ),
+              return const EmptySection(
+                icon: Icons.timeline_outlined,
+                title: 'No recovery timeline',
+                message:
+                    'Your document did not describe what to expect week by '
+                    'week. Ask your care team how long recovery usually takes '
+                    'and what you can do in the meantime.',
               );
             }
             // Journey map (wave 3): visual path when the text parses into

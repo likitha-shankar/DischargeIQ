@@ -56,13 +56,13 @@ class _DiagnosisBody extends StatelessWidget {
             const SizedBox(height: 12),
           ],
           explanation.isEmpty
-              ? Text(
-                  'No explanation available.',
-                  style: TextStyle(
-                    fontSize: 15,
-                    height: 1.5,
-                    color: dark ? kTextPrimaryDark : kTextPrimaryLight,
-                  ),
+              ? const EmptySection(
+                  icon: Icons.monitor_heart_outlined,
+                  title: 'No diagnosis explanation',
+                  message:
+                      'We could not find a clear diagnosis in your document to '
+                      'explain. Ask your care team what your main condition is '
+                      'called, and what it means for you.',
                 )
               : PatientText(text: explanation, collapsible: true),
         ],
@@ -239,9 +239,13 @@ class _MedicationsBody extends StatelessWidget {
           ),
         ],
         if (medList.isEmpty)
-          Text(
-            'No medications found in this document.',
-            style: TextStyle(color: dark ? kTextSecondaryDark : kTextSecondaryLight),
+          const EmptySection(
+            icon: Icons.medication_outlined,
+            title: 'No medications listed',
+            message:
+                'Your document did not include a list of medicines to take at '
+                'home. Keep taking what you took before unless your care team '
+                'told you otherwise, and ask them to confirm your list.',
           )
         else
           ...medList.asMap().entries.map((e) {
