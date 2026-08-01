@@ -25,6 +25,7 @@ from dischargeiq.utils.audience import (
     AUDIENCE_PATIENT,
     audience_instruction,
     detect_audience,
+    resolve_audience,
 )
 
 
@@ -250,3 +251,37 @@ def test_audio_narration_receives_audience_without_breaking_empty_check():
     """
     with pytest.raises(ValueError, match="no content to narrate"):
         build_dialogue_script({"extraction": {}, "audience": AUDIENCE_CAREGIVER})
+
+
+# ── Caller-supplied audience ──────────────────────────────────────────────────
+#
+# The mobile app files each document under a person whose age the patient
+# entered, so it can state the reader as fact. resolve_audience must prefer
+# that over inferring from text, and must still infer when nobody says.
+
+_ADULT_TEXT = "The patient is a 68-year-old male with heart failure."
+_PEDS_TEXT = "The patient is a 10-month-old male seen in the office."
+
+
+def test_override_beats_the_text_heuristic():
+    """A profile the patient filled in wins over the document's own wording."""
+    # The document reads adult; the caller says this record is a child's.
+    assert detect_audience(_ADULT_TEXT) == AUDIENCE_PATIENT
+    assert resolve_audience(AUDIENCE_CAREGIVER, _ADULT_TEXT) == AUDIENCE_CAREGIVER
+
+    # And the reverse: an adult profile silences a pediatric-looking document.
+    assert detect_audience(_PEDS_TEXT) == AUDIENCE_CAREGIVER
+    assert resolve_audience(AUDIENCE_PATIENT, _PEDS_TEXT) == AUDIENCE_PATIENT
+
+
+@pytest.mark.parametrize("override", [None, "", "nonsense", "CAREGIVER", "child"])
+def test_absent_or_invalid_override_falls_back_to_detection(override):
+    """
+    Only the two exact values are trusted.
+
+    This arrives over HTTP from a client, so a typo or a stale field name must
+    fall back to reading the document rather than silently deciding who a
+    discharge summary is written to.
+    """
+    assert resolve_audience(override, _PEDS_TEXT) == AUDIENCE_CAREGIVER
+    assert resolve_audience(override, _ADULT_TEXT) == AUDIENCE_PATIENT

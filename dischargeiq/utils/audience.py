@@ -135,6 +135,31 @@ def detect_audience(document_text: str) -> str:
     return AUDIENCE_PATIENT
 
 
+def resolve_audience(override: str | None, document_text: str) -> str:
+    """
+    Decide the reader, preferring a caller who actually knows the patient.
+
+    The mobile app files each document under a person whose age and
+    relationship the patient entered, so it can state the reader as fact.
+    That beats inferring from dictated prose every time. Callers with no
+    profile - the Streamlit surface, the raw API, a document filed under
+    nobody - pass None and fall back to detection.
+
+    Args:
+        override: "patient", "caregiver", or None. Any other value is treated
+                  as absent rather than trusted: this arrives over HTTP from a
+                  client, and a typo must not silently decide who a discharge
+                  summary is written to.
+        document_text: Raw document text, used only when no valid override.
+
+    Returns:
+        str: AUDIENCE_PATIENT or AUDIENCE_CAREGIVER.
+    """
+    if override in (AUDIENCE_PATIENT, AUDIENCE_CAREGIVER):
+        return override
+    return detect_audience(document_text)
+
+
 def audience_instruction(audience: str) -> str:
     """
     Render the audience as an instruction line for an agent's user message.

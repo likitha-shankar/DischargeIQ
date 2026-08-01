@@ -36,7 +36,11 @@ from dischargeiq.agents.recovery_agent import run_recovery_agent
 from dischargeiq.db.history import get_db_pool, save_discharge_history
 from dischargeiq.models.extraction import ExtractionOutput, FollowUpAppointment
 from dischargeiq.models.pipeline import PipelineResponse
-from dischargeiq.utils.audience import AUDIENCE_PATIENT, detect_audience
+from dischargeiq.utils.audience import (
+    AUDIENCE_CAREGIVER,
+    AUDIENCE_PATIENT,
+    resolve_audience,
+)
 from dischargeiq.utils.extraction_scope import (
     scope_for_agent2,
     scope_for_agent3,
@@ -217,6 +221,7 @@ async def run_pipeline(
     document_hash: str | None = None,
     db_pool=None,
     raw_text: str | None = None,
+    audience_override: str | None = None,
 ) -> PipelineResponse:
     """
     Public entry point - wraps _run_pipeline_internal in a 300-second
@@ -241,7 +246,10 @@ async def run_pipeline(
                        no file is read; router and Agent 1 consume this text.
     """
     return await asyncio.wait_for(
-        _run_pipeline_internal(pdf_path, session_id, on_progress, document_hash, db_pool, raw_text),
+        _run_pipeline_internal(
+            pdf_path, session_id, on_progress, document_hash, db_pool, raw_text,
+            audience_override,
+        ),
         timeout=_PIPELINE_TIMEOUT_SECONDS,
     )
 
@@ -253,6 +261,7 @@ async def _run_pipeline_internal(
     document_hash: str | None = None,
     db_pool=None,
     raw_text: str | None = None,
+    audience_override: str | None = None,
 ) -> PipelineResponse:
     """
     Run the multi-agent discharge pipeline on a PDF file path.
@@ -491,7 +500,17 @@ async def _run_pipeline_internal(
         # Who the output is addressed to. Derived from the raw text because the
         # locked extraction schema carries no patient age. Defaults to the
         # patient, so adult documents behave exactly as before.
-        audience = detect_audience(pdf_text)
+        # A caller who KNOWS the patient beats any inference from the text.
+        # The mobile app files each document under a person whose age and
+        # relationship were entered by the patient, so "this is my 3-year-old"
+        # is fact, not a guess. detect_audience stays as the fallback for
+        # callers with no profile - the Streamlit surface, the API, and any
+        # document filed under nobody.
+        audience = resolve_audience(audience_override, pdf_text)
+        if audience_override in (AUDIENCE_PATIENT, AUDIENCE_CAREGIVER):
+            logger.info(
+                "Document '%s' audience set by caller: %s", doc_id, audience,
+            )
         if audience != AUDIENCE_PATIENT:
             logger.info(
                 "Document '%s' classified as pediatric; Agents 2-5 will address "

@@ -117,6 +117,14 @@ class _LoadingScreenState extends State<LoadingScreen> with TickerProviderStateM
 
   Future<void> _runAnalyze() async {
     try {
+      // Resolved once, before the upload: the profile this document will be
+      // filed under also decides who the output is written to. Null when the
+      // active profile is All or the person's age says adult, in which case
+      // the backend infers the reader from the document text as before.
+      final person = await PersonStore.active();
+      final audience =
+          (person != null && person.needsCaregiverVoice) ? 'caregiver' : null;
+
       final Map<String, dynamic> data;
       if (widget.imagePaths != null) {
         data = await ApiService()
@@ -126,7 +134,8 @@ class _LoadingScreenState extends State<LoadingScreen> with TickerProviderStateM
             .analyzeText(widget.ocrText!, sessionId: _sessionId);
       } else {
         data = await ApiService()
-            .analyze(widget.pdfBytes!, widget.fileName, sessionId: _sessionId);
+            .analyze(widget.pdfBytes!, widget.fileName,
+                sessionId: _sessionId, audience: audience);
       }
       if (!mounted) return;
       // On-device library (D-6): keep this analysis on the phone so closing
@@ -145,7 +154,7 @@ class _LoadingScreenState extends State<LoadingScreen> with TickerProviderStateM
           result: data,
           fileName: widget.fileName,
           pdfBytes: widget.pdfBytes,
-          personId: (await PersonStore.active())?.id,
+          personId: person?.id,
         );
       }
       if (!mounted) return;

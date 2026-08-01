@@ -21,7 +21,15 @@ import os
 import tempfile
 import uuid
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+)
 
 from dischargeiq.api.middleware import sanitize_for_log, verify_api_key
 from dischargeiq.api.routes.progress import cleanup_progress_after_delay
@@ -106,7 +114,11 @@ def validate_uploaded_pdf(filename: str, contents: bytes) -> None:
 
 
 @router.post("/analyze", dependencies=[Depends(verify_api_key)])
-async def analyze_discharge(request: Request, file: UploadFile = File(...)):
+async def analyze_discharge(
+    request: Request,
+    file: UploadFile = File(...),
+    audience: str | None = Form(default=None),
+):
     """
     Accept a discharge PDF upload and run the multi-agent pipeline.
 
@@ -163,6 +175,10 @@ async def analyze_discharge(request: Request, file: UploadFile = File(...)):
             pdf_path=tmp_path,
             document_hash=document_hash,
             db_pool=db_pool,
+            # Optional. The mobile app sends this when the document is filed
+            # under a person whose age is known; everyone else omits it and
+            # the pipeline infers the reader from the document text.
+            audience=audience,
         )
     finally:
         if os.path.exists(tmp_path):
@@ -321,6 +337,7 @@ async def _execute_pipeline(
     document_hash: str,
     db_pool,
     raw_text: str | None = None,
+    audience: str | None = None,
 ) -> dict:
     """
     Shared pipeline execution for both analyze routes.
@@ -385,6 +402,7 @@ async def _execute_pipeline(
             document_hash=document_hash,
             db_pool=db_pool,
             raw_text=raw_text,
+            audience_override=audience,
         )
 
         session_store.set_progress(pdf_session_id, {

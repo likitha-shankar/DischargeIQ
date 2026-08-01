@@ -11,16 +11,26 @@ class ApiService {
 
   final String _base;
 
+  /// Analyse a discharge PDF.
+  ///
+  /// [audience] is "caregiver" when the document is filed under a young
+  /// child, and null otherwise. Sending it lets the backend skip inferring
+  /// the reader from the document text: a profile the patient filled in
+  /// beats a regular expression over dictated prose.
   Future<Map<String, dynamic>> analyze(
     Uint8List pdfBytes,
     String fileName, {
     String? sessionId,
+    String? audience,
   }) async {
     final uri = Uri.parse('$_base/analyze');
     final request = http.MultipartRequest('POST', uri);
     if (sessionId != null) {
       // Lets the loading screen poll GET /progress/{id} for live updates.
       request.headers['X-Discharge-Session-Id'] = sessionId;
+    }
+    if (audience != null) {
+      request.fields['audience'] = audience;
     }
     request.files.add(
       http.MultipartFile.fromBytes(
