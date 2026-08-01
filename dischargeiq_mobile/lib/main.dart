@@ -85,6 +85,11 @@ class _HomeGateState extends State<_HomeGate> {
     return Consumer<DischargeProvider>(
       builder: (context, dp, _) {
         if (dp.hasResult) return const ResultsScreen();
+        // Home stays the upload screen. Family-health apps put the person
+        // switcher IN the home surface rather than making people a separate
+        // landing: it answers "whose records am I looking at?" continuously,
+        // and it removes a navigation layer between opening the app and
+        // reading a summary. PeopleScreen is reached from that switcher.
         return const UploadScreen();
       },
     );

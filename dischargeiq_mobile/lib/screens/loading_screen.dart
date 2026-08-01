@@ -6,6 +6,7 @@ import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/services/api_service.dart';
 import 'package:dischargeiq_mobile/services/document_store.dart';
+import 'package:dischargeiq_mobile/services/person_store.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -135,10 +136,16 @@ class _LoadingScreenState extends State<LoadingScreen> with TickerProviderStateM
       // Dead runs (quota-exhausted partials) are not worth reopening.
       String? docId;
       if (!isUnusableRun(data)) {
+        // File under whoever is active. This is what keeps new uploads out
+        // of the Unassigned bucket: the home screen already showed whose
+        // documents these are, so the question never has to be asked after
+        // the fact. Null (no people set up yet) stays unassigned, which is
+        // correct rather than a guess.
         docId = await DocumentStore.save(
           result: data,
           fileName: widget.fileName,
           pdfBytes: widget.pdfBytes,
+          personId: (await PersonStore.active())?.id,
         );
       }
       if (!mounted) return;

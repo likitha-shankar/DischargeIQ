@@ -6,6 +6,9 @@ import 'package:dischargeiq_mobile/providers/theme_provider.dart';
 import 'package:dischargeiq_mobile/screens/loading_screen.dart';
 import 'package:dischargeiq_mobile/screens/puzzle_screen.dart';
 import 'package:dischargeiq_mobile/services/document_store.dart';
+import 'package:dischargeiq_mobile/widgets/person_switcher.dart';
+import 'package:dischargeiq_mobile/services/person_store.dart';
+import 'package:dischargeiq_mobile/screens/people_screen.dart';
 import 'package:dischargeiq_mobile/services/game_store.dart';
 import 'package:dischargeiq_mobile/services/scan_session_store.dart';
 import 'package:dischargeiq_mobile/widgets/journey_widgets.dart';
@@ -27,7 +30,59 @@ class _UploadScreenState extends State<UploadScreen> {
   Uint8List? _bytes;
   String? _fileName;
 
+  /// Person a new upload will be filed under. Null until someone is added.
+  Person? _activePerson;
+
   bool get _dark => Theme.of(context).brightness == Brightness.dark;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadActivePerson();
+  }
+
+  Future<void> _loadActivePerson() async {
+    final person = await PersonStore.active();
+    if (mounted) setState(() => _activePerson = person);
+  }
+
+  /// Bumped whenever the document library may have changed elsewhere.
+  ///
+  /// The saved-documents list keeps its own state, so refiling a document
+  /// inside the people screen used to leave the home list showing the old
+  /// owner until the app restarted. Changing this value changes that widget's
+  /// key, which rebuilds it and re-reads from disk.
+  int _libraryVersion = 0;
+
+  /// Open the people library, then re-read everything it could have changed:
+  /// the active person, and the document list itself.
+  Future<void> _openPeople() async {
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => PeopleScreen(onUpload: _uploadFor),
+      ),
+    );
+    await _loadActivePerson();
+    if (mounted) setState(() => _libraryVersion++);
+  }
+
+  /// Return to the home screen ready to upload for [person].
+  ///
+  /// "Add document" inside the people screens used to call Navigator.pop,
+  /// which only stepped back one level and read as the button undoing itself.
+  /// Popping to the root lands on this screen, which is where uploading
+  /// actually happens, and making the person active first means the new
+  /// document files under whoever's folder the button was pressed in.
+  Future<void> _uploadFor(Person? person) async {
+    if (person != null) {
+      await PersonStore.setActive(person.id);
+    }
+    if (!mounted) return;
+    Navigator.popUntil(context, (route) => route.isFirst);
+    await _loadActivePerson();
+    if (mounted) setState(() => _libraryVersion++);
+  }
 
   Future<void> _pickFile() async {
     final r = await FilePicker.platform.pickFiles(
@@ -67,26 +122,17 @@ class _UploadScreenState extends State<UploadScreen> {
               padding: const EdgeInsets.only(left: 16, right: 4, top: 6, bottom: 6),
               child: Row(
                 children: [
+                  // Person switcher sits where the title was. Whose records
+                  // are on screen is the single most important thing to keep
+                  // visible when one phone holds several family members'
+                  // documents - mixing up two people's medications is the
+                  // failure this prevents. The product name is not worth the
+                  // space; the patient already knows which app they opened.
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'DischargeIQ',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                            color: _dark ? kTealGlow : kTeal,
-                          ),
-                        ),
-                        Text(
-                          'Patient education only',
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            color: _dark ? kTextSecondaryDark : kTextSecondaryLight,
-                          ),
-                        ),
-                      ],
+                    child: PersonSwitcher(
+                      active: _activePerson,
+                      onChanged: (p) => setState(() => _activePerson = p),
+                      onManage: _openPeople,
                     ),
                   ),
                   // Theme toggle on the landing page itself - patients should
@@ -341,7 +387,14 @@ class _UploadScreenState extends State<UploadScreen> {
                     ),
                       const SizedBox(height: 20),
                       _JourneySection(dark: _dark),
-                      _RecentDocuments(dark: _dark),
+                      _RecentDocuments(
+                        // Keyed on the active person too: switching profile
+                        // must re-filter the list, not just re-read it.
+                        key: ValueKey('$_libraryVersion:${_activePerson?.id ?? 'all'}'),
+                        dark: _dark,
+                        onManage: _openPeople,
+                        activePerson: _activePerson,
+                      ),
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -662,9 +715,21 @@ class _JourneyDocPicker extends StatelessWidget {
 /// On-device library (decision D-6): past analyses reopen instantly from
 /// phone storage - no re-upload, no pipeline quota. Long-press to delete.
 class _RecentDocuments extends StatefulWidget {
-  const _RecentDocuments({required this.dark});
+  const _RecentDocuments({
+    super.key,
+    required this.dark,
+    required this.onManage,
+    required this.activePerson,
+  });
 
   final bool dark;
+
+  /// Opens the people library. Passed down so this widget owns no navigation.
+  final VoidCallback onManage;
+
+  /// Whose documents to show. Null is the built-in "All" view, which shows
+  /// every document including unassigned ones.
+  final Person? activePerson;
 
   @override
   State<_RecentDocuments> createState() => _RecentDocumentsState();
@@ -672,6 +737,7 @@ class _RecentDocuments extends StatefulWidget {
 
 class _RecentDocumentsState extends State<_RecentDocuments> {
   List<SavedDocument> _docs = const [];
+  List<Person> _people = const [];
 
   @override
   void initState() {
@@ -680,8 +746,22 @@ class _RecentDocumentsState extends State<_RecentDocuments> {
   }
 
   Future<void> _refresh() async {
-    final docs = await DocumentStore.list();
-    if (mounted) setState(() => _docs = docs);
+    final all = await DocumentStore.list();
+    final people = await PersonStore.list();
+    final active = widget.activePerson;
+    // "All" shows everything, including unassigned. A named profile shows only
+    // that person's documents - seeing a relative's medications while you
+    // believe you are looking at your own is the mix-up profiles exist to
+    // prevent.
+    final docs = active == null
+        ? all
+        : all.where((d) => d.personId == active.id).toList();
+    if (mounted) {
+      setState(() {
+        _docs = docs;
+        _people = people;
+      });
+    }
   }
 
   Future<void> _open(SavedDocument doc) async {
@@ -736,72 +816,209 @@ class _RecentDocumentsState extends State<_RecentDocuments> {
 
   @override
   Widget build(BuildContext context) {
-    if (_docs.isEmpty) return const SizedBox.shrink();
     final dark = widget.dark;
+    // With profile filtering, an empty list is no longer only "nothing saved
+    // yet" - it can mean "nothing saved for THIS person", which silently
+    // renders as a blank space and reads like the documents were lost.
+    if (_docs.isEmpty) {
+      if (widget.activePerson == null) return const SizedBox.shrink();
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: dark ? kSurfaceDark : kSurfaceLight,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: dark ? kBorderDark : kBorderLight),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'No documents for ${widget.activePerson!.name} yet',
+              style: TextStyle(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w700,
+                color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Upload one above, or file an existing document under them.',
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.5,
+                color: dark ? kTextSecondaryDark : kTextSecondaryLight,
+              ),
+            ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: widget.onManage,
+              icon: const Icon(Icons.library_add_outlined, size: 18),
+              label: const Text('File an existing document'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: dark ? kTealGlow : kTeal,
+                side: BorderSide(color: dark ? kBorderDark : kBorderLight),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'YOUR SAVED DOCUMENTS',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.6,
-            color: dark ? kTealGlow : kTeal,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                widget.activePerson == null
+                    ? 'ALL SAVED DOCUMENTS'
+                    : '${widget.activePerson!.name.toUpperCase()}\'S DOCUMENTS',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.6,
+                  color: dark ? kTealGlow : kTeal,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: widget.onManage,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'Manage',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: dark ? kTealGlow : kTeal,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         for (final doc in _docs)
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: 10),
             child: Material(
               color: dark ? kCardDark : kSurfaceLight,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(14),
               child: InkWell(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
                 onTap: () => _open(doc),
-                onLongPress: () => _confirmDelete(doc),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.fromLTRB(14, 12, 4, 12),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        doc.hasPdf
-                            ? Icons.picture_as_pdf_outlined
-                            : Icons.document_scanner_outlined,
-                        size: 20,
-                        color: dark ? kTealGlow : kTeal,
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: (dark ? kTealGlow : kTeal).withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          doc.hasPdf
+                              ? Icons.picture_as_pdf_outlined
+                              : Icons.document_scanner_outlined,
+                          size: 20,
+                          color: dark ? kTealGlow : kTeal,
+                        ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               doc.diagnosis.isEmpty ? doc.fileName : doc.diagnosis,
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w700,
+                                height: 1.3,
                                 color: dark ? kTextPrimaryDark : kTextPrimaryLight,
                               ),
                             ),
-                            Text(
-                              '${doc.fileName} · ${_friendlyDate(doc.savedAt)}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: dark ? kTextSecondaryDark : kTextSecondaryLight,
-                              ),
+                            const SizedBox(height: 5),
+                            // Whose document, and when. The person chip is the
+                            // point of the redesign: with one phone holding
+                            // several family members' summaries, the owner has
+                            // to be readable without opening anything.
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 4,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                _OwnerChip(
+                                  name: _ownerName(doc),
+                                  known: _people.any((p) => p.id == doc.personId),
+                                  dark: dark,
+                                ),
+                                Text(
+                                  _friendlyDate(doc.savedAt),
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    color: dark
+                                        ? kTextSecondaryDark
+                                        : kTextSecondaryLight,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
                       ),
-                      Icon(Icons.chevron_right,
-                          size: 18,
-                          color: dark ? kTextHintDark : kTextHintLight),
+                      // Explicit overflow menu. The previous design hid delete
+                      // behind a long press, which nobody discovers and which
+                      // is a hostile gesture for a destructive action.
+                      PopupMenuButton<String>(
+                        icon: Icon(Icons.more_vert,
+                            size: 20,
+                            color: dark ? kTextSecondaryDark : kTextSecondaryLight),
+                        onSelected: (choice) {
+                          if (choice == 'open') _open(doc);
+                          if (choice == 'move') _moveDoc(doc);
+                          if (choice == 'delete') _confirmDelete(doc);
+                        },
+                        itemBuilder: (_) => [
+                          const PopupMenuItem(
+                            value: 'open',
+                            child: ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.open_in_new, size: 20),
+                              title: Text('Open'),
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'move',
+                            child: ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.drive_file_move_outline, size: 20),
+                              title: Text('Move to person'),
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.delete_outline,
+                                  size: 20, color: kMedDiscontinued),
+                              title: Text('Delete',
+                                  style: TextStyle(color: kMedDiscontinued)),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -809,7 +1026,7 @@ class _RecentDocumentsState extends State<_RecentDocuments> {
             ),
           ),
         Text(
-          'Tap to reopen · Hold to delete · Stored only on this phone',
+          'Stored only on this phone',
           style: TextStyle(
             fontSize: 10.5,
             color: dark ? kTextHintDark : kTextHintLight,
@@ -817,6 +1034,85 @@ class _RecentDocumentsState extends State<_RecentDocuments> {
         ),
       ],
     );
+  }
+
+  /// Display name for a document's owner, including the two cases where the
+  /// stored person id no longer resolves.
+  String _ownerName(SavedDocument doc) {
+    if (doc.personId == null) return 'Unassigned';
+    for (final p in _people) {
+      if (p.id == doc.personId) return p.name;
+    }
+    return 'Unassigned';
+  }
+
+  /// Move one document to another person, or to Unassigned.
+  Future<void> _moveDoc(SavedDocument doc) async {
+    if (_people.isEmpty) {
+      widget.onManage();
+      return;
+    }
+    final target = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Move this document to...',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            ),
+            ..._people.map((p) => ListTile(
+                  leading: const Icon(Icons.person_outline),
+                  title: Text(p.name),
+                  subtitle: Text(p.relationship.label),
+                  onTap: () => Navigator.pop(ctx, p.id),
+                )),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.folder_open),
+              title: const Text('Unassigned'),
+              onTap: () => Navigator.pop(ctx, ''),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (target == null) return;
+    // Same rule as the people screen: taking a document off one person and
+    // giving it to another is a move, so confirm when it already has an owner.
+    if (doc.personId != null && doc.personId != target && mounted) {
+      final fromName = _ownerName(doc);
+      final toName = target.isEmpty
+          ? 'Unassigned'
+          : _people.firstWhere((p) => p.id == target).name;
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Move this document?'),
+          content: Text(
+            'It is filed under $fromName. Moving it to $toName removes it '
+            'from there.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: FilledButton.styleFrom(backgroundColor: kTeal),
+              child: const Text('Move'),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+    }
+    await DocumentStore.assignPerson(doc.id, target.isEmpty ? null : target);
+    await _refresh();
   }
 
   static String _friendlyDate(DateTime d) {
@@ -871,5 +1167,53 @@ class _DashedBorderPainter extends CustomPainter {
     return oldDelegate.color != color ||
         oldDelegate.strokeWidth != strokeWidth ||
         oldDelegate.radius != radius;
+  }
+}
+
+/// Small chip naming who a saved document belongs to.
+///
+/// Unassigned is styled differently rather than hidden: it is a real state
+/// with a real fix (Move to person), and quietly blending it in would leave
+/// documents unfiled forever.
+class _OwnerChip extends StatelessWidget {
+  const _OwnerChip({
+    required this.name,
+    required this.known,
+    required this.dark,
+  });
+
+  final String name;
+
+  /// False for the Unassigned bucket, including a document whose person was
+  /// deleted after it was filed.
+  final bool known;
+
+  final bool dark;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = known ? (dark ? kTealGlow : kTeal) : kMedChanged;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(known ? Icons.person : Icons.help_outline, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
