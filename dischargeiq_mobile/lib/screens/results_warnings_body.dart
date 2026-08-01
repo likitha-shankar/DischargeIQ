@@ -142,12 +142,18 @@ class _WarningsBody extends StatelessWidget {
             bg: kTier2Bg,
             dark: dark,
           ),
+          // Only the routine tier collapses. Together the three tiers run to
+          // ~275 words and 16 bullets on a real document, which is too much
+          // red-and-amber to scan when frightened. This is the one tier where
+          // a tap costs nothing: by definition it is the "call during office
+          // hours" list, not an emergency.
           _EscalationTier(
             title: 'CALL YOUR DOCTOR',
             body: _extractTierBullets(escalationText, 'CALL YOUR DOCTOR', null),
             fg: kTier3,
             bg: kTier3Bg,
             dark: dark,
+            collapsible: true,
           ),
         ] else if (!hasTiers && escalationText.isNotEmpty)
           Text(
@@ -171,13 +177,14 @@ class _WarningsBody extends StatelessWidget {
   }
 }
 
-class _EscalationTier extends StatelessWidget {
+class _EscalationTier extends StatefulWidget {
   const _EscalationTier({
     required this.title,
     required this.body,
     required this.fg,
     required this.bg,
     required this.dark,
+    this.collapsible = false,
   });
   final String title;
   final List<String> body;
@@ -185,8 +192,29 @@ class _EscalationTier extends StatelessWidget {
   final Color bg;
   final bool dark;
 
+  /// Whether this tier may start collapsed.
+  ///
+  /// ONLY the non-urgent "call your doctor" tier sets this. The 911 and
+  /// same-day ER tiers are always fully visible: putting emergency criteria
+  /// behind a tap would mean a frightened patient has to go looking for the
+  /// thing that tells them to call an ambulance. Density is worth reducing,
+  /// but never at that price.
+  final bool collapsible;
+
+  @override
+  State<_EscalationTier> createState() => _EscalationTierState();
+}
+
+class _EscalationTierState extends State<_EscalationTier> {
+  late bool _open = !widget.collapsible;
+
   @override
   Widget build(BuildContext context) {
+    final title = widget.title;
+    final body = widget.body;
+    final fg = widget.fg;
+    final bg = widget.bg;
+    final dark = widget.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -198,9 +226,34 @@ class _EscalationTier extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: fg)),
-          const SizedBox(height: 8),
-          ...body.map(
+          if (widget.collapsible)
+            InkWell(
+              onTap: () => setState(() => _open = !_open),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(title,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 13, color: fg)),
+                  ),
+                  // The count stays visible while collapsed, so the patient
+                  // knows something is there rather than assuming it is empty.
+                  Text(
+                    '${body.length} to watch for',
+                    style: TextStyle(fontSize: 11.5, color: fg),
+                  ),
+                  Icon(_open ? Icons.expand_less : Icons.expand_more,
+                      size: 20, color: fg),
+                ],
+              ),
+            )
+          else
+            Text(title,
+                style: TextStyle(
+                    fontWeight: FontWeight.w700, fontSize: 13, color: fg)),
+          if (_open) const SizedBox(height: 8),
+          if (_open)
+            ...body.map(
             (line) => Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: Row(
