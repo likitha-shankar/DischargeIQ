@@ -45,6 +45,7 @@ class SavedDocument {
     required this.diagnosis,
     required this.savedAt,
     required this.hasPdf,
+    this.personId,
   });
 
   final String id;
@@ -52,6 +53,11 @@ class SavedDocument {
   final String diagnosis;
   final DateTime savedAt;
   final bool hasPdf;
+
+  /// Person this document belongs to, or null for documents saved before
+  /// people existed. Those stay readable and can be filed later - an
+  /// unassigned document is a tidying task, never a lost one.
+  final String? personId;
 }
 
 class DocumentStore {
@@ -60,6 +66,25 @@ class DocumentStore {
     final dir = Directory('${base.path}/saved_documents');
     if (!await dir.exists()) await dir.create(recursive: true);
     return dir;
+  }
+
+  /// A document id that is not already taken.
+  ///
+  /// The id was the millisecond timestamp alone, which collides when two
+  /// documents are saved inside the same millisecond - the second write then
+  /// silently overwrote the first, losing a saved discharge summary. Measured:
+  /// eight rapid saves produced six documents. The suffix loop makes the id
+  /// unique without changing its sortable timestamp prefix.
+  static Future<String> _nextId(Directory dir) async {
+    final base = DateTime.now().millisecondsSinceEpoch.toString();
+    if (!await File('${dir.path}/$base.json').exists()) return base;
+    for (var suffix = 1; suffix < 1000; suffix++) {
+      final candidate = '$base-$suffix';
+      if (!await File('${dir.path}/$candidate.json').exists()) return candidate;
+    }
+    // A thousand documents in one millisecond is not a real scenario; fall
+    // back to microseconds rather than returning a known-colliding id.
+    return DateTime.now().microsecondsSinceEpoch.toString();
   }
 
   /// Persist one successful analysis. Rejected documents are not saved -
@@ -72,11 +97,12 @@ class DocumentStore {
     required Map<String, dynamic> result,
     required String fileName,
     Uint8List? pdfBytes,
+    String? personId,
   }) async {
     try {
       if ('${result['pipeline_status']}' == 'rejected') return null;
       final dir = await _dir();
-      final id = DateTime.now().millisecondsSinceEpoch.toString();
+      final id = await _nextId(dir);
       final extraction = result['extraction'];
       final diagnosis = (extraction is Map)
           ? '${extraction['primary_diagnosis'] ?? 'Discharge summary'}'
@@ -88,6 +114,7 @@ class DocumentStore {
         'file_name': fileName,
         'diagnosis': diagnosis,
         'saved_at': DateTime.now().toIso8601String(),
+        if (personId != null) 'person_id': personId,
         'result': result,
       }));
       return id;
@@ -113,6 +140,9 @@ class DocumentStore {
             diagnosis: '${meta['diagnosis'] ?? ''}',
             savedAt: DateTime.tryParse('${meta['saved_at']}') ?? DateTime(2000),
             hasPdf: await File('${dir.path}/$id.pdf').exists(),
+            personId: meta['person_id'] is String
+                ? meta['person_id'] as String
+                : null,
           ));
         } catch (_) {
           continue; // skip one bad file, keep the rest of the library
@@ -122,6 +152,29 @@ class DocumentStore {
       return docs;
     } catch (_) {
       return const [];
+    }
+  }
+
+  /// File an existing document under a person, or clear it with a null id.
+  ///
+  /// Used when someone adds people after already saving documents, and when a
+  /// person is deleted and their documents need refiling. Rewrites only the
+  /// metadata key, leaving the stored analysis untouched.
+  static Future<bool> assignPerson(String id, String? personId) async {
+    try {
+      final dir = await _dir();
+      final file = File('${dir.path}/$id.json');
+      final meta = (jsonDecode(await file.readAsString()) as Map)
+          .cast<String, dynamic>();
+      if (personId == null) {
+        meta.remove('person_id');
+      } else {
+        meta['person_id'] = personId;
+      }
+      await file.writeAsString(jsonEncode(meta));
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
