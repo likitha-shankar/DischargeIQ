@@ -248,7 +248,13 @@ class _MedicationsBody extends StatelessWidget {
                 'told you otherwise, and ask them to confirm your list.',
           )
         else
-          ...medList.asMap().entries.map((e) {
+          // Long medication lists are the densest thing in the app (up to 16
+          // drugs on a real document). Show the first five, keep the rest one
+          // tap away - never truncated, since these are the patient's actual
+          // prescriptions.
+          CappedList(
+            itemNoun: 'medicines',
+            children: medList.asMap().entries.map((e) {
             final med = e.value;
             final name = '${med['name'] ?? 'Unknown'}';
             final status = '${med['status'] ?? ''}'.toLowerCase();
@@ -269,7 +275,8 @@ class _MedicationsBody extends StatelessWidget {
               source: med['source'],
               dark: dark,
             );
-          }),
+            }).toList(),
+          ),
         // AI-review questions BELOW the medication list - same rule as the
         // warning tab: the patient's actual content first, meta last.
         _GapCallout(
