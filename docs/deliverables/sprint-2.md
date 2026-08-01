@@ -13,11 +13,20 @@ gamification strategy document are delivered.
 | 2.2 | Rewards layer: stars per section, calendar action, levels, no timers | ✅ built, journey theme at v3 |
 | 2.3 | Gamification strategy document (one page, honest claims) | ✅ `docs/GAMIFICATION_STRATEGY.md` rewritten 31 Jul: one-page summary up front, per-step patient walkthrough, build status matching what ships, garden/companion recorded as retired rather than described as live |
 | 2.4 | NotebookLM hands-on API evaluation and findings report | ✅ `docs/NOTEBOOKLM_FINDINGS.md` - decision D-3: Enterprise API is licence-gated and 404s on our project, so per-case audio ships via Gemini TTS on our own key |
-| 2.5 | iOS access findings, reported before any spend | ◑ ladder resolved in practice: rung 2 (free 7-day provisioning) proven on a real iPhone 31 Jul. Rung 1 (LOF shared Apple account via Steve/Chandan) NOT yet asked. **The written findings report to John and Tanuj is still outstanding** |
+| 2.5 | iOS access findings, reported before any spend | ✅ `docs/IOS_ACCESS_FINDINGS.md` (1 Aug). Rung (b) free 7-day provisioning PROVEN on a real iPhone, expiry measured at exactly 7 days. Rung (a) LOF shared account **still unasked - the one open item**. No spend requested |
 | 2.6 | Tester onboarding: up to 10 testers, sessions visible in the backend log | ❌ **NOT STARTED - the gating item for this checkpoint** |
 | 2.7 | Issues-and-ideas list, maintained throughout | ✅ `docs/ISSUES_AND_IDEAS.md` |
 
+## Demo-day note
+
+The iOS provisioning profile in hand expires **6 Aug 2026**. Any iOS demo at
+Checkpoint 2 on 18 Aug needs a rebuild on or after 11 Aug. See
+`docs/IOS_ACCESS_FINDINGS.md`.
+
 ## Risk to Checkpoint 2
+
+**The tester cohort has to be Android.** Without a paid Apple account there
+is no TestFlight, so an iPhone tester cannot install the app themselves.
 
 Acceptance names testers explicitly, and demo step 5 opens "the log of real
 tester sessions: how many people used it, their deltas, and which of the five

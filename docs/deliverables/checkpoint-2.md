@@ -15,7 +15,7 @@ end for at least one real path, live or recorded.
 | Teach-back loop with server-side delta | ✅ pre 40% → post 100% verified live |
 | NotebookLM findings report | ✅ `docs/NOTEBOOKLM_FINDINGS.md` |
 | Gamification strategy document | ✅ rewritten 31 Jul |
-| iOS access findings report | ◑ decision made, report to John and Tanuj not written |
+| iOS access findings report | ✅ `docs/IOS_ACCESS_FINDINGS.md` (1 Aug) |
 | Up to 10 onboarded testers with sessions in the log | ❌ **not started - the gating item** |
 
 The build side of this checkpoint is comfortably met. The risk is entirely
