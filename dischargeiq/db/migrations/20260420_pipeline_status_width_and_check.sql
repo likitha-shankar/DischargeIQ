@@ -31,7 +31,7 @@
 --   - partial                 (Agent 1 critical gap OR any agent failure)
 --
 -- Rollout: applied to Neon on 2026-04-20 via asyncpg one-liner; this file
--- is the idempotent record so teammates pulling main can reproduce the
+-- is the idempotent record so a fresh clone of main can reproduce the
 -- change on a fresh database.
 
 ALTER TABLE discharge_history

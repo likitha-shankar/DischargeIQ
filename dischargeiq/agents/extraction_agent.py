@@ -931,7 +931,7 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
     This is the HARD GATE agent - do not proceed to Agent 2 until this
     function passes on 8/10 test documents. The schema it returns is the
     contract for all downstream agents; never change field names without
-    team sign-off.
+    a deliberate change that updates every downstream agent with it.
 
     Data contract (output):
         ExtractionOutput - see dischargeiq/models/extraction.py for full schema.

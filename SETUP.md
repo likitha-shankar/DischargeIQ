@@ -179,7 +179,7 @@ The floating chat panel calls `POST /chat` and labels answers as
 
 `dischargeiq_mobile/` - **On hold. Gitignored. Not in the shared repo.**
 
-Do not assume teammates have this directory. Revive only as a team decision.
+This is a solo project; the directory simply is not in the repo. Revive it by removing the .gitignore entry and pushing.
 
 When active: four screens (Upload → Loading → Results → Settings), same six-tab
 view as Streamlit, chat panel, real-time progress via `GET /progress/{session_id}`.
@@ -483,7 +483,7 @@ exist locally only.
 | Severity  | Issue                                                                                                                                                                             |
 |-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Minor     | **History read path not wired.** `get_history_for_session()` in `dischargeiq/db/history.py` is implemented but no API endpoint or UI tab calls it. Write path works. Missing piece: `GET /history/{session_id}`. |
-| Minor     | **Flutter app gitignored.** `dischargeiq_mobile/` is local-only. Revive as a team decision, then remove from `.gitignore` and push.                                              |
+| Minor     | **Flutter app gitignored.** `dischargeiq_mobile/` is local-only. Revive by removing it from `.gitignore` and pushing.                                              |
 | Minor     | **Flutter LAN IP hardcoded.** `lib/config.dart:10` - `_lanIp = '104.194.97.253'`. Update before any mobile demo.                                                                 |
 | Minor     | **Long PDFs may timeout.** Documents >100 pages may hit the 300 s wall-clock limit. No page-count cap enforced.                                                                  |
 | Minor     | **Scanned PDFs not handled.** pdfplumber requires selectable text. Image-only PDFs yield empty extraction; no OCR fallback.                                                      |

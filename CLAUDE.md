@@ -150,8 +150,8 @@ Streamlit). Comprehension-lift target: 13% baseline → 50–70%.
   gaps are for discussion with their care team, not medical diagnoses.
 - **iOS / SwiftUI client:** Development is **on hold** for the shared repo.
   The entire **`ios/`** directory is listed in **`.gitignore`** so it stays
-  **local-only** until the team turns it back on. Do not assume teammates have
-  `ios/` in their clone from Git.
+  **local-only** until it is turned back on. It is not in the repo, so a
+  fresh clone will not have it.
 - **Flutter app (`dischargeiq_mobile/`):** On hold, but the source IS tracked
   in Git (~92 files). Only build artifacts (`build/`, `.dart_tool/`,
   `pubspec.lock`, plugin files) are gitignored. Verified June 2026.
@@ -269,7 +269,7 @@ dischargeiq/
     └── extraction_schema_notes.md
 ```
 
-## Agent 1 JSON output schema (LOCKED - do not change without team sign-off)
+## Agent 1 JSON output schema (LOCKED - do not change casually)
 
 This is the contract between Agent 1 and all downstream agents.
 Agent 1 must NEVER fabricate or infer values. If a field is not in the
@@ -501,7 +501,7 @@ not a student, not a script generator. Every file you produce must meet these st
 - Errors are logged with enough context to debug. Never silently swallow exceptions.
 - Use specific exception types, not bare `except Exception`.
 
-**Comments for teammates**
+**Comments for whoever reads this next**
 - At the top of every file, write a 3–5 line module-level docstring explaining
   what the file does, which agent or component it belongs to, and any dependencies
   the reader should know about before editing.
@@ -534,7 +534,8 @@ def run_extraction_agent(pdf_text: str) -> ExtractionOutput:
         This is the HARD GATE agent. Do not proceed to Agent 2 until this
         function passes on 8/10 test documents. The schema it returns is the
         contract for all downstream agents - never change field names without
-        team sign-off.
+        a deliberate decision, recorded in the commit, that updates every
+        downstream consumer in the same change.
     """
 ```
 

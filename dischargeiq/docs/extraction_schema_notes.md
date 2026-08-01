@@ -1,6 +1,8 @@
 # Extraction Schema Notes
 
-Locked schema for Agent 1 - do not change without team sign-off.
+Locked schema for Agent 1. Changing a field name breaks every downstream
+agent, so treat it as a contract: change it only deliberately, and update
+every consumer in the same commit.
 
 ## Field definitions (one line each)
 

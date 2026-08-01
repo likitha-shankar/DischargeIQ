@@ -274,7 +274,7 @@ async def _run_pipeline_internal(
     Agents 2–5 each receive a **scoped** copy (see `utils/extraction_scope.py`)
     with only the fields that agent’s prompt uses, to save tokens and reduce
     cross-field confusion. Never change ExtractionOutput field names without
-    full team sign-off.
+    a deliberate change that updates every downstream consumer with it.
 
     Agents 2–5 are independent (all read Agent 1 output only) and run in
     parallel via asyncio.gather. return_exceptions=True means a failed agent

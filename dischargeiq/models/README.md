@@ -7,7 +7,8 @@ layer. Every cross-module boundary uses a model from this folder.
 
 - `extraction.py` - `ExtractionOutput` (Agent 1 response),
   `Medication`, `FollowUpAppointment`. **Locked schema** - do not
-  rename fields without team sign-off. Downstream agents depend on it.
+  rename fields casually. Downstream agents depend on it, so any rename has
+  to update them in the same change.
 - `pipeline.py` - `PipelineResponse` (final response returned by
   `POST /analyze`, aggregating all agent outputs + FK scores +
   warnings + pipeline status).

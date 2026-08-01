@@ -3,7 +3,7 @@
 **Course:** CS 595 Med Informatics AI: SeeDoBuild, Spring 2026  
 **Institution:** Illinois Institute of Technology, Chicago  
 **Sponsor:** Leap of Faith Health Tech  
-**Team:** MedSynapse  
+**Developer:** Likitha Shankar (solo)  
 **Project ID:** CS595-2026-DischargeIQ  
 **LOF Pillar:** Patient Engagement
 
@@ -14,7 +14,6 @@
 | Field         | Value                                                                                              |
 |---------------|----------------------------------------------------------------------------------------------------|
 | Project ID    | CS595-2026-DischargeIQ                                                                             |
-| Team name     | MedSynapse                                                                                         |
 | Course        | CS 595 Med Informatics AI: SeeDoBuild, Spring 2026                                                 |
 | Sponsor       | Leap of Faith Health Tech                                                                          |
 | LOF Pillar    | Patient Engagement                                                                                 |
@@ -231,8 +230,8 @@ support. It does not diagnose, prescribe, or make clinical recommendations.
 - TheraCareAI is Box 2: adherence tracking in the weeks following discharge.
 - DischargeIQ's structured `ExtractionOutput` (medications, follow-up
   appointments, restrictions) is the data contract between the two systems.
-  Any integration must not break the `ExtractionOutput` schema without team
-  sign-off.
+  Any integration must not break the `ExtractionOutput` schema; changing it
+  means updating every downstream agent in the same change.
 
 ---
 
