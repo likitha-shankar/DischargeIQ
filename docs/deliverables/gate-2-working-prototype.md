@@ -1,4 +1,8 @@
-# Tranche 2 - Infrastructure and Beta (End of Week 4)
+# Gate 2 - Working prototype (end of Week 6, Tue 18 Aug 2026) - $1,250
+
+**Bar:** core capability runs end to end for at least one real path, live or recorded.
+> Renamed from the old "tranche" vocabulary on 2026-07-31. docs/LOF_LABS_RULES.md is authoritative and uses 13 weeks, 4 phases, and 3 pass/fail gates plus a final demo; it says explicitly to ignore the word "tranche". The old week numbering (0/4/8/12) came with that vocabulary and did not match the gate dates either.
+
 
 **Accepted when:** live backend; app installable on real devices; 10–20
 active installs; live end-to-end scan-and-translate demo.

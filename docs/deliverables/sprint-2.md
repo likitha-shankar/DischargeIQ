@@ -1,6 +1,6 @@
 # Sprint 2 - Mobile Bridge and OCR (Weeks 3–4) ◻ NEXT
 
-**Milestone (Tranche 2 gate):** install the app on a real phone, scan a
+**Milestone (Gate 2, working prototype):** install the app on a real phone, scan a
 discharge document with the camera, get 6th-grade output back - live.
 
 ## Tasks

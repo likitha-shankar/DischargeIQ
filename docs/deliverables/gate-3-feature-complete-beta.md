@@ -1,4 +1,8 @@
-# Tranche 3 - Gamification and Media (End of Week 8)
+# Gate 3 - Feature-complete beta (end of Week 10, Tue 15 Sep 2026) - $1,250
+
+**Bar:** all approved scope present, stable, demo-able without major gaps. This is the main quality filter - see the Gate 3 checklist in docs/LOF_LABS_RULES.md.
+> Renamed from the old "tranche" vocabulary on 2026-07-31. docs/LOF_LABS_RULES.md is authoritative and uses 13 weeks, 4 phases, and 3 pass/fail gates plus a final demo; it says explicitly to ignore the word "tranche". The old week numbering (0/4/8/12) came with that vocabulary and did not match the gate dates either.
+
 
 **Accepted when:** teach-back loop scores before/after; dashboard live with
 flagged gaps; NotebookLM media generating and playing in the app.

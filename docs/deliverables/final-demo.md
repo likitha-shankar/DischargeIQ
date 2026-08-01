@@ -1,4 +1,8 @@
-# Tranche 4 - Clinical Validation (End of Week 12)
+# Final demo (Week 13, Tue 6 Oct 2026) - $2,000
+
+**Bar:** completed project presented. Carries the clinical-validation evidence: clinician review, adversarial audit, and the measured comprehension lift.
+> Renamed from the old "tranche" vocabulary on 2026-07-31. docs/LOF_LABS_RULES.md is authoritative and uses 13 weeks, 4 phases, and 3 pass/fail gates plus a final demo; it says explicitly to ignore the word "tranche". The old week numbering (0/4/8/12) came with that vocabulary and did not match the gate dates either.
+
 
 **Accepted when:** the clinician review is complete at median ≥ 4.0/5.0;
 zero hallucinations in the adversarial audit; integration-readiness docs

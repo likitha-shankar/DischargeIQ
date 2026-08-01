@@ -2,7 +2,8 @@
 
 Maps every work-plan deliverable to the commits that built it, at three levels:
 
-- **Per tranche gate** - `tranche-N-*.md` (funding gates, what LOF accepts)
+- **Per gate** - `gate-N-*.md` and `final-demo.md` (the pass/fail funding
+  gates LOF evaluates; dates and awards from `docs/LOF_LABS_RULES.md`)
 - **Per sprint** - `sprint-N.md` (bi-weekly demo units)
 - **Per task** - `tasks/task-X.Y.md` (work-plan task IDs; written when a task completes)
 
@@ -30,7 +31,7 @@ git checkout main       # come back - nothing is lost
 | `task-3.2-game-v3` | Quiz game v3: Master-it rounds, XP/levels, badges, bests | `a0b4dbe` |
 | `hardening-rejected-docs` | Non-discharge docs: `rejected` status + dedicated screens | `5d66d52` |
 | `task-2.5-android-apk` | Android SDK + release APKs (arm64 30.9MB), ML Kit R8 fix | `61ac8af` |
-| `task-5.1-clinician-review` | Clinician review portal: 0-5 rubric, Tranche 4 gate | `a5f5f43` |
+| `task-5.1-clinician-review` | Clinician review portal: 0-5 rubric, final-demo evidence | `a5f5f43` |
 
 `git log --oneline` between two tags shows exactly what a sprint added.
 Reverting would destroy later work; checkout/tags show history non-destructively.
@@ -75,16 +76,31 @@ Practical notes:
   is the serious failure. This keeps the gate measuring extraction fidelity,
   which is what a median of ≥ 4.0 is supposed to certify.
 
-## Status at a glance (July 8, 2026 - Week 2)
+## Gate calendar
+
+From `docs/LOF_LABS_RULES.md`, which is authoritative. Week 1 was
+mobilisation, so Week 1 begins 7 Jul 2026 and the 13 weeks end 6 Oct 2026.
+
+| Gate | Timing | Date | Award | Bar |
+|---|---|---|---|---|
+| Gate 1 - Concept | End Wk 2 | Tue 21 Jul | $500 | Problem, users, scope, repo + LICENSE |
+| Gate 2 - Working prototype | End Wk 6 | **Tue 18 Aug** | $1,250 | One real path end to end, live or recorded |
+| Gate 3 - Feature-complete beta | End Wk 10 | Tue 15 Sep | $1,250 | All approved scope present and stable |
+| Final demo | Wk 13 | Tue 6 Oct | $2,000 | Completed project presented |
+
+Each gate has a one-week cure window: written feedback, one week to fix only
+the flagged criteria, award still earned if it passes.
+
+## Status at a glance (July 31, 2026 - Week 4)
 
 | Level | Item | Status |
 |---|---|---|
-| Tranche 1 | Mobilization (work plan) | ✅ plan v2 delivered |
+| Gate 1 | Concept approved (Wk 2, Jul 21) | ✅ plan v2 delivered |
 | Sprint 1 | Cloud backend + extraction pipeline (1.1–1.6) | ✅ complete - Cloud Run live on Gemini (rev `dischargeiq-00003-pmg`, Jul 7) |
-| Sprint 2 | Mobile bridge + OCR (2.1–2.5) | ◑ 2.2/2.3/2.5 done (release APKs built) - 2.4 TestFlight on paid-hold ($99 Apple enrollment) |
+| Sprint 2 | Mobile bridge + OCR (2.1–2.5) | ◑ 2.2/2.3/2.5 done; 2.4 re-scoped to the no-spend path (7-day iOS provisioning + direct APK) |
 | Sprint 3 | Teach-back loop (3.1–3.3) | ✅ built early, game layer at v3 (3.4 tuning awaits tester data) |
 | Sprint 4 | NotebookLM media + corpus lock | ◑ 4.4 lock tooling ready; 4.1/4.2 scaffolding + NotebookLM source docs built - actual audio gen remains |
-| Sprint 5 | Clinical validation | ◑ 5.1 portal + 5.3 adversarial suite built - 5.2 scoring waits on LOF reviewers; 5.3 needs a valid live run |
+| Sprint 5 | Clinical validation | ◑ 5.1 portal built; **5.3 adversarial audit PASSED 31 Jul** (6/6, run on Anthropic, commit a17fcfa); 5.2 scoring waits on LOF reviewers |
 | Sprint 6 | Final packaging | ◑ 6.3 integration-readiness docs + 6.5 media-fallback tests done; 6.2 Python deps locked (release builds on paid-hold) |
 
 The teach-back loop (Sprint 3 core) was pulled forward because it is the
@@ -115,3 +131,13 @@ project runs entirely on rung 2:
 **Unblocked July 30:** the adversarial audit (Task 5.3) no longer waits on
 quota. Billing is restored and the Cloud Run backend reports
 `llm_provider: vertex`, which is the funded path the task required.
+
+## Gate compliance (checked at EVERY gate)
+
+| Rule | State |
+|---|---|
+| LICENSE at root, Apache-2.0 | ✅ |
+| Dependency/license manifest current | ✅ `DEPENDENCIES.md` |
+| No GPL/AGPL or network-copyleft | ✅ two weak-copyleft items documented |
+| No synthetic/eval data in a PUBLIC repo | ✅ repo set **private** 31 Jul 2026 |
+| Authoritative repo LOF-controlled | ❌ **PENDING** - still on the personal GitHub; needs LOF org access before a gate review |

@@ -2,7 +2,7 @@
 
 **Deliverable:** role-gated Streamlit portal where two clinicians independently
 score the locked 50-document corpus outputs on a 0-5 rubric with a
-zero-tolerance hallucination flag - the instrument that produces the Tranche 4
+zero-tolerance hallucination flag - the instrument that produces the final-demo
 gate evidence (median ≥ 4.0, zero hallucinations).
 
 **Commit / tag:** `a5f5f43` / `task-5.1-clinician-review`

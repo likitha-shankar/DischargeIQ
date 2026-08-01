@@ -60,7 +60,7 @@ Connect API. Safer than an Apple ID password.)
    export-compliance: DischargeIQ uses only standard HTTPS, so answer
    "No" to custom/non-exempt encryption (uses exempt encryption).
 3. Internal Testing -> add testers (up to 100 people on your team, no Apple
-   review needed - fastest path for the Tranche 2 demo).
+   review needed - fastest path for the Gate 2 demo).
 4. For external testers (up to 10,000), submit the build for Beta App Review
    first (usually < 24h). Add a "What to test" note and a beta description.
 
@@ -82,7 +82,7 @@ link (email or public link). Point them at `docs/beta/ONBOARDING.md`.
 `ios/Runner/Info.plist` sets `NSAllowsArbitraryLoads=true`, which disables App
 Transport Security for all hosts. It exists so debug builds can reach the
 laptop LAN backend over plain HTTP. Internal TestFlight (up to 100 testers)
-skips Beta App Review, so this does NOT block the Tranche 2 demo. But
+skips Beta App Review, so this does NOT block the Gate 2 demo. But
 **external** TestFlight and App Store review can reject a blanket ATS
 disable. Before external distribution, scope it: allow arbitrary loads only
 for the local dev host, and let release builds (which use HTTPS Cloud Run)
