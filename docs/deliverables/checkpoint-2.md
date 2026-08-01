@@ -14,7 +14,7 @@ end for at least one real path, live or recorded.
 | Rewards layer across instructions and quiz | ✅ |
 | Teach-back loop with server-side delta | ✅ pre 40% → post 100% verified live |
 | NotebookLM findings report | ✅ `docs/NOTEBOOKLM_FINDINGS.md` |
-| Gamification strategy document | ◑ exists but stale - describes deleted features |
+| Gamification strategy document | ✅ rewritten 31 Jul |
 | iOS access findings report | ◑ decision made, report to John and Tanuj not written |
 | Up to 10 onboarded testers with sessions in the log | ❌ **not started - the gating item** |
 

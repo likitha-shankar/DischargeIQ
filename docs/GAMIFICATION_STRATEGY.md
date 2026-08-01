@@ -1,9 +1,44 @@
 # DischargeIQ - Gamification Strategy
 
 **Author:** Likitha Shankar
-**Date:** July 11, 2026
+**Date:** July 11, 2026 (revised 31 July 2026)
 **For:** Leap of Faith, LLC (John Trzesniak, Tanuj Pravin)
 **Fulfills:** Work Plan v2, task 2.3 (gamification strategy document)
+
+---
+
+## The one page
+
+Task 2.3 asks for one page. This is it; everything after is the evidence and
+detail behind it.
+
+**The mechanics.** Stars for each step of working through a discharge summary
+(read a section, add the follow-up to your calendar, take the baseline quiz,
+improve on the post-quiz). XP and levels for comprehension answered correctly.
+A badge per domain once it is understood. Personal bests, never a leaderboard.
+Three "first week home" quests over that same state, and a Recovery Journey
+trail that shows it all as one picture.
+
+**What the patient sees.** Their own progress, on their own terms: stars fill
+as they read, the baseline quiz gives no feedback because it has to measure
+rather than teach, the post-quiz shows before and after side by side, and
+confetti fires once - on a genuine improvement. Missing a question offers a
+retake of just that question. Missing a day costs nothing. Nothing ever
+counts down, turns red, or compares them to another patient.
+
+**The honest expectation.** Rewards can raise interest and engagement. They
+are not claimed to guarantee adherence, and this project does not measure
+adherence. Per John's eMed experience and the published evidence, engagement
+effects are real and clinical-outcome claims are not supported. What is
+reported is the comprehension delta between the pre and post quiz, and
+engagement counts alongside it - stated as what they are.
+
+**The design constraint that shaped all of it.** The population includes
+people who are older, in pain, or frightened. So: no timers, no speed
+pressure, no streak punishment, no loss states, and a rough day on the mood
+check-in results in being asked to do less, not more.
+
+---
 
 ## 1. What "gamification" means here (and what it does not)
 
@@ -61,8 +96,9 @@ A star for each concrete step of working through the discharge instructions:
 - Improve on the post-quiz.
 
 This is the piece that makes it "gamification of the discharge process" rather
-than "a quiz with a score." (Read-section and calendar stars are the open build
-item; the quiz-side rewards ship today.)
+than "a quiz with a score." All of it is built: section stars are scoped per
+document, so a patient with several summaries earns them separately rather
+than once across everything.
 
 ### 3.3 Levels - long-horizon competence
 Eight XP thresholds (100 -> 1900). Levels only ever go up; there is no demotion.
@@ -92,7 +128,28 @@ SDT competence mechanic: the patient always converges on understanding, and
 never feels stuck or punished. Scoring still submits the full answer set, so
 the stored comprehension delta is unaffected.
 
-## 5. What we deliberately do NOT do
+## 5. What the patient sees, step by step
+
+The plan asks for this explicitly, so it is written as the patient's path
+rather than as a feature list.
+
+| Step | What they do | What they see |
+|---|---|---|
+| 1 | Open the app | Their own name, or the person they care for, in the header. Level and XP so far. Nothing to dismiss |
+| 2 | Upload or scan a summary | Progress while the pipeline runs. No reward yet - nothing has been understood |
+| 3 | Read a section (diagnosis, medications, appointments, warning signs, recovery) | A star fills for that section on the Recovery Journey trail. Five sections, five stars |
+| 4 | Add a follow-up appointment to their phone calendar | The action star. This is the one reward tied to doing something outside the app |
+| 5 | Take the baseline quiz | A star for finishing. **No answers, no hints, no score feedback** - it measures, it must not teach |
+| 6 | Work through the learning cards | Nothing to collect here. Reading is not scored, so it cannot be farmed |
+| 7 | Take the post-quiz | Before score, after score, and the difference side by side. XP per correct answer, plus the round bonus |
+| 8 | Improve, or master a domain | A quiet badge on that domain. Confetti fires here and only here |
+| 9 | Miss something | "Master it" offers just the missed questions. No penalty, no lost progress, no timer |
+| 10 | Come back tomorrow | Progress is where they left it, plus whatever the last visit banked. Levels never fall |
+
+Two things a patient never sees: a leaderboard, and a red or empty state that
+reads as failure. Progress only counts up.
+
+## 6. What we deliberately do NOT do
 
 - **No timers or speed scoring.** Pressure is wrong for older or unwell users.
 - **No leaderboards or social comparison.** A patient population is not a contest.
@@ -102,38 +159,54 @@ the stored comprehension delta is unaffected.
 - **No claim that rewards drive adherence.** We report engagement and
   comprehension lift, and say exactly that.
 
-## 6. What we measure
+## 7. What we measure
 
 - Comprehension lift: pre versus post teach-back delta (the headline metric).
 - Engagement: quizzes completed, sections read, mastery reached, return visits.
 - We do **not** measure or claim a medication-adherence outcome this summer.
 
-## 7. Data and privacy
+## 8. Data and privacy
 
 All gamification state (XP, stars, levels, badges, bests) is **engagement data,
 never clinical data**. On mobile it persists on-device only (SharedPreferences);
 on the web fallback it is session-scoped. No reward state is tied to patient
 identity, and none of it is sent to or stored with any clinical record.
 
-## 8. Current build status
+## 9. Current build status
 
-| Mechanic | Status |
+Everything below is built and running on device as of 31 July 2026.
+
+| Mechanic | What it does |
 |---|---|
-| XP, levels, mastery badges, personal bests, calm celebration | Built (mobile + web) |
-| "Master it" missed-questions retake loop | Built |
-| On-device persistence of reward state | Built (mobile) |
-| Stars for reading sections and adding a calendar appointment | Built (wave 2: `SectionStarStore` + calendar star) |
-| Recovery Journey - milestone-trail visual over stars, mastery, and quests | Built (wave 2 as the Recovery Garden; rethemed Jul 18 2026 to `journey_widgets.dart` - unisex, age-neutral; no punishment states) |
-| "First week home" quests - three named journeys over existing state | Built (wave 2: `quests.dart`; progress only counts up) |
-| Daily mood check-in with rough-patch care-team nudge | Built (wave 3: `CheckinStore`, `consecutiveRoughDays`) |
-| Medical matching puzzle built from the patient's own extraction | Built (wave 4: `puzzle.dart`; teach popup per match, nothing fabricated) |
-| Medication reminder schedule from Agent 1 extraction | Built (feature B1: `medication_schedule.dart`; suggest-only, patient-editable) |
-| Daily journey nudge - opt-in, one gentle 10am notification, no guilt copy | Built (wave 5: `ReminderService.enableGardenReminder` - legacy name; bell toggle on the journey card) |
-| Mood-adaptive coach - one next step sized to today's check-in mood | Built (wave 5: `journey_coach.dart`; rough days are asked LESS, never more) |
-| Named companion - emotional-ownership mechanic | **Retired Jul 18 2026** with the garden theme (read as childish/gendered); `CompanionStore` deleted, stored names/kinds orphaned harmlessly on-device |
-| Bonus-unlocks-tomorrow return hook - quiz/puzzle banks today's effort, never expires | Built (wave 5: `SeedStore` - legacy seed naming kept for pref-key continuity; payoff acknowledged on next visit) |
-| Scene seasons - sky shift with the real calendar, no bad-weather state | Built (wave 6: `seasonOf()` in `journey_widgets.dart`; delight only, no weather punishment) |
-| "Share your journey" card - painting rendered to PNG, native share sheet | Built (wave 6: patient-initiated, composed on-device, no server) |
+| XP, levels, mastery badges, personal bests | Progress signal and per-domain competence; never downgrades |
+| "Master it" retake loop | Re-asks only the missed questions, with no penalty |
+| Section stars + calendar action star | The discharge-process layer; scoped per document so several summaries do not share one set |
+| Recovery Journey trail | The visual over stars, mastery, and quests. Weeks read as colour-coded chapters, and only the current one is open |
+| "First week home" quests | Three named arcs - Understand it, Act on it, Own it - over state that already exists. Progress only counts up |
+| Daily mood check-in | Gentle, optional. Several rough days in a row surfaces a care-team nudge, never a scolding |
+| Mood-adaptive coach | One next step sized to today's check-in. A rough day is asked LESS, never more |
+| Matching puzzle | Built from the patient's own extraction, never from generic content, so nothing is fabricated |
+| Medication reminder schedule | Suggested from Agent 1's extraction, patient-editable, local notifications only |
+| Opt-in daily nudge | One notification, no guilt copy, off by default |
+| Return hook | Effort today is acknowledged on the next visit. It never expires, so missing a day costs nothing |
+| Seasons | The scene shifts with the real calendar. Delight only - there is no bad-weather or neglected state |
+| Share card | Patient-initiated, composed on-device, rendered to PNG. Nothing leaves the phone unless they choose to share it |
+| Calm celebration | Confetti and haptics on an improved or perfect post-quiz, and nowhere else |
+
+### Retired
+
+**Recovery Garden and the named companion (retired 18 July 2026).** The garden
+metaphor and its named companion pet were built and then removed: on review
+they read as childish and gendered for a population that includes older adults
+recovering from surgery. The same underlying state - stars, mastery, quests -
+was rethemed as the Recovery Journey, which is unisex and age-neutral. No
+mechanic was lost; only the metaphor changed. `CompanionStore` is deleted, and
+any names stored on a device before that date are orphaned harmlessly.
+
+Two legacy identifiers survive in code (`enableGardenReminder`, `SeedStore`)
+purely to keep SharedPreferences keys stable across the retheme. Renaming them
+would silently reset returning patients' progress, which is a worse outcome
+than an inelegant name.
 
 ## Sources
 

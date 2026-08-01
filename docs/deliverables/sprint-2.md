@@ -11,7 +11,7 @@ gamification strategy document are delivered.
 |---|---|---|
 | 2.1 | Teach-back quiz loop: frozen questions, no-feedback baseline, server-side delta | ✅ `7efc3b7`, `a7359fc`, `de6d126` - live delta verified 5 Jul (pre 40% → post 100%) |
 | 2.2 | Rewards layer: stars per section, calendar action, levels, no timers | ✅ built, journey theme at v3 |
-| 2.3 | Gamification strategy document (one page, honest claims) | ◑ `docs/GAMIFICATION_STRATEGY.md` exists but is STALE - it still describes the deleted garden/companion features. Rewrite before the checkpoint |
+| 2.3 | Gamification strategy document (one page, honest claims) | ✅ `docs/GAMIFICATION_STRATEGY.md` rewritten 31 Jul: one-page summary up front, per-step patient walkthrough, build status matching what ships, garden/companion recorded as retired rather than described as live |
 | 2.4 | NotebookLM hands-on API evaluation and findings report | ✅ `docs/NOTEBOOKLM_FINDINGS.md` - decision D-3: Enterprise API is licence-gated and 404s on our project, so per-case audio ships via Gemini TTS on our own key |
 | 2.5 | iOS access findings, reported before any spend | ◑ ladder resolved in practice: rung 2 (free 7-day provisioning) proven on a real iPhone 31 Jul. Rung 1 (LOF shared Apple account via Steve/Chandan) NOT yet asked. **The written findings report to John and Tanuj is still outstanding** |
 | 2.6 | Tester onboarding: up to 10 testers, sessions visible in the backend log | ❌ **NOT STARTED - the gating item for this checkpoint** |
