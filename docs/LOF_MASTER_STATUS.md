@@ -19,20 +19,33 @@ Legend: ✅ done · ◑ partial (built, activation/data pending) · ◻ not star
 
 ---
 
-## 1. 🚩 CRITICAL PM FLAG - the two documents disagree on the calendar
+## 1. ✅ RESOLVED - the calendar conflict is gone
 
-| | Participant Guide (AUTHORITATIVE) | Work Plan (older) |
-|---|---|---|
-| Duration | **13 weeks** | 12 weeks |
-| Phases | 4 phases | 3 months |
-| Gates | **3 pass/fail gates + final demo** | 4 "tranche" gates |
-| Gate timing | **Wk 2 / Wk 6 / Wk 10 / Wk 13** | Wk 0 / 4 / 8 / 12 |
-| Awards | $500 / $1,250 / $1,250 / $2,000 = **$5,000** | same $ totals, different weeks |
-| Language | "gates," "phases" | "tranches" (deprecated) |
+This section used to flag a disagreement between the Participant Guide and the
+work plan. **Work Plan v2 (13 Jul 2026) resolved it.** The flag described the
+older 12-week draft, which used four "tranche" gates at weeks 0/4/8/12.
 
-**Resolution (per project rules):** the Participant Guide wins. Use **13 weeks, 4 phases, 3 gates, gates at end of Weeks 2/6/10/13**, and the word **"gate"** not "tranche." The Work Plan's task content is still valid; only its calendar and gate labels are superseded. The reconciled calendar is §5.
+v2 is thirteen weeks in four sprints, and its checkpoints land exactly on the
+Guide's gates:
 
-**Good news for schedule risk:** the team is far ahead of the Guide's bar. Most of Work-Plan Sprints 1-6 are already built in Week 2. The real risks are now (a) paid blockers, (b) external reviewers, and (c) gate-evidence packaging - not build velocity.
+| | Guide phase / gate | Work Plan v2 sprint | Date | Award |
+|---|---|---|---|---|
+| 1 | Gate 1, end Wk 2 | Sprint 1 (Wks 1-2) | Tue 21 Jul | $500 |
+| 2 | Gate 2, end Wk 6 | Sprint 2 (Wks 3-6) | Tue 18 Aug | $1,250 |
+| 3 | Gate 3, end Wk 10 | Sprint 3 (Wks 7-10) | Tue 15 Sep | $1,250 |
+| 4 | Final demo, Wk 13 | Sprint 4 (Wks 11-13) | Tue 6 Oct | $2,000 |
+
+The two documents now agree on duration, phase boundaries, gate timing, and
+awards. The only remaining difference is vocabulary: the Guide says "gate",
+the work plan says "checkpoint". They are the same event.
+
+`docs/deliverables/` was realigned to this on 31 Jul 2026 - four sprints, four
+checkpoints, task IDs taken from v2.
+
+**Schedule risk remains low, but it has moved.** Build velocity is not the
+problem; most of the plan is already built. The live risks are external
+dependencies: tester recruiting for Checkpoint 2 (18 Aug) and clinician
+reviewers for Checkpoint 4, neither of which is ours to schedule.
 
 ---
 
@@ -152,7 +165,7 @@ Legend: ✅ done · ◑ partial (built, activation/data pending) · ◻ not star
 - **5.3** Adversarial safety audit - suite built + runnable (`evaluation/adversarial_audit.py`); **last live run was vacuous (LLM quota exhausted) - needs a valid run under paid quota / Vertex**
 - **5.4** Fix pass for <4.0 docs - depends on 5.2 scores
 - **6.1** UI/UX polish - degradation paths shipped; final polish pass remains
-- **6.4** Tranche/Gate-4 summary report - aggregates 5.2 scores when available
+- **4.7** Final summary report - aggregates the clinician review (4.2) and accuracy run (3.4)
 
 ### ◻ / ⏸ Not started or on paid-hold
 - **2.1** Flutter scaffold/themes/state mgmt - largely subsumed by existing app; confirm/close

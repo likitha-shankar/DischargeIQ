@@ -1,11 +1,35 @@
 # DischargeIQ - Deliverables Index
 
-Maps every work-plan deliverable to the commits that built it, at three levels:
+Source of truth: **`docs/DischargeIQ_WorkPlan_v2.pdf`** (13 Jul 2026), the
+accepted thirteen-week work plan. Task IDs, sprint boundaries, checkpoint
+dates, and acceptance criteria in this folder all come from it. Program rules
+(gates, awards, repository and data rules) come from
+`docs/LOF_LABS_RULES.md`, which is binding.
 
-- **Per gate** - `gate-N-*.md` and `final-demo.md` (the pass/fail funding
-  gates LOF evaluates; dates and awards from `docs/LOF_LABS_RULES.md`)
-- **Per sprint** - `sprint-N.md` (bi-weekly demo units)
-- **Per task** - `tasks/task-X.Y.md` (work-plan task IDs; written when a task completes)
+Structure: **four sprints, each closing on a LABS checkpoint.** The program
+began 1 Jul 2026; active build started the week of 8 Jul, which is where the
+thirteen weeks are counted from.
+
+| Sprint | Weeks | Checkpoint closes | Award | Focus |
+|---|---|---|---|---|
+| [1](sprint-1.md) ✅ | 1-2 | [Tue 21 Jul](checkpoint-1.md) | $500 | Mobile core on a real phone |
+| [2](sprint-2.md) ◑ | 3-6 | [**Tue 18 Aug**](checkpoint-2.md) | $1,250 | Rewards, testers, media decision |
+| [3](sprint-3.md) ◻ | 7-10 | [Tue 15 Sep](checkpoint-3.md) | $1,250 | Teach-back evidence, clinician dashboard |
+| [4](sprint-4.md) ◻ | 11-13 | [Tue 6 Oct](checkpoint-4.md) | $2,000 | Accuracy verification, demo readiness |
+
+Each checkpoint releases its award on acceptance of the deliverables, not on
+the date alone. A missed gate gets written feedback and a one-week cure
+window to fix only the flagged criteria; passing in the cure window still
+earns the award.
+
+Files here: `sprint-N.md` (build work and task status), `checkpoint-N.md`
+(what LOF accepts), `tasks/task-X.Y.md` (per-task detail, written as tasks
+complete).
+
+> Earlier revisions of this folder used a six-sprint, four-"tranche" structure
+> at weeks 0/4/8/12. That was neither the plan's vocabulary nor its calendar
+> and has been removed. `LOF_LABS_RULES.md` says explicitly to ignore the word
+> "tranche".
 
 ## Showing the build progression (do NOT `git revert`)
 
@@ -76,20 +100,60 @@ Practical notes:
   is the serious failure. This keeps the gate measuring extraction fidelity,
   which is what a median of ≥ 4.0 is supposed to certify.
 
-## Gate calendar
+## Status at a glance (31 Jul 2026 - Week 4, mid Sprint 2)
 
-From `docs/LOF_LABS_RULES.md`, which is authoritative. Week 1 was
-mobilisation, so Week 1 begins 7 Jul 2026 and the 13 weeks end 6 Oct 2026.
+| Item | Status |
+|---|---|
+| Sprint 1 / Checkpoint 1 | ✅ delivered |
+| Sprint 2 / Checkpoint 2 (18 Aug) | ◑ build side met; **tester recruiting not started - the gating item** |
+| Sprint 3 (15 Sep) | ◻ dashboard built early; full-corpus accuracy run outstanding |
+| Sprint 4 (6 Oct) | ◻ adversarial audit already passed; clinician review blocked on LOF reviewers |
 
-| Gate | Timing | Date | Award | Bar |
-|---|---|---|---|---|
-| Gate 1 - Concept | End Wk 2 | Tue 21 Jul | $500 | Problem, users, scope, repo + LICENSE |
-| Gate 2 - Working prototype | End Wk 6 | **Tue 18 Aug** | $1,250 | One real path end to end, live or recorded |
-| Gate 3 - Feature-complete beta | End Wk 10 | Tue 15 Sep | $1,250 | All approved scope present and stable |
-| Final demo | Wk 13 | Tue 6 Oct | $2,000 | Completed project presented |
+Work has run ahead of the plan in places: the teach-back loop, the clinician
+dashboard, and the adversarial safety audit all landed before their sprints.
+The items that are behind are the ones depending on other people - testers
+and clinician reviewers - which is why they are worth raising early rather
+than late.
 
-Each gate has a one-week cure window: written feedback, one week to fix only
-the flagged criteria, award still earned if it passes.
+## Testing corpus change (decision, July 30 2026)
+
+The 50-document generated synthetic corpus has been replaced as the primary
+testing corpus by **106 real de-identified discharge summaries from
+MTSamples** (`test-data/mtsamples/`, built by
+`scripts/build_mtsamples_corpus.py`).
+
+Why: the synthetic documents were well-formed by construction, so they never
+exercised what real discharge paperwork actually looks like. The MTSamples
+documents are transcriptions of genuine dictated work with identifiers
+removed - narrative prose, no section headers, missing discharge fields,
+pediatric patients. They found two real defects within a day of being
+introduced (inpatient-only drugs extracted as take-home medications; adult
+second-person voice used for an infant's caregiver).
+
+Practical notes:
+
+- The corpus is **gitignored**. The content is third-party sourced and this
+  repository is public, so it is rebuilt from the script rather than
+  committed. This also satisfies the program rule against clinical or eval
+  data sitting in a public repo.
+- The synthetic corpus is **not lost**. It remains in the tags and the Neon
+  `synthetic_corpus` table is untouched. Restore with
+  `git checkout task-4.4-corpus-lock -- test-data/synthetic`.
+- Three synthetic documents (`heart_failure_01`, `copd_01`,
+  `hip_replacement_01`) stay committed at the top of `test-data/`: the beta
+  kit ships them and `test_ingest.py` parses one.
+- **Task 5.2 rubric resolved (July 30 2026).** Real documents are the point
+  of the product, so the corpus stays real and the *rubric* was fixed instead.
+  Measured across the 106 documents: warning signs appear in 34%, discharge
+  medications in 62%, follow-up in 69%, activity or diet in 53%. The old
+  anchors ("safe and complete", "dangerously incomplete") were absolute, so a
+  reviewer would have penalised correct output for a section the source never
+  contained - scoring the hospital's paperwork rather than this system. Every
+  anchor in `ui/clinician_review.py` is now phrased relative to the source,
+  and per-document guidance states the rule plainly: content absent from both
+  source and output is not a penalty; content in the output but not the source
+  is the serious failure. This keeps the gate measuring extraction fidelity,
+  which is what a median of ≥ 4.0 is supposed to certify.
 
 ## Status at a glance (July 31, 2026 - Week 4)
 

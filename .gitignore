@@ -99,3 +99,18 @@ node_modules/
 .env.bak-jul10
 # MTSamples corpus - externally sourced, rebuild with scripts/build_mtsamples_corpus.py
 test-data/mtsamples/
+
+# Documents kept out of the repo.
+#
+# Work plan PDFs are LOF deliverables that travel by email, not by git; the
+# markdown in docs/deliverables/ is the version-controlled record.
+docs/DischargeIQ_WorkPlan*.pdf
+
+# CS 595 course artifacts under the old MedSynapse name. Coursework for IIT,
+# not LOF deliverables, and binaries that bloat the history. Still on disk.
+docs/*MedSynapse*
+docs/CS595_*
+
+# Office/binary docs generally - keep the repo reviewable as text.
+docs/*.docx
+docs/*.pptx

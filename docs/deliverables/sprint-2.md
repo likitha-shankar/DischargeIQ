@@ -1,22 +1,35 @@
-# Sprint 2 - Mobile Bridge and OCR (Weeks 3–4) ◻ NEXT
+# Sprint 2 - Rewards, Testers, and the Media Decision (Weeks 3-6, closes Tue 18 Aug 2026) ◑ CURRENT
 
-**Milestone (Gate 2, working prototype):** install the app on a real phone, scan a
-discharge document with the camera, get 6th-grade output back - live.
+Task IDs follow `docs/DischargeIQ_WorkPlan_v2.pdf`.
 
-## Tasks
+**Checkpoint 2 accepted when:** the Sprint 2 demo runs live, all seven steps;
+up to 10 testers are onboarded with sessions in the backend log; the
+NotebookLM findings report, the iOS access findings report, and the
+gamification strategy document are delivered.
 
 | Task | Deliverable | Status |
 |---|---|---|
-| 2.1 | Flutter core UI (themes, state, camera + detail screens) | Head start: app already has upload → results → quiz flow |
-| 2.2 | Camera + ML Kit OCR pipeline | ✅ `7a2bf9c` - [task-2.2](tasks/task-2.2.md) (edge detection deferred) |
-| 2.3 | Client-to-server integration | ✅ - PDF upload + OCR-text path (`e5de64b`) both live |
-| 2.4 | iOS + Android distribution | ◑ **re-scoped July 30 2026: no paid store accounts this summer.** iOS ships via free 7-day development provisioning, reinstalled over USB on expiry (see [IOS_INSTALL.md](../beta/IOS_INSTALL.md)); TestFlight stays out of scope unless LOF provides a shared Apple account. Android uses the direct-install APK plus the emulator; no Play Console. |
-| 2.5 | Beta onboarding (15 testers → 10–20 active installs) | ✅ kit ready - `scripts/build_beta_kit.sh` bundles the universal APK, onboarding guide, iOS instructions, and sample PDFs, and refuses to green-light the kit unless the hosted backend answers 200. Remaining: recruit the testers. **The install target is Android-only**; iOS needs the device physically provisioned by the developer and reinstalled every 7 days. |
+| 2.1 | Teach-back quiz loop: frozen questions, no-feedback baseline, server-side delta | ✅ `7efc3b7`, `a7359fc`, `de6d126` - live delta verified 5 Jul (pre 40% → post 100%) |
+| 2.2 | Rewards layer: stars per section, calendar action, levels, no timers | ✅ built, journey theme at v3 |
+| 2.3 | Gamification strategy document (one page, honest claims) | ◑ `docs/GAMIFICATION_STRATEGY.md` exists but is STALE - it still describes the deleted garden/companion features. Rewrite before the checkpoint |
+| 2.4 | NotebookLM hands-on API evaluation and findings report | ✅ `docs/NOTEBOOKLM_FINDINGS.md` - decision D-3: Enterprise API is licence-gated and 404s on our project, so per-case audio ships via Gemini TTS on our own key |
+| 2.5 | iOS access findings, reported before any spend | ◑ ladder resolved in practice: rung 2 (free 7-day provisioning) proven on a real iPhone 31 Jul. Rung 1 (LOF shared Apple account via Steve/Chandan) NOT yet asked. **The written findings report to John and Tanuj is still outstanding** |
+| 2.6 | Tester onboarding: up to 10 testers, sessions visible in the backend log | ❌ **NOT STARTED - the gating item for this checkpoint** |
+| 2.7 | Issues-and-ideas list, maintained throughout | ✅ `docs/ISSUES_AND_IDEAS.md` |
 
-## Risk note
+## Risk to Checkpoint 2
 
-This is the schedule crunch of the summer. Mitigations already in place:
-corpus work (1.5/1.6) was pulled into Sprint 1, and the quiz loop (3.1/3.2)
-is already built - Sprint 2 is purely camera/OCR/distribution work.
-If store review stalls, demo on a direct-install debug build
-(`flutter build apk --debug` verified working).
+Acceptance names testers explicitly, and demo step 5 opens "the log of real
+tester sessions: how many people used it, their deltas, and which of the five
+domains they failed most". That log cannot exist without recruits, and Tanuj
+coordinates LOF-internal recruiting, so the lead time is not ours to control.
+
+The beta kit is ready and passes its own backend health check
+(`scripts/build_beta_kit.sh`). What is missing is people. This is the item to
+raise first, ahead of any further feature work.
+
+## Ready but not required here
+
+Work that has landed early and belongs to later checkpoints: the adversarial
+safety audit (task 4.1) passed on 31 Jul, and the clinician review portal
+(task 4.2's instrument) is built.

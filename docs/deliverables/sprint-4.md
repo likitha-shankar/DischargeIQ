@@ -1,11 +1,28 @@
-# Sprint 4 - NotebookLM Media and Corpus Lock (Weeks 7–8) ◻
+# Sprint 4 - Accuracy Verification and Demo Readiness (Weeks 11-13, closes Tue 6 Oct 2026) ◻
+
+Task IDs follow `docs/DischargeIQ_WorkPlan_v2.pdf`. October delivers a
+finished artifact, not the construction of one. Nothing is built after week 13.
+
+**Checkpoint 4 accepted when:** the Sprint 4 dress rehearsal runs, all nine
+steps; accuracy verified at the 98-100% bar on tested content; the
+adversarial audit passes on tested cases; the clinician sample verification is
+complete with every flag traced to a fix; the final summary report and the
+backup recording are delivered.
 
 | Task | Deliverable | Status |
 |---|---|---|
-| 4.1 | Media generation workflow (care plan → NotebookLM audio/video → app) | ◑ scaffolding built early - [task-4.1](tasks/task-4.1.md): per-diagnosis strategy, `/media/{document_type}` endpoint, Streamlit player with text fallback. Remaining: generate the 5 NotebookLM audios |
-| 4.2 | Media quality pass (pronunciation, source formatting) | ◑ - NotebookLM-ready source docs built for all 5 diagnoses (`dischargeiq/media/sources/`): reviewed template text verbatim, reformatted with bulleting + phonetic hints (the pacing/pronunciation lever). Remaining: run the actual audio generation + listen-through |
-| 4.3 | Spanish support (stretch, cut first if velocity slips) | ◻ |
-| 4.4 | Lock the clinical trial corpus | ✅ tooling ready - [task-4.4](tasks/task-4.4.md): `scripts/lock_corpus.py` + `corpus_lock.json` (SHA-256 per file + combined hash, `--verify` drift check). **Corpus changed July 30 2026** to the 106-document MTSamples set; point the locker at `--corpus-dir test-data/mtsamples` when freezing at Week 8. The previous 50-document synthetic lock (combined hash `4f0b4250…`) stays valid under tag `task-4.4-corpus-lock`. |
+| 4.1 | Adversarial safety audit on funded quota, with report | ✅ **PASSED 31 Jul 2026** - 6/6 cases, `a17fcfa`. Run on Anthropic (funded) because Vertex quota could not serve the suite. Found and fixed a real injection hole in Agent 1 first (`dc4f3ab`) |
+| 4.2 | Clinician sample verification, 1-2 LOF reviewers, 5-10 documents | ◻ portal built `a5f5f43`; rubric corrected 31 Jul to judge fidelity to source. **Blocked on LOF assigning reviewers - longest lead time in the plan** |
+| 4.3 | Fix pass: every flagged item traced to the commit that closed it | ◻ depends on 4.2 |
+| 4.4 | UI, UX, accessibility polish; re-verify media degradation after it | ◑ empty-section messages, density caps, and person profiles shipped; final polish pass remains |
+| 4.5 | Production builds with locked dependencies | ◑ Python locked (`requirements.lock.txt`); release APK builds. Store-signed builds are out of scope with no paid accounts |
+| 4.6 | Integration-readiness documentation and Vertex/BAA runbook | ✅ `docs/INTEGRATION_READINESS.md` |
+| 4.7 | Final summary report: accuracy, comprehension lift, telemetry, limitations | ◻ aggregates 4.2 and 3.4 results |
+| 4.8 | Tribune Tower demo package: rehearsed script, stable dataset, backup recording | ◻ |
 
-Fallback rule (also Sprint 6 task 6.5): media failure always degrades to the
-text-only teach-back loop - the comprehension metric is never blocked by media.
+## Note on 4.1
+
+The audit passed only after two defects in the gate itself were fixed: it
+reported GATE PASSED on a run where every LLM call had failed, and it scored
+Agent 1's own defensive warning as a leak. Both are recorded in `a17fcfa`.
+A gate that cannot fail is not evidence.
