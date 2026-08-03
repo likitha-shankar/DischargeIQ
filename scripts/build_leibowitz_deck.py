@@ -357,7 +357,93 @@ para(tf, "Medication-adherence apps: mostly positive but heterogeneous and metho
          "clearest engagement benefit. Patients' most common complaint is repetitiveness and "
          "irrelevant features.", size=15, color=GREY)
 
-# ── 12. Questions for Frank ──────────────────────────────────────────────────
+# ── 12. On-device AI: what is actually shipping ──────────────────────────────
+s = slide()
+title_slide(s, "Your suggestion: free on-device AI",
+            "What is actually shipping, as of August 2026",
+            "Three separate things that are easy to conflate - worth separating")
+rule(s, 2.25)
+card(s, 0.9, 2.7, 3.6, 2.6, "Android · Gemini Nano", [
+    "REAL and free. On-device via",
+    "ML Kit GenAI APIs.",
+    "",
+    "Summarise, proofread, rewrite,",
+    "describe images, plus a Prompt API.",
+    "Nano 4 in flagships later this year.",
+], accent=TEAL)
+card(s, 4.85, 2.7, 3.6, 2.6, "iOS · Foundation Models", [
+    "REAL and free. At WWDC 2026 Apple",
+    "opened the framework to ANY LLM",
+    "provider via a public protocol.",
+    "",
+    "On-device model now has Vision:",
+    "images and OCR, all on-device.",
+], accent=TEAL)
+card(s, 8.8, 2.7, 3.6, 2.6, "Apple + Google Siri deal", [
+    "REAL, but not a developer path.",
+    "",
+    "~$1B/yr. Apple runs a custom",
+    "Gemini inside its OWN Private Cloud",
+    "Compute. No user data goes to Google.",
+    "There is no free API for our app here.",
+], accent=AMBER)
+tf = textbox(s, 0.9, 5.6, 11.5, 1.2)
+para(tf, "The free iOS route is the Foundation Models framework - a different thing from "
+         "the Siri deal, and it predates it.", size=17, color=INK, bold=True, first=True)
+
+# ── 13. The catch ────────────────────────────────────────────────────────────
+s = slide()
+title_slide(s, "On-device AI", "Two things that decide whether we can use it now")
+rule(s)
+tf = textbox(s, 0.9, 2.25, 11.5, 0.6)
+para(tf, "1 · Hardware excludes most of our testers", size=19, color=RED, bold=True, first=True)
+bullets(s, [
+    "Gemini Intelligence needs 12GB RAM and a 2025-26 flagship chip.",
+    ("Qualifies: Pixel 10, Galaxy S26, OnePlus 15.", INK, True),
+    ("Excluded: Pixel 9, Galaxy S25, Galaxy Z Fold 7 - and most phones before 2026.", RED, True),
+], top=2.85, size=16, gap=7)
+
+tf = textbox(s, 0.9, 4.25, 11.5, 0.6)
+para(tf, "2 · Small models fabricate more, and that is the one thing we cannot allow",
+     size=19, color=RED, bold=True, first=True)
+bullets(s, [
+    "Our hard rule: never invent a field. Null is safer than wrong.",
+    "We just proved the extraction agent REFUSES a medication injected into a document.",
+    ("Re-running that on a small on-device model means earning every safety guarantee "
+     "again, on weaker foundations.", INK, True),
+], top=4.85, size=16, gap=7)
+
+# ── 14. Where on-device does win ─────────────────────────────────────────────
+s = slide()
+title_slide(s, "On-device AI", "Where it genuinely wins - and when I would move")
+rule(s)
+card(s, 0.9, 2.35, 5.6, 2.5, "The real prize: privacy", [
+    "Today, processing a REAL patient document",
+    "requires Google Vertex under a signed BAA.",
+    "",
+    "On-device inference means the document",
+    "never leaves the phone at all.",
+    "",
+    "That removes the BAA problem entirely.",
+], accent=TEAL)
+card(s, 6.8, 2.35, 5.6, 2.5, "We already do this", [
+    "Scanning already runs on-device:",
+    "ML Kit reads the paper on the phone",
+    "and the photo is never uploaded.",
+    "",
+    "The pattern is proven in our own app.",
+    "The question is how much more moves.",
+], accent=TEAL_MID)
+tf = textbox(s, 0.9, 5.2, 11.5, 1.6)
+para(tf, "My recommendation", size=15, color=TEAL_MID, bold=True, first=True, space_after=8)
+para(tf, "On-device is the right destination. The sequencing is to prove safety on the "
+         "strong models first, then port - not to trade a validated safety story for a "
+         "hardware-gated one three weeks before clinician review.",
+     size=17, color=INK, bold=True, space_after=8)
+para(tf, "Worth noting: our live constraint is not hosting cost. It is the Gemini API free-tier "
+         "quota, which we hit during large evaluation runs.", size=15, color=GREY)
+
+# ── 15. Questions for Frank ──────────────────────────────────────────────────
 s = slide()
 title_slide(s, "What I need from you", "The questions I cannot answer myself")
 rule(s)
@@ -372,9 +458,11 @@ bullets(s, [
     "     Several rough days surfaces a care-team nudge. Is that helpful or alarming?",
     ("5 · What would make you distrust this output?", INK, True),
     "     The most useful thing you could tell me before clinician review starts.",
-], top=2.25, size=16, gap=6)
+    ("6 · Is on-device processing worth trading model quality for?", INK, True),
+    "     It removes the BAA question entirely. It also means a smaller, weaker model.",
+], top=2.25, size=15, gap=5)
 
-# ── 13. Close ────────────────────────────────────────────────────────────────
+# ── 16. Close ────────────────────────────────────────────────────────────────
 s = slide()
 tf = textbox(s, 1.0, 2.4, 11.3, 3.2)
 para(tf, "WHAT I AM ASKING FOR", size=15, color=TEAL_MID, bold=True, first=True, space_after=18)
