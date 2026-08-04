@@ -11,6 +11,15 @@ class ApiService {
 
   final String _base;
 
+  /// Bearer header for every call, or empty when no key is configured.
+  ///
+  /// The backend skips the check entirely when it has no `DISCHARGEIQ_API_KEY`
+  /// (local dev), so sending nothing is correct there. Spread this into the
+  /// headers of every request - a call that omits it gets a 401 from any
+  /// deployment that requires the key.
+  static Map<String, String> get _authHeaders =>
+      ApiConfig.apiKey.isEmpty ? const {} : {'Authorization': 'Bearer ${ApiConfig.apiKey}'};
+
   /// Analyse a discharge PDF.
   ///
   /// [audience] is "caregiver" when the document is filed under a young
@@ -25,6 +34,7 @@ class ApiService {
   }) async {
     final uri = Uri.parse('$_base/analyze');
     final request = http.MultipartRequest('POST', uri);
+    request.headers.addAll(_authHeaders);
     if (sessionId != null) {
       // Lets the loading screen poll GET /progress/{id} for live updates.
       request.headers['X-Discharge-Session-Id'] = sessionId;
@@ -60,7 +70,7 @@ class ApiService {
     final response = await http
         .post(
           uri,
-          headers: {'Content-Type': 'application/json'},
+          headers: {'Content-Type': 'application/json', ..._authHeaders},
           body: jsonEncode({
             'message': message,
             'session_id': sessionId,
@@ -94,6 +104,7 @@ class ApiService {
     try {
       final request = http.Request('POST', Uri.parse('$_base/chat/stream'))
         ..headers['Content-Type'] = 'application/json'
+        ..headers.addAll(_authHeaders)
         ..body = jsonEncode({'message': message, 'session_id': sessionId});
       final response =
           await client.send(request).timeout(const Duration(seconds: 60));
@@ -143,6 +154,7 @@ class ApiService {
     String? sessionId,
   }) async {
     final request = http.MultipartRequest('POST', Uri.parse('$_base/analyze/image'));
+    request.headers.addAll(_authHeaders);
     if (sessionId != null) {
       request.headers['X-Discharge-Session-Id'] = sessionId;
     }
@@ -202,6 +214,7 @@ class ApiService {
           Uri.parse('$_base$path'),
           headers: {
             'Content-Type': 'application/json',
+            ..._authHeaders,
             if (sessionId != null) 'X-Discharge-Session-Id': sessionId,
           },
           body: jsonEncode(body),

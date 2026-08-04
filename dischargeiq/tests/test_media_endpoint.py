@@ -57,3 +57,24 @@ def test_video_endpoint_serves_mp4_and_404s_cleanly(tmp_path, monkeypatch):
     assert missing.status_code == 404
     assert "video not generated" in missing.json()["detail"].lower()
     assert _client.get("/media/nope/video").status_code == 404
+
+
+def test_head_probe_matches_get(tmp_path, monkeypatch) -> None:
+    """
+    HEAD must answer like GET, because that is how clients probe.
+
+    AudioExplainerCard sends HEAD and shows a player only on 200. The routes
+    were registered GET-only, so Starlette answered every probe with 405 and
+    the card stayed hidden even when the audio existed. Registering both
+    methods is what makes the feature reachable at all.
+    """
+    (tmp_path / "copd.wav").write_bytes(b"fake-audio-bytes")
+    monkeypatch.setattr(media, "_MEDIA_DIR", tmp_path)
+
+    present = _client.head("/media/copd")
+    assert present.status_code == 200, "probe must see 200 when the file exists"
+    assert present.content == b"", "HEAD carries no body"
+
+    # Absent media is 404 ("hide the player"), never 405 ("wrong method").
+    assert _client.head("/media/diabetes").status_code == 404
+    assert _client.head("/media/copd/video").status_code == 404

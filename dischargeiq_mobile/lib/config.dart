@@ -35,6 +35,19 @@ class ApiConfig {
     }
     return 'http://localhost:8000';
   }
+
+  /// Bearer token for the backend, supplied at build time with
+  /// `--dart-define=API_KEY=<key>`.
+  ///
+  /// Empty by default so a local uvicorn with no `DISCHARGEIQ_API_KEY` still
+  /// works untouched. Release builds that talk to the hosted backend MUST
+  /// pass it, because that deployment requires the key:
+  ///   flutter build apk --release \
+  ///     --dart-define=API_KEY=$DISCHARGEIQ_API_KEY
+  ///
+  /// Not a secret from the patient holding the phone - it is a spend gate that
+  /// stops anonymous internet traffic from running the pipeline on our bill.
+  static const String apiKey = String.fromEnvironment('API_KEY');
 }
 
 // Light theme

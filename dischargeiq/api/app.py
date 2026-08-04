@@ -41,6 +41,21 @@ async def _lifespan(app: FastAPI):
     value means DATABASE_URL is unset or the pool failed - callers must
     handle this gracefully (non-fatal; pipeline proceeds without persistence).
     """
+    # Loud on every boot when the spend gate is off. verify_api_key silently
+    # allows all traffic when DISCHARGEIQ_API_KEY is unset, which is right for
+    # local dev and dangerous on a public URL - an unkeyed deployment lets
+    # anonymous callers run the full pipeline on our LLM bill. Log level makes
+    # the difference visible in Cloud Run logs without blocking local work.
+    if os.getenv("DISCHARGEIQ_API_KEY", "").strip():
+        logger.info("API key auth ENABLED - pipeline routes require a Bearer token")
+    else:
+        logger.warning(
+            "DISCHARGEIQ_API_KEY is not set: /analyze, /quiz and /media/case accept "
+            "UNAUTHENTICATED requests. Fine locally; on a public deployment this "
+            "lets anyone spend our LLM quota. Set the key and pass it to clients "
+            "with --dart-define=API_KEY (mobile) or DISCHARGEIQ_API_KEY (Streamlit)."
+        )
+
     database_url = os.getenv("DATABASE_URL", "").strip()
     if database_url:
         try:
@@ -70,11 +85,27 @@ def create_app() -> FastAPI:
     Returns:
         FastAPI: Fully configured application instance ready for uvicorn.
     """
+    # Interactive docs publish the full endpoint map and request schemas. That
+    # is exactly what a local developer wants and exactly what an abuser wants
+    # on a public URL, so tie it to the same signal as the auth gate: a keyed
+    # (i.e. deployed) instance hides them, an unkeyed (i.e. local) one serves
+    # them. Override either way with API_DOCS_ENABLED=1 / =0.
+    _docs_override = os.getenv("API_DOCS_ENABLED", "").strip().lower()
+    if _docs_override in {"1", "true", "yes"}:
+        _docs_on = True
+    elif _docs_override in {"0", "false", "no"}:
+        _docs_on = False
+    else:
+        _docs_on = not os.getenv("DISCHARGEIQ_API_KEY", "").strip()
+
     app = FastAPI(
         title="DischargeIQ",
         description="Multi-agent AI system for plain-language patient discharge education",
         version="0.1.0",
         lifespan=_lifespan,
+        docs_url="/docs" if _docs_on else None,
+        redoc_url="/redoc" if _docs_on else None,
+        openapi_url="/openapi.json" if _docs_on else None,
     )
 
     # SecurityHeadersMiddleware must be outermost so headers are present on

@@ -304,3 +304,34 @@ def test_missing_severity_defaults_to_moderate():
         assert concept.severity == "moderate", (
             f"Expected 'moderate' default, got '{concept.severity}' for: {concept.question!r}"
         )
+
+
+def test_concepts_sorted_critical_first_answered_last():
+    """
+    Gaps come back ordered by severity regardless of the model's own ordering.
+
+    Both review tabs render missed_concepts in list order, so a moderate gap
+    emitted before a critical one used to display above it - seen live on a
+    real COPD document. Sorting happens in the agent so every client inherits
+    it. Answered concepts are not gaps and sort to the end.
+    """
+    blocks = [
+        {"question": "moderate-one", "answered": "NO", "gap": "g", "severity": "moderate"},
+        {"question": "critical-one", "answered": "NO", "gap": "g", "severity": "critical"},
+        {"question": "critical-two", "answered": "NO", "gap": "g", "severity": "critical"},
+        {"question": "minor-one", "answered": "NO", "gap": "g", "severity": "minor"},
+        {"question": "answered-critical", "answered": "YES", "gap": "g", "severity": "critical"},
+    ]
+    raw = _make_llm_response(blocks, gap_score=8)
+
+    with patch(_MOCK_CLIENT, return_value=_FAKE_CLIENT_PAIR), \
+         patch(_MOCK_CHAT, return_value=raw):
+        result = run_patient_simulator_agent(_minimal_extraction(), "test_sort")
+
+    assert [c.question for c in result.missed_concepts] == [
+        "critical-one",
+        "critical-two",
+        "moderate-one",
+        "minor-one",
+        "answered-critical",
+    ]

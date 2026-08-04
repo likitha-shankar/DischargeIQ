@@ -25,6 +25,8 @@ import random
 import requests
 import streamlit as st
 
+from ui import api_auth_headers
+
 logger = logging.getLogger(__name__)
 
 # Session-state keys - namespaced to avoid colliding with streamlit_app keys.
@@ -172,6 +174,7 @@ def _render_intro(result: dict, session_id: str, api_base: str) -> None:
                         "session_id": session_id,
                         "extraction": result.get("extraction", {}),
                     },
+                    headers=api_auth_headers(),
                     timeout=90,
                 )
                 resp.raise_for_status()
@@ -276,6 +279,7 @@ def _finish_phase(phase: str, session_id: str, api_base: str) -> None:
                 "question_keys": keys,
                 "answers": answers,
             },
+            headers=api_auth_headers(),
             timeout=30,
         )
         resp.raise_for_status()

@@ -12,6 +12,7 @@ Called by: pytest (auto-discovered).
 
 import pytest
 
+from dischargeiq.api import middleware
 from dischargeiq.api.routes import media
 from dischargeiq.services.session import session_store
 from dischargeiq.utils import llm_client
@@ -24,6 +25,13 @@ def _clear_global_state() -> None:
         session_store._result_by_hash.clear()
     with media._audio_cache_lock:
         media._audio_cache.clear()
+    # Rate-limit windows are keyed by path+IP, and every TestClient shares the
+    # IP "testclient". Without this, requests made by one test count against
+    # the next one's budget - a test that legitimately calls /analyze/text a
+    # few times can push an unrelated later test over the 5/60s limit and
+    # fail it with a 429 that has nothing to do with what it asserts.
+    with middleware._rate_lock:
+        middleware._rate_windows.clear()
 
 
 @pytest.fixture(autouse=True)

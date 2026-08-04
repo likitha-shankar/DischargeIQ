@@ -55,6 +55,7 @@ from dotenv import load_dotenv
 
 from dischargeiq.utils.logger import configure_logging
 from dischargeiq.utils.questions_html import build_copy_button_html, build_questions_section_html
+from ui import api_auth_headers
 from ui.quiz_tab import render_quiz_tab
 
 load_dotenv(dotenv_path=".env")
@@ -567,6 +568,7 @@ def _call_analyze(pdf_bytes: bytes, filename: str, session_id: str | None = None
             415 for wrong file type, 504 for pipeline timeout, 5xx generic).
     """
     headers = {"X-Discharge-Session-Id": session_id} if session_id else {}
+    headers.update(api_auth_headers())
     response = requests.post(
         _ANALYZE_URL,
         files={"file": (filename, pdf_bytes, "application/pdf")},

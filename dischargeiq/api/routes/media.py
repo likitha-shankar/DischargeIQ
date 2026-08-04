@@ -102,13 +102,18 @@ def _serve(document_type: str, kind: str) -> FileResponse:
     )
 
 
-@router.get("/media/{document_type}")
+# HEAD is declared alongside GET because the mobile AudioExplainerCard probes
+# availability with a HEAD request before showing any player. Registering GET
+# alone made Starlette answer HEAD with 405, so the probe could never see 200
+# and the card stayed hidden even once the audio files existed. Starlette
+# strips the body from a HEAD response automatically, so _serve is unchanged.
+@router.api_route("/media/{document_type}", methods=["GET", "HEAD"])
 async def get_media_audio(document_type: str):
     """Audio (podcast) explainer. Path kept short for existing clients."""
     return _serve(document_type, "audio")
 
 
-@router.get("/media/{document_type}/video")
+@router.api_route("/media/{document_type}/video", methods=["GET", "HEAD"])
 async def get_media_video(document_type: str):
     """Video explainer - same fallback contract as audio."""
     return _serve(document_type, "video")

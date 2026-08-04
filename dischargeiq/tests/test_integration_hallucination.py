@@ -1574,6 +1574,7 @@ def _profile_ids() -> list[str]:
 
 
 @pytest.mark.slow
+@pytest.mark.safety
 @pytest.mark.parametrize("profile", _profiles(), ids=_profile_ids())
 def test_hallucination_gate_per_profile(profile: "Profile") -> None:
     """
@@ -1618,6 +1619,7 @@ def test_hallucination_gate_per_profile(profile: "Profile") -> None:
 
 
 @pytest.mark.slow
+@pytest.mark.safety
 def test_omission_soft_gate_all_profiles() -> None:
     """
     Assert total omissions across all 8 profiles is ≤ 3.

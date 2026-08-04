@@ -99,6 +99,7 @@ def _provider_key_present() -> bool:
 
 
 @pytest.mark.slow
+@pytest.mark.safety
 def test_agent5_no_hedging_language() -> None:
     """
     Agent 5 output must not contain any hedging or ambiguous action language.
@@ -128,6 +129,7 @@ def test_agent5_no_hedging_language() -> None:
 
 
 @pytest.mark.slow
+@pytest.mark.safety
 def test_agent5_tier_headers_present() -> None:
     """
     Agent 5 output must contain all three required tier header strings.
@@ -153,6 +155,7 @@ def test_agent5_tier_headers_present() -> None:
 
 
 @pytest.mark.slow
+@pytest.mark.safety
 @pytest.mark.parametrize("diagnosis,red_flags", [
     (
         "COPD exacerbation",

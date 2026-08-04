@@ -11,18 +11,26 @@ appropriate HTTP status codes. No business logic lives here.
 import json
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
-from dischargeiq.api.middleware import verify_api_key
 from dischargeiq.api.schemas import ChatRequest, ChatResponse
 from dischargeiq.services.chat import chat_service
 from dischargeiq.services.session import session_store
 
 logger = logging.getLogger(__name__)
-# verify_api_key is a no-op until DISCHARGEIQ_API_KEY is set; once set, this
-# LLM-cost endpoint requires the same Bearer token as /analyze.
-router = APIRouter(dependencies=[Depends(verify_api_key)])
+
+# NOT Bearer-gated, unlike every other LLM-cost route. The Streamlit chat panel
+# runs in the patient's browser and calls this endpoint with fetch(), so a key
+# handed to it would sit in page source for anyone to read - that is not a gate,
+# it is a published key. Until the panel proxies its calls through the app
+# server, the protection here is the per-IP rate limit (30/min) plus the fact
+# that a caller must supply a full pipeline_context to get an answer at all.
+#
+# The expensive routes - /analyze, /analyze/text, /analyze/image (full 6-agent
+# pipeline), /quiz/*, /media/case - ARE gated, and none of them is called from
+# browser JavaScript, so gating them breaks nothing.
+router = APIRouter()
 
 
 def _resolve_context(request: ChatRequest) -> dict:
