@@ -34,9 +34,40 @@ _client_cache: dict[str, tuple] = {}
 
 logger = logging.getLogger(__name__)
 
-# Anthropic default: dated Haiku 4.5 (cheapest tier). Undated aliases can 404.
-# For higher-quality eval / demos, set LLM_MODEL=claude-sonnet-4-20250514 in .env.
+# Anthropic default: dated Haiku 4.5 (cheapest tier). Undated aliases can 404
+# for older models; the Claude 5 family (claude-sonnet-5, claude-opus-5) has no
+# dated form and must be written bare.
+# For higher-quality eval / demos, set LLM_MODEL=claude-sonnet-5 in .env.
 DEFAULT_ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
+
+# Claude 5 models run adaptive thinking whenever the request omits `thinking`,
+# and max_tokens caps thinking PLUS the answer. Every agent here asks for
+# bounded structured output (Agent 1's JSON at 4096), so silent thinking eats
+# the budget and truncates mid-JSON - observed live as Agent 1 extraction
+# failing on claude-sonnet-5 where dated Haiku 4.5 had been fine. We want
+# deterministic extraction, not reasoning, so thinking is switched off
+# explicitly on the Anthropic path. Harmless on models that never think.
+#
+# Not applied to Fable 5 / Mythos 5: thinking is always on there and an
+# explicit "disabled" is rejected with a 400.
+_ANTHROPIC_THINKING_OFF: dict = {"thinking": {"type": "disabled"}}
+
+
+def anthropic_extra_body(model_name: str) -> dict:
+    """
+    Per-model extra_body for Anthropic requests through the OpenAI-compat shim.
+
+    Args:
+        model_name: Anthropic model id, e.g. "claude-sonnet-5".
+
+    Returns:
+        dict: {"thinking": {"type": "disabled"}} for models that would
+              otherwise think by default, or {} when thinking must not be
+              configured (Fable/Mythos) or the model never thinks.
+    """
+    if "fable" in model_name or "mythos" in model_name:
+        return {}
+    return dict(_ANTHROPIC_THINKING_OFF)
 
 # Default configuration per provider.
 # Add a new provider here - no agent code needs to change.
@@ -733,6 +764,13 @@ def _call_chat_once(
                 model=model_name,
                 max_tokens=max_tokens,
                 messages=messages,
+                # Keeps Claude 5 models from spending the token budget on
+                # thinking and truncating the answer - see anthropic_extra_body.
+                **(
+                    {"extra_body": anthropic_extra_body(model_name)}
+                    if provider == "anthropic"
+                    else {}
+                ),
             )
             # Guard against empty `choices` arrays (rare but seen on some
             # OpenRouter free-tier responses where the upstream model rejects

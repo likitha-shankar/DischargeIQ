@@ -679,7 +679,21 @@ def run_patient_simulator_agent(
             caregiver_questions=salvaged_questions,
         )
 
-    out = out.model_copy(update={"missed_concepts": list(out.missed_concepts)})
+    # Sort once here rather than in each client: the model returns concepts in
+    # whatever order it generated them, which put a moderate gap above two
+    # critical ones in testing. Both the Flutter and Streamlit review tabs
+    # render the list as-is, so ordering it at the source fixes every consumer.
+    # Unanswered gaps lead (an answered concept is not a gap), then severity,
+    # then original order within a tier via the stable sort.
+    _SEVERITY_RANK = {"critical": 0, "moderate": 1, "minor": 2}
+    ordered = sorted(
+        out.missed_concepts,
+        key=lambda c: (
+            c.answered_by_doc,
+            _SEVERITY_RANK.get(c.severity, len(_SEVERITY_RANK)),
+        ),
+    )
+    out = out.model_copy(update={"missed_concepts": ordered})
     missed = sum(1 for c in out.missed_concepts if not c.answered_by_doc)
     logger.info(
         "agent6_patient_simulator complete '%s' gap_score=%d missed=%d fk=%.2f",

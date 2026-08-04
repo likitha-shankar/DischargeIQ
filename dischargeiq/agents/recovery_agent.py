@@ -45,6 +45,7 @@ from dischargeiq.models.extraction import ExtractionOutput
 from dischargeiq.utils.audience import AUDIENCE_PATIENT, audience_instruction
 from dischargeiq.utils.llm_client import (
     DEFAULT_ANTHROPIC_MODEL,
+    anthropic_extra_body,
     call_chat_with_fallback,
     read_anthropic_completion,
     get_native_agent_client,
@@ -201,6 +202,10 @@ def run_recovery_agent(
                 max_tokens=_MAX_TOKENS,
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_message}],
+                # Claude 5 thinks by default and max_tokens covers thinking
+                # plus the answer, which truncates bounded output. See
+                # anthropic_extra_body in utils/llm_client.
+                extra_body=anthropic_extra_body(model),
             )
         except anthropic.APIError as e:
             logger.error("Agent 4 Anthropic call failed for '%s': %s", document_id, e)
