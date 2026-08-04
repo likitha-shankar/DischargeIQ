@@ -72,7 +72,7 @@ quiz that measures whether comprehension actually improved.
 
 ## 7. Next steps
 
-- Generate the 5 NotebookLM audio files (sources ready in `media/sources/`).
+- Generate the 5 NotebookLM audio files (sources ready in `dischargeiq/media/sources/`).
 - Connect the two clinicians; complete the 50-document review.
 - Re-run the adversarial audit under Vertex/paid quota; attach the report.
 - Resume paid items (Apple enrollment -> TestFlight; Play Internal Testing).

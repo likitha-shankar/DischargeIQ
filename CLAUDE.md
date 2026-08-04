@@ -40,7 +40,9 @@ DischargeIQ is two things working together:
    the document does not answer - before the patient ever sees the summary.
 
 A patient uploads a PDF of their discharge document and receives output from
-six specialised agents, displayed across six tabs in the Streamlit UI:
+six specialised agents. Both UIs show **seven** tabs: the six agent outputs
+below plus "Test yourself", the teach-back quiz (see the July 2026 status
+section for the full tab order).
 
 1. What Happened to You (Agent 2 - diagnosis explanation)
 2. Your Medications Explained (Agent 3 - per-drug rationale)
@@ -182,8 +184,10 @@ Additional scripts and stress runners are documented in **`README.md`**.
 - **Multi-key setup:** Default provider is now **Gemini** - new contributors need
   `GOOGLE_API_KEY`. If using Anthropic instead, set `LLM_PROVIDER=anthropic` and
   `ANTHROPIC_API_KEY`. OpenRouter/OpenAI paths also available.
-- **In-memory PDF store is process-local:** `_pdf_store` and `_simulator_store` in
-  `main.py` are per-process `OrderedDict`s. Under Cloud Run with `max-instances > 1`,
+- **In-memory PDF store is process-local:** `_pdf` and `_simulator` in
+  `dischargeiq/services/session.py` (owned by `session_store`) are per-process
+  `OrderedDict`s. `main.py` only re-exports them as `_pdf_store` /
+  `_simulator_store` for older tests - do not debug there. Under Cloud Run with `max-instances > 1`,
   a `GET /pdf/{session_id}` may land on a different instance than the `POST /analyze`
   that stored it, returning 404. Long-term fix requires GCS or Redis - not yet wired.
 - **Mobile apps frozen:** `ios/` (SwiftUI) is gitignored and local-only.
