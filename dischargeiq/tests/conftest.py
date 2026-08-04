@@ -10,9 +10,26 @@ Dependencies: pytest, dischargeiq.utils.llm_client, dischargeiq.services.session
 Called by: pytest (auto-discovered).
 """
 
+import os
+
 import pytest
 
-from dischargeiq.api import middleware
+# Auth must be OFF before anything imports the app.
+#
+# The suite is written against the open/dev configuration: it asserts 422 for a
+# malformed body, 404 for a missing document, and so on. Once a developer has
+# DISCHARGEIQ_API_KEY in their .env - which is now the norm, since the deployed
+# service requires one - python-dotenv loads it, verify_api_key starts
+# enforcing, and 26 tests fail with 401 having nothing to do with what they
+# assert. Clearing it here keeps the suite a property of the code rather than
+# of whoever is running it. The auth behaviour itself is covered separately by
+# tests that set the key explicitly.
+# Set to empty rather than deleted: load_dotenv() runs when the app is
+# imported and does not override a variable that is already present, so
+# deleting it here would just let .env put it back.
+os.environ["DISCHARGEIQ_API_KEY"] = ""
+
+from dischargeiq.api import middleware  # noqa: E402
 from dischargeiq.api.routes import media
 from dischargeiq.services.session import session_store
 from dischargeiq.utils import llm_client
