@@ -115,5 +115,11 @@ docs/CS595_*
 docs/*.docx
 docs/*.pptx
 
-# Generated decks - rebuild with scripts/build_leibowitz_deck.py
+# Generated decks - rebuild with scripts/build_frank_deck.py
 docs/*.pptx
+
+# App screenshots for the deck - recapture from the emulator when needed
+docs/deck-assets/
+
+# Generated field card - rebuild with scripts/build_clinician_field_card.py
+docs/CLINICIAN_FIELD_CARD.pdf
