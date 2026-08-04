@@ -1,15 +1,21 @@
 """
-Builds the DischargeIQ deck for the meeting with Dr. Frank Leibowitz.
+Builds the DischargeIQ progress deck for the meeting with Frank.
 
-Purpose of the deck, in priority order:
-  1. Explain how the gamification actually works, in enough detail that a
-     clinician can react to specifics rather than to the word "gamification".
-  2. Get his judgement on whether it belongs in a post-discharge product.
-  3. Give status and the safety story as context, not as the main event.
+Frank suggested the gamification direction, so the deck, in priority order:
+  1. Shows current progress and sets up the live demo.
+  2. Explains how the gamification he suggested actually got built, in enough
+     detail that he can react to specifics.
+  3. Covers the on-device AI question and the asks.
 
-Design: dark teal on white, one idea per slide, no clip art. A clinician
-reads fast and dislikes decoration.
+Clinical-validation questions are NOT in this deck - they go to Dr. Leibowitz
+(the clinician validator) via docs/LEIBOWITZ_CLINICAL_QUESTIONS.md.
+
+Design: dark teal on white, one idea per slide, no clip art.
 """
+
+import os
+
+from lxml import etree
 
 from pptx import Presentation
 from pptx.util import Inches, Pt
@@ -112,7 +118,7 @@ para(tf, "Making discharge instructions", size=40, color=INK, bold=True, space_a
 para(tf, "understandable - and worth finishing", size=40, color=TEAL, bold=True, space_after=22)
 para(tf, "Likitha Shankar  ·  MS Computer Science, Illinois Institute of Technology",
      size=17, color=GREY, space_after=4)
-para(tf, "LOF AI Build Studio  ·  For Dr. Frank Leibowitz  ·  August 2026",
+para(tf, "LOF AI Build Studio  ·  Progress review for Frank  ·  3 August 2026",
      size=17, color=GREY)
 
 # ── 2. The problem ───────────────────────────────────────────────────────────
@@ -172,7 +178,9 @@ bullets(s, [
     ("Adversarial safety audit  ·  passed, 6 of 6 cases", INK, True),
     "",
     ("Testing corpus: 106 real de-identified discharge summaries (MTSamples),", GREY, False),
-    ("replacing 50 generated ones. Real paperwork breaks things generated paperwork does not.", GREY, False),
+    ("replacing 50 generated ones. Real paperwork found two real bugs within a day:", GREY, False),
+    ("inpatient-only drugs listed as take-home medications, and an infant addressed as “you”.", GREY, False),
+    ("Both fixed - every agent now writes to the caregiver when the patient is a young child.", GREY, False),
 ], top=2.3, gap=12)
 
 # ── 5. Safety story ──────────────────────────────────────────────────────────
@@ -207,7 +215,7 @@ bullets(s, [
 # ── 6. Gamification: framing ─────────────────────────────────────────────────
 s = slide()
 title_slide(s, "Gamification", "What I mean by it - and what I do not",
-            "This is the section I most want your reaction to")
+            "You suggested this direction - here is what I built with it")
 rule(s, 2.25)
 card(s, 0.9, 2.65, 5.6, 2.0, "It IS", [
     "A rewards layer over the discharge PROCESS:",
@@ -269,6 +277,36 @@ card(s, 8.8, 4.45, 3.6, 1.9, "Mood check-in", [
     "care-team nudge.",
     "A rough day asks LESS.",
 ], accent=TEAL_MID)
+
+# ── 7b. Gamification: real screenshots ───────────────────────────────────────
+# Live captures from the Android app (pixel8 emulator, real heart-failure
+# document through the hosted pipeline). Slide is skipped gracefully if the
+# assets are missing so the deck still builds on a fresh clone.
+_ASSETS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                       "docs", "deck-assets")
+_SHOTS = [
+    ("results-what-happened.png", "The seven tabs, grounded\nin the real document"),
+    ("quiz-intro-stars.png", "Discharge stars - one per\nstep of the process"),
+    ("quiz-question.png", "Baseline quiz - it measures\nfirst, teaches after"),
+    ("recovery-journey.png", "The Recovery Journey trail\nwith the mood check-in"),
+]
+if all(os.path.exists(os.path.join(_ASSETS, f)) for f, _ in _SHOTS):
+    s = slide()
+    title_slide(s, "Gamification", "What it actually looks like",
+                "Captured today - real app, real document, hosted backend")
+    rule(s, 2.25)
+    # Phone screenshots are 1080x2400 (ratio 0.45): 2.0" wide x 4.44" tall.
+    shot_w, shot_h, top = 2.0, 4.44, 2.5
+    gap = (13.333 - 4 * shot_w - 2 * 0.9) / 3
+    for i, (fname, caption) in enumerate(_SHOTS):
+        left = 0.9 + i * (shot_w + gap)
+        s.shapes.add_picture(os.path.join(_ASSETS, fname),
+                             Inches(left), Inches(top),
+                             Inches(shot_w), Inches(shot_h))
+        tf = textbox(s, left - 0.15, top + shot_h + 0.08, shot_w + 0.3, 0.6)
+        for j, line in enumerate(caption.split("\n")):
+            para(tf, line, size=11, color=GREY, first=(j == 0),
+                 space_after=0, align=PP_ALIGN.CENTER)
 
 # ── 8. Gamification: what the patient sees ───────────────────────────────────
 s = slide()
@@ -357,13 +395,42 @@ para(tf, "Medication-adherence apps: mostly positive but heterogeneous and metho
          "clearest engagement benefit. Patients' most common complaint is repetitiveness and "
          "irrelevant features.", size=15, color=GREY)
 
-# ── 12. On-device AI: what is actually shipping ──────────────────────────────
+# ── 12. Live demo roadmap ────────────────────────────────────────────────────
+s = slide()
+title_slide(s, "Live demo", "What I will show you, in order",
+            "Real phone, hosted backend, a real de-identified discharge document")
+rule(s, 2.25)
+card(s, 0.9, 2.6, 5.6, 2.15, "1 · Scan the paper document", [
+    "Camera scan with on-device text recognition -",
+    "the photo never leaves the phone.",
+    "A wrong document (a bill) gets politely rejected",
+    "before any AI runs.",
+], accent=TEAL)
+card(s, 6.8, 2.6, 5.6, 2.15, "2 · The seven tabs", [
+    "What happened, medications, appointments,",
+    "warning signs, recovery - all at 6th-grade",
+    "reading level, all grounded in the document,",
+    "with empty sections explaining themselves.",
+], accent=TEAL)
+card(s, 0.9, 5.0, 5.6, 2.15, "3 · The rewards layer (your idea)", [
+    "Stars per section, the journey trail, the",
+    "teach-back quiz with its before/after delta,",
+    "levels and mastery badges.",
+    "This is the part I want your reaction to.",
+], accent=AMBER)
+card(s, 6.8, 5.0, 5.6, 2.15, "4 · The safety net", [
+    "AI Review tab: gaps the document itself leaves",
+    "open, for the care team - plus the chat that",
+    "refuses to answer beyond the document.",
+], accent=TEAL_MID)
+
+# ── 13. On-device AI: what is actually shipping ──────────────────────────────
 s = slide()
 title_slide(s, "Your suggestion: free on-device AI",
             "What is actually shipping, as of August 2026",
             "Three separate things that are easy to conflate - worth separating")
 rule(s, 2.25)
-card(s, 0.9, 2.7, 3.6, 2.6, "Android · Gemini Nano", [
+card(s, 0.9, 2.7, 3.6, 2.9, "Android · Gemini Nano", [
     "REAL and free. On-device via",
     "ML Kit GenAI APIs.",
     "",
@@ -371,7 +438,7 @@ card(s, 0.9, 2.7, 3.6, 2.6, "Android · Gemini Nano", [
     "describe images, plus a Prompt API.",
     "Nano 4 in flagships later this year.",
 ], accent=TEAL)
-card(s, 4.85, 2.7, 3.6, 2.6, "iOS · Foundation Models", [
+card(s, 4.85, 2.7, 3.6, 2.9, "iOS · Foundation Models", [
     "REAL and free. At WWDC 2026 Apple",
     "opened the framework to ANY LLM",
     "provider via a public protocol.",
@@ -379,15 +446,14 @@ card(s, 4.85, 2.7, 3.6, 2.6, "iOS · Foundation Models", [
     "On-device model now has Vision:",
     "images and OCR, all on-device.",
 ], accent=TEAL)
-card(s, 8.8, 2.7, 3.6, 2.6, "Apple + Google Siri deal", [
+card(s, 8.8, 2.7, 3.6, 2.9, "Apple + Google Siri deal", [
     "REAL, but not a developer path.",
     "",
-    "~$1B/yr. Apple runs a custom",
-    "Gemini inside its OWN Private Cloud",
-    "Compute. No user data goes to Google.",
-    "There is no free API for our app here.",
+    "~$1B/yr. A custom Gemini inside",
+    "Apple's OWN Private Cloud Compute.",
+    "No free API for our app here.",
 ], accent=AMBER)
-tf = textbox(s, 0.9, 5.6, 11.5, 1.2)
+tf = textbox(s, 0.9, 5.85, 11.5, 1.2)
 para(tf, "The free iOS route is the Foundation Models framework - a different thing from "
          "the Siri deal, and it predates it.", size=17, color=INK, bold=True, first=True)
 
@@ -417,7 +483,7 @@ bullets(s, [
 s = slide()
 title_slide(s, "On-device AI", "Where it genuinely wins - and when I would move")
 rule(s)
-card(s, 0.9, 2.35, 5.6, 2.5, "The real prize: privacy", [
+card(s, 0.9, 2.35, 5.6, 2.75, "The real prize: privacy", [
     "Today, processing a REAL patient document",
     "requires Google Vertex under a signed BAA.",
     "",
@@ -426,7 +492,7 @@ card(s, 0.9, 2.35, 5.6, 2.5, "The real prize: privacy", [
     "",
     "That removes the BAA problem entirely.",
 ], accent=TEAL)
-card(s, 6.8, 2.35, 5.6, 2.5, "We already do this", [
+card(s, 6.8, 2.35, 5.6, 2.75, "We already do this", [
     "Scanning already runs on-device:",
     "ML Kit reads the paper on the phone",
     "and the photo is never uploaded.",
@@ -434,7 +500,7 @@ card(s, 6.8, 2.35, 5.6, 2.5, "We already do this", [
     "The pattern is proven in our own app.",
     "The question is how much more moves.",
 ], accent=TEAL_MID)
-tf = textbox(s, 0.9, 5.2, 11.5, 1.6)
+tf = textbox(s, 0.9, 5.4, 11.5, 1.6)
 para(tf, "My recommendation", size=15, color=TEAL_MID, bold=True, first=True, space_after=8)
 para(tf, "On-device is the right destination. The sequencing is to prove safety on the "
          "strong models first, then port - not to trade a validated safety story for a "
@@ -457,7 +523,7 @@ bullets(s, [
     ("4 · The daily mood check-in - useful signal, or overreach?", INK, True),
     "     Several rough days surfaces a care-team nudge. Is that helpful or alarming?",
     ("5 · What would make you distrust this output?", INK, True),
-    "     The most useful thing you could tell me before clinician review starts.",
+    "     The most useful thing you could tell me at this stage.",
     ("6 · Is on-device processing worth trading model quality for?", INK, True),
     "     It removes the BAA question entirely. It also means a smaller, weaker model.",
 ], top=2.25, size=15, gap=5)
@@ -473,7 +539,111 @@ para(tf, "The AI surfaces gaps. A human decides what to do about them. That fram
      size=19, color=GREY, space_after=22)
 para(tf, "Likitha Shankar  ·  lshankar@hawk.illinoistech.edu", size=16, color=TEAL, bold=True)
 
-out = "/Users/likitha/Desktop/hmm/masters/sem4/healthcare & AI/DischargeIQ/docs/DischargeIQ_Leibowitz_Aug2026.pptx"
+# ── Motion: fade transitions + staggered entrances ───────────────────────────
+# python-pptx has no animation API, so the transition and timing parts are
+# injected as raw slide XML. Schema order inside <p:sld> is
+# cSld, clrMapOvr, transition, timing - both parts are appended last, in order.
+
+P_NS = "http://schemas.openxmlformats.org/presentationml/2006/main"
+
+TRANSITION_XML = (
+    f'<p:transition xmlns:p="{P_NS}" spd="med"><p:fade/></p:transition>'
+)
+
+
+def _effect_xml(node_id, shape_id, delay_ms):
+    """One automatic fade-in entrance for one shape, starting delay_ms after
+    the slide appears. Uses PowerPoint preset 10 (Fade, entrance class)."""
+    return f"""
+      <p:par>
+        <p:cTn id="{node_id}" fill="hold">
+          <p:stCondLst><p:cond delay="{delay_ms}"/></p:stCondLst>
+          <p:childTnLst>
+            <p:par>
+              <p:cTn id="{node_id + 1}" presetID="10" presetClass="entr"
+                     presetSubtype="0" fill="hold" grpId="0" nodeType="withEffect">
+                <p:stCondLst><p:cond delay="0"/></p:stCondLst>
+                <p:childTnLst>
+                  <p:set>
+                    <p:cBhvr>
+                      <p:cTn id="{node_id + 2}" dur="1" fill="hold">
+                        <p:stCondLst><p:cond delay="0"/></p:stCondLst>
+                      </p:cTn>
+                      <p:tgtEl><p:spTgt spid="{shape_id}"/></p:tgtEl>
+                      <p:attrNameLst><p:attrName>style.visibility</p:attrName></p:attrNameLst>
+                    </p:cBhvr>
+                    <p:to><p:strVal val="visible"/></p:to>
+                  </p:set>
+                  <p:animEffect transition="in" filter="fade">
+                    <p:cBhvr>
+                      <p:cTn id="{node_id + 3}" dur="500"/>
+                      <p:tgtEl><p:spTgt spid="{shape_id}"/></p:tgtEl>
+                    </p:cBhvr>
+                  </p:animEffect>
+                </p:childTnLst>
+              </p:cTn>
+            </p:par>
+          </p:childTnLst>
+        </p:cTn>
+      </p:par>"""
+
+
+def _timing_xml(shape_ids):
+    """Full <p:timing> tree: every listed shape fades in automatically,
+    staggered 220 ms apart, once the slide is shown. No extra clicks."""
+    effects = []
+    node_id = 4
+    for i, sid in enumerate(shape_ids):
+        effects.append(_effect_xml(node_id, sid, i * 220))
+        node_id += 4
+    builds = "".join(f'<p:bldP spid="{sid}" grpId="0"/>' for sid in shape_ids)
+    return f"""<p:timing xmlns:p="{P_NS}">
+      <p:tnLst>
+        <p:par>
+          <p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot">
+            <p:childTnLst>
+              <p:seq concurrent="1" nextAc="seek">
+                <p:cTn id="2" dur="indefinite" nodeType="mainSeq">
+                  <p:childTnLst>
+                    <p:par>
+                      <p:cTn id="3" fill="hold">
+                        <p:stCondLst><p:cond delay="0"/></p:stCondLst>
+                        <p:childTnLst>{"".join(effects)}</p:childTnLst>
+                      </p:cTn>
+                    </p:par>
+                  </p:childTnLst>
+                </p:cTn>
+                <p:prevCondLst>
+                  <p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond>
+                </p:prevCondLst>
+                <p:nextCondLst>
+                  <p:cond evt="onNext" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond>
+                </p:nextCondLst>
+              </p:seq>
+            </p:childTnLst>
+          </p:cTn>
+        </p:par>
+      </p:tnLst>
+      <p:bldLst>{builds}</p:bldLst>
+    </p:timing>"""
+
+
+def add_motion(presentation):
+    """Give every slide a fade transition, and fade content shapes in with a
+    short stagger. The first shape on each slide (the header block, or the
+    only block on the title/close slides) is left static so the slide never
+    opens empty."""
+    for sl in presentation.slides:
+        sld = sl._element
+        sld.append(etree.fromstring(TRANSITION_XML))
+        content_ids = [sp.shape_id for sp in sl.shapes][1:]
+        if content_ids:
+            sld.append(etree.fromstring(_timing_xml(content_ids)))
+
+
+add_motion(prs)
+
+out = "/Users/likitha/Desktop/hmm/masters/sem4/healthcare & AI/DischargeIQ/docs/DischargeIQ_Frank_Aug2026.pptx"
 prs.save(out)
 print(f"saved: {out}")
 print(f"slides: {len(prs.slides.__iter__.__self__._sldIdLst)}")
