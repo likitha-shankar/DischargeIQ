@@ -123,3 +123,8 @@ docs/deck-assets/
 
 # Generated field card - rebuild with scripts/build_clinician_field_card.py
 docs/CLINICIAN_FIELD_CARD.pdf
+
+# On-device backups pulled by scripts/deploy_ios.sh before every install.
+# These contain real analysed discharge documents and PDFs - never commit them
+# (LOF rules bar clinical data in the repo, and this repo may become public).
+device-backups/
