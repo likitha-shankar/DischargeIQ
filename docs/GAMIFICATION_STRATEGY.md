@@ -1,7 +1,7 @@
 # DischargeIQ - Gamification Strategy
 
 **Author:** Likitha Shankar
-**Date:** July 11, 2026 (revised 31 July 2026)
+**Date:** July 11, 2026 (revised 31 July 2026; learning goals added 5 August 2026)
 **For:** Leap of Faith, LLC (John Trzesniak, Tanuj Pravin)
 **Fulfills:** Work Plan v2, task 2.3 (gamification strategy document)
 
@@ -37,6 +37,59 @@ engagement counts alongside it - stated as what they are.
 people who are older, in pain, or frightened. So: no timers, no speed
 pressure, no streak punishment, no loss states, and a rough day on the mood
 check-in results in being asked to do less, not more.
+
+---
+
+## 0. Learning goals - gamifying what the patient asked for
+
+Added 5 August 2026, from clinical review: *define a rubric, ask the patient
+what they want to learn, and gamify that.* It reorders everything below.
+
+**The ask.** After the first analysis, the patient is asked one question -
+*what do you most want to understand?* - and picks from the five discharge
+topics, each phrased as a reason rather than a category ("What each pill is
+for, and when to take it"). Choosing nothing is a valid answer, remembered as
+one, and the journey simply keeps its default order.
+
+**The rubric.** For each chosen topic the patient rates themselves on a
+four-rung teach-back ladder, before reading and again after:
+
+| Rung | Wording |
+|---|---|
+| 0 | I have not really understood this part |
+| 1 | I get the general idea, but not the details |
+| 2 | I could explain this to someone at home |
+| 3 | I could teach this, and act on it without checking |
+
+Rung 2 is the bar, because "could you explain it to someone at home" is what
+teach-back actually asks at the bedside. Rung 3 is aspirational and is never
+required to complete anything.
+
+**What "gamify that" means concretely.** A goal is not a stored preference; it
+changes what the app does next:
+
+- A **personal goal quest** sits above the app's own three quests. A quest the
+  patient chose outranks three the product chose for them.
+- **Reading order** follows the goals - "Understand it" names a chosen topic
+  as the next step, not whichever section happens to come first.
+- The **mood-adaptive coach** points at a chosen topic first, with one
+  exception: a rough day still asks for nothing. The mood rule outranks the
+  goal rule, always.
+- The **goal strip** on the journey card shows each goal's state and its
+  rubric movement.
+
+**What is measured.** The before/after change in the patient's own rating, per
+topic. It is deliberately their judgement, not a score the app assigns, and it
+sits alongside the quiz delta rather than replacing it - one is
+self-perception, the other is demonstrated recall, and the gap between them is
+itself interesting.
+
+**A drop is reported, not hidden.** A patient who rates themselves lower after
+reading has discovered they understood less than they thought. That is a real
+and useful result, so negative movement is never clamped to zero.
+
+**Scope, honestly.** This measures self-reported understanding of chosen
+topics. It is not a clinical outcome and is not claimed as one.
 
 ---
 
