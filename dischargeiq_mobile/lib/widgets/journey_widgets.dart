@@ -19,6 +19,7 @@ import 'dart:ui' as ui;
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/services/game_store.dart';
 import 'package:dischargeiq_mobile/services/journey_coach.dart';
+import 'package:dischargeiq_mobile/services/learning_goals.dart';
 import 'package:dischargeiq_mobile/services/quests.dart';
 import 'package:dischargeiq_mobile/services/reminder_service.dart';
 import 'package:dischargeiq_mobile/theme.dart' show kRadiusField;
@@ -45,12 +46,27 @@ class RecoveryJourneyCard extends StatefulWidget {
     required this.stats,
     required this.dark,
     this.docPicker,
+    this.goals = const [],
+    this.goalProgress = const [],
+    this.onRecheckGoals,
   });
 
   /// Earned stars for the document this card is showing (per-document).
   final Set<String> stars;
   final GameStats stats;
   final bool dark;
+
+  /// Chosen learning-goal ids for this document. They reorder the quests and
+  /// the coach so the next step named is a topic the patient asked for.
+  final List<String> goals;
+
+  /// Per-goal progress, which drives the personal goal quest and the
+  /// re-check prompt. Empty when no goals are set.
+  final List<GoalProgress> goalProgress;
+
+  /// Opens the "how well do you know these now?" sheet. Null hides the
+  /// prompt entirely - the re-check is an offer, never a demand.
+  final VoidCallback? onRecheckGoals;
 
   /// Optional document selector rendered under the title - supplied by the
   /// landing page when more than one saved analysis exists, so the patient
@@ -103,7 +119,12 @@ class _RecoveryJourneyCardState extends State<RecoveryJourneyCard> {
     final stars = widget.stars;
     final stats = widget.stats;
     final dark = widget.dark;
-    final quests = buildQuests(stars: stars, stats: stats);
+    final quests = buildQuests(
+      stars: stars,
+      stats: stats,
+      goals: widget.goals,
+      progress: widget.goalProgress,
+    );
     final milestones = kAllStarKeys.where(stars.contains).length;
     final mastered = stats.masteredDomains.length.clamp(0, 5);
 
@@ -178,9 +199,16 @@ class _RecoveryJourneyCardState extends State<RecoveryJourneyCard> {
               color: dark ? kTextSecondaryDark : kTextSecondaryLight,
             ),
           ),
+          if (widget.goalProgress.isNotEmpty)
+            _GoalStrip(
+              progress: widget.goalProgress,
+              dark: dark,
+              onRecheck: widget.onRecheckGoals,
+            ),
           _BonusRow(dark: dark),
           const SizedBox(height: 12),
-          _DailyCheckin(dark: dark, stats: stats, stars: stars),
+          _DailyCheckin(
+              dark: dark, stats: stats, stars: stars, goals: widget.goals),
           for (final q in quests) _QuestRow(quest: q, dark: dark),
         ],
       ),
@@ -192,6 +220,129 @@ class _RecoveryJourneyCardState extends State<RecoveryJourneyCard> {
 /// notification (10:00). Off by default - the nudge is invited, never pushed.
 /// Denying the OS permission simply leaves the bell off, with a short
 /// explainer snackbar; no error state, no re-prompting loop.
+/// The patient's chosen goals, shown as a row of chips with their rubric
+/// movement, plus the offer to re-rate once a topic has been read.
+///
+/// This is where "gamify what they said they wanted" becomes visible: the
+/// goals sit above the app's own quests, and the only number reported is the
+/// patient's own before/after judgement, never a score the app assigned.
+class _GoalStrip extends StatelessWidget {
+  const _GoalStrip({
+    required this.progress,
+    required this.dark,
+    required this.onRecheck,
+  });
+
+  final List<GoalProgress> progress;
+  final bool dark;
+  final VoidCallback? onRecheck;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = dark ? kTealGlow : kTeal;
+    // Offer the re-check only for topics actually read - asking someone to
+    // re-rate a section they have not opened is a test, not an offer.
+    final readyToRecheck =
+        progress.any((p) => p.sectionRead && p.postLevel == null);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        Text(
+          'WHAT YOU WANTED TO UNDERSTAND',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+            color: dark ? kTextSecondaryDark : kTextSecondaryLight,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final p in progress)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: p.met
+                      ? accent.withValues(alpha: dark ? 0.18 : 0.10)
+                      : Colors.transparent,
+                  border: Border.all(
+                    color: p.met
+                        ? accent
+                        : (dark ? kTextHintDark : kTextHintLight)
+                            .withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      p.met
+                          ? Icons.check_circle_rounded
+                          : (p.sectionRead
+                              ? Icons.hourglass_bottom_rounded
+                              : Icons.circle_outlined),
+                      size: 13,
+                      color: p.met
+                          ? accent
+                          : (dark ? kTextHintDark : kTextHintLight),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      p.goal.label,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: p.met ? FontWeight.w700 : FontWeight.w500,
+                        color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+                      ),
+                    ),
+                    // Show movement only once, and only when it is real.
+                    if ((p.lift ?? 0) > 0) ...[
+                      const SizedBox(width: 4),
+                      Text(
+                        '+${p.lift}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: accent,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+          ],
+        ),
+        if (readyToRecheck && onRecheck != null) ...[
+          const SizedBox(height: 6),
+          InkWell(
+            onTap: onRecheck,
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                'How well do you know these now?',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: accent,
+                  decoration: TextDecoration.underline,
+                  decorationColor: accent,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _JourneyReminderBell extends StatefulWidget {
   const _JourneyReminderBell({required this.dark});
 
@@ -330,12 +481,20 @@ class _BonusRowState extends State<_BonusRow> {
 /// (services/journey_coach.dart) renders below the response - one gentle
 /// next step, guidance only, never a task.
 class _DailyCheckin extends StatefulWidget {
-  const _DailyCheckin(
-      {required this.dark, required this.stats, required this.stars});
+  const _DailyCheckin({
+    required this.dark,
+    required this.stats,
+    required this.stars,
+    this.goals = const [],
+  });
 
   final bool dark;
   final GameStats stats;
   final Set<String> stars;
+
+  /// Chosen learning goals, so the coach's next step is a topic the patient
+  /// asked for rather than whichever section comes first.
+  final List<String> goals;
 
   @override
   State<_DailyCheckin> createState() => _DailyCheckinState();
@@ -472,6 +631,7 @@ class _DailyCheckinState extends State<_DailyCheckin> {
       todayMood: _todayMood,
       stats: widget.stats,
       stars: widget.stars,
+      goals: widget.goals,
     );
     if (coach != null) {
       final coachIcon = switch (coach.kind) {

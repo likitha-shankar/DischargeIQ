@@ -14,6 +14,7 @@ library;
 
 import 'package:dischargeiq_mobile/models/quiz.dart' show kDomainLabels;
 import 'package:dischargeiq_mobile/services/game_store.dart';
+import 'package:dischargeiq_mobile/services/learning_goals.dart';
 
 /// What kind of step the coach is pointing at - drives the icon only; the
 /// card renders the suggestion as plain guidance, not a button.
@@ -36,14 +37,20 @@ class CoachSuggestion {
 ///   todayMood: 'good' | 'okay' | 'rough' | null (not checked in yet).
 ///   stats:     Current [GameStats] (mastery, quizzes completed).
 ///   stars:     Earned star keys from [SectionStarStore].
+///   goals:     Chosen goal ids from [LearningGoalStore]. When set, the
+///              section the coach names is one the patient asked for - the
+///              suggestion should never send them somewhere they did not
+///              choose while a chosen topic is still unread.
 CoachSuggestion? suggestNextStep({
   required String? todayMood,
   required GameStats stats,
   required Set<String> stars,
+  List<String> goals = const [],
 }) {
   if (todayMood == null) return null;
 
-  final unreadSections = kSectionStarKeys.where((k) => !stars.contains(k));
+  final unreadSections =
+      goalFirstOrder(kSectionStarKeys, goals).where((k) => !stars.contains(k));
   final unmastered = kDomainLabels.length - stats.masteredDomains.length;
   final everythingDone = unreadSections.isEmpty && unmastered <= 0;
 

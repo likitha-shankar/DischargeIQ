@@ -12,6 +12,7 @@ library;
 
 import 'package:dischargeiq_mobile/models/quiz.dart' show kDomainLabels;
 import 'package:dischargeiq_mobile/services/game_store.dart';
+import 'package:dischargeiq_mobile/services/learning_goals.dart';
 
 /// One quest: a titled group of concrete discharge-process steps.
 class Quest {
@@ -35,15 +36,30 @@ class Quest {
   double get progress => total == 0 ? 0 : done / total;
 }
 
-/// Build the three quests from persisted reward state.
+/// Build the quests from persisted reward state.
+///
+/// Returns the three standing quests, preceded by a personal goal quest when
+/// the patient has chosen goals for this document. Goals also reorder
+/// "Understand it", so the next step it names is a topic they asked for
+/// rather than whichever section happens to come first.
 ///
 /// Args:
-///   stars: Earned star keys from SectionStarStore.load().
-///   stats: Persisted GameStats from GameStore.load().
-List<Quest> buildQuests({required Set<String> stars, required GameStats stats}) {
-  // Quest 1 - Understand it: read all five sections.
+///   stars:    Earned star keys from SectionStarStore.load().
+///   stats:    Persisted GameStats from GameStore.load().
+///   goals:    Chosen goal ids from LearningGoalStore.load(); empty means the
+///             canonical order, which is the pre-goals behaviour.
+///   progress: Per-goal progress from buildGoalProgress(). Empty when no
+///             goals are set.
+List<Quest> buildQuests({
+  required Set<String> stars,
+  required GameStats stats,
+  List<String> goals = const [],
+  List<GoalProgress> progress = const [],
+}) {
+  // Quest 1 - Understand it: read all five sections, goal topics first.
   final read = kSectionStarKeys.where(stars.contains).length;
-  final unread = kSectionStarKeys.where((k) => !stars.contains(k)).toList();
+  final ordered = goalFirstOrder(kSectionStarKeys, goals);
+  final unread = ordered.where((k) => !stars.contains(k)).toList();
   final q1 = Quest(
     id: 'understand',
     title: 'Understand it',
@@ -88,5 +104,23 @@ List<Quest> buildQuests({required Set<String> stars, required GameStats stats}) 
     total: 2,
   );
 
-  return [q1, q2, q3];
+  // Quest 0 - the patient's own goals, when they set any. Deliberately first:
+  // a quest someone chose outranks three the app chose for them.
+  if (progress.isEmpty) return [q1, q2, q3];
+
+  final met = progress.where((p) => p.met).length;
+  final next = nextGoalStep(progress);
+  final q0 = Quest(
+    id: 'goals',
+    title: progress.length == 1 ? 'Your goal' : 'Your goals',
+    subtitle: next == null
+        ? 'You got what you came for'
+        : (!next.sectionRead
+            ? 'Next: read ${next.goal.label}'
+            : 'Next: rate how well you know ${next.goal.label} now'),
+    done: met,
+    total: progress.length,
+  );
+
+  return [q0, q1, q2, q3];
 }
