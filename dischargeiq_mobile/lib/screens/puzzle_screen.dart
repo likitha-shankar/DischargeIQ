@@ -43,6 +43,7 @@ IconData _kindIcon(PuzzleKind kind) => switch (kind) {
       PuzzleKind.medication => Icons.medication_outlined,
       PuzzleKind.appointment => Icons.event_available_outlined,
       PuzzleKind.diagnosis => Icons.favorite_outline,
+      PuzzleKind.warning => Icons.emergency_outlined,
     };
 
 class PuzzleScreen extends StatefulWidget {
@@ -50,10 +51,15 @@ class PuzzleScreen extends StatefulWidget {
     super.key,
     required this.extraction,
     required this.diagnosisExplanation,
+    this.escalationGuide = '',
   });
 
   final Map<String, dynamic> extraction;
   final String diagnosisExplanation;
+
+  /// Agent 5's tier guide - feeds warning-sign pairs so sparse real-world
+  /// documents (no structured doses, no appointment dates) can still play.
+  final String escalationGuide;
 
   @override
   State<PuzzleScreen> createState() => _PuzzleScreenState();
@@ -63,6 +69,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
   late final List<PuzzlePair> _pool = buildPuzzlePairs(
     widget.extraction,
     diagnosisExplanation: widget.diagnosisExplanation,
+    escalationGuide: widget.escalationGuide,
   );
 
   PuzzleLevel? _level;
@@ -171,7 +178,14 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
         _selected = null;
       });
       await Future<void>.delayed(const Duration(milliseconds: 450));
-      if (mounted) setState(() => _wrongA = _wrongB = null);
+      if (!mounted) return;
+      setState(() {
+        _wrongA = _wrongB = null;
+        // Hard mode: the board rearranges after a miss, so brute-forcing by
+        // position stops working. Matched pairs keep their solved state
+        // wherever they land - progress is never taken away.
+        if (_level?.reshuffleOnMiss ?? false) _tiles.shuffle(Random());
+      });
     }
   }
 
@@ -199,6 +213,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       PuzzleKind.medication => 'Medicine matched',
       PuzzleKind.appointment => 'Visit matched',
       PuzzleKind.diagnosis => 'Condition matched',
+      PuzzleKind.warning => 'Warning sign matched',
     };
     await showModalBottomSheet<void>(
       context: context,
@@ -277,7 +292,8 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
 
   Future<void> _finish() async {
     final stats = await GameStore.load();
-    stats.xp += kXpQuizFinished;
+    // Scaled by level so Hard pays for its missing hints and moving tiles.
+    stats.xp += _level!.xpReward;
     await GameStore.save(stats);
     // Return hook: today's finished round banks a bonus the journey card
     // pays off tomorrow (SeedStore keeps the legacy name).
@@ -301,7 +317,7 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
       appBar: AppBar(
         title: const Text('Medicine match'),
         actions: [
-          if (_level != null && !_solved)
+          if (_level != null && !_solved && _level!.hintAllowed)
             TextButton.icon(
               onPressed: _hint,
               icon: const Icon(Icons.lightbulb_outline, size: 18),
@@ -314,8 +330,10 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
               child: Padding(
                 padding: EdgeInsets.all(28),
                 child: Text(
-                  'This document does not have enough details to build a '
-                  'puzzle yet. Try the Test yourself quiz instead.',
+                  'Your document did not list enough matchable details '
+                  '(medicines with doses, appointment dates, or warning '
+                  'signs) to build a matching game. The Test yourself quiz '
+                  'works with any document - try that instead.',
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -552,9 +570,12 @@ class _PuzzleScreenState extends State<PuzzleScreen> {
                   if (matched) ...[
                     const Icon(Icons.check_circle, size: 15, color: kTealMid),
                     const SizedBox(width: 6),
-                  ] else if (tile.isPrompt && tile.kind != null) ...[
+                  ] else if (tile.isPrompt &&
+                      tile.kind != null &&
+                      (_level?.showKindIcons ?? true)) ...[
                     // Domain icon marks "match FROM" tiles so the patient can
-                    // tell prompts from answers on a mixed board.
+                    // tell prompts from answers. Easy only - losing this cue
+                    // is part of what makes the higher levels harder.
                     Icon(_kindIcon(tile.kind!),
                         size: 15,
                         color: selected

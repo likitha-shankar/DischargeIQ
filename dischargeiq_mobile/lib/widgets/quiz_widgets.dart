@@ -82,12 +82,17 @@ class QuestionCard extends StatelessWidget {
     required this.selectedIndex,
     required this.revealCorrect,
     required this.onSelect,
+    this.eliminatedIndex,
   });
 
   final QuizQuestion question;
   final int? selectedIndex;
   final bool revealCorrect;
   final ValueChanged<int> onSelect;
+
+  /// Option removed by the hint - rendered struck-through and untappable.
+  /// Never the correct answer; the quiz screen guarantees that.
+  final int? eliminatedIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -125,9 +130,15 @@ class QuestionCard extends StatelessWidget {
         for (var i = 0; i < question.options.length; i++) ...[
           _OptionTile(
             text: question.options[i],
-            state: _optionState(i, showFeedback),
+            state: i == eliminatedIndex
+                ? _OptionState.eliminated
+                : _optionState(i, showFeedback),
             // Lock the answer once feedback is shown - no answer-shopping.
-            onTap: showFeedback ? null : () => onSelect(i),
+            // An eliminated option stays visible (so the patient sees what
+            // the hint removed) but cannot be chosen.
+            onTap: showFeedback || i == eliminatedIndex
+                ? null
+                : () => onSelect(i),
           ),
           const SizedBox(height: 10),
         ],
@@ -181,7 +192,7 @@ const _kPraise = [
   'Well done!',
 ];
 
-enum _OptionState { idle, selected, correct, wrong }
+enum _OptionState { idle, selected, correct, wrong, eliminated }
 
 class _OptionTile extends StatelessWidget {
   const _OptionTile({required this.text, required this.state, this.onTap});
@@ -201,6 +212,13 @@ class _OptionTile extends StatelessWidget {
           dark ? kBorderDark : kBorderLight,
           dark ? kSurfaceDark : kCardLight,
           null
+        ),
+      // Hint-removed: visibly out of play but still readable, so the patient
+      // sees what the hint did rather than an option silently vanishing.
+      _OptionState.eliminated => (
+          dark ? kBorderDark : kBorderLight,
+          dark ? kSurfaceDark.withValues(alpha: 0.5) : kSurfaceLight,
+          Icons.remove_circle_outline
         ),
     };
     // Feedback tiles use fixed light backgrounds → fixed dark text for contrast.
@@ -227,6 +245,9 @@ class _OptionTile extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         height: 1.3,
                         color: feedbackText ? kTextPrimaryLight : null,
+                        decoration: state == _OptionState.eliminated
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
                 ),
               ),

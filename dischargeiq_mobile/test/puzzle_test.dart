@@ -77,4 +77,42 @@ void main() {
     expect(PuzzleLevel.easy.distractors, 0);
     expect(PuzzleLevel.medium.label, 'Medium');
   });
+  _tierPairTests();
+}
+
+void _tierPairTests() {
+  const guide = '''
+CALL 911 IMMEDIATELY
+These symptoms are life-threatening.
+- Trouble breathing: your lungs cannot get enough air.
+- Chest pain that does not stop.
+
+GO TO THE ER TODAY
+- Fever above 101 that will not go away: may mean infection.
+
+CALL YOUR DOCTOR
+- Mild swelling in your ankles.
+''';
+
+  test('a sparse real document still reaches a playable board via tiers', () {
+    // No structured meds, no appointment dates, no explanation - the exact
+    // shape that used to dead-end at "not enough details".
+    final pairs = buildPuzzlePairs(const {}, escalationGuide: guide);
+    expect(pairs.length, greaterThanOrEqualTo(2));
+    expect(pairs.every((p) => p.kind == PuzzleKind.warning), isTrue);
+    // One per tier, symptom stripped of its explanation after ":".
+    expect(pairs.map((p) => p.right).toSet(),
+        {'Call 911', 'Go to the ER today', 'Call your doctor'});
+    expect(pairs.first.left, 'Trouble breathing');
+  });
+
+  test('missing guide changes nothing for structured documents', () {
+    final pairs = buildPuzzlePairs({
+      'medications': [
+        {'name': 'Furosemide', 'dose': '40 mg', 'frequency': 'daily'},
+      ],
+    });
+    expect(pairs, hasLength(1));
+    expect(pairs.single.kind, PuzzleKind.medication);
+  });
 }

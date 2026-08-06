@@ -30,9 +30,9 @@ extension PuzzleLevelInfo on PuzzleLevel {
       };
 
   String get blurb => switch (this) {
-        PuzzleLevel.easy => 'A few pairs, gentle hints',
-        PuzzleLevel.medium => 'More pairs, mixed together',
-        PuzzleLevel.hard => 'Everything, with a couple of tricky extras',
+        PuzzleLevel.easy => 'Icons help you group, hints on tap',
+        PuzzleLevel.medium => 'No icon clues - read every card',
+        PuzzleLevel.hard => 'No hints, and cards move when you miss',
       };
 
   /// Target number of matching pairs shown.
@@ -44,10 +44,33 @@ extension PuzzleLevelInfo on PuzzleLevel {
 
   /// Extra unmatched "distractor" prompts on the right column (hard only).
   int get distractors => this == PuzzleLevel.hard ? 2 : 0;
+
+  // The three rules below make the levels genuinely different even when a
+  // sparse document caps every level at the same two or three pairs -
+  // pairCount alone collapsed the levels into one for real-world summaries.
+
+  /// Easy shows each prompt's domain icon, a visual grouping aid.
+  bool get showKindIcons => this == PuzzleLevel.easy;
+
+  /// Hard removes the hint button entirely.
+  bool get hintAllowed => this != PuzzleLevel.hard;
+
+  /// XP for solving a board at this level. Scaling with difficulty is what
+  /// makes picking Hard worth something; a flat reward made Easy the only
+  /// rational choice.
+  int get xpReward => switch (this) {
+        PuzzleLevel.easy => 10,
+        PuzzleLevel.medium => 20,
+        PuzzleLevel.hard => 35,
+      };
+
+  /// Hard reshuffles the unmatched tiles after every miss - a memory
+  /// challenge, not a punishment: matched pairs stay matched.
+  bool get reshuffleOnMiss => this == PuzzleLevel.hard;
 }
 
 /// Which discharge domain a pair teaches - drives the popup icon and copy.
-enum PuzzleKind { medication, appointment, diagnosis }
+enum PuzzleKind { medication, appointment, diagnosis, warning }
 
 /// One matchable pair: [left] is the thing the patient recognizes (a drug
 /// name, a visit, their condition); [right] is what it matches to (schedule,
@@ -72,6 +95,7 @@ class PuzzlePair {
 List<PuzzlePair> buildPuzzlePairs(
   Map<String, dynamic> extraction, {
   String diagnosisExplanation = '',
+  String escalationGuide = '',
 }) {
   final pairs = <PuzzlePair>[];
 
@@ -129,7 +153,64 @@ List<PuzzlePair> buildPuzzlePairs(
     ));
   }
 
+  // Warning signs: one symptom per escalation tier, verbatim from Agent 5's
+  // guide. One per tier keeps every right-hand side distinct - two symptoms
+  // that both match "Call 911" would make the game ambiguous. This is what
+  // lets REAL documents play: many have no structured doses or appointment
+  // dates (only ~62% of the MTSamples corpus carries medications and ~69%
+  // follow-up), so without these a genuine summary often could not reach the
+  // two pairs the board needs.
+  pairs.addAll(_tierPairs(escalationGuide));
+
   return pairs;
+}
+
+/// One (symptom <-> tier action) pair per tier found in the escalation guide.
+///
+/// Parses the fixed tier headers Agent 5 is contractually required to emit,
+/// takes the FIRST bullet under each, and strips any explanation after ":" so
+/// the card shows the symptom alone. Nothing is generated here - both sides
+/// are verbatim slices of grounded agent output.
+List<PuzzlePair> _tierPairs(String guide) {
+  if (guide.isEmpty) return const [];
+  const tiers = [
+    ('CALL 911 IMMEDIATELY', 'Call 911'),
+    ('GO TO THE ER TODAY', 'Go to the ER today'),
+    ('CALL YOUR DOCTOR', 'Call your doctor'),
+  ];
+  final upper = guide.toUpperCase();
+  final result = <PuzzlePair>[];
+  for (var t = 0; t < tiers.length; t++) {
+    final start = upper.indexOf(tiers[t].$1);
+    if (start < 0) continue;
+    final end = t + 1 < tiers.length
+        ? (upper.indexOf(tiers[t + 1].$1, start + 1) < 0
+            ? guide.length
+            : upper.indexOf(tiers[t + 1].$1, start + 1))
+        : guide.length;
+    final section = guide.substring(start, end);
+    final bullet = section
+        .split('\n')
+        .map((l) => l.trim())
+        .firstWhere(
+          (l) => l.startsWith('-') || l.startsWith('•') || l.startsWith('*'),
+          orElse: () => '',
+        );
+    if (bullet.isEmpty) continue;
+    var symptom = bullet.replaceFirst(RegExp(r'^[-•*]\s*'), '');
+    final colon = symptom.indexOf(':');
+    if (colon > 0) symptom = symptom.substring(0, colon);
+    symptom = symptom.trim();
+    if (symptom.isEmpty || symptom.length > 60) continue;
+    result.add(PuzzlePair(
+      kind: PuzzleKind.warning,
+      left: symptom,
+      right: tiers[t].$2,
+      teach: 'Your discharge guide says: $bullet. Knowing which symptoms '
+          'need which response keeps you safe at home.',
+    ));
+  }
+  return result;
 }
 
 /// Select the pairs for a level: take up to pairCount, preferring a mix of

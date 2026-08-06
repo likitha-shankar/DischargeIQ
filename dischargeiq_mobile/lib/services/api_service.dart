@@ -126,9 +126,18 @@ class ApiService {
   /// POST /analyze/text - run the pipeline on camera-scanned text (Sprint 2).
   /// The photo never leaves the phone: ML Kit recognizes text on-device and
   /// only the text is sent. Pipeline can take minutes → long timeout.
-  Future<Map<String, dynamic>> analyzeText(String text, {String? sessionId}) =>
-      _postJson('/analyze/text', {'text': text},
-          timeoutSeconds: 300, sessionId: sessionId);
+  /// [audience] carries the same reader hint as [analyze] - the scan path
+  /// must not lose caregiver voice just because the document arrived as text.
+  Future<Map<String, dynamic>> analyzeText(
+    String text, {
+    String? sessionId,
+    String? audience,
+  }) =>
+      _postJson(
+          '/analyze/text',
+          {'text': text, if (audience != null) 'audience': audience},
+          timeoutSeconds: 300,
+          sessionId: sessionId);
 
   /// GET /progress/{sessionId} - live per-agent pipeline progress. Cheap and
   /// safe to poll every couple of seconds while an analysis runs.
@@ -152,11 +161,16 @@ class ApiService {
   Future<Map<String, dynamic>> analyzeImages(
     List<String> imagePaths, {
     String? sessionId,
+    String? audience,
   }) async {
     final request = http.MultipartRequest('POST', Uri.parse('$_base/analyze/image'));
     request.headers.addAll(_authHeaders);
     if (sessionId != null) {
       request.headers['X-Discharge-Session-Id'] = sessionId;
+    }
+    if (audience != null) {
+      // Same reader hint as analyze(): filed-under-a-child beats inference.
+      request.fields['audience'] = audience;
     }
     for (final path in imagePaths) {
       request.files.add(await http.MultipartFile.fromPath(
@@ -179,13 +193,18 @@ class ApiService {
 
   /// POST /quiz/generate - the frozen teach-back question set for a session.
   /// `extraction` is the `extraction` field of the /analyze response.
+  /// `focusDomains` are the quiz domains behind the patient's chosen learning
+  /// goals; each gets a second question at the expense of an unchosen domain.
+  /// Empty keeps the even one-per-domain spread.
   Future<Map<String, dynamic>> generateQuiz({
     required String sessionId,
     required Map<String, dynamic> extraction,
+    List<String> focusDomains = const [],
   }) =>
       _postJson('/quiz/generate', {
         'session_id': sessionId,
         'extraction': extraction,
+        'focus_domains': focusDomains,
       }, timeoutSeconds: 90);
 
   /// POST /quiz/score - score one phase (pre/post).
