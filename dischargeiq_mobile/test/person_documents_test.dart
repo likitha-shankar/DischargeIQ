@@ -54,6 +54,27 @@ void main() {
     if (await tempRoot.exists()) await tempRoot.delete(recursive: true);
   });
 
+  group('container self-heal', () {
+    test('a file squatting on the Documents path is repaired, not fatal',
+        () async {
+      // The exact corruption seen on the device after a bad restore: the
+      // backup script had left a FILE where the Documents directory belongs,
+      // so every save failed as "could not save" with no diagnosis possible.
+      final docsPath = tempRoot.path;
+      await tempRoot.delete(recursive: true);
+      await File(docsPath).writeAsString('squatter');
+
+      final person =
+          await PersonStore.add(name: 'Heal', relationship: Relationship.myself);
+      expect(person, isNotNull, reason: 'save must repair the container');
+      expect((await PersonStore.list()).single.name, 'Heal');
+
+      final id = await DocumentStore.save(
+          result: _result('COPD'), fileName: 'c.pdf');
+      expect(id, isNotNull);
+    });
+  });
+
   group('people persist', () {
     test('a person round-trips through the file store', () async {
       final added = await PersonStore.add(
@@ -369,9 +390,43 @@ void main() {
 
       final all = await DocumentStore.list();
       // The exact filter the home list applies.
-      final forA = all.where((d) => d.personId == a.id).toList();
+      final forA = DocumentStore.forPerson(all, a.id);
       expect(forA, hasLength(1));
       expect(forA.single.diagnosis, 'One');
+    });
+
+    test('a profile with no analysis of its own gets no journey documents',
+        () async {
+      // The bug: the recovery journey listed documents its own way instead of
+      // scoping to the active profile, so a brand-new profile opened showing
+      // the other profile's newest document and its stars.
+      final a = await PersonStore.add(name: 'A', relationship: Relationship.other);
+      final b = await PersonStore.add(name: 'B', relationship: Relationship.other);
+      await DocumentStore.save(
+          result: _result('One'), fileName: '1.pdf', personId: a!.id);
+
+      final all = await DocumentStore.list();
+      expect(DocumentStore.forPerson(all, b!.id), isEmpty);
+      // An unassigned document must not leak into a named profile either.
+      await DocumentStore.save(result: _result('Loose'), fileName: 'x.pdf');
+      expect(
+        DocumentStore.forPerson(await DocumentStore.list(), b.id),
+        isEmpty,
+      );
+    });
+
+    test('the journey picker lists every document for one profile', () async {
+      // Drives the dropdown: several analyses for the same person all stay
+      // selectable, so the patient chooses which recovery journey to view.
+      final a = await PersonStore.add(name: 'A', relationship: Relationship.other);
+      for (final name in ['One', 'Two', 'Three']) {
+        await DocumentStore.save(
+            result: _result(name), fileName: '$name.pdf', personId: a!.id);
+      }
+      final forA = DocumentStore.forPerson(await DocumentStore.list(), a!.id);
+      expect(forA, hasLength(3));
+      // Newest first, so the journey defaults to the document being lived with.
+      expect(forA.first.diagnosis, 'Three');
     });
 
     test('All shows every document including unassigned ones', () async {

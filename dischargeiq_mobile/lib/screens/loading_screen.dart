@@ -127,11 +127,11 @@ class _LoadingScreenState extends State<LoadingScreen> with TickerProviderStateM
 
       final Map<String, dynamic> data;
       if (widget.imagePaths != null) {
-        data = await ApiService()
-            .analyzeImages(widget.imagePaths!, sessionId: _sessionId);
+        data = await ApiService().analyzeImages(widget.imagePaths!,
+            sessionId: _sessionId, audience: audience);
       } else if (widget.ocrText != null) {
-        data = await ApiService()
-            .analyzeText(widget.ocrText!, sessionId: _sessionId);
+        data = await ApiService().analyzeText(widget.ocrText!,
+            sessionId: _sessionId, audience: audience);
       } else {
         data = await ApiService()
             .analyze(widget.pdfBytes!, widget.fileName,

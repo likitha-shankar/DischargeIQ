@@ -18,7 +18,18 @@ import 'package:provider/provider.dart';
 /// summary with a modal is the wrong trade when they may be tired or in pain;
 /// filing is a tidying task they can do whenever.
 class PeopleScreen extends StatefulWidget {
-  const PeopleScreen({super.key, required this.onUpload});
+  const PeopleScreen({
+    super.key,
+    required this.onUpload,
+    this.openAddOnLaunch = false,
+  });
+
+  /// Opens the add-person sheet as soon as the screen appears.
+  ///
+  /// The switcher offers "Add a person" and "Manage people and documents" as
+  /// separate choices; without this they both landed on the same list and the
+  /// first one silently did not do what it said.
+  final bool openAddOnLaunch;
 
   /// Opens the upload flow for a person, returning to the home screen.
   ///
@@ -51,11 +62,21 @@ class _PeopleScreenState extends State<PeopleScreen> {
       _docs = docs;
       _loading = false;
     });
+    // Opened straight from the switcher's "Add a person". Runs after the
+    // first load so the list behind the sheet is already correct, and only
+    // once - _refresh() is called again on every return from a subscreen.
+    if (widget.openAddOnLaunch && !_addSheetShown) {
+      _addSheetShown = true;
+      await _addPerson();
+    }
   }
+
+  /// Guard so the launch sheet opens once, not on every later refresh.
+  bool _addSheetShown = false;
 
   /// Documents belonging to one person.
   List<SavedDocument> _docsFor(String personId) =>
-      _docs.where((d) => d.personId == personId).toList();
+      DocumentStore.forPerson(_docs, personId);
 
   /// Documents with no person, or whose person has since been deleted.
   List<SavedDocument> get _unassigned {
@@ -71,6 +92,12 @@ class _PeopleScreenState extends State<PeopleScreen> {
       builder: (_) => const _AddPersonSheet(),
     );
     if (added == null) return;
+    // Whoever was just created becomes the active person. Without this the
+    // switcher still reads "All" after adding someone, so the next upload
+    // lands in Unassigned and no audience is sent - the caregiver voice for a
+    // young child would silently never trigger. Creating a person is an
+    // explicit act; filing under them is what it was for.
+    await PersonStore.setActive(added.id);
     await _refresh();
     if (!mounted) return;
     // Drop straight into the new person's folder. It is empty by definition,
@@ -78,6 +105,21 @@ class _PeopleScreenState extends State<PeopleScreen> {
     // exactly what someone wants the moment after creating a profile for a
     // family member whose summaries are already on the phone.
     await _openPerson(added);
+  }
+
+  /// Edit a profile's name, relationship, or age in place.
+  ///
+  /// Age and relationship decide who agent output addresses, so fixing a
+  /// typo here matters beyond cosmetics - it changes the reader for every
+  /// future upload filed under this person.
+  Future<void> _editPerson(Person person) async {
+    final updated = await showModalBottomSheet<Person>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => _AddPersonSheet(initial: person),
+    );
+    if (updated != null) await _refresh();
   }
 
   /// Delete a profile, letting the patient decide what happens to its
@@ -201,11 +243,13 @@ class _PeopleScreenState extends State<PeopleScreen> {
         await DocumentStore.assignPerson(doc.id, null);
       }
     }
+    // Read the active id BEFORE removing the person. activeId() verifies the
+    // id still resolves, so asking after the removal always answers null and
+    // the stored key would never be cleared.
+    final wasActive = await PersonStore.activeId() == person.id;
     await PersonStore.remove(person.id);
     // Deleting whoever was active must not leave uploads filing into a ghost.
-    if (await PersonStore.activeId() == person.id) {
-      await PersonStore.setActive(null);
-    }
+    if (wasActive) await PersonStore.setActive(null);
     if (mounted) await _refresh();
   }
 
@@ -257,6 +301,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
                           person: p,
                           count: _docsFor(p.id).length,
                           onTap: () => _openPerson(p),
+                          onEdit: () => _editPerson(p),
                           onDelete: () => _deletePerson(p),
                           dark: dark,
                         )),
@@ -266,6 +311,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
                         count: unassigned.length,
                         onTap: () => _openPerson(null),
                         // Unassigned is a built-in bucket, not a profile.
+                        onEdit: null,
                         onDelete: null,
                         dark: dark,
                       ),
@@ -294,6 +340,7 @@ class _PersonRow extends StatelessWidget {
     required this.person,
     required this.count,
     required this.onTap,
+    required this.onEdit,
     required this.onDelete,
     required this.dark,
   });
@@ -301,6 +348,9 @@ class _PersonRow extends StatelessWidget {
   final Person? person;
   final int count;
   final VoidCallback onTap;
+
+  /// Null for built-in rows (Unassigned), which cannot be edited.
+  final VoidCallback? onEdit;
 
   /// Null for built-in rows (Unassigned), which cannot be deleted.
   final VoidCallback? onDelete;
@@ -349,17 +399,25 @@ class _PersonRow extends StatelessWidget {
             color: dark ? kTextSecondaryDark : kTextSecondaryLight,
           ),
         ),
-        trailing: onDelete == null
+        trailing: onDelete == null && onEdit == null
             ? const Icon(Icons.chevron_right)
             : Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    color: kMedDiscontinued,
-                    tooltip: 'Delete profile',
-                    onPressed: onDelete,
-                  ),
+                  if (onEdit != null)
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 20),
+                      color: dark ? kTealGlow : kTeal,
+                      tooltip: 'Edit profile',
+                      onPressed: onEdit,
+                    ),
+                  if (onDelete != null)
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 20),
+                      color: kMedDiscontinued,
+                      tooltip: 'Delete profile',
+                      onPressed: onDelete,
+                    ),
                   const Icon(Icons.chevron_right),
                 ],
               ),
@@ -426,19 +484,32 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-/// Add-person form. Name is required; relationship and age steer the reader.
+/// Add/edit-person form. Name is required; relationship and age steer the
+/// reader. Pass [initial] to edit an existing person in place - same fields,
+/// same validation, saved via PersonStore.update instead of add.
 class _AddPersonSheet extends StatefulWidget {
-  const _AddPersonSheet();
+  const _AddPersonSheet({this.initial});
+
+  final Person? initial;
 
   @override
   State<_AddPersonSheet> createState() => _AddPersonSheetState();
 }
 
 class _AddPersonSheetState extends State<_AddPersonSheet> {
-  final _name = TextEditingController();
-  final _age = TextEditingController();
-  Relationship _relationship = Relationship.myself;
+  late final _name = TextEditingController(text: widget.initial?.name ?? '');
+  late final _age =
+      TextEditingController(text: widget.initial?.age?.toString() ?? '');
+  late Relationship _relationship =
+      widget.initial?.relationship ?? Relationship.myself;
   bool _saving = false;
+
+  /// Field-level messages. Null means the field is fine. Silence was the old
+  /// behaviour and it was indistinguishable from the app being broken: an
+  /// empty name made Save do nothing at all, and "999" in the age box was
+  /// dropped without a word even though age decides who the output addresses.
+  String? _nameError;
+  String? _ageError;
 
   @override
   void dispose() {
@@ -448,17 +519,53 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
   }
 
   Future<void> _save() async {
-    if (_name.text.trim().isEmpty) return;
-    setState(() => _saving = true);
-    final age = int.tryParse(_age.text.trim());
-    final person = await PersonStore.add(
-      name: _name.text,
-      relationship: _relationship,
-      // Reject implausible ages rather than storing them: a typo here would
-      // silently change who every tab is written to.
-      age: (age != null && age >= 0 && age <= 120) ? age : null,
-    );
+    final name = _name.text.trim();
+    final parsedAge = parseOptionalAge(_age.text);
+    final age = parsedAge.age;
+
+    if (name.isEmpty || !parsedAge.valid) {
+      setState(() {
+        _nameError = name.isEmpty ? 'Enter a name' : null;
+        _ageError =
+            parsedAge.valid ? null : 'Enter an age between 0 and $kMaxPersonAge';
+      });
+      return;
+    }
+
+    setState(() {
+      _nameError = null;
+      _ageError = null;
+      _saving = true;
+    });
+
+    final existing = widget.initial;
+    final Person? person;
+    if (existing == null) {
+      person = await PersonStore.add(
+        name: name,
+        relationship: _relationship,
+        age: age,
+      );
+    } else {
+      final updated = Person(
+        id: existing.id,
+        name: name,
+        relationship: _relationship,
+        age: age,
+      );
+      person = await PersonStore.update(updated) ? updated : null;
+    }
     if (!mounted) return;
+
+    // A failed write used to close the sheet as though it had worked, losing
+    // the entry with no trace. Stay open and say so instead.
+    if (person == null) {
+      setState(() {
+        _saving = false;
+        _nameError = 'Could not save. Try again.';
+      });
+      return;
+    }
     Navigator.pop(context, person);
   }
 
@@ -477,7 +584,7 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Add a person',
+            widget.initial == null ? 'Add a person' : 'Edit ${widget.initial!.name}',
             style: TextStyle(
               fontSize: 19,
               fontWeight: FontWeight.w700,
@@ -489,11 +596,15 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
             controller: _name,
             autofocus: true,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Name',
               hintText: 'Priya, Mom, or just Me',
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
+              errorText: _nameError,
             ),
+            onChanged: (_) {
+              if (_nameError != null) setState(() => _nameError = null);
+            },
           ),
           const SizedBox(height: 14),
           DropdownButtonFormField<Relationship>(
@@ -511,11 +622,15 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
           TextField(
             controller: _age,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Age (optional)',
               helperText: 'Helps us write for the right reader',
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
+              errorText: _ageError,
             ),
+            onChanged: (_) {
+              if (_ageError != null) setState(() => _ageError = null);
+            },
           ),
           const SizedBox(height: 20),
           SizedBox(
@@ -581,7 +696,19 @@ class _PersonDocumentsScreenState extends State<_PersonDocumentsScreen> {
 
   /// Move a document to another person. Offered on every document so a
   /// mis-filed summary is one tap to fix, not a reason to re-upload.
+  ///
+  /// The folder being viewed is left out of the list: "moving" a document to
+  /// where it already is did nothing but drop it from the visible list, which
+  /// reads as the summary having been lost. Unassigned is offered as a real
+  /// destination so a document filed under the wrong person can be taken back
+  /// out rather than only shuffled between people.
   Future<void> _refile(SavedDocument doc) async {
+    // Sentinel rather than null: null is the "sheet dismissed" answer, and
+    // un-filing has to be distinguishable from cancelling.
+    const unassign = '__unassigned__';
+    final current = widget.person;
+    final targets = widget.people.where((p) => p.id != current?.id).toList();
+
     final target = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -594,18 +721,25 @@ class _PersonDocumentsScreenState extends State<_PersonDocumentsScreen> {
               child: Text('Move this document to...',
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
             ),
-            ...widget.people.map((p) => ListTile(
+            ...targets.map((p) => ListTile(
                   leading: const Icon(Icons.person_outline),
                   title: Text(p.name),
                   subtitle: Text(p.relationship.label),
                   onTap: () => Navigator.pop(ctx, p.id),
                 )),
+            if (current != null)
+              ListTile(
+                leading: const Icon(Icons.folder_open),
+                title: const Text('Unassigned'),
+                subtitle: const Text('Not filed under anyone'),
+                onTap: () => Navigator.pop(ctx, unassign),
+              ),
           ],
         ),
       ),
     );
     if (target == null) return;
-    await DocumentStore.assignPerson(doc.id, target);
+    await DocumentStore.assignPerson(doc.id, target == unassign ? null : target);
     if (!mounted) return;
     setState(() => _docs = _docs.where((d) => d.id != doc.id).toList());
   }

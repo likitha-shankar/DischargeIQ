@@ -17,7 +17,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
+import 'package:dischargeiq_mobile/services/document_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// How the person filing documents relates to the patient they are filing for.
@@ -46,6 +46,33 @@ extension RelationshipLabel on Relationship {
 /// Matches _CAREGIVER_AGE_MAX in dischargeiq/utils/audience.py; the two must
 /// move together or the app and the backend will disagree about the reader.
 const int kCaregiverAgeMax = 12;
+
+/// Oldest age the form accepts. Past this it is a typo, not a patient.
+const int kMaxPersonAge = 120;
+
+/// Interpret the optional age field of the add/edit form.
+///
+/// Age is optional, so blank input is valid and yields a null age. Text that
+/// is present but not a plausible age is a typo worth telling the user about
+/// rather than dropping: age decides whether every tab addresses the patient
+/// or their caregiver, so a silently ignored "6" would change the whole
+/// document's voice without anyone noticing.
+///
+/// Args:
+///   raw: Exactly what the user typed, untrimmed.
+///
+/// Returns:
+///   A record whose `valid` is false only for unparseable or out-of-range
+///   text, and whose `age` is the accepted value (null when left blank).
+({bool valid, int? age}) parseOptionalAge(String raw) {
+  final trimmed = raw.trim();
+  if (trimmed.isEmpty) return (valid: true, age: null);
+  final parsed = int.tryParse(trimmed);
+  if (parsed == null || parsed < 0 || parsed > kMaxPersonAge) {
+    return (valid: false, age: null);
+  }
+  return (valid: true, age: parsed);
+}
 
 /// One person on this device.
 class Person {
@@ -146,7 +173,12 @@ class PersonStore {
   static Future<Person?> active() async => byId(await activeId());
 
   static Future<File> _file() async {
-    final base = await getApplicationDocumentsDirectory();
+    // healedDocumentsDir repairs a corrupted container (a file squatting on
+    // the Documents path) that made every profile save fail with "Could not
+    // save" - writeAsString cannot create a file under something that is not
+    // a directory, and the catch-all in _write turned that into a permanent,
+    // unexplained failure.
+    final base = await healedDocumentsDir();
     final file = File('${base.path}/people.json');
     if (!await file.exists()) await file.writeAsString('[]');
     return file;

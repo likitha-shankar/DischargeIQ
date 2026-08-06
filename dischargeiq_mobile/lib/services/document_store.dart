@@ -15,6 +15,8 @@ import 'dart:typed_data';
 
 import 'package:path_provider/path_provider.dart';
 
+import 'package:dischargeiq_mobile/services/learning_goals.dart';
+
 /// True when a partial run produced nothing a patient can use: extraction
 /// failed (the orchestrator's sentinel) or every narrative section is empty.
 /// Typical cause: model quota exhausted mid-run. Shared by the results
@@ -60,9 +62,28 @@ class SavedDocument {
   final String? personId;
 }
 
+/// The app's Documents directory, healed if a stray FILE is squatting on the
+/// path.
+///
+/// Observed on a real device after a container restore went wrong: a file
+/// named "Documents" sat where the directory belongs, so every write under it
+/// failed - profile saves returned "could not save" forever and analysed
+/// documents silently never reached the library, with no error surfaced
+/// anywhere. Both stores route through this so one repair fixes both.
+Future<Directory> healedDocumentsDir() async {
+  final base = await getApplicationDocumentsDirectory();
+  final asDir = Directory(base.path);
+  if (!await asDir.exists()) {
+    final squatter = File(base.path);
+    if (await squatter.exists()) await squatter.delete();
+    await asDir.create(recursive: true);
+  }
+  return asDir;
+}
+
 class DocumentStore {
   static Future<Directory> _dir() async {
-    final base = await getApplicationDocumentsDirectory();
+    final base = await healedDocumentsDir();
     final dir = Directory('${base.path}/saved_documents');
     if (!await dir.exists()) await dir.create(recursive: true);
     return dir;
@@ -155,6 +176,27 @@ class DocumentStore {
     }
   }
 
+  /// Narrow a document list to one person, or return it whole for "All".
+  ///
+  /// Every surface that shows documents per profile - the library, the
+  /// recovery journey, the puzzle picker - must agree on what a profile owns.
+  /// The journey card once listed its own way and showed another profile's
+  /// progress, so the rule lives here and each caller reuses it.
+  ///
+  /// Args:
+  ///   all:      Documents from [list], newest first.
+  ///   personId: Profile to narrow to; null means every document.
+  ///
+  /// Returns:
+  ///   The documents belonging to that person, in the order given.
+  static List<SavedDocument> forPerson(
+    List<SavedDocument> all,
+    String? personId,
+  ) =>
+      personId == null
+          ? all
+          : all.where((d) => d.personId == personId).toList();
+
   /// File an existing document under a person, or clear it with a null id.
   ///
   /// Used when someone adds people after already saving documents, and when a
@@ -200,7 +242,12 @@ class DocumentStore {
     }
   }
 
-  /// Remove one saved document (json + pdf). Best-effort.
+  /// Remove one saved document (json + pdf) and the per-document engagement
+  /// state keyed to it. Best-effort.
+  ///
+  /// Ids are timestamps, so a future document could in principle reuse one.
+  /// Clearing the learning goals here means a new document can never open
+  /// showing the goals and self-ratings of a deleted one.
   static Future<void> delete(String id) async {
     try {
       final dir = await _dir();
@@ -209,5 +256,6 @@ class DocumentStore {
         if (await f.exists()) await f.delete();
       }
     } catch (_) {}
+    await LearningGoalStore.clear(id);
   }
 }

@@ -305,6 +305,53 @@ class GameStore {
   }
 }
 
+/// Per-document quiz bests.
+///
+/// XP, levels and mastery stay GLOBAL - long-horizon progression across every
+/// document is the point of them. Bests are different: "Personal best: 50%"
+/// shown against a brand-new document reads as this document's history, and
+/// it is not. Scoping bests to the document keeps the number honest.
+class DocQuizBests {
+  DocQuizBests({this.bestPostPercent = 0, this.bestLift = 0, this.runs = 0});
+
+  double bestPostPercent;
+  double bestLift;
+  int runs;
+
+  static String _key(String docId) => 'doc_quiz_bests_$docId';
+
+  static Future<DocQuizBests> load(String docId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_key(docId));
+      if (raw == null || raw.isEmpty) return DocQuizBests();
+      final j = jsonDecode(raw) as Map<String, dynamic>;
+      return DocQuizBests(
+        bestPostPercent: (j['best_post'] as num?)?.toDouble() ?? 0,
+        bestLift: (j['best_lift'] as num?)?.toDouble() ?? 0,
+        runs: (j['runs'] as num?)?.toInt() ?? 0,
+      );
+    } catch (_) {
+      return DocQuizBests();
+    }
+  }
+
+  static Future<void> save(String docId, DocQuizBests b) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+          _key(docId),
+          jsonEncode({
+            'best_post': b.bestPostPercent,
+            'best_lift': b.bestLift,
+            'runs': b.runs,
+          }));
+    } catch (_) {
+      // Best-effort, same rule as GameStore: engagement state never blocks.
+    }
+  }
+}
+
 /// Consecutive rough days ending at the most recent check-in. Pure function
 /// (testable): entries are (YYYY-MM-DD, mood), any order. A gap day breaks
 /// the run - we only escalate on a genuinely unbroken rough stretch (B3).

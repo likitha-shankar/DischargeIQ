@@ -10,6 +10,8 @@ import 'package:dischargeiq_mobile/widgets/person_switcher.dart';
 import 'package:dischargeiq_mobile/services/person_store.dart';
 import 'package:dischargeiq_mobile/screens/people_screen.dart';
 import 'package:dischargeiq_mobile/services/game_store.dart';
+import 'package:dischargeiq_mobile/services/learning_goals.dart';
+import 'package:dischargeiq_mobile/widgets/learning_goal_sheet.dart';
 import 'package:dischargeiq_mobile/services/scan_session_store.dart';
 import 'package:dischargeiq_mobile/widgets/journey_widgets.dart';
 import 'package:dischargeiq_mobile/screens/scan_screen.dart';
@@ -56,11 +58,14 @@ class _UploadScreenState extends State<UploadScreen> {
 
   /// Open the people library, then re-read everything it could have changed:
   /// the active person, and the document list itself.
-  Future<void> _openPeople() async {
+  Future<void> _openPeople({bool openAdd = false}) async {
     await Navigator.push<void>(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => PeopleScreen(onUpload: _uploadFor),
+        builder: (_) => PeopleScreen(
+          onUpload: _uploadFor,
+          openAddOnLaunch: openAdd,
+        ),
       ),
     );
     await _loadActivePerson();
@@ -133,6 +138,7 @@ class _UploadScreenState extends State<UploadScreen> {
                       active: _activePerson,
                       onChanged: (p) => setState(() => _activePerson = p),
                       onManage: _openPeople,
+                      onAddPerson: () => _openPeople(openAdd: true),
                     ),
                   ),
                   // Theme toggle on the landing page itself - patients should
@@ -386,7 +392,14 @@ class _UploadScreenState extends State<UploadScreen> {
                       ],
                     ),
                       const SizedBox(height: 20),
-                      _JourneySection(dark: _dark),
+                      _JourneySection(
+                        // Same keying as the library below: switching profile
+                        // must rebuild the journey, not keep the old person's
+                        // selected document and stars on screen.
+                        key: ValueKey('journey:${_activePerson?.id ?? 'all'}'),
+                        dark: _dark,
+                        activePerson: _activePerson,
+                      ),
                       _RecentDocuments(
                         // Keyed on the active person too: switching profile
                         // must re-filter the list, not just re-read it.
@@ -486,9 +499,18 @@ class _UploadScreenState extends State<UploadScreen> {
 /// has ANY progress - a brand-new user sees a clean landing, not an empty
 /// progress card asking to be filled.
 class _JourneySection extends StatefulWidget {
-  const _JourneySection({required this.dark});
+  const _JourneySection({
+    super.key,
+    required this.dark,
+    required this.activePerson,
+  });
 
   final bool dark;
+
+  /// Whose journey to show. null means "All", which spans every document.
+  /// A selected person scopes both the picker and the stars to their own
+  /// documents - without this the card showed another profile's progress.
+  final Person? activePerson;
 
   @override
   State<_JourneySection> createState() => _JourneySectionState();
@@ -498,6 +520,11 @@ class _JourneySectionState extends State<_JourneySection> {
   Set<String>? _stars;
   GameStats? _stats;
   List<SavedDocument> _docs = const [];
+
+  /// Learning goals for the selected document, and the progress derived from
+  /// them. Both are per-document, so switching the picker reloads them.
+  List<String> _goals = const [];
+  List<GoalProgress> _goalProgress = const [];
 
   /// Which document's journey is showing; null until the list loads.
   /// Defaults to the newest document - the one the patient is living with.
@@ -516,27 +543,74 @@ class _JourneySectionState extends State<_JourneySection> {
   /// (old global stars belong to the OLDEST document - the only one that
   /// existed when they were earned), then load stars for the selection.
   Future<void> _loadDocsAndStars() async {
-    final docs = await DocumentStore.list(); // newest first
-    if (docs.isNotEmpty) {
-      await SectionStarStore.migrateLegacy(docs.last.id);
+    final all = await DocumentStore.list(); // newest first
+    // Legacy migration is deliberately global: those stars predate profiles,
+    // so they belong to the oldest document overall, not the oldest of
+    // whichever profile happens to be active right now.
+    if (all.isNotEmpty) {
+      await SectionStarStore.migrateLegacy(all.last.id);
     }
+    final docs = DocumentStore.forPerson(all, widget.activePerson?.id);
     if (!mounted) return;
     final selected = _selectedDocId ?? (docs.isEmpty ? null : docs.first.id);
     final stars = selected == null
         ? <String>{}
         : await SectionStarStore.load(selected);
+    final goals = selected == null
+        ? const <String>[]
+        : await LearningGoalStore.load(selected);
+    final progress = await _progressFor(selected, goals, stars);
     if (!mounted) return;
     setState(() {
       _docs = docs;
       _selectedDocId = selected;
       _stars = stars;
+      _goals = goals;
+      _goalProgress = progress;
     });
+  }
+
+  /// Build per-goal progress for one document. Returns empty when there is no
+  /// document or no goals, which is what hides the goal strip entirely.
+  Future<List<GoalProgress>> _progressFor(
+    String? docId,
+    List<String> goals,
+    Set<String> stars,
+  ) async {
+    if (docId == null || goals.isEmpty) return const [];
+    final pre = await LearningGoalStore.ratings(docId, 'pre');
+    final post = await LearningGoalStore.ratings(docId, 'post');
+    return buildGoalProgress(
+      goalIds: goals,
+      stars: stars,
+      // Mastery is global rather than per-document, matching how the quiz
+      // already stores it; a goal met on one document stays met.
+      mastered: _stats?.masteredDomains.toSet() ?? const {},
+      pre: pre,
+      post: post,
+    );
+  }
+
+  /// Re-rate the chosen goals, then refresh so the chips show the movement.
+  Future<void> _recheckGoals() async {
+    final docId = _selectedDocId;
+    if (docId == null || _goals.isEmpty) return;
+    final rated = await showGoalRecheckSheet(
+      context: context,
+      docId: docId,
+      goalIds: _goals,
+    );
+    if (rated && mounted) await _loadDocsAndStars();
   }
 
   Future<void> _pickDoc(String docId) async {
     final stars = await SectionStarStore.load(docId);
+    final goals = await LearningGoalStore.load(docId);
+    final progress = await _progressFor(docId, goals, stars);
     if (!mounted) return;
     setState(() {
+      _goals = goals;
+      _goalProgress = progress;
       _selectedDocId = docId;
       _stars = stars;
     });
@@ -548,7 +622,9 @@ class _JourneySectionState extends State<_JourneySection> {
   /// patient chooses which document to practice on (not just the newest).
   /// Zero API calls - the analysis is already on the phone.
   Future<void> _playPuzzle() async {
-    final docs = await DocumentStore.list();
+    // Already scoped to the active person by _loadDocsAndStars; re-listing
+    // here would offer another profile's documents to practice on.
+    final docs = _docs;
     if (docs.isEmpty || !mounted) return;
     var pickedId = docs.first.id;
     if (docs.length > 1) {
@@ -607,6 +683,7 @@ class _JourneySectionState extends State<_JourneySection> {
           extraction:
               (result['extraction'] as Map?)?.cast<String, dynamic>() ?? const {},
           diagnosisExplanation: '${result['diagnosis_explanation'] ?? ''}',
+          escalationGuide: '${result['escalation_guide'] ?? ''}',
         ),
       ),
     );
@@ -617,8 +694,11 @@ class _JourneySectionState extends State<_JourneySection> {
     final stars = _stars;
     final stats = _stats;
     if (stars == null || stats == null) return const SizedBox.shrink();
-    final hasProgress =
-        stars.isNotEmpty || stats.xp > 0 || stats.quizzesCompleted > 0;
+    // XP and quiz counts are global, so they alone must not open this card:
+    // a profile with no analysis of its own would inherit another profile's
+    // progress. Require a document in scope first.
+    final hasProgress = _docs.isNotEmpty &&
+        (stars.isNotEmpty || stats.xp > 0 || stats.quizzesCompleted > 0);
     if (!hasProgress) return const SizedBox.shrink();
     final dark = widget.dark;
     return Padding(
@@ -629,6 +709,9 @@ class _JourneySectionState extends State<_JourneySection> {
             stars: stars,
             stats: stats,
             dark: dark,
+            goals: _goals,
+            goalProgress: _goalProgress,
+            onRecheckGoals: _goals.isEmpty ? null : _recheckGoals,
             // Reading stars and quests are per-document; with more than one
             // saved analysis the patient picks which journey to look at.
             docPicker: _docs.length > 1
@@ -748,14 +831,11 @@ class _RecentDocumentsState extends State<_RecentDocuments> {
   Future<void> _refresh() async {
     final all = await DocumentStore.list();
     final people = await PersonStore.list();
-    final active = widget.activePerson;
     // "All" shows everything, including unassigned. A named profile shows only
     // that person's documents - seeing a relative's medications while you
     // believe you are looking at your own is the mix-up profiles exist to
     // prevent.
-    final docs = active == null
-        ? all
-        : all.where((d) => d.personId == active.id).toList();
+    final docs = DocumentStore.forPerson(all, widget.activePerson?.id);
     if (mounted) {
       setState(() {
         _docs = docs;

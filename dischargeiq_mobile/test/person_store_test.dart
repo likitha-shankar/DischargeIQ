@@ -125,4 +125,29 @@ void main() {
       expect(Person.fromJson({'id': '1', 'name': ''}), isNull);
     });
   });
+
+  group('parseOptionalAge', () {
+    test('blank is valid and means no age', () {
+      expect(parseOptionalAge(''), (valid: true, age: null));
+      expect(parseOptionalAge('   '), (valid: true, age: null));
+    });
+
+    test('a plausible age is accepted', () {
+      expect(parseOptionalAge('6'), (valid: true, age: 6));
+      expect(parseOptionalAge(' 71 '), (valid: true, age: 71));
+    });
+
+    test('boundaries are inclusive', () {
+      expect(parseOptionalAge('0'), (valid: true, age: 0));
+      expect(parseOptionalAge('$kMaxPersonAge'), (valid: true, age: kMaxPersonAge));
+    });
+
+    test('implausible or unparseable text is rejected, not silently dropped', () {
+      // The old behaviour turned each of these into a null age with no
+      // message, quietly changing who the document is written to.
+      for (final raw in ['999', '-1', 'abc', '6y', '1.5']) {
+        expect(parseOptionalAge(raw).valid, isFalse, reason: 'raw: $raw');
+      }
+    });
+  });
 }

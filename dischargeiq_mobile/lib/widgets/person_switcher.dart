@@ -20,6 +20,7 @@ class PersonSwitcher extends StatelessWidget {
     required this.active,
     required this.onChanged,
     required this.onManage,
+    required this.onAddPerson,
   });
 
   /// Person whose documents are showing, or null when none exist yet.
@@ -30,6 +31,9 @@ class PersonSwitcher extends StatelessWidget {
 
   /// Opens the full people list for renaming, refiling and deleting.
   final VoidCallback onManage;
+
+  /// Opens the people list with the add-person sheet already up.
+  final VoidCallback onAddPerson;
 
   Future<void> _openSheet(BuildContext context) async {
     final people = await PersonStore.list();
@@ -96,9 +100,9 @@ class PersonSwitcher extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.person_add_alt_1, color: kTeal),
               title: const Text('Add a person'),
-              onTap: () async {
+              onTap: () {
                 Navigator.pop(sheetCtx);
-                onManage();
+                onAddPerson();
               },
             ),
             ListTile(

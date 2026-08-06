@@ -173,7 +173,11 @@ class MasteryBadges extends StatelessWidget {
 /// Intro-screen card for returning patients: level, best score, best lift.
 /// Hidden on the very first quiz (no stats yet) - nothing to brag about.
 class WelcomeBackCard extends StatelessWidget {
-  const WelcomeBackCard({super.key, required this.stats});
+  const WelcomeBackCard({super.key, required this.stats, this.docBests});
+
+  /// Bests scoped to the document being quizzed. Null on old builds or before
+  /// the store answers - the card then shows only the global line.
+  final DocQuizBests? docBests;
 
   final GameStats stats;
 
@@ -200,11 +204,25 @@ class WelcomeBackCard extends StatelessWidget {
           ]),
           const SizedBox(height: 6),
           Text(
-            'Personal best: ${stats.bestPostPercent.round()}%'
-            '${stats.bestLift > 0 ? '   ·   Biggest jump: +${stats.bestLift.round()} pts' : ''}'
-            '   ·   Quizzes done: ${stats.quizzesCompleted}',
+            // The headline best is THIS document's, so a fresh document never
+            // wears an old document's score. The global number keeps its own
+            // honest label underneath.
+            docBests != null && docBests!.runs > 0
+                ? 'This document - best: ${docBests!.bestPostPercent.round()}%'
+                    '${docBests!.bestLift > 0 ? '   ·   biggest jump: +${docBests!.bestLift.round()} pts' : ''}'
+                : 'First quiz on this document',
             style: const TextStyle(
-                fontSize: 13, color: kTextPrimaryLight, height: 1.35),
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: kTextPrimaryLight,
+                height: 1.35),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'All documents: best ${stats.bestPostPercent.round()}%'
+            '   ·   quizzes done: ${stats.quizzesCompleted}',
+            style: const TextStyle(
+                fontSize: 12, color: kTextPrimaryLight, height: 1.3),
           ),
         ],
       ),
