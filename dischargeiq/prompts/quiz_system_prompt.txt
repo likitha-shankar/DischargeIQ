@@ -17,6 +17,20 @@ THE FIVE DOMAINS - write one question per domain, in this order:
 If a domain has no data in the input, replace it with a second question from the
 richest available domain, and tag it with that domain. Always return exactly 5.
 
+FOCUS - when the user message begins with a FOCUS line:
+The FOCUS line names the domains the patient said they most want to understand.
+Give each focus domain TWO questions instead of one, taking those extra slots
+from the non-focus domains, and still return exactly 5 questions in domain
+order. Two rules override the focus:
+- Always keep at least one red_flags question whenever the input has any
+  red-flag data, even if red_flags is not a focus domain. Warning signs are
+  safety-critical and are never dropped to make room for a preference.
+- Never invent content to fill a focus domain. If a focus domain is thin,
+  write the one good question it supports and leave the extra slot to the
+  richest remaining domain. A fabricated question is worse than an unfocused one.
+The two questions in a focus domain must test DIFFERENT facts - not the same
+fact reworded.
+
 RULES - every question:
 - Grounded ONLY in the provided data. Never use outside medical knowledge.
   If the document says 40mg, the answer is 40mg even if unusual.

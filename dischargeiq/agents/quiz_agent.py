@@ -76,12 +76,54 @@ _QUIZ_FIELDS = (
     "red_flag_symptoms",
 )
 
+# Domains the client may ask to weight, from the patient's chosen learning
+# goals. Anything else is dropped rather than passed through - an unknown
+# domain in the prompt would produce questions the scorer cannot tag.
+_VALID_DOMAINS = frozenset(
+    {"diagnosis", "medications", "follow_up", "activity", "red_flags"}
+)
+
+# Two focus domains use 4 of the 5 question slots. A third would leave one
+# slot for the other three domains, which stops being a comprehension measure
+# and becomes a single-topic drill.
+_MAX_FOCUS_DOMAINS = 2
+
+
+def _focus_instruction(focus_domains: list[str] | None) -> str:
+    """
+    Build the FOCUS line for the user message, or "" when there is nothing
+    to weight.
+
+    Unknown domains are dropped and the list is capped, so a client cannot
+    steer the whole quiz onto one topic or inject an untaggable domain.
+
+    Args:
+        focus_domains: Domains from the patient's learning goals, in the order
+                       the patient chose them.
+
+    Returns:
+        str: "FOCUS: a, b\n\n" or "" when nothing valid was requested.
+    """
+    if not focus_domains:
+        return ""
+    # dict.fromkeys preserves the patient's ordering while removing repeats,
+    # so the cap keeps their FIRST choices rather than an arbitrary two.
+    valid = [d for d in dict.fromkeys(focus_domains) if d in _VALID_DOMAINS]
+    if not valid:
+        return ""
+    if len(valid) > _MAX_FOCUS_DOMAINS:
+        logger.info(
+            "Quiz focus capped from %d to %d domains", len(valid), _MAX_FOCUS_DOMAINS
+        )
+    return f"FOCUS: {', '.join(valid[:_MAX_FOCUS_DOMAINS])}\n\n"
+
 
 def run_quiz_agent(
     extraction: dict,
     session_id: str,
     document_id: str = "quiz",
     audience: str = AUDIENCE_PATIENT,
+    focus_domains: list[str] | None = None,
 ) -> QuizSet:
     """
     Generate the frozen 5-question teach-back set for one discharge document.
@@ -98,6 +140,12 @@ def run_quiz_agent(
                      by the route from the session's stored pipeline context.
                      Questions for a pediatric patient are asked of the parent
                      ("When should you call the doctor about your child?").
+        focus_domains: Domains the patient said they most want to understand,
+                     from their on-device learning goals. Each gets a second
+                     question at the expense of an unchosen domain; red_flags
+                     is never dropped, and nothing is fabricated to fill a
+                     thin focus domain (see quiz_system_prompt.txt). Empty or
+                     None keeps the even one-per-domain spread.
 
     Returns:
         QuizSet: Validated questions with FK metadata.
@@ -120,8 +168,11 @@ def run_quiz_agent(
     audience_prefix = audience_instruction(audience)
     if audience_prefix:
         audience_prefix += "\n\n"
+    # Audience first, then focus: who is being asked outranks what they asked
+    # about, and a pediatric quiz must stay pediatric whatever the goals say.
     user_message = (
         f"{audience_prefix}"
+        f"{_focus_instruction(focus_domains)}"
         "Patient discharge data (JSON):\n\n"
         f"{json.dumps(quiz_input, indent=2)}\n\n"
         "Write the 5 teach-back questions."

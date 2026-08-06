@@ -63,6 +63,9 @@ async def generate_quiz(request: QuizGenerateRequest):
             request.extraction,
             request.session_id,
             audience=audience,
+            # Learning goals live on the device, so the client supplies them;
+            # the agent validates and caps the list before it reaches a prompt.
+            focus_domains=request.focus_domains,
         )
     except ValueError as exc:
         # Distinguish "nothing to quiz on" (client sent empty extraction)

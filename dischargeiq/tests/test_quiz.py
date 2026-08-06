@@ -180,3 +180,97 @@ def test_quiz_score_endpoint_mismatch_422():
               "answers": [0, 1]},
     )
     assert resp.status_code == 422
+
+
+# ── Learning-goal focus weighting ───────────────────────────────────────────────
+
+
+def test_focus_instruction_empty_when_no_goals():
+    """No goals means no FOCUS line - the even spread is the default."""
+    assert quiz_agent._focus_instruction(None) == ""
+    assert quiz_agent._focus_instruction([]) == ""
+
+
+def test_focus_instruction_names_valid_domains():
+    """Chosen domains reach the prompt as a FOCUS line."""
+    out = quiz_agent._focus_instruction(["medications", "red_flags"])
+    assert out.startswith("FOCUS: ")
+    assert "medications" in out and "red_flags" in out
+
+
+def test_focus_instruction_drops_unknown_domains():
+    """An unknown domain would produce questions the scorer cannot tag."""
+    assert quiz_agent._focus_instruction(["astrology"]) == ""
+    out = quiz_agent._focus_instruction(["astrology", "medications"])
+    assert "astrology" not in out
+    assert "medications" in out
+
+
+def test_focus_instruction_caps_at_two_domains():
+    """Three focus domains would leave one slot for the other two - a drill,
+    not a comprehension measure. The patient's FIRST choices survive."""
+    out = quiz_agent._focus_instruction(["medications", "activity", "red_flags"])
+    assert "medications" in out and "activity" in out
+    assert "red_flags" not in out
+
+
+def test_focus_instruction_dedupes_preserving_order():
+    """A repeated goal must not consume both focus slots."""
+    out = quiz_agent._focus_instruction(["medications", "medications", "activity"])
+    assert "medications" in out and "activity" in out
+
+
+def test_focus_reaches_the_prompt():
+    """The FOCUS line is actually sent, and sits AFTER the audience line."""
+    captured = {}
+
+    def _capture(**kwargs):
+        captured.update(kwargs)
+        return _VALID_LLM_RESPONSE
+
+    with patch.object(quiz_agent, "call_chat_with_fallback", side_effect=_capture), \
+         patch.object(quiz_agent, "get_llm_client", return_value=(None, "test-model")):
+        quiz_agent.run_quiz_agent(
+            _EXTRACTION, "sess-focus", focus_domains=["medications"]
+        )
+
+    message = captured["user_message"]
+    assert "FOCUS: medications" in message
+    # Audience must be fixed before the topic weighting - a pediatric quiz
+    # stays pediatric whatever the goals say.
+    assert message.index("FOCUS:") < message.index("Patient discharge data")
+
+
+def test_generate_endpoint_forwards_focus_domains():
+    """The route passes the client's goals through to the agent."""
+    captured = {}
+
+    def _fake_agent(extraction, session_id, **kwargs):
+        captured.update(kwargs)
+        return quiz_agent.QuizSet(
+            session_id=session_id, questions=[], fk_grade=5.0, fk_passes=True
+        )
+
+    with patch("dischargeiq.api.routes.quiz.run_quiz_agent", side_effect=_fake_agent):
+        response = _client.post(
+            "/quiz/generate",
+            json={
+                "session_id": "sess-route",
+                "extraction": _EXTRACTION,
+                "focus_domains": ["red_flags"],
+            },
+        )
+    assert response.status_code == 200
+    assert captured["focus_domains"] == ["red_flags"]
+
+
+def test_generate_endpoint_focus_domains_optional():
+    """Older clients that send no focus_domains still work."""
+    with patch.object(quiz_agent, "call_chat_with_fallback", return_value=_VALID_LLM_RESPONSE), \
+         patch.object(quiz_agent, "get_llm_client", return_value=(None, "test-model")):
+        response = _client.post(
+            "/quiz/generate",
+            json={"session_id": "sess-legacy", "extraction": _EXTRACTION},
+        )
+    assert response.status_code == 200
+    assert len(response.json()["questions"]) == 5
