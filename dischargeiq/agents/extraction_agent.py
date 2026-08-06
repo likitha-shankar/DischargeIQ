@@ -584,25 +584,81 @@ def _remove_stray_tokens(text: str) -> str:
     return "\n".join(filtered_lines)
 
 
+# Generic words that appear in almost any discharge document. A fabricated
+# value must not be cleared just because it contains one of these ("Take
+# Metformin daily" would otherwise pass on "take"/"daily" alone).
+_GROUNDING_GENERIC_TOKENS = frozenset({
+    "take", "taken", "with", "daily", "twice", "every", "each", "hours",
+    "days", "weeks", "months", "tablet", "tablets", "capsule", "capsules",
+    "puffs", "times", "needed", "doctor", "nurse", "clinic", "follow",
+    "appointment", "medication", "medicine", "patient", "avoid", "your",
+    "discharge", "hospital", "care", "home", "left", "right",
+})
+
+
+def _ungrounded(source: str, value: str) -> bool:
+    """
+    Return True when a value has checkable tokens but zero textual support.
+
+    A value is grounded if any distinctive alphabetic token of 4+ characters
+    appears in the lowercased source text. Generic dosing/clinical words
+    (see _GROUNDING_GENERIC_TOKENS) never count as support. Values with no
+    checkable tokens at all (e.g. "B12") are treated as grounded because
+    they cannot be verified deterministically.
+
+    Args:
+        source: Lowercased full document text.
+        value:  Extracted field value to verify.
+
+    Returns:
+        bool: True when the value looks fabricated (flag it), False otherwise.
+    """
+    tokens = [
+        t for t in (m.lower() for m in re.findall(r"[a-zA-Z]{4,}", value))
+        if t not in _GROUNDING_GENERIC_TOKENS
+    ]
+    return bool(tokens) and not any(t in source for t in tokens)
+
+
+def _dose_numbers_ungrounded(source: str, dose: str) -> bool:
+    """
+    Return True when a dose contains a number absent from the source text.
+
+    A fabricated dose amount is a safety-critical hallucination (e.g. the
+    LLM emitting "80mg" when the document says "40mg"). Every numeric token
+    in the dose string must appear in the document as a standalone number -
+    lookarounds stop "40" matching inside "140" or "40.5", while still
+    matching "40mg" (no whitespace needed).
+
+    Args:
+        source: Lowercased full document text.
+        dose:   Dose string from a Medication entry (e.g. "40mg", "2.5 mg").
+
+    Returns:
+        bool: True when any dose number has no textual support.
+    """
+    return any(
+        not re.search(rf"(?<![\d.]){re.escape(n)}(?![\d.])", source)
+        for n in re.findall(r"\d+(?:\.\d+)?", dose)
+    )
+
+
 def _check_grounding(raw_text: str, result: "ExtractionOutput") -> list[str]:
     """
     Deterministic hallucination guard: flag extracted values with no textual
     support in the source document.
 
-    For each medication name and follow-up provider, at least one alphabetic
-    token of 4+ characters must appear in the raw document text
-    (case-insensitive). A value where NO token matches is a strong
-    fabrication signal - Agent 1 is prompted to copy names verbatim, so a
-    fully absent name cannot have come from the document. Zero LLM calls,
-    zero cost, runs on every extraction.
+    Every field Agent 1 is prompted to copy verbatim is checked: patient
+    name, diagnoses, procedures, medication names and dose numbers,
+    follow-up providers and specialties, activity/dietary restrictions,
+    red-flag symptoms, and discharge condition. A value where NO distinctive
+    token matches is a strong fabrication signal. Zero LLM calls, zero cost,
+    runs on every extraction.
 
-    Deliberately conservative to avoid false positives:
-        - Only names are checked. Doses/frequencies are excluded (the
-          normaliser rewrites abbreviations) and dates are excluded (the
-          LLM may reformat "March 24" as "2026-03-24").
-        - One matching token clears the value, so "Albuterol (ProAir HFA)"
-          is grounded if either "albuterol" or "proair" appears.
-        - Values with no 4+ char alphabetic tokens are skipped entirely.
+    Deliberately excluded to avoid false positives:
+        - Dates (the LLM may reformat "March 24" as "2026-03-24").
+        - Medication frequency/route (the normaliser rewrites abbreviations).
+        - Appointment reasons (routinely paraphrased).
 
     Args:
         raw_text: Full discharge-document text (the string sent to the LLM).
@@ -614,22 +670,48 @@ def _check_grounding(raw_text: str, result: "ExtractionOutput") -> list[str]:
     source = raw_text.lower()
     warnings: list[str] = []
 
-    def _ungrounded(value: str) -> bool:
-        tokens = [t for t in re.findall(r"[a-zA-Z]{4,}", value)]
-        return bool(tokens) and not any(t.lower() in source for t in tokens)
+    def _flag(label: str, value: str) -> None:
+        warnings.append(
+            f"{label} '{value}' was not found in the document "
+            "text - please verify it against your discharge papers."
+        )
+
+    scalar_fields = [
+        ("Patient name", result.patient_name),
+        ("Primary diagnosis", result.primary_diagnosis),
+        ("Discharge condition", result.discharge_condition),
+    ]
+    list_fields = [
+        ("Diagnosis", result.secondary_diagnoses),
+        ("Procedure", result.procedures_performed),
+        ("Activity restriction", result.activity_restrictions),
+        ("Dietary restriction", result.dietary_restrictions),
+        ("Warning sign", result.red_flag_symptoms),
+    ]
+    for label, value in scalar_fields:
+        if value and _ungrounded(source, value):
+            _flag(label, value)
+    for label, values in list_fields:
+        for value in values:
+            if _ungrounded(source, value):
+                _flag(label, value)
 
     for med in result.medications:
-        if _ungrounded(med.name):
+        if _ungrounded(source, med.name):
+            _flag("Medication", med.name)
+        elif med.dose and _dose_numbers_ungrounded(source, med.dose):
+            # Name is real but the amount is not in the document - the most
+            # dangerous hallucination class, so it gets its own wording.
             warnings.append(
-                f"Medication '{med.name}' was not found in the document "
-                "text - please verify it against your discharge papers."
+                f"The dose '{med.dose}' for '{med.name}' was not found in "
+                "the document text - please verify it against your "
+                "discharge papers."
             )
     for appt in result.follow_up_appointments:
-        if appt.provider and _ungrounded(appt.provider):
-            warnings.append(
-                f"Follow-up provider '{appt.provider}' was not found in the "
-                "document text - please verify it against your discharge papers."
-            )
+        if appt.provider and _ungrounded(source, appt.provider):
+            _flag("Follow-up provider", appt.provider)
+        if appt.specialty and _ungrounded(source, appt.specialty):
+            _flag("Follow-up specialty", appt.specialty)
     return warnings
 
 
