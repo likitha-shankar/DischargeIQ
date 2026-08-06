@@ -99,63 +99,220 @@ class _AppointmentsBody extends StatelessWidget {
         }
         final a = list[i - 1];
         if (a is! Map) return const SizedBox.shrink();
-        return Card(
-          color: dark ? kCardDark : kCardLight,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ListTile(
-                title: Text('${a['specialty'] ?? a['provider'] ?? 'Appointment'}'),
-                // Date lives ONLY in the trailing chip (it rendered twice
-                // before). Subtitle carries who + why.
-                subtitle: Text(
-                  [
-                    if (a['specialty'] != null && a['provider'] != null)
-                      '${a['provider']}',
-                    if ('${a['reason'] ?? ''}'.isNotEmpty) '${a['reason']}',
-                  ].join('\n'),
-                  style: TextStyle(color: dark ? kTextSecondaryDark : kTextSecondaryLight),
+        return _AppointmentCard(
+          appointment: a,
+          dark: dark,
+          onAddToCalendar: () => _addToCalendar(context, a),
+        );
+      },
+    );
+  }
+}
+
+/// One follow-up visit, laid out so the three things a patient actually needs
+/// - WHEN, WHO, WHY - are each labelled and separable at a glance.
+///
+/// The previous card put the date in a small trailing chip that read "TBD"
+/// when the document gave no date, merged provider and reason into one
+/// unlabelled block, and left the reader to work out which line was which.
+class _AppointmentCard extends StatelessWidget {
+  const _AppointmentCard({
+    required this.appointment,
+    required this.dark,
+    required this.onAddToCalendar,
+  });
+
+  final Map appointment;
+  final bool dark;
+  final VoidCallback onAddToCalendar;
+
+  static const _monthNames = [
+    'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+    'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC',
+  ];
+
+  String? _text(String key) {
+    final v = '${appointment[key] ?? ''}'.trim();
+    return v.isEmpty || v == 'null' ? null : v;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = dark ? kTealGlow : kTeal;
+    final specialty = _text('specialty');
+    final provider = _text('provider');
+    final reason = _text('reason');
+    final rawDate = _text('date');
+    final parsed = parseAppointmentDate(rawDate);
+
+    // Heading is the kind of visit; the person comes underneath. When only one
+    // is known it becomes the heading rather than leaving a generic title.
+    final heading = specialty ?? provider ?? 'Follow-up visit';
+    final subheading = specialty != null ? provider : null;
+
+    return Card(
+      color: dark ? kCardDark : kCardLight,
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _dateBlock(parsed, rawDate, accent),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        heading,
+                        style: TextStyle(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w700,
+                          color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+                        ),
+                      ),
+                      if (subheading != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          'with $subheading',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: dark
+                                ? kTextSecondaryDark
+                                : kTextSecondaryLight,
+                          ),
+                        ),
+                      ],
+                      // An unparseable or missing date is stated in words
+                      // rather than shown as "TBD", which patients read as an
+                      // app error rather than as missing paperwork.
+                      if (parsed == null) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          rawDate == null
+                              ? 'No date given - call to book this'
+                              : 'Date as written: $rawDate',
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: kMedChanged,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-                trailing: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: dark ? kTeal.withValues(alpha: 0.25) : kTealPale,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${a['date'] ?? 'TBD'}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: dark ? kTealGlow : kTeal,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+              ],
+            ),
+            if (reason != null) ...[
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: dark ? 0.10 : 0.07),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16),
-                child: SourceQuote(source: a['source']),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 8, right: 8, bottom: 6),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => _addToCalendar(context, a),
-                    icon: const Icon(Icons.calendar_month_outlined, size: 18),
-                    label: const Text('Add to calendar'),
-                    // Color comes from the theme; only the 48dp touch target
-                    // (same rule as the audio play button) stays local.
-                    style: TextButton.styleFrom(
-                      minimumSize: const Size(48, 48),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'WHY',
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.6,
+                        color: accent,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 2),
+                    Text(
+                      reason,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        height: 1.35,
+                        color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
-          ),
-        );
-      },
+            SourceQuote(source: appointment['source']),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: onAddToCalendar,
+                icon: const Icon(Icons.calendar_month_outlined, size: 18),
+                label: const Text('Add to calendar'),
+                // 48dp touch target, same rule as the audio play button.
+                style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Calendar-style date block: month above day, the way a patient scans a
+  /// diary. Falls back to a neutral icon when no date could be parsed, so the
+  /// card never displays a fake one.
+  Widget _dateBlock(DateTime? parsed, String? rawDate, Color accent) {
+    final hasDate = parsed != null;
+    return Container(
+      width: 54,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: hasDate
+            ? accent.withValues(alpha: dark ? 0.20 : 0.12)
+            : (dark ? kCardDark : kBgLight),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: hasDate
+              ? accent.withValues(alpha: 0.5)
+              : (dark ? kTextHintDark : kTextHintLight).withValues(alpha: 0.35),
+        ),
+      ),
+      child: hasDate
+          ? Column(
+              children: [
+                Text(
+                  _monthNames[parsed.month - 1],
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                    color: accent,
+                  ),
+                ),
+                Text(
+                  '${parsed.day}',
+                  style: TextStyle(
+                    fontSize: 21,
+                    height: 1.1,
+                    fontWeight: FontWeight.w800,
+                    color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+                  ),
+                ),
+                Text(
+                  '${parsed.year}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: dark ? kTextSecondaryDark : kTextSecondaryLight,
+                  ),
+                ),
+              ],
+            )
+          : Icon(
+              Icons.event_busy_outlined,
+              size: 24,
+              color: dark ? kTextHintDark : kTextHintLight,
+            ),
     );
   }
 }
