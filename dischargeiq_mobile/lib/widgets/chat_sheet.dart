@@ -11,6 +11,9 @@ library;
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/screens/results_screen.dart' show PatientText;
 import 'package:dischargeiq_mobile/services/api_service.dart';
+import 'package:dischargeiq_mobile/services/read_aloud.dart';
+import 'package:dischargeiq_mobile/services/voice_input.dart';
+import 'package:dischargeiq_mobile/services/voice_intent.dart';
 import 'package:flutter/material.dart';
 
 /// Starter questions - shown until the first message is sent. Wording
@@ -23,8 +26,20 @@ const _kStarterQuestions = [
 ];
 
 /// Open the chat sheet for one analysis result.
-Future<void> showChatSheet(BuildContext context, Map<String, dynamic> result) {
-  return showModalBottomSheet<void>(
+///
+/// Returns the results-tab index the patient asked to have read out loud
+/// ("read me my medications"), or null when they simply closed the sheet.
+///
+/// The tab arrives as the sheet's POP RESULT rather than through a callback
+/// fired mid-dismiss: an earlier version popped from inside the sheet and
+/// then invoked a callback, which left the modal barrier on screen as a black
+/// overlay when the pop raced the sheet's own teardown. Letting the caller act
+/// after the route has fully closed removes the race entirely.
+Future<int?> showChatSheet(
+  BuildContext context,
+  Map<String, dynamic> result,
+) {
+  return showModalBottomSheet<int>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -39,6 +54,8 @@ class _ChatMessage {
     required this.text,
     this.failed = false,
     this.retryQuestion,
+    this.fromDocument,
+    this.sourcePage,
   });
 
   final bool fromPatient;
@@ -47,6 +64,15 @@ class _ChatMessage {
 
   /// The question that produced a failed answer - powers the Retry chip.
   final String? retryQuestion;
+
+  /// Server grounding verdict. True: answered from the patient's own
+  /// document. False: general guidance the document did not contain. Null
+  /// while streaming or on old servers - no badge is shown rather than a
+  /// guessed one, because a wrong trust label is worse than none.
+  final bool? fromDocument;
+
+  /// Source page in the original PDF, when the server attributed one.
+  final int? sourcePage;
 }
 
 class _ChatSheet extends StatefulWidget {
@@ -70,6 +96,20 @@ class _ChatSheetState extends State<_ChatSheet> {
       _chatHistoryBySession.putIfAbsent(_sessionId, () => []);
   bool _sending = false;
 
+  /// Microphone state. _micAvailable is null until the recognizer is probed,
+  /// and the button stays hidden while unknown or unavailable - a mic that
+  /// cannot work must never be offered.
+  bool? _micAvailable;
+  bool _listening = false;
+
+  /// Read answers out loud as they arrive. Follows the app-wide read-aloud
+  /// setting, and is toggled per conversation by the speaker button, so
+  /// someone who prefers to read in silence turns it off once.
+  bool _speakAnswers = false;
+
+  /// Index of the message currently being spoken, for the stop affordance.
+  int? _speakingIndex;
+
   bool get _dark => Theme.of(context).brightness == Brightness.dark;
 
   /// One stable session per result so backend chat history joins up with
@@ -82,18 +122,99 @@ class _ChatSheetState extends State<_ChatSheet> {
     super.initState();
     // Reopened with prior history: land at the latest message.
     if (_messages.isNotEmpty) _autoscroll();
+    // Both are best-effort: the sheet is fully usable by typing and reading
+    // if either the recognizer or the speech engine is unavailable.
+    VoiceInput.prepare().then((ok) {
+      if (mounted) setState(() => _micAvailable = ok);
+    });
+    ReadAloud.enabled().then((on) {
+      if (mounted) setState(() => _speakAnswers = on);
+    });
+    ReadAloud.onDone = () {
+      if (mounted) setState(() => _speakingIndex = null);
+    };
+  }
+
+  /// Start or stop dictation. Partial results fill the field as the patient
+  /// speaks; the final result sends automatically, so a patient who cannot
+  /// read the screen never has to find the send button.
+  Future<void> _toggleMic() async {
+    if (_listening) {
+      await VoiceInput.stop();
+      if (mounted) setState(() => _listening = false);
+      return;
+    }
+    // Never listen and talk at once - the recognizer would hear the app.
+    await _stopSpeaking();
+    final started = await VoiceInput.listen(
+      onResult: (text, isFinal) {
+        if (!mounted) return;
+        _ctrl.text = text;
+        _ctrl.selection = TextSelection.collapsed(offset: text.length);
+        if (isFinal) {
+          setState(() => _listening = false);
+          if (text.trim().isNotEmpty) _send(text, spoken: true);
+        }
+      },
+    );
+    if (!mounted) return;
+    if (!started) {
+      setState(() => _micAvailable = false);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Voice is not available on this phone. You can type '
+            'your question instead.'),
+      ));
+      return;
+    }
+    setState(() => _listening = true);
+  }
+
+  Future<void> _stopSpeaking() async {
+    await ReadAloud.stop();
+    if (mounted) setState(() => _speakingIndex = null);
+  }
+
+  /// Speak one answer bubble, replacing anything already being spoken.
+  Future<void> _speakMessage(int index) async {
+    await ReadAloud.stop();
+    if (!mounted) return;
+    setState(() => _speakingIndex = index);
+    await ReadAloud.speak(_messages[index].text);
   }
 
   @override
   void dispose() {
+    // Leaving the sheet must silence both directions - a mic left open or a
+    // voice still reading after the patient closed the chat is alarming.
+    VoiceInput.cancel();
+    ReadAloud.stop();
+    ReadAloud.onDone = null;
     _ctrl.dispose();
     _scroll.dispose();
     super.dispose();
   }
 
-  Future<void> _send(String raw) async {
+  /// [spoken] marks a question that arrived by microphone, which always gets
+  /// a spoken answer back regardless of the read-aloud setting.
+  Future<void> _send(String raw, {bool spoken = false}) async {
     final q = raw.trim();
     if (q.isEmpty || _sending) return;
+
+    // Spoken commands are handled locally and never reach the chat endpoint:
+    // "read me my medications" is navigation, not a question, and sending it
+    // to a grounded model would waste a call and answer the wrong thing.
+    final intent = parseVoiceIntent(q);
+    if (intent.kind == VoiceIntentKind.stopSpeaking) {
+      _ctrl.clear();
+      await _stopSpeaking();
+      return;
+    }
+    if (intent.kind == VoiceIntentKind.readSection) {
+      _ctrl.clear();
+      await _handleReadSection(intent, q);
+      return;
+    }
+
     setState(() {
       _sending = true;
       _messages.add(_ChatMessage(fromPatient: true, text: q));
@@ -103,6 +224,15 @@ class _ChatSheetState extends State<_ChatSheet> {
     try {
       final streamedText = await _sendStreaming(q);
       if (!streamedText) await _sendBlocking(q);
+      // Read the answer out loud when read-aloud is on. A spoken question
+      // always gets a spoken answer, whatever the setting says - someone who
+      // just talked to the app is not looking at the screen.
+      if (mounted && (_speakAnswers || spoken)) {
+        final last = _messages.length - 1;
+        if (last >= 0 && !_messages[last].fromPatient && !_messages[last].failed) {
+          await _speakMessage(last);
+        }
+      }
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -120,6 +250,33 @@ class _ChatSheetState extends State<_ChatSheet> {
     }
   }
 
+  /// Take the patient to the tab they asked for and read it aloud.
+  ///
+  /// The sheet closes first so the content is actually visible while it is
+  /// being read - a voice reading a page hidden behind a sheet helps nobody.
+  /// The exchange is still recorded in the transcript so the conversation
+  /// reads coherently when they come back.
+  Future<void> _handleReadSection(VoiceIntent intent, String asked) async {
+    final label = intent.sectionLabel ?? 'that section';
+    // Captured BEFORE any await: this can run from a speech-plugin callback,
+    // where the element behind `context` may already be gone by the time the
+    // awaits finish. Looking the navigator up afterwards is what produced the
+    // stuck black barrier.
+    final navigator = Navigator.of(context);
+    setState(() {
+      _messages.add(_ChatMessage(fromPatient: true, text: asked));
+      _messages.add(_ChatMessage(
+        fromPatient: false,
+        text: 'Opening $label and reading it out loud.',
+      ));
+    });
+    await VoiceInput.cancel();
+    await ReadAloud.stop();
+    // The tab travels back as the pop result; the results screen reads it
+    // once this route is fully gone.
+    navigator.pop(intent.tabIndex);
+  }
+
   /// Stream the answer live from /chat/stream, growing one assistant bubble
   /// as deltas arrive. Returns true when any answer text was shown; false
   /// signals the caller to retry via the blocking endpoint (which re-sends
@@ -135,8 +292,28 @@ class _ChatSheetState extends State<_ChatSheet> {
           text += event['delta'] as String;
         } else if (event['done'] == true) {
           // Final reply is the server-cleaned full text (grounding suffix
-          // stripped) - replace the accumulated stream with it.
+          // stripped) - replace the accumulated stream with it, now with the
+          // grounding verdict the interim deltas could not carry.
           text = '${event['reply'] ?? text}';
+          setState(() {
+            final bubble = _ChatMessage(
+              fromPatient: false,
+              text: text,
+              fromDocument: event['from_document'] is bool
+                  ? event['from_document'] as bool
+                  : null,
+              sourcePage:
+                  event['source_page'] is int ? event['source_page'] as int : null,
+            );
+            if (bubbleIndex < 0) {
+              _messages.add(bubble);
+              bubbleIndex = _messages.length - 1;
+            } else {
+              _messages[bubbleIndex] = bubble;
+            }
+          });
+          _autoscroll();
+          continue;
         } else if (event.containsKey('error')) {
           // Keep partial text if any was shown; otherwise let the caller
           // fall back to the blocking endpoint.
@@ -175,7 +352,13 @@ class _ChatSheetState extends State<_ChatSheet> {
     );
     if (!mounted) return;
     setState(() {
-      _messages.add(_ChatMessage(fromPatient: false, text: '${data['reply'] ?? ''}'));
+      _messages.add(_ChatMessage(
+        fromPatient: false,
+        text: '${data['reply'] ?? ''}',
+        fromDocument:
+            data['from_document'] is bool ? data['from_document'] as bool : null,
+        sourcePage: data['source_page'] is int ? data['source_page'] as int : null,
+      ));
     });
   }
 
@@ -358,6 +541,72 @@ class _ChatSheetState extends State<_ChatSheet> {
                   // Assistant answers go through the shared patient renderer
                   // so any markdown the model emits looks intentional.
                   PatientText(text: m.text),
+                // Grounding badge: the trust signal the server already
+                // computes. "From your document" is the product's core
+                // promise made visible per answer; the amber variant flags
+                // general guidance so it can never masquerade as the
+                // patient's own paperwork.
+                if (!m.fromPatient && !m.failed && m.fromDocument != null) ...[
+                  const SizedBox(height: 6),
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(
+                      m.fromDocument!
+                          ? Icons.verified_outlined
+                          : Icons.info_outline,
+                      size: 13,
+                      color: m.fromDocument! ? kTealMid : kMedChanged,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        m.fromDocument!
+                            ? (m.sourcePage != null
+                                ? 'From your document · page ${m.sourcePage}'
+                                : 'From your document')
+                            : 'General guidance - confirm with your care team',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: m.fromDocument! ? kTealMid : kMedChanged,
+                        ),
+                      ),
+                    ),
+                  ]),
+                ],
+                // Speaker control on every answer: stop what is playing, or
+                // hear an answer that arrived while read-aloud was off. The
+                // patient can always choose silence - nothing auto-plays that
+                // they cannot stop in one tap.
+                if (!m.fromPatient && !m.failed) ...[
+                  const SizedBox(height: 6),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _speakingIndex == i
+                        ? _stopSpeaking()
+                        : _speakMessage(i),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        Icon(
+                          _speakingIndex == i
+                              ? Icons.stop_circle_outlined
+                              : Icons.volume_up_outlined,
+                          size: 15,
+                          color: dark ? kTealGlow : kTeal,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _speakingIndex == i ? 'Stop' : 'Listen',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: dark ? kTealGlow : kTeal,
+                          ),
+                        ),
+                      ]),
+                    ),
+                  ),
+                ],
                 if (m.failed && m.retryQuestion != null) ...[
                   const SizedBox(height: 8),
                   ActionChip(
@@ -415,6 +664,26 @@ class _ChatSheetState extends State<_ChatSheet> {
       color: dark ? kSurfaceDark : kBgLight,
       child: Row(
         children: [
+          // Microphone: hidden entirely when the recognizer is unavailable,
+          // rather than offered and then failing.
+          if (_micAvailable == true) ...[
+            SizedBox(
+              width: 46,
+              height: 46,
+              child: IconButton(
+                tooltip: _listening ? 'Stop listening' : 'Ask out loud',
+                onPressed: _sending ? null : _toggleMic,
+                icon: Icon(
+                  _listening ? Icons.stop_circle_outlined : Icons.mic_none_rounded,
+                  size: 24,
+                  color: _listening
+                      ? kMedChanged
+                      : (dark ? kTealGlow : kTeal),
+                ),
+              ),
+            ),
+            const SizedBox(width: 2),
+          ],
           Expanded(
             child: TextField(
               controller: _ctrl,
@@ -425,7 +694,9 @@ class _ChatSheetState extends State<_ChatSheet> {
                   fontSize: 14.5,
                   color: dark ? kTextPrimaryDark : kTextPrimaryLight),
               decoration: InputDecoration(
-                hintText: 'Ask in plain language...',
+                hintText: _listening
+                    ? 'Listening...'
+                    : 'Ask in plain language...',
                 hintStyle: TextStyle(
                     fontSize: 14,
                     color: dark ? kTextHintDark : kTextHintLight),

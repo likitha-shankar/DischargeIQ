@@ -6,6 +6,7 @@ import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/services/calendar_link.dart';
 import 'package:dischargeiq_mobile/services/document_store.dart' show isUnusableRun;
 import 'package:dischargeiq_mobile/services/game_store.dart';
+import 'package:dischargeiq_mobile/services/learning_goals.dart';
 import 'package:dischargeiq_mobile/services/read_aloud.dart';
 import 'package:dischargeiq_mobile/services/share_summary.dart';
 import 'package:dischargeiq_mobile/services/recovery_timeline.dart';
@@ -17,6 +18,7 @@ import 'package:dischargeiq_mobile/screens/settings_screen.dart';
 import 'package:dischargeiq_mobile/widgets/audio_explainer.dart';
 import 'package:dischargeiq_mobile/widgets/chat_sheet.dart';
 import 'package:dischargeiq_mobile/widgets/guided_tour.dart';
+import 'package:dischargeiq_mobile/widgets/learning_goal_sheet.dart';
 import 'package:dischargeiq_mobile/widgets/source_quote.dart';
 import 'package:dischargeiq_mobile/widgets/capped_list.dart';
 import 'package:dischargeiq_mobile/widgets/empty_section.dart';
@@ -64,9 +66,12 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
     // tab (What happened) is awarded after the first frame.
     _tabController.addListener(_onTabSettled);
     _loadReadAloudPref();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _maybeStartTour();
-      _awardSectionStar(0);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _maybeStartTour();
+      // Goals are asked after the tour, and before the first star lands, so
+      // the patient chooses what matters before the app starts rewarding.
+      await _maybeAskLearningGoals();
+      await _awardSectionStar(0);
     });
   }
 
@@ -138,6 +143,46 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
     }
   }
 
+  /// Ask what the patient wants to learn, once per document.
+  ///
+  /// Clinical review, Aug 2026: the reward layer should follow what the
+  /// patient said matters, not a fixed reading order. Chosen goals reorder
+  /// the quests and the coach, and the before/after self-rating is the
+  /// outcome the feature is measured by.
+  ///
+  /// Runs after the tour so two overlays never fight for the screen, and
+  /// never on a rejected document - there is nothing to set goals about.
+  Future<void> _maybeAskLearningGoals() async {
+    if (!mounted) return;
+    final provider = context.read<DischargeProvider>();
+    if ('${provider.result?['pipeline_status']}' == 'rejected') return;
+    // An unsaved run has no id, so goals would have nowhere to live.
+    final docId = provider.activeDocId;
+    if (docId == null) return;
+    if (await LearningGoalStore.wasAsked(docId) || !mounted) return;
+    await showLearningGoalSheet(context: context, docId: docId);
+  }
+
+  /// Reopen the goal picker on demand, from the flag button in the app bar.
+  ///
+  /// Unlike [_maybeAskLearningGoals] this ignores the "already asked" flag -
+  /// the patient asked for it this time.
+  Future<void> _editLearningGoals() async {
+    final provider = context.read<DischargeProvider>();
+    final docId = provider.activeDocId;
+    if (docId == null) {
+      // An unsaved run has nowhere to store goals; say so rather than opening
+      // a picker whose answer would silently vanish.
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Save this analysis first, then you can choose what to '
+            'focus on.'),
+      ));
+      return;
+    }
+    await showLearningGoalSheet(context: context, docId: docId);
+  }
+
   // Read-aloud (accessibility): speaker button reads the CURRENT tab.
   bool _speaking = false;
   bool _readAloudEnabled = true;
@@ -172,6 +217,26 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
       default:
         return 'This tab is interactive. Please use the screen for it.';
     }
+  }
+
+  /// Jump to a tab the patient asked for by voice and read it out loud.
+  ///
+  /// Called by the chat sheet after it closes itself, so the content is on
+  /// screen while it is spoken. A short delay lets the sheet finish
+  /// dismissing and the tab settle before speech starts - otherwise the first
+  /// words land while the screen is still animating.
+  Future<void> _readTabAloud(Map<String, dynamic> r, int tabIndex) async {
+    if (!mounted || tabIndex < 0 || tabIndex >= _tabLabels.length) return;
+    await ReadAloud.stop();
+    if (!mounted) return;
+    _tabController.animateTo(tabIndex);
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    if (!mounted || _speaking) return;
+    ReadAloud.onDone = () {
+      if (mounted) setState(() => _speaking = false);
+    };
+    setState(() => _speaking = true);
+    await ReadAloud.speak(_currentTabText(r));
   }
 
   Future<void> _toggleReadAloud(Map<String, dynamic> r) async {
@@ -262,6 +327,14 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
               ),
             );
           }),
+          // Learning goals stay changeable: the picker only appears
+          // automatically on the first open, and a patient who skipped it -
+          // or whose priorities changed after reading - had no way back to it.
+          IconButton(
+            tooltip: 'What do you want to understand most?',
+            icon: const Icon(Icons.flag_outlined),
+            onPressed: _editLearningGoals,
+          ),
           if (_readAloudEnabled)
             IconButton(
               tooltip: _speaking ? 'Stop reading' : 'Read this section aloud',
@@ -370,13 +443,22 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      // Icon-only companion button: the chat does more than "Ask" now (it
+      // listens, answers aloud, and opens sections), so a single verb label
+      // undersold it. Tooltip and semantics keep it accessible.
+      floatingActionButton: FloatingActionButton(
         key: TourKeys.chat,
-        onPressed: () => showChatSheet(context, r),
+        onPressed: () async {
+          // The sheet returns a tab index when the patient asked for a
+          // section to be read aloud. Acting AFTER the route closes means
+          // the content is on screen before speech starts.
+          final tabIndex = await showChatSheet(context, r);
+          if (tabIndex != null) await _readTabAloud(r, tabIndex);
+        },
         backgroundColor: kTeal,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.chat_bubble_outline),
-        label: const Text('Ask'),
+        tooltip: 'Ask about your summary, or have it read aloud',
+        child: const Icon(Icons.forum_outlined, size: 26),
       ),
     );
   }

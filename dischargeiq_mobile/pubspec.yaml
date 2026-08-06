@@ -33,6 +33,10 @@ dependencies:
   # Read-aloud (accessibility): on-device text-to-speech for every results
   # section. Nothing leaves the phone.
   flutter_tts: ^4.2.0
+  # Voice questions in the chat: on-device speech recognition so a patient in
+  # pain, or one who cannot read the screen well, can ask out loud. Uses the
+  # platform recognizer (Apple/Google); no audio is stored or sent by us.
+  speech_to_text: ^7.0.0
   # "View original" on results: renders the uploaded PDF via the platform's
   # native PDF engine (PDFKit on iOS).
   pdfx: ^2.9.2
@@ -48,6 +52,8 @@ dependencies:
   flutter_timezone: ^3.0.1
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0

@@ -80,5 +80,9 @@
 	<string>DischargeIQ uses the camera to scan your paper discharge document. The photo is read on your phone and never uploaded.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>DischargeIQ can read a photo of your discharge document from your library. The photo is read on your phone and never uploaded.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>DischargeIQ uses the microphone so you can ask questions out loud instead of typing. Your voice is turned into text on your phone and is never recorded or stored.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>DischargeIQ turns your spoken question into text so it can answer from your discharge document. Nothing you say is saved.</string>
 </dict>
 </plist>
