@@ -173,3 +173,78 @@ def test_thinking_not_configured_for_always_thinking_models(model: str) -> None:
     from dischargeiq.utils.llm_client import anthropic_extra_body
 
     assert anthropic_extra_body(model) == {}
+
+
+# ── Audience passthrough on every analyze path ────────────────────────────────
+# The mobile app files a document under a person and derives the reader from
+# that profile. Only POST /analyze forwarded it; the two scan paths dropped it,
+# so a document photographed for a 6-year-old was written to the child instead
+# of the caregiver. These pin the parameter to every entry point.
+
+
+def _audience_capture(monkeypatch: pytest.MonkeyPatch) -> dict:
+    """Stub _execute_pipeline and record the audience it was handed."""
+    seen: dict = {}
+
+    async def _fake_execute(**kwargs):
+        seen.update(kwargs)
+        return {"pipeline_status": "complete"}
+
+    monkeypatch.setattr(
+        "dischargeiq.api.routes.analyze._execute_pipeline", _fake_execute
+    )
+    return seen
+
+
+def test_analyze_text_forwards_audience(monkeypatch: pytest.MonkeyPatch) -> None:
+    from fastapi.testclient import TestClient
+
+    from dischargeiq.main import create_app
+
+    monkeypatch.delenv("DISCHARGEIQ_API_KEY", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    seen = _audience_capture(monkeypatch)
+
+    response = TestClient(create_app()).post(
+        "/analyze/text", json={"text": "x" * 400, "audience": "caregiver"}
+    )
+    assert response.status_code == 200
+    assert seen["audience"] == "caregiver"
+
+
+def test_analyze_text_audience_is_optional(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Omitting it must stay valid - the backend then infers from the text."""
+    from fastapi.testclient import TestClient
+
+    from dischargeiq.main import create_app
+
+    monkeypatch.delenv("DISCHARGEIQ_API_KEY", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    seen = _audience_capture(monkeypatch)
+
+    response = TestClient(create_app()).post("/analyze/text", json={"text": "x" * 400})
+    assert response.status_code == 200
+    assert seen["audience"] is None
+
+
+def test_analyze_image_forwards_audience(monkeypatch: pytest.MonkeyPatch) -> None:
+    from fastapi.testclient import TestClient
+
+    from dischargeiq.main import create_app
+
+    monkeypatch.delenv("DISCHARGEIQ_API_KEY", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    seen = _audience_capture(monkeypatch)
+    # Vision transcription is the only other network hop on this route.
+    monkeypatch.setattr(
+        "dischargeiq.api.routes.analyze.transcribe_document_images",
+        lambda images: "y" * 400,
+    )
+
+    response = TestClient(create_app()).post(
+        "/analyze/image",
+        files={"files": ("page.jpg", b"\xff\xd8\xff-fake", "image/jpeg")},
+        data={"audience": "caregiver"},
+    )
+    assert response.status_code == 200
+    assert seen["audience"] == "caregiver"

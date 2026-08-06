@@ -240,6 +240,9 @@ async def analyze_discharge_text(request: Request, body: AnalyzeTextRequest):
         document_hash=hashlib.sha256(text.encode("utf-8")).hexdigest(),
         db_pool=getattr(request.app.state, "db_pool", None),
         raw_text=text,
+        # Same optional reader hint as POST /analyze - the scan path must not
+        # lose caregiver voice just because the document arrived as text.
+        audience=body.audience,
     )
 
 
@@ -252,7 +255,11 @@ _ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/heic", "image/webp"}
 
 
 @router.post("/analyze/image", dependencies=[Depends(verify_api_key)])
-async def analyze_discharge_image(request: Request, files: list[UploadFile] = File(...)):
+async def analyze_discharge_image(
+    request: Request,
+    files: list[UploadFile] = File(...),
+    audience: str | None = Form(default=None),
+):
     """
     OPT-IN enhanced scan: transcribe document photos in the cloud, then run
     the standard pipeline on the transcription.
@@ -327,6 +334,7 @@ async def analyze_discharge_image(request: Request, files: list[UploadFile] = Fi
         document_hash=hashlib.sha256(text.encode("utf-8")).hexdigest(),
         db_pool=getattr(request.app.state, "db_pool", None),
         raw_text=text,
+        audience=audience,
     )
 
 

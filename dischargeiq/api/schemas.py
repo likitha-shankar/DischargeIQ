@@ -58,11 +58,16 @@ class AnalyzeTextRequest(BaseModel):
     Request body for POST /analyze/text (mobile on-device OCR path).
 
     Fields:
-        text: Document text recognized on the phone by ML Kit. The photo
-              itself never leaves the device - only text crosses the wire.
+        text:     Document text recognized on the phone by ML Kit. The photo
+                  itself never leaves the device - only text crosses the wire.
+        audience: Optional "patient" or "caregiver". Sent when the document is
+                  filed under a person whose age is known; any other value is
+                  ignored and the pipeline infers the reader from the text
+                  (same contract as the POST /analyze form field).
     """
 
     text: str
+    audience: str | None = None
 
 
 class QuizGenerateRequest(BaseModel):
@@ -75,10 +80,16 @@ class QuizGenerateRequest(BaseModel):
                     already holds. Sent by the client (like /chat's
                     pipeline_context) so quiz generation is stateless and safe
                     under Cloud Run multi-instance routing.
+        focus_domains: Optional comprehension domains the patient chose as
+                    learning goals on-device. Each gets a second question at
+                    the expense of an unchosen domain. Unknown values are
+                    ignored and the list is capped by the agent, so a bad
+                    client cannot narrow the quiz to a single topic.
     """
 
     session_id: str
     extraction: dict
+    focus_domains: list[str] = []
 
 
 class QuizGenerateResponse(BaseModel):
