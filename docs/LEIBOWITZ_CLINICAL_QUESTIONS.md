@@ -1,5 +1,8 @@
 # Questions for Dr. Leibowitz - clinical validation of DischargeIQ
 
+**Status: draft v2, for Tanuj and Steve to work through before it reaches
+Dr. L.** Not yet a final list. Rev. 6 August 2026.
+
 Dr. Leibowitz is the clinician validator for this project. These are the
 application questions only a clinician can answer, each with the context he
 needs to answer it and what is already built.
@@ -14,11 +17,38 @@ authority.
 why, the ask, and what we do with either answer. That last part is
 deliberate - it shows we are asking in order to act.
 
-**Time:** 45 minutes. Sections A and B block work. Drop D if it runs short.
+**Time:** 45 minutes. Sections A, B and C block work.
+
+**The trim decision, for Tanuj and Steve:** 21 questions will not fit in 45
+minutes - realistically 10 to 12 will. The proposal is to take **A, B and C**
+to Dr. L (13 questions, all of which block a build or a review decision) and
+route **D** (liability, what gates a pilot) to Steve and Frank instead, since
+it is as much a legal and governance question as a clinical one. **E and F**
+are worth asking but nothing stops if they go unanswered this round.
+
+## What changed in v2 - Frank's suggestions, 5 August
+
+Three of Frank's suggestions are now built, which turns each of them into a
+question a clinician has to answer:
+
+| Frank's suggestion | Built | New questions |
+|---|---|---|
+| Define a rubric for discharge-instruction validation | Review rubric running in the portal | 2 and 3 sharpened |
+| Ask the patient what they want to learn, then gamify that | Learning goals + a four-rung self-rating ladder | **9, 10, 11** |
+| An AI companion that reads sections aloud | Voice chat: ask by microphone, answers spoken, "read me my medications" opens and reads that tab | **12, 13** |
+| Advocate pilot - 75 patients, nurse managers | Scoped, not started | **1**, plus `docs/ADVOCATE_PILOT_BRIEF.md` |
+
+Everything in **section C is new**; sections A, B, D, E and F are the
+previously circulated list, renumbered to make room.
+
+Frank's remaining items are not clinical questions and are tracked elsewhere:
+the Ken / Dr. Meyer / Dr. Carlson introductions, and the public-release value
+proposition and revenue model.
 
 Companion docs: `docs/VALIDATION_RUBRIC.md` (the rubric instrument itself),
-`docs/MEETING_PREP_2026-08-03.md` (meeting context), `ui/clinician_review.py`
-(the review portal he would use).
+`docs/ADVOCATE_PILOT_BRIEF.md` (the pilot scoping),
+`docs/KEN_GAMIFICATION_BRIEF.md` (pre-read for Ken),
+`ui/clinician_review.py` (the review portal he would use).
 
 ---
 
@@ -126,9 +156,85 @@ can type into at 2am, or does that interaction need something stronger?
 
 ---
 
-## C. Liability, scope, and what a health system would require
+## C. The layers built from Frank's suggestions - are they clinically sound?
 
-### 9. Does the responsibility framing hold up?
+These are new since the 5 August meeting. Each one was Frank's idea, is now
+built, and needs a clinician to say whether it should stay as built.
+
+### 9. Letting the patient choose what to learn - does that risk what matters?
+
+**Built:** after the first analysis the app asks *what do you most want to
+understand?* and the patient picks from five topics. Their choice reorders the
+reading journey, drives the quests, and gives that topic extra quiz questions.
+
+**Guard already in place:** warning signs are never dropped from the quiz,
+whatever they choose, and nothing is hidden - only reordered.
+
+**Ask:** is patient-led ordering safe, or is there a topic a patient must be
+walked through whether or not they asked for it? Is our warning-signs guard
+the right one, or should medications be protected the same way?
+
+**Either way:** the guard list is one line of prompt text; the question is
+which topics belong on it.
+
+### 10. Does a self-rating ladder measure anything real?
+
+**Built:** for each chosen topic the patient rates themselves before reading
+and again after, on four rungs - *not yet / the gist / I could explain it /
+I could teach it.* The movement between the two is what we report.
+
+**The obvious objection:** patients routinely overestimate what they
+understood, which is the reason teach-back exists at all. A self-rating could
+therefore measure confidence rather than comprehension.
+
+**Ask:** is self-rating worth collecting alongside the quiz, or does it invite
+a claim we cannot support? We already hold both numbers - the quiz measures
+recall, the ladder measures confidence - and the **gap between them** may be
+the more honest signal.
+
+**Either way:** we keep collecting both and report whichever he says is
+defensible. What we will not do is report the self-rating as comprehension.
+
+### 11. Is "I could explain this to someone at home" the right bar?
+
+**Built:** rung 2 of four is treated as the threshold for a goal being met,
+chosen because it mirrors what a nurse asks at the bedside. Rung 3, *"I could
+teach this and act on it without checking"*, is aspirational and never
+required.
+
+**Ask:** is that the right rung to treat as sufficient, and is the wording
+recognisable as teach-back to someone who does it daily?
+
+### 12. A voice reading clinical content aloud
+
+**Built:** the patient can ask a question by microphone and hear the answer
+spoken, and can say *"read me my medications"* to have that section read out.
+Speech recognition and playback are handled on the phone; no audio is recorded
+or sent anywhere.
+
+**Ask:** does hearing a discharge summary carry a risk that reading it does
+not - a spoken dose misheard, or a warning sign that lands differently aloud?
+Is there any section that should **never** be read aloud unattended?
+
+**Either way:** sections can be excluded from read-aloud individually. We have
+already excluded the quiz and the AI-review tab, on the grounds that reciting
+the app's own gap analysis at a patient is not useful.
+
+### 13. Voice in a room with other people
+
+**Built:** playback goes to the phone's speaker or headphones, whatever the
+patient has set. There is no warning before it starts speaking.
+
+**Ask:** does an app that reads a diagnosis out loud need to say so before it
+starts - a hospital ward, a waiting room, a shared house? Is that a privacy
+question we should be handling, or are we overthinking a feature patients
+would simply turn off?
+
+---
+
+## D. Liability, scope, and what a health system would require
+
+### 14. Does the responsibility framing hold up?
 
 The framing is: the AI surfaces, a human decides. The app assists,
 summarizes, and educates. It does not diagnose, advise, or triage, and every
@@ -137,7 +243,7 @@ gap it finds is labelled as something to discuss with the care team.
 **Ask:** does that hold up in practice, and what specifically would have to
 change before a health system would put it in front of patients?
 
-### 10. What gates a pilot?
+### 15. What gates a pilot?
 
 **Ask:** IRB, legal review, BAA, clinical governance sign-off - which of these
 actually gate a patient-facing pilot, and in what order?
@@ -149,9 +255,9 @@ option that depends entirely on these answers.
 
 ---
 
-## D. Population fit
+## E. Population fit
 
-### 11. Pediatric handling - anything beyond the voice?
+### 16. Pediatric handling - anything beyond the voice?
 
 When a summary belongs to a young child, every agent, the chat, and the quiz
 now write to the **caregiver** instead of addressing the infant as "you"
@@ -162,7 +268,7 @@ false positives on adult documents.
 content, escalation thresholds, follow-up emphasis - that should change
 beyond the addressee?
 
-### 12. Is 6th-grade reading level the right target?
+### 17. Is 6th-grade reading level the right target?
 
 Every output is scored with Flesch-Kincaid and must land at grade ≤ 6.0.
 
@@ -170,7 +276,7 @@ Every output is scored with Flesch-Kincaid and must land at grade ≤ 6.0.
 escalation) where simplifying that far risks losing clinically necessary
 precision?
 
-### 13. Who should NOT use this app?
+### 18. Who should NOT use this app?
 
 Solo patients with cognitive impairment, non-English speakers (Spanish is a
 stretch goal, currently cut), low vision, no smartphone.
@@ -180,9 +286,9 @@ this tool rather than just noting its limits?
 
 ---
 
-## E. The measurement story
+## F. The measurement story
 
-### 14. Does the teach-back quiz measure what we claim?
+### 19. Does the teach-back quiz measure what we claim?
 
 Five non-leading multiple-choice questions generated from the patient's own
 document, taken before reading (no hints, no score shown) and after. The
@@ -193,7 +299,7 @@ comprehension → 50-70%).
 clinicians practice it? What would make the questions clinically meaningful
 rather than trivia?
 
-### 15. The AI Review gap severities
+### 20. The AI Review gap severities
 
 Agent 6 simulates a confused patient and flags questions the document never
 answers, graded critical / moderate / minor, surfaced to the care team - the
@@ -203,7 +309,7 @@ AI surfaces gaps, a human decides.
 documentation gaps? What would make this tab useful to a discharge
 coordinator rather than noise?
 
-### 16. The mood check-in threshold
+### 21. The mood check-in threshold
 
 Optional daily mood check-in; several rough days in a row surfaces a
 "consider contacting your care team" nudge. A rough day makes the app ask
