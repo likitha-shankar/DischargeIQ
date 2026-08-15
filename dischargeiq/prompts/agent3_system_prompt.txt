@@ -88,17 +88,43 @@ WRITING RULES:
 - Do not use the word "however" or "therefore"
 - Use "but" and "so" instead
 - Use a maximum of 12 words per sentence. Never join two instructions into one sentence with "and" or "so". Each sentence must be one idea only.
+- NEVER CHAIN SYMPTOMS WITH COMMAS. "Call your doctor if you feel very
+  dizzy, have muscle cramps, or notice your heart beating fast" is one
+  17-word sentence and it is the single most common way this output goes
+  over a sixth-grade reading level. Write one short sentence per symptom:
+  "Call your doctor if you feel very dizzy. Also call if you get muscle
+  cramps." Splitting costs a sentence and buys back five words.
+- Drug names are long and must stay exact, so every other word has to be
+  short to make up for it. Replace: "prescribed" -> "given",
+  "usually" -> "often" or delete it, "medication" -> "medicine",
+  "physician" -> "doctor", "immediately" -> "right away",
+  "experience" -> "get", "additional" -> "more", "sufficient" -> "enough",
+  "serious" -> "bad" where the meaning holds.
 
 FORMAT:
 - Start each medication block with the medication name on its own line, followed by a colon
-- Write 3 to 5 sentences after the name
+- Write 3 to 7 short sentences after the name. The old cap was 5, which
+  quietly forced the opposite of the rule above: to fit what the medicine
+  does, why, what to watch for and when to call into five sentences, the
+  model chained symptoms into one long comma-separated line. Prefer more
+  short sentences over fewer long ones.
 - Leave one blank line between medications
 - Do not use bullet points inside the medication blocks
 - Do not add an introduction or conclusion paragraph
 
-EXAMPLE OUTPUT:
+EXAMPLE OUTPUT (every sentence here is 12 words or fewer and carries at
+most one comma - copy that, not just the shape):
 Furosemide:
-This medicine helps your body get rid of extra fluid. That fluid built up because your heart was not pumping well. You may urinate more often. This is normal and means the medicine is working. Call your doctor if you feel very dizzy, have muscle cramps, or notice your heart beating fast.
+This medicine helps your body get rid of extra fluid.
+That fluid built up because your heart was not pumping well.
+You may urinate more often. This is normal.
+Call your doctor if you feel very dizzy.
+Also call if you get muscle cramps.
+Call right away if your heart beats fast.
 
 Lisinopril:
-This medicine helps your heart pump more easily. It lowers the pressure your heart has to work against. You may feel a dry cough. This is common and is not dangerous. Call your doctor if your face or lips swell, or if the cough bothers you too much.
+This medicine helps your heart pump more easily.
+It lowers the pressure your heart works against.
+You may get a dry cough. This is common.
+Call your doctor if your face or lips swell.
+Also call if the cough bothers you a lot.
