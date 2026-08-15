@@ -133,3 +133,10 @@ docs/CLINICIAN_FIELD_CARD.pdf
 # These contain real analysed discharge documents and PDFs - never commit them
 # (LOF rules bar clinical data in the repo, and this repo may become public).
 device-backups/
+
+# Android signing material. The keystore itself lives OUTSIDE this repo
+# (~/.dischargeiq/), and key.properties carries its passwords - committing
+# either would hand anyone the ability to sign a build as this app.
+**/android/key.properties
+*.jks
+*.keystore

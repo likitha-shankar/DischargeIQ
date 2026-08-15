@@ -1,3 +1,18 @@
+import java.util.Properties
+import java.io.FileInputStream
+
+// Release signing material, deliberately outside the repository: the keystore
+// lives in ~/.dischargeiq/ and key.properties carries its passwords, both
+// gitignored. When the file is absent - a fresh clone, CI, another machine -
+// the release build falls back to debug signing so it still builds, and
+// _isReleaseSigned below makes that visible rather than silent.
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+val hasReleaseKey = keystorePropertiesFile.exists()
+if (hasReleaseKey) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -35,12 +50,30 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (hasReleaseKey) {
+            create("release") {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // Debug-key signing is intentional for the direct-install beta
-            // path (Task 2.5) - Play Store upload (deferred to first LOF
-            // payout) will need a real keystore here.
-            signingConfig = signingConfigs.getByName("debug")
+            // A real upload key when one is configured (task 1.10). This
+            // matters beyond correctness: Android refuses to upgrade an
+            // installed app with a differently-signed build, so a tester
+            // holding a debug-signed APK would have to UNINSTALL to take a
+            // properly signed one - and an uninstall deletes their saved
+            // documents. Ship the real key before testers install, not after.
+            signingConfig = if (hasReleaseKey) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
             // ML Kit script-pack suppressions - see proguard-rules.pro.
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
