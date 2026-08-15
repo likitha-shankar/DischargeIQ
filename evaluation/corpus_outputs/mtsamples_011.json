@@ -1,0 +1,298 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Bilateral otitis media",
+    "primary_diagnosis_source": {
+      "page": 2,
+      "text": "1. Bilateral otitis media."
+    },
+    "secondary_diagnoses": [
+      "Fever"
+    ],
+    "procedures_performed": [
+      "CBC with differential, blood culture, electrolytes, BUN, and creatinine, glucose, UA, and urine culture all were ordered.",
+      "Chest x-ray was ordered as well with 2 views to evaluate for a possible pneumonia.",
+      "Pulse oximetry checks were ordered every shift and as needed with O2 ordered per nasal cannula if O2 saturations were less that 94%.",
+      "Gave D5 and quarter of normal saline at 45 mL per hour, which was just slightly above maintenance rate to help with hydration.",
+      "He was doing clear liquids well and so I saline locked to help to accommodate improve the mobility with the patient."
+    ],
+    "medications": [
+      {
+        "name": "Tylenol",
+        "dose": null,
+        "frequency": "as needed",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "I will add Tylenol and ibuprofen as needed for fevers."
+        }
+      },
+      {
+        "name": "Ibuprofen",
+        "dose": null,
+        "frequency": "as needed",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "I will add Tylenol and ibuprofen as needed for fevers."
+        }
+      },
+      {
+        "name": "Ceftriaxone",
+        "dose": "500 mg",
+        "frequency": "once daily",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "He was given ceftriaxone 500 mg IV once daily to treat otitis media and possible sepsis"
+        }
+      },
+      {
+        "name": "Albuterol Aerosols",
+        "dose": null,
+        "frequency": "every 6 hours",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "because of the need for O2, we instituted albuterol aerosols every 6 hours to help maintain good lung function."
+        }
+      },
+      {
+        "name": "Omnicef",
+        "dose": "125 mg/5 mL",
+        "frequency": "once daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "He was continued Omnicef 125 mg/5 mL one teaspoon p.o. once daily"
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. X",
+        "specialty": "primary doctor",
+        "date": "following Tuesday",
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "and instructed to follow up with Dr. X, his primary doctor, on the following Tuesday."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": "new symptoms occurred",
+        "source": {
+          "page": 2,
+          "text": "Parents were instructed also to call if new symptoms occurred or he had return if difficulties with breathing or increased lethargy."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": "difficulties with breathing",
+        "source": {
+          "page": 2,
+          "text": "Parents were instructed also to call if new symptoms occurred or he had return if difficulties with breathing or increased lethargy."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": "increased lethargy",
+        "source": {
+          "page": 2,
+          "text": "Parents were instructed also to call if new symptoms occurred or he had return if difficulties with breathing or increased lethargy."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "He was at 100% oxygen saturations on room air with no further dips at night. He has become afebrile and was having no further increased work of breathing.",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "He was at 100% oxygen saturations on room air with no further dips at night. He has become afebrile and was having no further increased work of breathing."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your child had an ear infection in both ears. This is called bilateral otitis media. Your child also had a fever.",
+  "medication_rationale": "Tylenol as needed:\nThis medicine helps reduce your child's fever. It can also help with pain. Your child may feel better and more comfortable. This is a sign the medicine is working. Call your doctor if your child's fever does not get better or is very high.\n\nIbuprofen as needed:\nThis medicine helps lower your child's fever. It can also help with pain. Your child may feel more comfortable. This means the medicine is working. Call your doctor if your child's fever does not get better or is very high.\n\nCeftriaxone 500 mg once daily:\nThis medicine is an antibiotic. It fights the germs causing your child's ear infection. It may also help if your child has a serious infection. Your child will receive this medicine through an IV. It helps treat the ear infection and a possible blood infection. Call your doctor if your child develops a rash or has trouble breathing.\n\nAlbuterol Aerosols every 6 hours:\nThis medicine helps your child's breathing. It opens up the airways in the lungs. Your child may breathe easier after using this medicine. This means the medicine is working. Call your doctor if your child's breathing does not get better or gets worse.\n\nOmnicef 125 mg/5 mL once daily:\nThis medicine is an antibiotic. It fights the germs causing your child's ear infection. Your child will take this medicine by mouth. It helps treat the ear infection. Call your doctor if your child develops a rash or has severe diarrhea.",
+  "recovery_trajectory": "**Week 1:**\n- Your child may feel tired and have less energy. This is normal.\n- Keep your child on clear liquids for now.\n- Do not lift your child more than 10 pounds.\n- Your child should be breathing comfortably.\n- Watch for any return of fever or fast breathing.\n- Your child\u2019s goal this week is to drink 4 cups of clear liquids.\n- Call your doctor if your child has trouble breathing.\n\n**Week 2:**\n- Your child may start to feel a little more playful.\n- You can slowly add soft foods to your child\u2019s diet.\n- Avoid heavy lifting for your child.\n- Watch for any signs of ear pain or fussiness.\n- Your child\u2019s goal this week is to eat soft foods without problems.\n- Call your doctor if your child develops a fever again.\n\n**Week 3:**\n- Your child may have more energy for short playtimes.\n- Gradually increase the variety of foods your child eats.\n- You can start carrying your child for short distances.\n- Your child should be breathing well and without effort.\n- Your child\u2019s goal this week is to play for 15 minutes at a time.\n- Call your doctor if your child seems to be in pain.\n\n**Week 4:**\n- Your child should be back to most normal activities.\n- You can slowly return to normal feeding for your child.\n- Your child may resume normal carrying and playing.\n- Watch for any ear discomfort or hearing changes.\n- Your child\u2019s goal this week is to play as usual.\n- Call your doctor if your child\u2019s breathing changes.\n\n**When to expect improvement:**\n- Most children feel much better within 2 to 4 weeks.\n- Continue to offer soft foods as needed for comfort.\n- Keep fluids regular to stay well hydrated.\n- Follow up with your doctor as recommended.\n- Watch for any signs of ear infection returning.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Your child cannot breathe: Call 911 right away.\n- Your child is unresponsive: This needs emergency help now.\n- Your child has a seizure: Call 911 right away.\n- Your child is bleeding badly: Bleeding will not stop.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Your child has a fever over 101 F: This needs checking now.\n- Your child's ear looks worse: Redness or pus is seen.\n- Your child cannot keep fluids down: They may get too sick.\n- Your child is too sleepy: They do not wake easily.\n- Your child has neck stiffness: This needs ER care now.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Your child has mild ear pain: Pain is getting better.\n- Your child has a small rash: No large spots are seen.\n- Your child needs medicine refills: Ask the office nurse.\n- You have questions about medicine: Call the doctor's office.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 4.56,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 5.5,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 3.97,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 3.38,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "caregiver",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What happens if I forget to take my Omnicef or Ceftriaxone one day?",
+        "answered_by_doc": false,
+        "gap_summary": "Missing instructions for missed doses of antibiotics.",
+        "severity": "critical"
+      },
+      {
+        "question": "When should I worry about my breathing? What is too hard to breathe?",
+        "answered_by_doc": false,
+        "gap_summary": "No specific red-flag symptoms for breathing issues.",
+        "severity": "critical"
+      },
+      {
+        "question": "How much Albuterol can I use in one day?",
+        "answered_by_doc": false,
+        "gap_summary": "Maximum daily dose for Albuterol is not stated.",
+        "severity": "critical"
+      },
+      {
+        "question": "What is the new medicine Omnicef for? What does it do?",
+        "answered_by_doc": false,
+        "gap_summary": "Medicine's purpose and action is not explained.",
+        "severity": "moderate"
+      },
+      {
+        "question": "The paper says to see my doctor next Tuesday. Do I need to call to make the appointment?",
+        "answered_by_doc": false,
+        "gap_summary": "How to book the follow-up appointment is unclear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says I can use Tylenol and Ibuprofen as needed. How often is too often?",
+        "answered_by_doc": false,
+        "gap_summary": "The maximum frequency for pain medicine is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does bilateral otitis media mean in simple words? Why did I get sick?",
+        "answered_by_doc": false,
+        "gap_summary": "Plain explanation of diagnosis and cause is missing.",
+        "severity": "minor"
+      },
+      {
+        "question": "What does 'status changed' mean for Tylenol and Ibuprofen?",
+        "answered_by_doc": false,
+        "gap_summary": "Meaning of medication status change is unclear.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "Parents might struggle. Biggest gap is serious breathing warning signs.",
+    "fk_grade": 8.72,
+    "passes": false,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Tylenol",
+        "questions": [
+          "How much can I give?",
+          "How often can I give it?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Ibuprofen",
+        "questions": [
+          "How much can I give?",
+          "How often can I give it?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Ceftriaxone",
+        "questions": [
+          "What side effects should I watch for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Albuterol Aerosols",
+        "questions": [
+          "How many puffs is a dose?",
+          "What if this doesn't help breathing?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Omnicef",
+        "questions": [
+          "What does this medicine do?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. X - primary doctor",
+        "questions": [
+          "Do I need to call to book this visit?",
+          "What should I bring?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "new symptoms occurred",
+        "questions": [
+          "What new symptoms should I look for?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "difficulties with breathing",
+        "questions": [
+          "How much trouble breathing is too much?",
+          "When should I call the doctor?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "increased lethargy",
+        "questions": [
+          "How sleepy is too sleepy?",
+          "When should I seek care?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_011",
+    "source_pdf": "test-data/mtsamples/mtsamples_011.pdf",
+    "generated_at": "2026-08-15T12:57:34",
+    "elapsed_seconds": 6.6
+  }
+}

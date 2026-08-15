@@ -1,0 +1,212 @@
+{
+  "extraction": {
+    "patient_name": "male",
+    "patient_name_source": {
+      "page": 1,
+      "text": "The patient is an 11-year-old male who was admitted from the ER after a CT scan suggested that the child had mastoiditis."
+    },
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Suspected mastoiditis ruled out",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "Suspected mastoiditis ruled out."
+    },
+    "secondary_diagnoses": [
+      "Right acute otitis media",
+      "Severe ear pain resolving"
+    ],
+    "procedures_performed": [
+      "CT scan suggested that the child had mastoiditis.",
+      "IV Unasyn",
+      "Morphine and Vicodin for pain control",
+      "IV fluid and narcotics for pain as well as Unasyn",
+      "Evaluated by Dr. X from the ENT"
+    ],
+    "medications": [
+      {
+        "name": "Ciprodex Otic Solution",
+        "dose": null,
+        "frequency": "twice daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "1. Ciprodex Otic Solution in the right ear twice daily."
+        }
+      },
+      {
+        "name": "Augmentin",
+        "dose": "500 mg",
+        "frequency": "three times daily",
+        "duration": "10 days",
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "2. Augmentin 500 mg three times daily x10 days."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. Y",
+        "specialty": "ENT",
+        "date": "in one week",
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "1. Dr. Y in one week (ENT)."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": "Primary Care Physician",
+        "date": "in 2 to 3 days",
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "2. The primary care physician in 2 to 3 days."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [
+      "Regular as tolerated."
+    ],
+    "red_flag_symptoms": [],
+    "discharge_condition": "Good",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "Good."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your child had pain in their ear. This pain is getting better. Doctors were not sure if there was a serious infection in the bone behind the ear. They looked into it. They decided it was not a serious infection. Your child's ear infection is getting better.",
+  "medication_rationale": "Ciprodex Otic Solution:\nThis medicine is an ear drop. It is used to treat an ear infection. Your child may feel the drops are cold in their ear. This is normal. Call your doctor if your child has more ear pain or drainage.\n\nAugmentin:\nThis medicine is an antibiotic. It fights the bacteria causing the ear infection. Your child may get diarrhea or an upset stomach. This can happen and is usually not serious. Call your doctor if your child gets a rash or has trouble breathing.",
+  "recovery_trajectory": "**Week 1:**\n- Your child may feel tired and sore after leaving the hospital.\n- Keep your child's activity very low. They should rest often.\n- Do not give your child anything to eat or drink other than regular food and liquids.\n- Watch for any ear pain or swelling that gets worse.\n- Call your doctor if your child has a fever over 100.4 F.\n- Your child's goal this week is to rest at home.\n\n**Week 2:**\n- Your child may start to feel a little more energy.\n- They can do very light activities, like sitting up.\n- Keep your child's food and drinks regular as tolerated.\n- Watch for any new ear drainage or redness.\n- Call your doctor if your child has a bad headache.\n- Your child's goal this week is to take short walks indoors.\n\n**Week 3:**\n- Your child may be able to play quietly for short times.\n- Avoid any rough play or very active games.\n- Continue regular food and drinks as your child tolerates them.\n- Watch for signs of a fast heartbeat or trouble breathing.\n- Call your doctor if your child seems more tired than usual.\n- Your child's goal this week is to play quietly for 30 minutes.\n\n**Week 4:**\n- Your child should feel more like themselves this week.\n- They can do more normal, light activities around the house.\n- Your child can eat and drink regular foods.\n- Watch for any pain that is not controlled by medicine.\n- Call your doctor if your child has any new weakness.\n- Your child's goal this week is to walk outside for short periods.\n\n**When to expect improvement:**\n- Your child's energy levels should slowly get better each week.\n- Follow up with your doctor as scheduled.\n- Keep watching for any signs that could mean a problem.\n- Healing takes time, so be patient.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Your child cannot breathe: This is a breathing emergency.\n- Your child is unresponsive: Call 911 right away.\n- Severe neck pain or stiffness: This could be serious.\n- Your child has a seizure: Call 911 right away.\n- Your child is hard to wake: Seek emergency help now.\n- Your child has a high fever: Over 102.2 F (39 C).\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Ear pain returns or gets worse: This needs urgent care.\n- Red streaks spreading from ear: This may mean infection.\n- Your child seems very sick: Trust your gut feeling.\n- Discharge from the ear is green: This could mean infection.\n- Ear swelling gets worse: This needs to be checked fast.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Ear pain is mild: This can get better at home.\n- Questions about ear drops: Your doctor can explain use.\n- Ear is healing slowly: This is normal for some.\n- Mild redness near the ear: Check this with your doctor.\n- Your child is eating less: This can happen when sick.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 4.04,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.62,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.06,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 3.21,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No red-flag symptoms extracted.",
+    "Missing discharge date."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "caregiver",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What should I do if I miss a dose of my Augmentin?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not explain missed dose for this medicine.",
+        "severity": "critical"
+      },
+      {
+        "question": "What signs mean my ear infection is getting worse and I need help?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not list warning signs to watch for.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does Ciprodex do for my ear and how long do I use it?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not explain medication use or purpose.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How do I make the appointment with my primary care doctor?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not say how to book appointment.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What if I get a rash or stomach ache from the Augmentin?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not mention medication side effects.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What is mastoiditis and why did they think I had it?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not explain what diagnosis means.",
+        "severity": "minor"
+      },
+      {
+        "question": "Can I still eat my normal foods or should I avoid anything?",
+        "answered_by_doc": true,
+        "gap_summary": "N/A",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "Patients with new prescriptions would struggle most. Biggest gap is knowing when to seek help.",
+    "fk_grade": 6.4,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Ciprodex Otic Solution",
+        "questions": [
+          "How do I put this in my ear?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Augmentin 500 mg",
+        "questions": [
+          "What should I do if I miss a dose?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. Y - ENT - in one week",
+        "questions": [
+          "How do I schedule this appointment?",
+          "What should I expect at this visit?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Primary Care Physician - in 2 to 3 days",
+        "questions": [
+          "Who do I call to book this?",
+          "What should I bring to this visit?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "Severe ear pain",
+        "questions": [
+          "When should I call the doctor for ear pain?",
+          "What symptoms mean it is an emergency?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_018",
+    "source_pdf": "test-data/mtsamples/mtsamples_018.pdf",
+    "generated_at": "2026-08-15T13:14:17",
+    "elapsed_seconds": 34.3
+  }
+}

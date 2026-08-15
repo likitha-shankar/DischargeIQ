@@ -1,0 +1,233 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Neck pain with right upper extremity radiculopathy and cervical spondylosis with herniated nucleus pulposus C4-C5, C5-C6, and C6-C7 with stenosis.",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "Neck pain with right upper extremity radiculopathy and cervical spondylosis with herniated\nnucleus pulposus C4-C5, C5-C6, and C6-C7 with stenosis."
+    },
+    "secondary_diagnoses": [
+      "Neck pain with right upper extremity radiculopathy.",
+      "Cervical spondylosis with herniated nucleus pulposus C4-C5, C5-C6, and C6-C7 with\nstenosis."
+    ],
+    "procedures_performed": [
+      "Anterior cervical discectomy with decompression C4-C5,\nC5-C6, and C6-C7.",
+      "Arthrodesis with anterior interbody fusion C4-C5, C5-C6, and C6-C7.",
+      "Spinal instrumentation C4 through C7.",
+      "Implant.",
+      "Allograft."
+    ],
+    "medications": [
+      {
+        "name": "Morphine",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 1,
+          "text": "which was treated well with IV morphine."
+        }
+      },
+      {
+        "name": "Decadron",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 1,
+          "text": "we treated her with Decadron and we will send her home\nwith Medrol."
+        }
+      },
+      {
+        "name": "Medrol",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "we treated her with Decadron and we will send her home\nwith Medrol."
+        }
+      },
+      {
+        "name": "Darvocet",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "The patient will have continued pain medication coverage with Darvocet and\nFlexeril."
+        }
+      },
+      {
+        "name": "Flexeril",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "The patient will have continued pain medication coverage with Darvocet and\nFlexeril."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": null,
+        "source": {
+          "page": 1,
+          "text": "The patient will follow up with me as scheduled."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": null,
+    "discharge_condition_source": null,
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your neck has some pain. It also affects your right arm. This is called radiculopathy. Your neck bones have changes. These are from getting older. There are also discs that have moved out of place. These are in your neck in a few spots. This is called a herniated nucleus pulposus. It means a soft part of a neck bone cushion has pushed out. This is pinching a nerve. It can cause pain. It can also cause numbness. It can cause weakness in your arm. There is also less space in your neck. This is called stenosis. It makes the pinching worse.",
+  "medication_rationale": "Morphine - stopping:\nYour doctor wants you to stop taking this medicine. It was used to manage severe pain during your stay. Do not take it until your doctor tells you it is safe to start again.\n\nDecadron:\nThis medicine is a steroid. It helps to reduce swelling and inflammation in your neck. This can help ease pressure on your nerves. You might notice an increase in your appetite. You may also feel more restless or have trouble sleeping. Call your doctor if you have stomach pain, black or bloody stools, or severe mood changes.\n\nMedrol:\nThis medicine is a steroid. It helps to reduce swelling and inflammation in your neck. This can ease pressure on your nerves and help with pain. You might notice you feel more hungry than usual. You may also have trouble sleeping or feel more restless. Call your doctor if you get a fever, chills, or have stomach pain.\n\nDarvocet:\nThis medicine is a pain reliever. It helps to manage your neck pain. You may feel drowsy or sleepy. This is normal as the medicine works. Call your doctor if you have trouble breathing or feel very confused.\n\nFlexeril:\nThis medicine is a muscle relaxant. It helps to calm muscle spasms in your neck. This can reduce pain and help you move more freely. You may feel drowsy or dizzy. This is common when the medicine is working. Call your doctor if you feel very weak, have a fast heartbeat, or trouble urinating.",
+  "recovery_trajectory": "",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- No symptoms in this tier for your diagnosis.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Significant weakness or numbness: This can affect movement.\n- Trouble with balance or walking: This can cause falls.\n- Loss of bowel or bladder control: This needs urgent care.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Neck pain is not better: Call your doctor.\n- Arm pain is not better: Call your doctor.\n- Numbness or tingling is worse: Call your doctor.\n- Trouble swallowing: Call your doctor.\n- Fever with neck stiffness: Call your doctor.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 1.36,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.41,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.5,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "partial",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What happens if I miss a dose of Morphine or Darvocet?",
+        "answered_by_doc": false,
+        "gap_summary": "Missing dose instructions for pain pills are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What symptoms mean I should go to the ER right away?",
+        "answered_by_doc": false,
+        "gap_summary": "Warning signs for emergencies are not listed.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does 'cervical spondylosis with herniated nucleus pulposus' mean for my neck and arm?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of diagnosis in simple words is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What is this 'Medrol' medicine for and how do I take it?",
+        "answered_by_doc": false,
+        "gap_summary": "Instructions for new medicine are not clear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "The paper says my follow-up appointment details are unclear. Who do I call?",
+        "answered_by_doc": false,
+        "gap_summary": "How to book the follow-up is not clear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Can I drive or lift things after taking Morphine and Flexeril?",
+        "answered_by_doc": false,
+        "gap_summary": "Activity limits after taking medicine are missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What are the side effects of Decadron and Medrol I should watch for?",
+        "answered_by_doc": false,
+        "gap_summary": "Side effects for steroid medicines are not listed.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "This patient is anxious. The biggest gap is emergency warning signs. The diagnosis is also confusing.",
+    "fk_grade": 7.45,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Morphine",
+        "questions": [
+          "When should I take this medication?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Decadron",
+        "questions": [
+          "How long do I take this for?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Medrol",
+        "questions": [
+          "How do I take this medicine?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Darvocet",
+        "questions": [
+          "How much should I take?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Flexeril",
+        "questions": [
+          "When should I take this medicine?",
+          "Can this make me drowsy?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Follow-up appointment",
+        "questions": [
+          "Who should I call to book this?",
+          "What should I ask for at the appointment?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_025",
+    "source_pdf": "test-data/mtsamples/mtsamples_025.pdf",
+    "generated_at": "2026-08-15T13:18:54",
+    "elapsed_seconds": 7.1
+  }
+}

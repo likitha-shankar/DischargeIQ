@@ -1,0 +1,312 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": "2007-09-17",
+    "discharge_date_source": {
+      "page": 2,
+      "text": "The patient's hospital course remained uncomplicated until September 17, 2007, the day the nuclear medicine stress test was scheduled."
+    },
+    "primary_diagnosis": "Syncope",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "ADMISSION DIAGNOSES:\n1. Syncope."
+    },
+    "secondary_diagnoses": [
+      "End-stage renal disease requiring hemodialysis",
+      "Congestive heart failure",
+      "Hypertension"
+    ],
+    "procedures_performed": [
+      "None."
+    ],
+    "medications": [
+      {
+        "name": "Aspirin",
+        "dose": "81 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "1. Aspirin 81 mg p.o. daily."
+        }
+      },
+      {
+        "name": "Multivitamin, Nephrocaps",
+        "dose": "one cap",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "2. Multivitamin, Nephrocaps one cap p.o. daily."
+        }
+      },
+      {
+        "name": "Fosrenol",
+        "dose": "500 mg",
+        "frequency": "three times daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "3. Fosrenol 500 mg chewable t.i.d."
+        }
+      },
+      {
+        "name": "Lisinopril",
+        "dose": "2.5 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "4. Lisinopril 2.5 mg daily."
+        }
+      },
+      {
+        "name": "Coreg",
+        "dose": "3.125 mg",
+        "frequency": "twice daily",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "6. Coreg 3.125 mg p.o. b.i.d."
+        }
+      },
+      {
+        "name": "Procrit",
+        "dose": "10,000 units",
+        "frequency": "every Tuesday, Thursday, and Saturday",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "7. Procrit 10,000 units inject every Tuesday, Thursday, and Saturday."
+        }
+      },
+      {
+        "name": "Heparin",
+        "dose": "5000 units",
+        "frequency": "every 8 hours",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "8. Heparin 5000 units q.8h. subcutaneous for DVT prophylaxis."
+        }
+      }
+    ],
+    "follow_up_appointments": [],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "Stable",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "Stable."
+    },
+    "extraction_warnings": [
+      "Document says continue home meds but no medication list provided",
+      "Conflicting doses for Lisinopril: found 10mg, 5mg, 2.5mg in document. Verify against original.",
+      "Conflicting doses for Coreg: found 12.5mg, 6.25mg, 3.125mg in document. Verify against original."
+    ]
+  },
+  "diagnosis_explanation": "Syncope means fainting or passing out. It can happen when your body does not send enough blood to your brain. This can be caused by many things. It is important to understand why it happened.",
+  "medication_rationale": "Aspirin 81 mg:\nThis medicine helps prevent blood clots. Blood clots can cause problems with your heart or brain. You might not feel this medicine working. It is important for preventing future issues.\n\nMultivitamin, Nephrocaps:\nThis medicine gives your body needed vitamins and minerals. It is especially important for your kidneys. You will not feel this medicine working directly. It helps your body stay healthy overall.\n\nFosrenol 500 mg:\nThis medicine helps your body get rid of extra phosphate. Too much phosphate can be harmful. You may notice it helps reduce stomach upset. Taking it with food is best. Call your doctor if you have bad constipation or stomach pain.\n\nLisinopril 2.5 mg:\nThis medicine helps your heart pump blood more easily. It can lower your blood pressure. You might feel less tired over time. Your blood pressure will likely go down. Call your doctor if you feel dizzy or get a bad cough.\n\nCoreg 3.125 mg:\nThis medicine helps your heart beat slower and with more power. It can also lower your blood pressure. You may feel less tired or short of breath. Your heart will work better. Call your doctor if you feel very dizzy, tired, or have slow heartbeats.\n\nProcrit 10,000 units:\nThis medicine helps your body make more red blood cells. Red blood cells carry oxygen through your body. You may feel more energy as it works. Your tiredness may decrease. Call your doctor if you have trouble breathing or chest pain.\n\nHeparin 5000 units:\nThis medicine helps prevent blood clots. It is given under your skin. You might notice some bruising or redness where the shot is given. This is usually normal. Call your doctor if you notice any bleeding that is hard to stop.",
+  "recovery_trajectory": "**Week 1:**\n- You may feel tired and a bit weak. This is normal.\n- Take short walks inside your home.\n- Rest when you feel tired.\n- Eat your usual foods.\n- Drink plenty of fluids unless told otherwise.\n- Your goal is to walk a little more each day.\n- Call your doctor if you feel like you might pass out again.\n\n**Week 2:**\n- Your energy levels might start to improve slowly.\n- You can do light activities around the house.\n- Avoid sudden movements or standing up too fast.\n- Continue to drink plenty of fluids.\n- Your goal is to walk to your mailbox and back.\n- Call your doctor if you have new chest pain or shortness of breath.\n\n**Week 3:**\n- You may feel more like yourself this week.\n- You can try short walks outside.\n- Avoid very hot environments or standing for long periods.\n- Keep drinking plenty of fluids.\n- Your goal is to walk for 10 minutes at a time.\n- Call your doctor if you have another episode of passing out.\n\n**Week 4:**\n- Most days should feel more comfortable than before.\n- You can return to most normal daily activities.\n- Listen to your body and rest when needed.\n- Keep up with good hydration.\n- Your goal is to walk for 15 minutes most days.\n- Call your doctor if you have concerns about your recovery.\n\n**When to expect improvement:**\n- You should feel more steady over the next few weeks.\n- Continue to avoid triggers that may have caused passing out.\n- Slowly increase your activity as you feel stronger.\n- Seek medical care if you feel faint again.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Loss of consciousness or fainting: This can be a sign of a serious problem.\n- Chest pain that does not go away: This can mean your heart is not getting enough blood.\n- You cannot breathe or are breathing very fast: Your body is not getting enough oxygen.\n- Sudden face drooping or arm weakness: These are signs of a stroke. Minutes matter.\n- Uncontrolled bleeding that will not stop: This needs immediate medical care.\n- Seizure: This is a medical emergency.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever above 101 degrees F that will not come down: This can mean your body has an infection.\n- Severe pain that medicine does not help: This needs urgent care.\n- Significant swelling in one leg, especially with pain: This could be a blood clot.\n- Confusion or disorientation, new and getting worse: This needs to be checked right away.\n- Cannot keep fluids down for 12 hours or more: This can lead to bad dehydration.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild pain that is slowly improving: This is likely part of your recovery.\n- Questions about a medicine or dose: Your doctor or nurse can help.\n- Dizziness that is mild and improving: This can happen after fainting.\n- Mild swelling without pain: This may be normal but should be checked.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.67,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.68,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 3.87,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 5.89,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document says continue home meds but no medication list provided",
+    "Conflicting doses for Lisinopril: found 10mg, 5mg, 2.5mg in document. Verify against original.",
+    "Conflicting doses for Coreg: found 12.5mg, 6.25mg, 3.125mg in document. Verify against original.",
+    "No red-flag symptoms extracted.",
+    "No follow-up appointments extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "heart_failure",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "The paper says my Lisinopril and Coreg changed but doesn't say how.",
+        "answered_by_doc": false,
+        "gap_summary": "Changes to Lisinopril and Coreg doses missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "It says I need to take Heparin every 8 hours but doesn't say if I can miss a dose.",
+        "answered_by_doc": false,
+        "gap_summary": "Missed dose instructions for Heparin are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "It says I need to keep my dialysis appointments but doesn't say when or where.",
+        "answered_by_doc": false,
+        "gap_summary": "Dialysis appointment details are not provided.",
+        "severity": "critical"
+      },
+      {
+        "question": "What happens if I miss my dialysis treatment?",
+        "answered_by_doc": false,
+        "gap_summary": "Instructions for missed dialysis treatments are absent.",
+        "severity": "critical"
+      },
+      {
+        "question": "I don't know when to take Fosrenol, it just says three times a day.",
+        "answered_by_doc": false,
+        "gap_summary": "Dosing schedule for Fosrenol is unclear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Does the paper say what I can eat or drink with heart failure and kidney disease?",
+        "answered_by_doc": false,
+        "gap_summary": "Diet and activity restrictions are not listed.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does syncope mean and why did I faint?",
+        "answered_by_doc": false,
+        "gap_summary": "Meaning of diagnosis and why patient was admitted is missing.",
+        "severity": "minor"
+      },
+      {
+        "question": "My paper says I have congestive heart failure and hypertension but I don't know what that means.",
+        "answered_by_doc": false,
+        "gap_summary": "Explanations for diagnoses are not provided.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "This patient needs to know what their sicknesses mean. They might take medicine wrong. They need to know about dialysis.",
+    "fk_grade": 8.22,
+    "passes": false,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Aspirin 81 mg",
+        "questions": [
+          "What side effects should I watch for?",
+          "Do I take this with food?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Multivitamin, Nephrocaps",
+        "questions": [
+          "What are these vitamins for?",
+          "Do I take them with food?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Fosrenol 500 mg",
+        "questions": [
+          "When exactly should I take Fosrenol?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lisinopril 2.5 mg",
+        "questions": [
+          "What are the new instructions for this?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Coreg 3.125 mg",
+        "questions": [
+          "What are the new instructions for this?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Procrit 10,000 units",
+        "questions": [
+          "What are the side effects of Procrit?",
+          "When is my next shot?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Heparin 5000 units",
+        "questions": [
+          "What if I miss a Heparin dose?",
+          "What are the signs of bleeding?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Hemodialysis",
+        "questions": [
+          "When is my next dialysis?",
+          "What should I do before dialysis?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Syncope",
+        "questions": [
+          "What are the warning signs for syncope?",
+          "What should I do if I feel faint again?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "End-stage renal disease requiring hemodialysis",
+        "questions": [
+          "What foods should I avoid?",
+          "How much fluid can I drink?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Congestive heart failure",
+        "questions": [
+          "What symptoms mean my heart failure is worse?",
+          "How much salt can I have?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Hypertension",
+        "questions": [
+          "What is my blood pressure goal?",
+          "What are the side effects of my blood pressure medicine?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_004",
+    "source_pdf": "test-data/mtsamples/mtsamples_004.pdf",
+    "generated_at": "2026-08-14T23:14:27",
+    "elapsed_seconds": 21.6
+  }
+}

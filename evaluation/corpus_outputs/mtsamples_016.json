@@ -1,0 +1,295 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Atypical pneumonia, suspected viral",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "1. Atypical pneumonia, suspected viral."
+    },
+    "secondary_diagnoses": [
+      "Hypoxia",
+      "Rheumatoid arthritis",
+      "Suspected mild stress-induced adrenal insufficiency"
+    ],
+    "procedures_performed": [
+      "Initial x-ray showed some mild diffuse patchy infiltrates.",
+      "CT scan was performed and no specific focal pathology was seen.",
+      "Dr. X, pulmonologist was consulted.",
+      "C. difficile toxin was ordered, although that is pending at the time of discharge."
+    ],
+    "medications": [
+      {
+        "name": "Rocephin",
+        "dose": "1 g",
+        "frequency": "daily",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 1,
+          "text": "She was continued on Rocephin IV and azithromycin."
+        }
+      },
+      {
+        "name": "Azithromycin",
+        "dose": null,
+        "frequency": null,
+        "duration": "She has two pills left at home.",
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "She was instructed to finish azithromycin. She has two pills left at home."
+        }
+      },
+      {
+        "name": "Prednisone",
+        "dose": "20 mg",
+        "frequency": "per day",
+        "duration": "continue the increased dose",
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "She is to continue the increased dose of prednisone at 20 mg (up from 5 mg per day)."
+        }
+      },
+      {
+        "name": "Methotrexate",
+        "dose": null,
+        "frequency": "every week",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "She is on 20 mg of methotrexate every week as well as Remicade every eight weeks."
+        }
+      },
+      {
+        "name": "Remicade",
+        "dose": null,
+        "frequency": "every eight weeks",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "She is on 20 mg of methotrexate every week as well as Remicade every eight weeks."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. X",
+        "specialty": "Pulmonology",
+        "date": "in two to three days",
+        "reason": null,
+        "source": {
+          "page": 1,
+          "text": "She is to follow up with Dr. X in two to three days."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": "Pulmonology",
+        "date": null,
+        "reason": "We will consult her rheumatologist as to whether to continue her methotrexate",
+        "source": {
+          "page": 2,
+          "text": "We will consult her rheumatologist as to whether to continue her methotrexate, which we held this past\nFriday."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "improved",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "Her fever broke 18 hours prior to discharge, and O2 saturations improved, as did her overall strength and clinical status."
+    },
+    "extraction_warnings": [
+      "Document says continue home meds but no medication list provided",
+      "Follow-up specialty 'Pulmonology' was not found in the document text - please verify it against your discharge papers."
+    ]
+  },
+  "diagnosis_explanation": "Your lungs have a type of pneumonia. Pneumonia is an infection in the lungs. This type of pneumonia is not typical. Doctors suspect a virus caused it.\n\nYour body did not have enough oxygen. This is called hypoxia.\n\nYou have rheumatoid arthritis. This is a condition that causes joint pain and swelling.\n\nDoctors also suspect you have mild stress-induced adrenal insufficiency. This means your body may not make enough of certain hormones when under stress.",
+  "medication_rationale": "Rocephin 1 g daily:\nThis medicine is an antibiotic. It fights infections caused by certain germs. It was prescribed to help treat your pneumonia. You may have some redness or swelling where it is given. Call your doctor if you get a rash, or have trouble breathing.\n\nAzithromycin:\nThis medicine is an antibiotic. It helps fight infections caused by germs. You were told to finish the rest of your pills. You may have an upset stomach or diarrhea. Call your doctor if you get a severe rash or have trouble breathing.\n\nPrednisone 20 mg per day:\nThis medicine is a steroid. It can help lower swelling in your body. It is used to help with your pneumonia. You might feel more hungry or have trouble sleeping. Call your doctor if you have vision changes or mood changes.\n\nMethotrexate every week:\nThis medicine calms down your body's defense system. It is used for ongoing health problems. You may feel tired or have an upset stomach. Call your doctor if you have mouth sores or bleeding.\n\nRemicade every eight weeks:\nThis medicine calms down your body's defense system. It helps with ongoing health problems. You may feel tired or get headaches. Call your doctor if you get a fever or a new rash.",
+  "recovery_trajectory": "**Week 1:**\n- You will likely feel tired and weak. This is normal.\n- Rest as much as possible.\n- You may have a mild cough.\n- Eat bland foods if your stomach feels upset.\n- Call your doctor if you have trouble breathing.\n- Your goal this week is to rest and stay hydrated.\n\n**Week 2:**\n- You may start to feel a little more energy.\n- Shortness of breath when moving around should slowly lessen.\n- Drink plenty of fluids like water or clear broth.\n- Avoid anything that makes your cough worse.\n- Call your doctor if your cough gets much worse.\n- Your goal this week is to walk short distances inside your home.\n\n**Week 3:**\n- You can try doing light chores if you feel up to it.\n- Avoid any strenuous activity or heavy lifting.\n- Listen to your body and rest when you need to.\n- Eat regular meals to help your body heal.\n- Call your doctor if you develop a fever again.\n- Your goal this week is to walk for 10 minutes twice a day.\n\n**Week 4:**\n- You should feel stronger and have more energy.\n- You can slowly increase your activity level.\n- Avoid returning to very hard work or exercise too soon.\n- Continue to eat healthy foods to support recovery.\n- Call your doctor if you have chest pain when you cough.\n- Your goal this week is to walk outside for 15 minutes.\n\n**When to expect improvement:**\n- Feeling better can take several weeks.\n- Keep resting and slowly increase your activity.\n- Eat well and drink plenty of fluids.\n- Recovery is a gradual process.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- You cannot catch your breath: Your body needs oxygen now.\n- Chest pain that will not stop: Your heart needs help now.\n- Uncontrolled bleeding that won't stop: Get help right away.\n- Face drooping or arm weakness: These are stroke signs. Minutes matter.\n- Loss of consciousness or fainting: Get help right away.\n- Seizure: Get help right away.\n- Severe allergic reaction: Get help right away.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever above 101 degrees F: You may have an infection.\n- Confusion or disorientation: This could be serious.\n- Cannot keep fluids down: You need fluids now.\n- Severe pain that medicine does not help: Seek help now.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild redness of the wound: This can happen while you heal.\n- Mild swelling without pain: This can happen while you heal.\n- Fatigue that is improving: You are getting better.\n- Questions about your medicine: Your doctor can help you.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 5.9,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.71,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.0,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.64,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document says continue home meds but no medication list provided",
+    "Follow-up specialty 'Pulmonology' was not found in the document text - please verify it against your discharge papers.",
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What is prednisone for and what happens if I miss a dose?",
+        "answered_by_doc": false,
+        "gap_summary": "Purpose and missed dose instructions are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What symptoms mean I need to go to the emergency room right away?",
+        "answered_by_doc": false,
+        "gap_summary": "Emergency warning signs are not listed.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does atypical pneumonia mean and why did I get it?",
+        "answered_by_doc": false,
+        "gap_summary": "Diagnosis is not explained in simple terms.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I need to see Dr. X in two to three days, but how do I make the appointment?",
+        "answered_by_doc": false,
+        "gap_summary": "How to book the appointment is not stated.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My paper says I have hypoxia, what does that mean for me at home?",
+        "answered_by_doc": false,
+        "gap_summary": "Condition meaning and home impact is unclear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What side effects should I watch out for with Methotrexate?",
+        "answered_by_doc": false,
+        "gap_summary": "Potential side effects are not listed.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How much water or salt can I have with my rheumatoid arthritis?",
+        "answered_by_doc": false,
+        "gap_summary": "Diet and activity limits are not stated.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "This patient needs clear instructions. They don't know what is wrong or how to manage it.",
+    "fk_grade": 5.62,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Rocephin - dose 1 g - frequency daily",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Azithromycin",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Prednisone - dose 20 mg - frequency per day",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Methotrexate - frequency every week",
+        "questions": [
+          "What side effects should I look for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Remicade - frequency every eight weeks",
+        "questions": [
+          "What side effects should I look for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. X - Pulmonology - in two to three days",
+        "questions": [
+          "Who should I call to schedule this?",
+          "What should I bring to the visit?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Atypical pneumonia, suspected viral",
+        "questions": [
+          "What does this diagnosis mean in simple terms?",
+          "How did I get this illness?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Hypoxia",
+        "questions": [
+          "What does hypoxia mean for me at home?",
+          "Are there any special precautions I need?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Rheumatoid arthritis",
+        "questions": [
+          "What are the main things I need to know about managing this at home?",
+          "Are there any foods I should avoid?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Suspected mild stress-induced adrenal insufficiency",
+        "questions": [
+          "What does this diagnosis mean?",
+          "What should I watch out for?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Pulmonology - consult rheumatologist on methotrexate",
+        "questions": [
+          "When will this consultation happen?",
+          "Who will contact me about the methotrexate decision?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_016",
+    "source_pdf": "test-data/mtsamples/mtsamples_016.pdf",
+    "generated_at": "2026-08-15T13:12:39",
+    "elapsed_seconds": 10.2
+  }
+}

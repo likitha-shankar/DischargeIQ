@@ -1,0 +1,245 @@
+{
+  "extraction": {
+    "patient_name": "female",
+    "patient_name_source": {
+      "page": 1,
+      "text": "A 66-year-old female with knee osteoarthrosis who failed conservative management."
+    },
+    "discharge_date": "2007-03-19",
+    "discharge_date_source": {
+      "page": 2,
+      "text": "She was felt to be ready for discharge home on 03/19/2007."
+    },
+    "primary_diagnosis": "Knee osteoarthrosis",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "Knee osteoarthrosis."
+    },
+    "secondary_diagnoses": [],
+    "procedures_performed": [
+      "Total knee arthroplasty.",
+      "right total knee arthroplasty.",
+      "Mechanical and chemical deep venous thrombosis (DVT) prophylaxis were initiated.",
+      "Routine postoperative antibiotics were administered.",
+      "Hemovac drain was discontinued on postoperative day #2.",
+      "Physical therapy was initiated.",
+      "Continuous passive motion (CPM) was also initiated."
+    ],
+    "medications": [
+      {
+        "name": "Mirapex",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": null,
+        "source": {
+          "page": 1,
+          "text": "Mirapex, ibuprofen, and Ambien."
+        }
+      },
+      {
+        "name": "Ibuprofen",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": null,
+        "source": {
+          "page": 1,
+          "text": "Mirapex, ibuprofen, and Ambien."
+        }
+      },
+      {
+        "name": "Ambien",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": null,
+        "source": {
+          "page": 1,
+          "text": "Mirapex, ibuprofen, and Ambien."
+        }
+      },
+      {
+        "name": "Percocet",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": null,
+        "source": {
+          "page": 2,
+          "text": "Prescriptions were written for Percocet and Coumadin."
+        }
+      },
+      {
+        "name": "Coumadin",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": null,
+        "source": {
+          "page": 2,
+          "text": "Prescriptions were written for Percocet and Coumadin."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. X",
+        "specialty": null,
+        "date": "in one week",
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "Follow up with Dr. X in one week."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "Discharged to home",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "Discharged to home."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your knee has arthritis. This means the smooth covering on the ends of your bones has worn away. This can cause pain and stiffness in your knee.",
+  "medication_rationale": "",
+  "recovery_trajectory": "**Week 1:**\n- You will likely feel tired and have some pain.\n- Rest often but try to move your leg a little.\n- Keep your surgical leg elevated when you sit.\n- Do not put more than 50% of your weight on your right leg.\n- You can eat normally.\n- Your goal is to do your physical therapy exercises daily.\n- Call your doctor if you have a fever over 101\u00b0F.\n- Call your doctor if you have increased redness or swelling.\n\n**Week 2:**\n- Your pain may start to get a little better.\n- You can walk short distances inside your home.\n- Continue to use crutches or a walker as advised.\n- Do not put more than 50% of your weight on your right leg.\n- Keep eating healthy foods.\n- Your goal is to increase your walking time slightly each day.\n- Call your doctor if your calf pain or swelling gets worse.\n\n**Week 3:**\n- You may feel more energy and less pain.\n- You can walk a bit farther and may use one crutch.\n- You can start to put more weight on your right leg.\n- You can bend your knee a little more each day.\n- Keep up with your physical therapy.\n- Your goal is to walk around your home without help for short periods.\n- Call your doctor if your surgical wound opens up.\n\n**Week 4:**\n- Your knee should feel less stiff and painful.\n- You can walk without crutches for short distances.\n- You may be able to walk up and down one flight of stairs.\n- You can start to do light chores around the house.\n- Ask your doctor before you start driving again.\n- Your goal is to walk for 15 minutes outside your home.\n- Call your doctor if you have sudden trouble breathing or chest pain.\n\n**When to expect improvement:**\n- Most people feel much better within 4 to 6 weeks.\n- Keep doing your exercises every day.\n- You can gradually return to normal activities.\n- Healing takes time, so be patient with yourself.\n- Follow up with your doctor as scheduled.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- No symptoms in this tier for your diagnosis.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- No symptoms in this tier for your diagnosis.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Questions about your pain medicine: Your doctor can help you plan.\n- Knee pain is getting worse: Your doctor needs to know.\n- You have trouble walking: Your doctor needs to check this.\n- Wound healing slow: Your doctor needs to check this.\n- Mild knee swelling: This can happen while you heal.\n- Redness around your knee: This can mean infection.\n- You feel very tired: This can mean problems.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 2.34,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 3.64,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 3.93,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted."
+  ],
+  "pipeline_status": "partial",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "How much Percocet should I take? What if it doesn't help my pain?",
+        "answered_by_doc": false,
+        "gap_summary": "Missing dose and efficacy plan for Percocet.",
+        "severity": "critical"
+      },
+      {
+        "question": "What happens if I miss my Coumadin dose? Do I take it the next day?",
+        "answered_by_doc": false,
+        "gap_summary": "Missing instruction for missed Coumadin dose.",
+        "severity": "critical"
+      },
+      {
+        "question": "My paper says take Mirapex but not how much or when. What do I do?",
+        "answered_by_doc": false,
+        "gap_summary": "Missing dose and timing instructions for Mirapex.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How do I take Ibuprofen? Do I take it with food?",
+        "answered_by_doc": false,
+        "gap_summary": "Missing instructions on how to take Ibuprofen.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What should I do if I miss a dose of Ambien?",
+        "answered_by_doc": false,
+        "gap_summary": "Missing instruction for missed Ambien dose.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What signs mean my knee is getting worse and I need to call someone?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not list warning signs.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does knee osteoarthrosis mean in plain words?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not explain diagnosis in simple terms.",
+        "severity": "minor"
+      },
+      {
+        "question": "Do I need to fast before seeing Dr. X next week?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not say how to prepare.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "A worried person would struggle. Biggest gap is pain medicine instructions.",
+    "fk_grade": 7.1,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Mirapex",
+        "questions": [
+          "What is this medicine for?",
+          "How much should I take?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Ibuprofen",
+        "questions": [
+          "How much should I take?",
+          "When should I take it?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Ambien",
+        "questions": [
+          "What if I miss a dose?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Percocet",
+        "questions": [
+          "How much should I take?",
+          "What if my pain is still bad?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Coumadin",
+        "questions": [
+          "What if I miss a dose?",
+          "Are there foods I cannot eat?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. X - in one week",
+        "questions": [
+          "What should I bring to this visit?",
+          "Do I need to call to schedule this?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_031",
+    "source_pdf": "test-data/mtsamples/mtsamples_031.pdf",
+    "generated_at": "2026-08-15T13:32:14",
+    "elapsed_seconds": 6.0
+  }
+}

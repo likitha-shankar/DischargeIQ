@@ -1,0 +1,274 @@
+{
+  "extraction": {
+    "patient_name": "baby boy",
+    "patient_name_source": {
+      "page": 1,
+      "text": "The patient is an 1812 g baby boy born by vaginal delivery to a 32-year-old gravida 3, para 2"
+    },
+    "discharge_date": "2006-08-14",
+    "discharge_date_source": {
+      "page": 1,
+      "text": "an appointment was made for 08/14/2006."
+    },
+    "primary_diagnosis": "Stable, ex-34-week preemie",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "Stable, ex-34-week preemie."
+    },
+    "secondary_diagnoses": [
+      "Respiratory distress",
+      "rule out sepsis",
+      "prematurity"
+    ],
+    "procedures_performed": [
+      "CBC",
+      "CRP",
+      "blood cultures were done",
+      "CPR teaching was completed on 08/11/2006 to parents."
+    ],
+    "medications": [
+      {
+        "name": "Ampicillin",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "discontinued",
+        "source": {
+          "page": 1,
+          "text": "Ampicillin and gentamicin were started per protocol but were discontinue when blood cultures came out negative after 48 hours."
+        }
+      },
+      {
+        "name": "Gentamicin",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "discontinued",
+        "source": {
+          "page": 1,
+          "text": "Ampicillin and gentamicin were started per protocol but were discontinue when blood cultures came out negative after 48 hours."
+        }
+      },
+      {
+        "name": "EBM 22",
+        "dose": "22",
+        "frequency": "per os",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "Baby was fed EBM 22 and NeoSure per os."
+        }
+      },
+      {
+        "name": "NeoSure",
+        "dose": null,
+        "frequency": "per os",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "Baby was fed EBM 22 and NeoSure per os."
+        }
+      },
+      {
+        "name": "EBM 22",
+        "dose": "22",
+        "frequency": "ad lib",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "The baby was fed EBM 22 and NeoSure was added a day before discharge."
+        }
+      },
+      {
+        "name": "NeoSure",
+        "dose": null,
+        "frequency": "ad lib",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "The baby was fed EBM 22 and NeoSure was added a day before discharge."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. X",
+        "specialty": null,
+        "date": "2006-08-14",
+        "reason": null,
+        "source": {
+          "page": 1,
+          "text": "To follow up with Dr. X in 2 to 3 days, an appointment was made for 08/14/2006."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [
+      "Formula feeding schedule with breast and NeoSure 2 to 3 ounces per feed.",
+      "Ad lib feeding on demand."
+    ],
+    "red_flag_symptoms": [],
+    "discharge_condition": "stable",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "At the time of discharge, baby was stable on room air, baby was tolerated p.o. foods and was sucking properly, was taking ad lib feeds and gaining weight."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your baby was born early. This means your baby was not fully developed. Your baby had some trouble breathing. This is called respiratory distress. Doctors also checked to see if your baby had an infection. This is called sepsis. Your baby is now stable.",
+  "medication_rationale": "Ampicillin - stopping:\nYour doctor wants you to stop taking this medicine. Your baby's blood cultures were negative. Do not take it until your doctor tells you it is safe to start again.\n\nGentamicin - stopping:\nYour doctor wants you to stop taking this medicine. Your baby's blood cultures were negative. Do not take it until your doctor tells you it is safe to start again.\n\nEBM 22 22 per os:\nThis special formula is for your baby. It helps your baby grow and gain weight. You will give this by mouth.\n\nNeoSure per os:\nThis special formula is for your baby. It helps your baby grow and gain weight. It is added to breast milk. You will give this by mouth.\n\nEBM 22 22 ad lib:\nThis special formula is for your baby. It helps your baby grow and gain weight. Your baby will eat this when hungry.\n\nNeoSure ad lib:\nThis special formula is for your baby. It helps your baby grow and gain weight. Your baby will eat this when hungry. It is added to breast milk.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired and may have less energy. This is normal.\n- Feed your baby NeoSure and breast milk or formula as scheduled.\n- Your baby should eat 2 to 3 ounces per feeding.\n- Feed your baby when they seem hungry. This is called ad lib feeding.\n- Watch for signs that your baby needs to see the doctor.\n- Your baby's goal is to eat well and rest this week.\n- Call your doctor if your baby has trouble breathing.\n- Call your doctor if your baby refuses to eat.\n\n**Week 2:**\n- Your baby may start to feel a little stronger.\n- Continue feeding your baby as before.\n- Stick to the 2 to 3 ounces per feed.\n- Feed your baby on demand.\n- Your baby's goal is to gain weight steadily.\n- Watch for normal feeding and sleeping patterns.\n- Call your doctor if your baby seems weak or very sleepy.\n\n**Week 3:**\n- Your baby might become more alert and interactive.\n- Keep following the feeding schedule with NeoSure.\n- Continue ad lib feeding on demand.\n- Your baby's goal is to improve feeding endurance.\n- Look for signs of normal stooling and wet diapers.\n- Call your doctor if your baby has a fever over 100.4 F.\n- Call your doctor if your baby seems uncomfortable when eating.\n\n**Week 4:**\n- Your baby should show more consistent gains in strength.\n- Continue the current feeding plan.\n- Feed your baby on demand as needed.\n- Your baby's goal is to establish a routine.\n- Watch for your baby's social cues and interactions.\n- Call your doctor if your baby has persistent vomiting.\n\n**When to expect improvement:**\n- Your baby's strength and feeding should get better each week.\n- Keep up with the feeding schedule and plan.\n- Continue to watch your baby for any new concerns.\n- Follow your doctor's advice for ongoing care.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- No symptoms in this tier for your diagnosis.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- No symptoms in this tier for your diagnosis.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- No symptoms in this tier for your diagnosis.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 4.56,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 3.33,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.65,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.47,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No red-flag symptoms extracted."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "unknown",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What should I watch out for at home that means my baby is really sick?",
+        "answered_by_doc": false,
+        "gap_summary": "No warning signs are listed for when to seek help.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does \"rule out sepsis\" mean and why was I worried about it?",
+        "answered_by_doc": false,
+        "gap_summary": "Diagnosis meaning is not explained in simple terms.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My baby is getting NeoSure now, but what is it for?",
+        "answered_by_doc": false,
+        "gap_summary": "Medication purpose is not explained in simple terms.",
+        "severity": "moderate"
+      },
+      {
+        "question": "The paper says \"ad lib feeding on demand\" but also \"2 to 3 ounces per feed\". Which is it?",
+        "answered_by_doc": false,
+        "gap_summary": "Feeding amounts and schedule are confusingly written.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My baby is getting EBM 22, what does that mean?",
+        "answered_by_doc": false,
+        "gap_summary": "Medication name meaning is not explained.",
+        "severity": "minor"
+      },
+      {
+        "question": "I have an appointment with Dr. X on August 14th. How do I get to his office?",
+        "answered_by_doc": false,
+        "gap_summary": "Appointment location and travel details are missing.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "Parents will struggle most. Biggest gap is knowing when baby is sick.",
+    "fk_grade": 6.77,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "EBM 22 - dose 22 - frequency per os",
+        "questions": [
+          "What is this medicine for?",
+          "How much do I give?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "NeoSure - frequency per os",
+        "questions": [
+          "What is this medicine for?",
+          "How much do I give?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "EBM 22 - dose 22 - frequency ad lib",
+        "questions": [
+          "What is this medicine for?",
+          "How much do I give?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "NeoSure - frequency ad lib",
+        "questions": [
+          "What is this medicine for?",
+          "How much do I give?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. X - 2006-08-14",
+        "questions": [
+          "What time is the appointment?",
+          "Where is the office located?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "rule out sepsis",
+        "questions": [
+          "What does sepsis mean for my baby?",
+          "What signs should I watch for?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "prematurity",
+        "questions": [
+          "What are the long-term risks for my baby?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "Formula feeding schedule with breast and NeoSure 2 to 3 ounces per feed.",
+        "questions": [
+          "How often should I feed my baby?",
+          "How do I know if my baby is full?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "Ad lib feeding on demand.",
+        "questions": [
+          "How often should I feed my baby?",
+          "How do I know if my baby is full?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_024",
+    "source_pdf": "test-data/mtsamples/mtsamples_024.pdf",
+    "generated_at": "2026-08-15T13:18:17",
+    "elapsed_seconds": 6.4
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": "2009-01-09",
+    "discharge_date_source": {
+      "page": 1,
+      "text": "Her last session occurred on 01/09/09."
+    },
+    "primary_diagnosis": "right hemisphere disorder, status post stroke",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "The patient was referred for outpatient skilled speech therapy, secondary to right hemisphere\ndisorder, status post stroke."
+    },
+    "secondary_diagnoses": [],
+    "procedures_performed": [
+      "attended nine outpatient skilled speech therapy sessions",
+      "oral mechanism examination and clinical swallow evaluation",
+      "listening to a narrative and recall the main idea plus five details after a three-minute delay independently",
+      "visual scanning in cancellation task",
+      "sustained attention goal, which required her to complete tasks greater than 80% accuracy for at least 15 minutes independently",
+      "reading, comprehension"
+    ],
+    "medications": [],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": "Speech Therapy",
+        "date": null,
+        "reason": "follow up with speech therapy services",
+        "source": {
+          "page": 1,
+          "text": "Her last session occurred on 01/09/09. She has not made any additional followup sessions with me for over\nthree weeks, so she is discharged from my services at this time."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "discharged from my services",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "She has not made any additional followup sessions with me for over\nthree weeks, so she is discharged from my services at this time."
+    },
+    "extraction_warnings": [
+      "Document is unusually short for a discharge summary - may be incomplete or a partial document."
+    ]
+  },
+  "diagnosis_explanation": "Your brain has two sides. The right side of your brain was affected by a stroke. This means that part of your brain has been injured. It can affect how you move, speak, or understand things. This is called a right hemisphere disorder.",
+  "medication_rationale": "Your doctor did not give you any new medicines to take at home. Ask at your next visit if you need to start any.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired and may have trouble focusing. This is normal.\n- Rest is important. Take short breaks during the day.\n- You can practice looking for things on a page.\n- Try to recall the main idea of a story you hear.\n- Call your doctor if you have a sudden headache or confusion.\n- Your goal is to rest and take care of yourself at home.\n\n**Week 2:**\n- Your energy levels may start to slowly increase.\n- You can try doing simple tasks around the house.\n- Practice listening to short stories and remember key details.\n- Work on tasks that need you to focus for 15 minutes.\n- If you feel confused, take a break and rest.\n- Your goal is to complete one task that needs focus each day.\n\n**Week 3:**\n- You may feel a bit more like yourself this week.\n- Try reading short articles or simple books.\n- Work on remembering the main idea and details from what you read.\n- Continue practicing tasks that require sustained attention.\n- Call your doctor if you have trouble speaking or understanding speech.\n- Your goal is to read for 10 minutes and recall details.\n\n**Week 4:**\n- You should notice steady progress in your thinking skills.\n- Try to do tasks that require sustained attention for longer periods.\n- Continue practicing visual scanning and recall exercises.\n- You can try to recall the main idea plus five details after a delay.\n- Call your doctor if you experience sudden vision changes.\n- Your goal is to complete a sustained attention task for 20 minutes.\n\n**When to expect improvement:**\n- Recovery takes time, so be patient with yourself.\n- Keep practicing the skills you learned in therapy.\n- Celebrate small wins and acknowledge your progress.\n- Continue to follow up with your healthcare team.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Sudden severe headache: This could be a brain bleed.\n- Trouble speaking or loss of words: This is a stroke sign.\n- Vision loss or double vision: This may be a stroke sign.\n- Weakness on one side of body: This is a stroke sign.\n- Numbness on one side of body: This is a stroke sign.\n- Trouble walking or loss of balance: This is a stroke sign.\n- Sudden confusion or trouble understanding: This is a stroke sign.\n- Seizure: Call 911 right away.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Worsening headache: Your pain is getting worse.\n- Trouble seeing or double vision: Your vision is changing.\n- Numbness or weakness: This is on one side.\n- Trouble walking or loss of balance: This is a fall risk.\n- Confusion or trouble understanding: Your thinking is changing.\n- Dizziness and spinning feeling: This is vertigo.\n- Feeling very tired or sleepy: You may need rest.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild headache: Your pain is not severe.\n- Trouble remembering things: Your memory is affected.\n- Mild numbness or tingling: This is a light feeling.\n- Slight trouble with balance: You feel a little unsteady.\n- Fatigue that is improving: You are feeling better.\n- Feeling down or sad: Your mood is low.\n- Trouble sleeping: Rest is hard to find.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 2.31,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 3.84,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 5.3,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.61,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document is unusually short for a discharge summary - may be incomplete or a partial document.",
+    "No red-flag symptoms extracted.",
+    "No medications extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "unknown",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What signs should I look for that mean I need to call 911 or go to the ER?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not list warning signs for my condition.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does \"right hemisphere disorder\" mean and what happened to me when I had a stroke?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain my diagnosis in simple terms.",
+        "severity": "moderate"
+      },
+      {
+        "question": "The paper says I need speech therapy. Who do I call to set up these appointments?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say who to call for therapy.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How long should I rest or what activities should I avoid after my stroke?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain activity limits after my stroke.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Do I need to change what I eat or drink because of my stroke?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not give diet advice after my stroke.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "Patients with stroke could get hurt easily. This document does not explain the diagnosis or warning signs.",
+    "fk_grade": 6.81,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "diagnosis",
+        "item_label": "Right hemisphere disorder, status post stroke",
+        "questions": [
+          "What does this diagnosis mean?",
+          "What caused my stroke?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Speech Therapy",
+        "questions": [
+          "How often will I have therapy?",
+          "What should I bring to therapy?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "Worsening stroke symptoms",
+        "questions": [
+          "What specific symptoms mean I need to go to the ER?",
+          "When should I call the doctor instead?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_001",
+    "source_pdf": "test-data/mtsamples/mtsamples_001.pdf",
+    "generated_at": "2026-08-15T12:51:19",
+    "elapsed_seconds": 6.4
+  }
+}

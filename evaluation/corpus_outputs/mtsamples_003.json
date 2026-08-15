@@ -1,0 +1,172 @@
+{
+  "extraction": {
+    "patient_name": "Hispanic male patient",
+    "patient_name_source": {
+      "page": 1,
+      "text": "Hispanic male patient was admitted because of enlarged prostate and symptoms of bladder neck obstruction."
+    },
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Enlarged prostate with benign bladder neck obstruction",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "DISCHARGE DIAGNOSIS:\nEnlarged prostate with benign bladder neck obstruction."
+    },
+    "secondary_diagnoses": [
+      "Difficulty voiding"
+    ],
+    "procedures_performed": [
+      "Cystourethroscopy and transurethral resection of prostate.",
+      "Cysto and TUR of the prostate."
+    ],
+    "medications": [
+      {
+        "name": "Bactrim DS",
+        "dose": null,
+        "frequency": "one a day",
+        "duration": "ten days",
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "and on Bactrim DS one a day for ten days with a standard postprostatic surgery instruction sheet."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. ABC",
+        "specialty": null,
+        "date": "next available",
+        "reason": null,
+        "source": {
+          "page": 1,
+          "text": "To be followed in my office in one week and by Dr. ABC next available as an outpatient."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "one week",
+        "reason": null,
+        "source": {
+          "page": 1,
+          "text": "To be followed in my office in one week and by Dr. ABC next available as an outpatient."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "satisfactory",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "The patient had a cysto and TUR of the prostate. Postoperative course was uncomplicated.\nThe pathology report is pending at the time of dictation. He is being discharged in satisfactory condition with a good urinary stream, minimal hematuria, and on Bactrim DS one a day for ten days with a standard postprostatic surgery instruction sheet."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your prostate gland is larger than normal. This can make it hard for urine to leave your bladder. It might feel like you are having trouble peeing. Your bladder neck is blocked. This is a benign condition. It means it is not cancer.",
+  "medication_rationale": "Bactrim DS:\nThis medicine fights infections. It is a type of antibiotic. It was prescribed to prevent infection after surgery. You may notice an upset stomach or mild rash. These are common and not usually serious. Call your doctor right away if you get a severe rash, have trouble breathing, or feel dizzy.",
+  "recovery_trajectory": "**Week 1:**\n- You will likely feel tired after surgery.\n- Expect some burning when you urinate.\n- Drink plenty of fluids to help flush your bladder.\n- Avoid lifting anything heavier than 10 pounds.\n- Do not do strenuous exercise or heavy chores.\n- Call your doctor if you cannot urinate.\n- Your goal this week is to rest and take it easy.\n\n**Week 2:**\n- Your energy levels may start to increase.\n- You might see some light blood in your urine. This is normal.\n- Continue to drink lots of water.\n- Keep lifting limited to 10 pounds or less.\n- Avoid activities that make you strain.\n- Call your doctor if you have heavy bleeding or a fever.\n- Your goal this week is to walk around your home more.\n\n**Week 3:**\n- You may feel more comfortable moving around.\n- The burning when you urinate should decrease.\n- Keep avoiding heavy lifting and strenuous activity.\n- You can start doing light household tasks.\n- Your goal this week is to walk for 15 minutes daily.\n- Call your doctor if your symptoms get worse instead of better.\n\n**Week 4:**\n- You should notice a significant improvement in urinary flow.\n- You can likely increase your daily activities.\n- Continue to avoid lifting more than 10 pounds.\n- Ask your doctor before returning to work or exercise.\n- Your goal this week is to walk longer distances.\n- Call your doctor if you experience sudden strong pain or continued bleeding.\n\n**When to expect improvement:**\n- Many men start to feel much better within 4 to 6 weeks.\n- Urinary symptoms will continue to improve over time.\n- Listen to your body and do not overdo activities.\n- Keep up with your follow-up appointments.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- No symptoms in this tier for your diagnosis.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Inability to pee at all: Your bladder is too full.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Trouble starting your pee stream: Your prostate may block flow.\n- Peeing often in small amounts: You may have an infection.\n- Feeling like you cannot empty fully: Urine is backing up.\n- Weak pee stream: Your prostate may block flow.\n- Waking often at night: Sleep can be hard to get.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 2.57,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 6.33,
+      "passes": false
+    },
+    "agent4": {
+      "fk_grade": 5.58,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.27,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing discharge date."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What signs should I watch for that mean I need to go to the ER right away",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not list urgent warning signs.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does enlarged prostate mean and why did it make it hard for me to pee",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not explain diagnosis in simple words.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What is Bactrim DS for and how long do I take it",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not explain medication purpose or duration.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What happens if I miss taking my Bactrim DS pill one day",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not explain missed dose instructions.",
+        "severity": "moderate"
+      },
+      {
+        "question": "When is my appointment with Dr. ABC and how do I book it",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not give appointment date or booking info.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What foods or drinks should I stay away from with this problem",
+        "answered_by_doc": false,
+        "gap_summary": "Document gives no diet or activity advice.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "Anxious patients will struggle most. Biggest gap is no ER warning signs.",
+    "fk_grade": 7.79,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Bactrim DS",
+        "questions": [
+          "What is this medication for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. ABC",
+        "questions": [
+          "What do I need to bring to this visit?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "Signs that mean I need to go to the ER",
+        "questions": [
+          "How do I know if it is an emergency?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_003",
+    "source_pdf": "test-data/mtsamples/mtsamples_003.pdf",
+    "generated_at": "2026-08-15T12:52:30",
+    "elapsed_seconds": 6.7
+  }
+}

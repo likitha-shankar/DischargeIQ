@@ -1,0 +1,79 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "cognitive-linguistic deficits",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "The patient was admitted for skilled speech therapy secondary to cognitive-linguistic deficits."
+    },
+    "secondary_diagnoses": [],
+    "procedures_performed": [
+      "Speech therapy"
+    ],
+    "medications": [],
+    "follow_up_appointments": [],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "goals accomplished, progress plateaued, patient and husband agreed with discharge",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "The patient does no longer need a skilled speech therapy because she has accomplished all of her goals and her progress has plateaued. The patient and her husband both agreed with the patient's discharge."
+    },
+    "extraction_warnings": [
+      "Document is unusually short for a discharge summary - may be incomplete or a partial document."
+    ]
+  },
+  "diagnosis_explanation": "Your brain has some trouble with thinking and talking. This can make it hard to understand things. It can also make it hard to find the right words. This is called cognitive-linguistic deficits.",
+  "medication_rationale": "Your doctor did not give you any new medicines to take at home. Ask at your next visit if you need to start any.",
+  "recovery_trajectory": "**Week 1:**\n- You may feel tired after your therapy sessions. This is normal.\n- Rest when you feel tired.\n- Try to do a few simple talking or thinking tasks each day.\n- Your goal this week is to rest when you need to.\n- Call your doctor if you feel much worse or very confused.\n\n**Week 2:**\n- You may feel a little more ready for activities.\n- Try to do a few more talking or thinking tasks.\n- Practice remembering daily events or people's names.\n- Your goal this week is to try one new talking task.\n- Call your doctor if you have sudden trouble understanding others.\n\n**Week 3:**\n- You may notice small improvements in how you communicate.\n- Try to have short conversations with family or friends.\n- Practice following simple instructions.\n- Your goal this week is to ask for what you need.\n- Call your doctor if you have trouble finding words more than usual.\n\n**Week 4:**\n- You should feel more comfortable with your daily routine.\n- Keep practicing your talking and thinking skills daily.\n- Watch TV shows and try to recall the plot later.\n- Your goal this week is to name objects around your home.\n- Call your doctor if you feel you are going backward.\n\n**When to expect improvement:**\n- Progress may be slow but steady over weeks.\n- Keep practicing your communication skills daily.\n- Celebrate small wins in your recovery.\n- Continue any exercises your therapist gave you.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- No symptoms in this tier for your diagnosis.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- No symptoms in this tier for your diagnosis.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- No symptoms in this tier for your diagnosis.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.72,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 3.84,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.94,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.47,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document is unusually short for a discharge summary - may be incomplete or a partial document.",
+    "No red-flag symptoms extracted.",
+    "No medications extracted.",
+    "No follow-up appointments extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "unknown",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [],
+    "overall_gap_score": 0,
+    "simulator_summary": "",
+    "fk_grade": 0.0,
+    "passes": false,
+    "caregiver_questions": []
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_007",
+    "source_pdf": "test-data/mtsamples/mtsamples_007.pdf",
+    "generated_at": "2026-08-15T12:55:08",
+    "elapsed_seconds": 4.2
+  }
+}

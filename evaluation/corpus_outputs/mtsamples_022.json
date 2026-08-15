@@ -1,0 +1,311 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Colon cancer, status post right hemicolectomy.",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "Colon cancer, status post right hemicolectomy."
+    },
+    "secondary_diagnoses": [
+      "Anemia.",
+      "Hospital-acquired pneumonia.",
+      "Hypertension.",
+      "Congestive heart failure.",
+      "Seizure disorder."
+    ],
+    "procedures_performed": [
+      "Colonoscopy.",
+      "Right hemicolectomy."
+    ],
+    "medications": [
+      {
+        "name": "Coreg",
+        "dose": "12.5 mg",
+        "frequency": "twice daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "Throughout her hospital course, the patient continued to receive Coreg 12.5 mg daily and Lasix 40 mg twice a day for her congestive heart failure, which remains stable."
+        }
+      },
+      {
+        "name": "Lipitor",
+        "dose": "10 mg",
+        "frequency": "every night at bedtime",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "She also received Lipitor for her high cholesterol."
+        }
+      },
+      {
+        "name": "Nitro-Dur patch",
+        "dose": "0.3 mg per hour",
+        "frequency": "one patch daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "3. Nitro-Dur patch 0.3 mg per hour one patch daily."
+        }
+      },
+      {
+        "name": "Phenergan syrup",
+        "dose": "6.25 mg",
+        "frequency": "every 4 hours as needed",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "4. Phenergan syrup 6.25 mg p.o. q.4h. p.r.n."
+        }
+      },
+      {
+        "name": "Synthroid",
+        "dose": "0.175 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "5. Synthroid 0.175 mg p.o. daily."
+        }
+      },
+      {
+        "name": "Zyrtec",
+        "dose": "10 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "6. Zyrtec 10 mg p.o. daily."
+        }
+      },
+      {
+        "name": "Lamictal",
+        "dose": "100 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "Her seizure disorder remained stable and she was discharged on a dose of 100 mg in the morning and 150 mg at night."
+        }
+      },
+      {
+        "name": "Lamictal",
+        "dose": "150 mg",
+        "frequency": "every night at bedtime",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "Her seizure disorder remained stable and she was discharged on a dose of 100 mg in the morning and 150 mg at night."
+        }
+      },
+      {
+        "name": "Ferrous sulfate drops",
+        "dose": "325 mg",
+        "frequency": "twice daily",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 3,
+          "text": "9. Ferrous sulfate drops 325 mg, PEG tube b.i.d."
+        }
+      },
+      {
+        "name": "Nexium",
+        "dose": "40 mg",
+        "frequency": "at breakfast",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "10. Nexium 40 mg p.o. at breakfast."
+        }
+      },
+      {
+        "name": "Neurontin",
+        "dose": "400 mg",
+        "frequency": "three times daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "11. Neurontin 400 mg p.o. t.i.d."
+        }
+      },
+      {
+        "name": "Lasix",
+        "dose": "40 mg",
+        "frequency": "twice daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "Throughout her hospital course, the patient continued to receive Coreg 12.5 mg daily and Lasix 40 mg twice a day for her congestive heart failure, which remains stable."
+        }
+      },
+      {
+        "name": "Fentanyl patch",
+        "dose": "50 mcg",
+        "frequency": "every 72 hours",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "13. Fentanyl 50 mcg patch transdermal q.72h."
+        }
+      },
+      {
+        "name": "Calcium and vitamin D combination",
+        "dose": "calcium carbonate 500 mg/vitamin D 200 units",
+        "frequency": "three times daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "14. Calcium and vitamin D combination, calcium carbonate 500 mg/vitamin D 200 units one tab p.o. t.i.d."
+        }
+      },
+      {
+        "name": "Bactrim DS",
+        "dose": "800mg/160 mg tablet",
+        "frequency": "every 12 hours",
+        "duration": "3 days",
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "At discharge, the patient was given three additional days of p.o. Levaquin 750 mg as well as three additional days of Bactrim DS every 12 hours."
+        }
+      },
+      {
+        "name": "Levaquin",
+        "dose": "750 mg",
+        "frequency": null,
+        "duration": "3 days",
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "At discharge, the patient was given three additional days of p.o. Levaquin 750 mg as well as three additional days of Bactrim DS every 12 hours."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. X",
+        "specialty": null,
+        "date": "in approximately five to seven days",
+        "reason": "CBC with diff as well as a CMP to be drawn prior to her appointment",
+        "source": {
+          "page": 3,
+          "text": "The patient was instructed to see Dr. X in approximately five to seven days. She was given a lab sheet to have a CBC with diff as well as a CMP to be drawn prior to her appointment with Dr. X."
+        }
+      },
+      {
+        "provider": "Dr. Y",
+        "specialty": null,
+        "date": null,
+        "reason": "regarding her colon cancer",
+        "source": {
+          "page": 3,
+          "text": "She is instructed to follow up with Dr. Y if her condition changes regarding her colon cancer."
+        }
+      },
+      {
+        "provider": "Dr. Z",
+        "specialty": "oncologist",
+        "date": null,
+        "reason": "regarding the positive lymph nodes",
+        "source": {
+          "page": 3,
+          "text": "She was instructed to follow up with Dr. Z, her oncologist, regarding the positive lymph nodes."
+        }
+      },
+      {
+        "provider": "Dr. A",
+        "specialty": "endocrinologist",
+        "date": null,
+        "reason": "regarding any insulin pump adjustments, which were necessary",
+        "source": {
+          "page": 3,
+          "text": "She was also instructed to follow up with her endocrinologist, Dr. A, regarding any insulin pump adjustments, which were necessary"
+        }
+      },
+      {
+        "provider": "Dr. B",
+        "specialty": "gastroenterologist",
+        "date": null,
+        "reason": "regarding any issues with her J-tube",
+        "source": {
+          "page": 3,
+          "text": "and she was also instructed to follow up with Dr. B, her gastroenterologist, regarding any issues with her J-tube."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "shy away from strenuous activity."
+    ],
+    "dietary_restrictions": [
+      "usual diet of isotonic fiber feeding through the J-tube at a rate of 120 per hour throughout the night."
+    ],
+    "red_flag_symptoms": [],
+    "discharge_condition": "Stable.",
+    "discharge_condition_source": {
+      "page": 3,
+      "text": "Stable."
+    },
+    "extraction_warnings": [
+      "Conflicting doses for Lamictal: found 150mg, 100mg in document. Verify against original."
+    ]
+  },
+  "diagnosis_explanation": "You have colon cancer. This means some cells in your colon grew in an uncontrolled way. Part of your colon was removed during surgery. You also have anemia. This means your body has fewer red blood cells than normal. These cells carry oxygen. You had pneumonia while in the hospital. This is an infection in your lungs. You have high blood pressure. This means the force of blood against your blood vessel walls is too high. You have congestive heart failure. This means your heart cannot pump blood as well as it should. You have a seizure disorder. This means you have a tendency to have seizures.",
+  "medication_rationale": "",
+  "recovery_trajectory": "**Week 1:**\n- You will likely feel tired and sore after surgery.\n- Focus on resting and healing in bed or a chair.\n- Avoid any strenuous activity for now.\n- You can have your usual foods.\n- Feed yourself with the J-tube at 120 per hour overnight.\n- Your goal this week is to take short walks in your home.\n- Call your doctor if you have a fever or increasing pain.\n\n**Week 2:**\n- You may start to feel a little more energy.\n- Continue to avoid strenuous activities.\n- You can eat your usual diet.\n- Keep feeding through your J-tube at 120 per hour overnight.\n- Your goal this week is to walk a little further each day.\n- Call your doctor if you notice redness or swelling at your incision.\n\n**Week 3:**\n- Your comfort level should start to improve.\n- You can slowly increase your walking.\n- Continue to shy away from strenuous activity.\n- Eat your usual diet as tolerated.\n- Use your J-tube overnight at 120 per hour.\n- Your goal this week is to walk for 10 minutes, twice a day.\n- Call your doctor if you have any new or worsening symptoms.\n\n**Week 4:**\n- You may feel strong enough for some light home tasks.\n- Continue to avoid any strenuous activities.\n- Enjoy your usual diet.\n- Continue J-tube feeding at 120 per hour overnight.\n- Your goal this week is to walk around your neighborhood if able.\n- Call your doctor if you have trouble breathing or chest pain.\n\n**When to expect improvement:**\n- Most people start to feel better over the next few weeks.\n- Healing takes time, so be patient with yourself.\n- Keep following your activity and diet plan.\n- Listen to your body and rest when you need to.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Cannot breathe: Your body needs oxygen right now.\n- Chest pain that will not stop: Your heart needs help now.\n- Face drooping or arm weakness: These are stroke signs. Minutes matter.\n- Seizure that does not stop: Call 911 right away.\n- Uncontrolled bleeding: Apply pressure. Call 911 if it does not stop.\n- Unresponsive or loss of consciousness: Call 911 right away.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever above 101 degrees: You may have an infection.\n- Severe pain that medicine does not help: Seek help now.\n- Wound looks infected: Redness, pus, or warmth.\n- Confusion or not thinking clearly: This is getting worse.\n- Cannot keep fluids down: You have not eaten or drank enough.\n- Significant swelling in one leg: This could be a blood clot.\n- Sudden weight gain of 2+ pounds: Fluid may be building up.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild pain that is slowly getting better: This is normal.\n- Wound healing slowly: No signs of infection are present.\n- Mild swelling without pain: This is common after surgery.\n- Nausea without vomiting: Try small sips of clear liquid.\n- Fatigue that is slowly improving: Your body is recovering.\n- Redness around wound that is not spreading: Monitor for changes.\n- Questions about your medicine: Your doctor can explain doses.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.49,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 5.11,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 5.05,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Conflicting doses for Lamictal: found 150mg, 100mg in document. Verify against original.",
+    "No red-flag symptoms extracted.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "partial",
+  "rejection_reason": null,
+  "document_type": "diabetes",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [],
+    "overall_gap_score": 0,
+    "simulator_summary": "",
+    "fk_grade": 0.0,
+    "passes": false,
+    "caregiver_questions": []
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_022",
+    "source_pdf": "test-data/mtsamples/mtsamples_022.pdf",
+    "generated_at": "2026-08-15T13:17:05",
+    "elapsed_seconds": 18.6
+  }
+}

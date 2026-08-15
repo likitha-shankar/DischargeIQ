@@ -1,0 +1,230 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": "2003-10-15",
+    "discharge_date_source": {
+      "page": 2,
+      "text": "Her condition at discharge is good."
+    },
+    "primary_diagnosis": "Prematurity, 34 weeks' gestation, now 5 days old",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "Prematurity, 34 weeks' gestation, now 5 days old."
+    },
+    "secondary_diagnoses": [
+      "Group B streptococcus exposure, but no sepsis",
+      "Physiologic jaundice",
+      "Feeding problem"
+    ],
+    "procedures_performed": [
+      "CPAP and free flow oxygen",
+      "phototherapy"
+    ],
+    "medications": [
+      {
+        "name": "Ampicillin",
+        "dose": null,
+        "frequency": null,
+        "duration": "approximately 48 hours",
+        "status": "changed",
+        "source": {
+          "page": 1,
+          "text": "She did have antibiotics, ampicillin and gentamicin for approximately 48 hours to cover for possible group B streptococcus."
+        }
+      },
+      {
+        "name": "Gentamicin",
+        "dose": null,
+        "frequency": null,
+        "duration": "approximately 48 hours",
+        "status": "changed",
+        "source": {
+          "page": 1,
+          "text": "She did have antibiotics, ampicillin and gentamicin for approximately 48 hours to cover for possible group B streptococcus."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "the week of October 20, 2003",
+        "reason": "followup at San Juan Pediatrics",
+        "source": {
+          "page": 2,
+          "text": "and she will be seen in followup at San Juan Pediatrics the week of October 20, 2003."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [
+      "continue feeding with either breast milk or Formula, that is, ___ to 24 calories per ounce."
+    ],
+    "red_flag_symptoms": [],
+    "discharge_condition": "good",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "Her condition at discharge is good."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "This is a diagnosis explanation for a baby born early. The baby was born at 34 weeks gestation. This means the baby was born several weeks before the full 40 weeks. The baby is now 5 days old.\n\nThe baby was exposed to Group B Streptococcus. This is a type of bacteria. The baby did not get an infection from this exposure.\n\nThe baby has physiologic jaundice. This is a common condition in newborns. It causes yellowing of the skin and eyes. It is usually mild and goes away on its own.\n\nThe baby also has a feeding problem. This means the baby is having some trouble with eating. This could be related to being born early.",
+  "medication_rationale": "Ampicillin:\nThis medicine helps fight off germs that can make your baby sick. It was given to prevent an infection. You should not notice any changes. Rarely, babies may get a rash. Call your doctor if your baby gets a rash that spreads.\n\nGentamicin:\nThis medicine helps fight off germs that can make your baby sick. It was given to prevent an infection. You should not notice any changes. Rarely, babies may have trouble hearing. Call your doctor if your baby seems less responsive to sounds.",
+  "recovery_trajectory": "**Week 1:**\n- Your baby may still need extra support breathing. This is normal.\n- Your baby will be fed breast milk or formula.\n- Use 20 to 24 calories per ounce for feedings.\n- Watch for your baby's breathing pattern.\n- Call your doctor if your baby has trouble breathing.\n- Your goal is to continue successful feedings at home.\n\n**Week 2:**\n- Your baby's breathing should get more steady.\n- Continue feeding breast milk or formula.\n- Use 20 to 24 calories per ounce for feedings.\n- Watch for signs your baby is getting enough milk.\n- Call your doctor if your baby seems unwell or stops eating.\n- Your goal is to have regular feeding times.\n\n**Week 3:**\n- Your baby's weight should start to increase steadily.\n- Continue feeding breast milk or formula.\n- Use 20 to 24 calories per ounce for feedings.\n- Watch for wet diapers and bowel movements.\n- Call your doctor if your baby has fewer wet diapers than usual.\n- Your goal is for your baby to gain weight each day.\n\n**Week 4:**\n- Your baby should seem more alert and responsive.\n- Continue feeding breast milk or formula.\n- Use 20 to 24 calories per ounce for feedings.\n- Watch for signs of good sleep and wake cycles.\n- Call your doctor if your baby seems unusually sleepy or fussy.\n- Your goal is to feed your baby on demand.\n\n**When to expect improvement:**\n- Your baby's breathing will continue to improve.\n- Feeding and sleeping patterns will become more regular.\n- Continue to monitor your baby closely.\n- Follow up with your pediatrician as recommended.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- No symptoms in this tier for your diagnosis.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- No symptoms in this tier for your diagnosis.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Baby seems unwell: Your doctor can check your baby.\n- Baby is feeding poorly: Your doctor can check feeding.\n- Yellow skin or eyes: This can be jaundice.\n- Baby seems sleepy: Your doctor can check if this is normal.\n- Baby has trouble breathing: Your doctor can check breathing.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 5.22,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.37,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 5.21,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.57,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No red-flag symptoms extracted.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "unknown",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What if my baby misses a dose of Ampicillin or Gentamicin?",
+        "answered_by_doc": false,
+        "gap_summary": "What to do for missed doses is missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does prematurity mean and why was my baby born so early?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of baby's early birth and condition is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What is Group B streptococcus and is my baby okay since they don't have sepsis?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of strep exposure and baby's current status is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does my baby's jaundice mean and how is it treated?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of jaundice and its treatment is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does 'status changed' mean for the Ampicillin and Gentamicin?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of medication status change is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Why was my baby given Ampicillin and Gentamicin?",
+        "answered_by_doc": false,
+        "gap_summary": "Reason for each medication is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Who should I call to make the appointment for the week of October 20, 2003?",
+        "answered_by_doc": false,
+        "gap_summary": "Contact number for appointment booking is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does it mean that my baby has a feeding problem?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of feeding problem is missing.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "This baby has many problems. The biggest gap is how to give medicines. Parents will struggle to care for the baby.",
+    "fk_grade": 7.61,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Ampicillin",
+        "questions": [
+          "Why was this medicine given?",
+          "What if a dose is missed?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Gentamicin",
+        "questions": [
+          "Why was this medicine given?",
+          "What if a dose is missed?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "San Juan Pediatrics - Week of October 20, 2003",
+        "questions": [
+          "What phone number do I call to book this?",
+          "What should I bring to this visit?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Prematurity, 34 weeks' gestation, now 5 days old",
+        "questions": [
+          "What does prematurity mean for my baby?",
+          "What are the risks for my baby?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Group B streptococcus exposure, but no sepsis",
+        "questions": [
+          "What is Group B strep?",
+          "Is my baby safe from this?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Physiologic jaundice",
+        "questions": [
+          "What does jaundice mean for my baby?",
+          "What are the signs it is getting worse?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Feeding problem",
+        "questions": [
+          "What does this feeding problem mean?",
+          "How will this be fixed?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "continue feeding with either breast milk or Formula, that is, ___ to 24 calories per ounce.",
+        "questions": [
+          "How much milk or formula should I give?",
+          "What does the blank space mean?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_009",
+    "source_pdf": "test-data/mtsamples/mtsamples_009.pdf",
+    "generated_at": "2026-08-15T12:56:19",
+    "elapsed_seconds": 5.9
+  }
+}
