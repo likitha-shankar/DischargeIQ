@@ -27,3 +27,8 @@ evaluation/corpus_outputs/
 
 # iOS/desktop bits not used by the backend
 ios/
+
+# Device backups pulled off the phone by scripts/backup_ios_data.sh. These
+# hold REAL analysed discharge documents and PDFs. They are gitignored for
+# that reason, and they must not ride along in a Cloud Build upload either.
+device-backups/

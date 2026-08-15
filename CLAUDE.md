@@ -469,10 +469,18 @@ No exceptions. No overrides.
 
 ### Git and commits
 
-- NEVER run `git commit`, `git push`, or `git add` for any reason.
-- NEVER stage files. NEVER create a commit message. NEVER initiate a pull request.
-- Only suggest what to commit and why. The human decides when and what gets committed.
-- If you think something is ready to commit, say so in a comment - do not act on it.
+- Do NOT commit, stage, or push by default. Suggest what to commit and why,
+  and let the human decide.
+- The exception is an explicit, in-session instruction to commit ("commit
+  this", "do incremental commits and push"). That instruction overrides the
+  default for that session only; it does not carry over to the next one.
+- NEVER open a pull request, and never push to a branch you were not told to
+  push to. `main` and the LOF-facing branches are the human's to move.
+- When committing under instruction: small, single-purpose commits, no
+  `Co-Authored-By` trailer, and no AI attribution of any kind (see
+  Authorship below - that rule has no exception).
+- Never commit `.env`, keys, device backups, or corpus data. Check
+  `git status` before every commit rather than staging everything.
 
 ### Authorship and identity
 
