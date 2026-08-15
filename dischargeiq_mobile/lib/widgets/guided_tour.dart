@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:flutter/material.dart';
 
@@ -101,11 +103,16 @@ class SpotlightPainter extends CustomPainter {
 }
 
 /// Shows the 6-step overlay; call from [ResultsScreen] after first analysis.
-void showGuidedTourOverlay({
+///
+/// The returned future completes when the tour closes, whether it was
+/// finished or skipped, so the caller can sequence what comes next - the
+/// usage disclaimer must not open on top of the tour.
+Future<void> showGuidedTourOverlay({
   required BuildContext context,
   required TabController tabController,
   required VoidCallback onFinished,
 }) {
+  final closed = Completer<void>();
   late OverlayEntry entry;
   entry = OverlayEntry(
     builder: (ctx) => _GuidedTourOverlay(
@@ -113,10 +120,12 @@ void showGuidedTourOverlay({
       onClose: () {
         entry.remove();
         onFinished();
+        if (!closed.isCompleted) closed.complete();
       },
     ),
   );
   Overlay.of(context).insert(entry);
+  return closed.future;
 }
 
 class _GuidedTourOverlay extends StatefulWidget {
