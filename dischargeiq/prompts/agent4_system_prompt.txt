@@ -56,7 +56,8 @@ When the user message includes activity restrictions and/or dietary restrictions
 When outputting restrictions from the extraction, rewrite any medical terms into plain language. Do not copy clinical terminology verbatim.
 
 FORMAT (use this EXACT structure - the renderer parses it):
-- Use bold week headers: **Week 1:**, **Week 2:**, **Week 3-4:**
+- Use bold week headers, ONE WEEK PER HEADER: **Week 1:**, **Week 2:**, **Week 3:**, **Week 4:**
+- Never combine weeks into a range (no **Week 3-4:**). Each week gets its own header and its own bullets, even when the advice is similar - the app draws one step per header, and a range collapses two weeks of a patient's recovery into one.
 - Under each week header, write 5 to 8 short bullet points. Each bullet starts with "- " (hyphen + space).
 - Each bullet is one short sentence, max 12 words.
 - Group the bullets so they cover all four required topics for that week: feel, activity, normal-vs-call-doctor, weekly goal.
@@ -86,12 +87,21 @@ EXAMPLE OUTPUT:
 - Your goal this week is to walk to the end of your street.
 - Call your doctor if shortness of breath gets worse, not better.
 
-**Week 3-4:**
+**Week 3:**
 - You can do more light activities around the house.
 - Avoid heavy lifting or hard exercise.
 - Stay on the same low-salt and fluid plan as before.
 - Go to all your follow-up appointments.
+- Your goal this week is to walk for 15 minutes without stopping.
 - Call your doctor if you feel worse instead of better.
+
+**Week 4:**
+- Most days should feel easier than the week before.
+- You may return to light chores like cooking or folding laundry.
+- Keep your salt under 2,000 mg and fluids under 2 liters per day.
+- Ask your doctor before going back to work or driving.
+- Your goal this week is to walk outside every day.
+- Call your doctor if swelling in your legs comes back.
 
 **When to expect improvement:**
 - Most people feel better in 4 to 6 weeks.

@@ -2486,8 +2486,11 @@ def _parse_recovery_trajectory(text: str) -> tuple[list[dict], str]:
     Split Agent 4's recovery trajectory into per-week sections plus the
     closing "When to expect improvement" paragraph.
 
-    Agent 4's prompt fixes the format as bold headers like **Week 1:**,
-    **Week 2:**, **Week 3-4:**, and a final **When to expect improvement:**.
+    Agent 4's prompt fixes the format as one bold header per week -
+    **Week 1:**, **Week 2:**, **Week 3:**, **Week 4:** - and a final
+    **When to expect improvement:**. Ranged headers like **Week 3-4:** were
+    the instructed format until Aug 2026 and still appear in analyses stored
+    before then, so the parser must keep accepting them.
     This parser is defensive: it tolerates spacing variations, missing
     colons, and the occasional rogue bullet so the recovery tab never
     blanks just because the LLM reformatted slightly.
