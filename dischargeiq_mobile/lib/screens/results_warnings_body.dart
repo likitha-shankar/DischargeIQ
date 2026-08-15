@@ -6,20 +6,19 @@ part of 'results_screen.dart';
 ///
 /// The redesign (Aug 2026) changes weight, not content. The old layout drew
 /// three tinted boxes of equal size, which flattened the one hierarchy in
-/// this app that must never be flat: tier 1 now has a solid header, heavier
-/// body type and a real Call 911 button; tier 2 stays open in amber; tier 3
-/// collapses behind its own count, which is the decision the old layout
-/// already made.
+/// this app that must never be flat: tier 1 has a solid header, heavier body
+/// type and a real Call 911 button, and tier 2 sits below it in amber.
 ///
-/// The rule that does not change: tiers 1 and 2 are NEVER collapsible.
-/// Putting emergency criteria behind a tap would mean a frightened patient
-/// has to go looking for the thing that tells them to call an ambulance.
+/// NO TIER IS COLLAPSIBLE. Tier 3 used to hide behind a tap to keep the tab
+/// short; a patient scanning for their own symptom should not have to
+/// discover that a third of the list is hidden, and a tier that behaves
+/// differently from the two above it reads as less important than it is.
 ///
 /// Everything the original showed is still here: the AI-generated notice
 /// above the tiers, each symptom's explanation, the Agent 6 follow-up
 /// questions below, and the general 911 advice when the document listed
 /// nothing.
-class _WarningsBody extends StatefulWidget {
+class _WarningsBody extends StatelessWidget {
   const _WarningsBody({
     required this.escalationText,
     required this.extraction,
@@ -31,17 +30,10 @@ class _WarningsBody extends StatefulWidget {
   final dynamic simulator;
 
   @override
-  State<_WarningsBody> createState() => _WarningsBodyState();
-}
-
-class _WarningsBodyState extends State<_WarningsBody> {
-  bool _tier3Open = false;
-
-  @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final ext = widget.extraction is Map
-        ? widget.extraction as Map
+    final ext = extraction is Map
+        ? extraction as Map
         : <dynamic, dynamic>{};
 
     // Tier data does NOT exist in the extraction schema: red_flag_symptoms is
@@ -54,7 +46,7 @@ class _WarningsBodyState extends State<_WarningsBody> {
     var tier3 = _items(ext, const ['call_doctor_signs', 'tier_3']);
 
     if (tier1.isEmpty && tier2.isEmpty && tier3.isEmpty) {
-      final parsed = parseEscalationTiers(widget.escalationText);
+      final parsed = parseEscalationTiers(escalationText);
       tier1 = parsed.call911;
       tier2 = parsed.erToday;
       tier3 = parsed.callDoctor;
@@ -93,18 +85,14 @@ class _WarningsBodyState extends State<_WarningsBody> {
             const SizedBox(height: 12),
           ],
           if (tier3.isNotEmpty) ...[
-            _Tier3Card(
-              items: tier3,
-              open: _tier3Open,
-              onToggle: () => setState(() => _tier3Open = !_tier3Open),
-            ),
+            _Tier3Card(items: tier3),
             const SizedBox(height: 12),
           ],
-        ] else if (widget.escalationText.trim().isNotEmpty)
+        ] else if (escalationText.trim().isNotEmpty)
           // Agent 5 produced prose without its required headers. Show it
           // whole rather than parse a tier out of text that has none - and
           // NOT collapsible: escalation text must never sit behind a tap.
-          PatientText(text: widget.escalationText)
+          PatientText(text: escalationText)
         else
           const EmptySection(
             icon: Icons.emergency_outlined,
@@ -123,7 +111,7 @@ class _WarningsBodyState extends State<_WarningsBody> {
         // opening this tab in a crisis must hit the 911 list first, not
         // meta-commentary about their document.
         _GapCallout(
-          simulator: widget.simulator,
+          simulator: simulator,
           keywords: const [
             'symptom', 'emergency', '911', 'er ', 'warning',
             'sign', 'fever', 'pain', 'breathe', 'bleeding',
@@ -345,19 +333,16 @@ class _Tier2Card extends StatelessWidget {
   }
 }
 
-/// Tier 3. The only collapsible tier, by definition the "call during office
-/// hours" list. Together the three tiers run to ~275 words on a real
-/// document, which is too much red and amber to scan when frightened.
+/// Tier 3, the "call during office hours" list.
+///
+/// Open like the other two. It used to collapse behind a tap to keep the tab
+/// short, but a patient scanning for their own symptom should not have to
+/// discover that a third of the list is hidden - and a tier that behaves
+/// differently from the two above it reads as less important than it is.
 class _Tier3Card extends StatelessWidget {
-  const _Tier3Card({
-    required this.items,
-    required this.open,
-    required this.onToggle,
-  });
+  const _Tier3Card({required this.items});
 
   final List<EscalationItem> items;
-  final bool open;
-  final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -371,55 +356,41 @@ class _Tier3Card extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onToggle,
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                child: Row(
-                  children: [
-                    const Icon(Icons.phone_in_talk_outlined,
-                        size: 19, color: sdSafe),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text(
-                        'CALL YOUR DOCTOR IF',
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.5,
-                          color: sdSafeInk,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      items.length == 1 ? '1 thing' : '${items.length} things',
-                      style: const TextStyle(
-                          fontSize: 11.5, color: Color(0xFF316241)),
-                    ),
-                    Icon(open ? Icons.expand_less : Icons.expand_more,
-                        size: 20, color: sdSafe),
-                  ],
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: sdSafeLine)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.phone_in_talk_outlined, size: 19, color: sdSafe),
+                SizedBox(width: 10),
+                Text(
+                  'CALL YOUR DOCTOR IF',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                    color: sdSafeInk,
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
-          if (open)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (final item in items)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: _TierBullet(item: item, color: sdSafe),
-                    ),
-                ],
-              ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 13, 16, 5),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final item in items)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _TierBullet(item: item, color: sdSafe),
+                  ),
+              ],
             ),
+          ),
         ],
       ),
     );

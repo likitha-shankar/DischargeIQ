@@ -359,10 +359,20 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
           // Learning goals stay changeable: the picker only appears
           // automatically on the first open, and a patient who skipped it -
           // or whose priorities changed after reading - had no way back to it.
-          IconButton(
-            tooltip: 'What do you want to understand most?',
-            icon: const Icon(Icons.flag_outlined),
+          // Labelled, not a bare flag. A tooltip only appears on a long
+          // press on iOS, so an icon-only action in a six-action bar is
+          // undiscoverable - nobody guesses that a flag means "choose what
+          // you want to understand". The word is what makes it findable.
+          TextButton.icon(
             onPressed: _editLearningGoals,
+            icon: const Icon(Icons.flag_outlined, size: 19),
+            label: const Text('Goals'),
+            style: TextButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              foregroundColor: Theme.of(context).appBarTheme.foregroundColor ??
+                  Theme.of(context).colorScheme.onSurface,
+            ),
           ),
           if (_readAloudEnabled)
             IconButton(
