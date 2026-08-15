@@ -2,111 +2,364 @@
 // Same library: private classes and library imports are shared.
 part of 'results_screen.dart';
 
-class _RecoveryBody extends StatelessWidget {
+/// Recovery.
+///
+/// The redesign (Aug 2026) answers the two questions a patient actually has -
+/// "where am I in this?" and "is my weight going the wrong way?" - with a
+/// phase rail and a real weight trend, in place of the custom-painted journey
+/// trail with its ridge flags and summit star.
+///
+/// What the original showed is still here: activity and food restrictions,
+/// the condition at discharge, and phase text rendered through [PatientText]
+/// so the agent's markdown does not leak as asterisks. Phases come from the
+/// shared [parseRecoveryPhases] service, so this screen and the journey card
+/// on the home page always agree on what week it is.
+///
+/// The weight series is local-only ([HealthLog]); no backend change.
+class _RecoveryBody extends StatefulWidget {
   const _RecoveryBody({required this.trajectory, required this.extraction});
+
   final String trajectory;
   final dynamic extraction;
 
   @override
+  State<_RecoveryBody> createState() => _RecoveryBodyState();
+}
+
+class _RecoveryBodyState extends State<_RecoveryBody> {
+  List<WeightEntry> _weights = const [];
+  double? _change;
+
+  /// Phase the rail is showing. Null until the first build works out where
+  /// today falls, so the patient lands on their own week rather than week 1.
+  int? _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final docId = context.read<DischargeProvider>().activeDocId;
+    if (docId == null) return;
+    final w = await HealthLog.weights(docId);
+    final ch = await HealthLog.overnightChange(docId);
+    if (!mounted) return;
+    setState(() {
+      _weights = w;
+      _change = ch;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final ext = extraction is Map ? extraction as Map : <dynamic, dynamic>{};
-    final rawActivity = ext['activity_restrictions'];
-    final rawDietary = ext['dietary_restrictions'];
+    final c = SectionColors.of(context);
+    final ext = widget.extraction is Map
+        ? widget.extraction as Map
+        : <dynamic, dynamic>{};
+
+    final activity = _strings(ext['activity_restrictions']);
+    final dietary = _strings(ext['dietary_restrictions']);
     final condition = '${ext['discharge_condition'] ?? ''}';
-    final activity = rawActivity is List
-        ? rawActivity.map((e) => '$e').where((e) => e.isNotEmpty).toList()
-        : <String>[];
-    final dietary = rawDietary is List
-        ? rawDietary.map((e) => '$e').where((e) => e.isNotEmpty).toList()
-        : <String>[];
 
-    final hasRestrictions = activity.isNotEmpty || dietary.isNotEmpty || condition.isNotEmpty;
+    // Parsed once into every heading-led block, then split: the week-shaped
+    // ones drive the rail, and anything else ("When to expect improvement")
+    // is advice about the whole recovery, so it renders as its own card
+    // rather than as a stray bullet inside whichever week came last.
+    final sections = parseRecoverySections(widget.trajectory);
+    final phases = weekPhases(sections);
+    final extras = phases.isEmpty
+        ? const <RecoveryPhase>[]
+        : sections.where((s) => s.weekStart == null).toList();
+    // Where today actually falls, from the discharge date. The rail opens
+    // there and tapping another phase overrides it for the session. Null when
+    // the date is missing or unparseable - a real state, not a zero: the
+    // original rendered the map without a "you are here" marker rather than
+    // guessing, and so does this.
+    final here = phases.isEmpty
+        ? null
+        : currentPhaseIndex(phases, '${ext['discharge_date'] ?? ''}');
+    final shown = phases.isEmpty
+        ? 0
+        : (_selected ?? here ?? 0).clamp(0, phases.length - 1);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _SectionHero(
-            icon: Icons.trending_up_rounded,
-            title: 'Your recovery',
-            subtitle: 'What the coming weeks should look like',
-          ),
-          if (hasRestrictions) ...[
-            // Full-width, stacked: long instructions in half-width columns
-            // were unreadable (patient feedback July 2026).
-            if (activity.isNotEmpty)
-              _RestrictionColumn(
-                label: 'Activity',
-                icon: Icons.directions_walk,
-                items: activity,
-                dark: dark,
-              ),
-            if (dietary.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              _RestrictionColumn(
-                label: 'Food & drink',
-                icon: Icons.restaurant_outlined,
-                items: dietary,
-                dark: dark,
-              ),
-            ],
-            if (condition.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: dark ? kTeal.withValues(alpha: 0.15) : kTealPale,
-                  borderRadius: BorderRadius.circular(kRadiusField),
+    return SectionScroll(
+      children: [
+        const SectionEyebrow('Recovery'),
+        const SizedBox(height: 8),
+        SectionHeadline(
+          switch ((phases.isEmpty, here)) {
+            (true, _) => 'How your recovery should go.',
+            (false, final int i) => 'You are in ${phases[i].title.toLowerCase()} '
+                'of ${phases.length == 1 ? 'one phase' : 'about ${phases.length} phases'}.',
+            // Phases exist but the discharge date does not place the patient
+            // in one. Describe the shape without claiming to know the week.
+            _ => 'Your recovery runs in '
+                '${phases.length == 1 ? 'one phase' : '${phases.length} phases'}.',
+          },
+          size: 22,
+        ),
+        const SizedBox(height: 14),
+        _WeightCard(weights: _weights, change: _change, onLog: _logWeight),
+        const SizedBox(height: 12),
+        if (phases.isNotEmpty) ...[
+          SectionCard(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _PhaseRail(
+                  phases: phases,
+                  selected: shown,
+                  onSelect: (i) => setState(() => _selected = i),
                 ),
-                child: RichText(
-                  text: TextSpan(
+                const SizedBox(height: 12),
+                Divider(height: 1, color: c.lineSoft),
+                const SizedBox(height: 12),
+                Text(
+                  phases[shown].title,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: c.text,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                _Bullets(bullets: phases[shown].bullets),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Advice that belongs to the recovery rather than to one week.
+          for (final extra in extras) ...[
+            SectionCard(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    extra.title,
                     style: TextStyle(
-                      fontSize: 13,
-                      color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: c.text,
                     ),
-                    children: [
-                      const TextSpan(text: 'Condition at discharge: ', style: TextStyle(fontWeight: FontWeight.w600)),
-                      TextSpan(text: condition),
-                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  _Bullets(bullets: extra.bullets),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ] else if (widget.trajectory.trim().isNotEmpty) ...[
+          // Prose that did not parse into phases. Shown whole rather than
+          // forced into a timeline the document never gave.
+          SectionCard(
+            child: PatientText(text: widget.trajectory, collapsible: true),
+          ),
+          const SizedBox(height: 12),
+        ] else ...[
+          const EmptySection(
+            icon: Icons.timeline_outlined,
+            title: 'No recovery timeline',
+            message:
+                'Your document did not describe what to expect week by week. '
+                'Ask your care team how long recovery usually takes and what '
+                'you can do in the meantime.',
+          ),
+          const SizedBox(height: 12),
+        ],
+        // Restrictions: the rules that apply for the whole recovery, not to
+        // one phase, so they sit below the rail rather than inside it.
+        if (activity.isNotEmpty)
+          _RestrictionColumn(
+            label: 'Activity',
+            icon: Icons.directions_walk,
+            items: activity,
+            dark: dark,
+          ),
+        if (dietary.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          _RestrictionColumn(
+            label: 'Food & drink',
+            icon: Icons.restaurant_outlined,
+            items: dietary,
+            dark: dark,
+          ),
+        ],
+        if (condition.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          SectionCard(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            color: c.accentTint,
+            border: Colors.transparent,
+            child: Text.rich(
+              TextSpan(
+                style: TextStyle(fontSize: 13, height: 1.45, color: c.text),
+                children: [
+                  const TextSpan(
+                    text: 'Condition at discharge: ',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  TextSpan(text: condition),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// A JSON list field as clean strings; anything else as an empty list.
+  List<String> _strings(dynamic raw) => raw is List
+      ? raw.map((e) => '$e').where((e) => e.trim().isNotEmpty).toList()
+      : const [];
+
+  Future<void> _logWeight() async {
+    final docId = context.read<DischargeProvider>().activeDocId;
+    if (docId == null) return;
+    final value = await showDialog<double>(
+      context: context,
+      builder: (ctx) => const _WeightDialog(),
+    );
+    if (value == null) return;
+    await HealthLog.logWeight(docId, value);
+    await _load();
+    if (!mounted) return;
+    final ch = _change;
+    if (ch != null && ch >= 3) {
+      // The paperwork's own rule: +3 lb overnight is an ER-today sign.
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          icon: const Icon(Icons.warning_amber_rounded, color: sdWarn, size: 32),
+          title: const Text('That is a big jump'),
+          content: Text(
+            'You are up ${ch.toStringAsFixed(1)} lb since your last reading. '
+            'Your discharge papers say a rise of 3 lb in a day means go to '
+            'the ER today - it is fluid, not fat. Do not wait for your next '
+            'appointment.',
+            style: const TextStyle(height: 1.5),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Understood'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+}
+
+/// A phase or section's lines, one dot each.
+///
+/// Each line goes through [PatientText] rather than a bare [Text]: the agent
+/// writes markdown, and rendering it raw put asterisks on screen.
+class _Bullets extends StatelessWidget {
+  const _Bullets({required this.bullets});
+
+  final List<String> bullets;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SectionColors.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final bullet in bullets)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 5,
+                  height: 5,
+                  margin: const EdgeInsets.only(top: 8, right: 9),
+                  decoration:
+                      BoxDecoration(color: c.accent, shape: BoxShape.circle),
+                ),
+                Expanded(child: PatientText(text: bullet, fontSize: 13.5)),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// The week rail: every phase visible at once, the current one filled.
+///
+/// Bars grow left to right so the shape reads as progress rather than as a
+/// chart of some quantity - there is no quantity here, only order.
+class _PhaseRail extends StatelessWidget {
+  const _PhaseRail({
+    required this.phases,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  final List<RecoveryPhase> phases;
+  final int selected;
+  final ValueChanged<int> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SectionColors.of(context);
+    return SizedBox(
+      height: 62,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          for (var i = 0; i < phases.length; i++)
+            Expanded(
+              child: Semantics(
+                selected: i == selected,
+                button: true,
+                label: phases[i].title,
+                child: GestureDetector(
+                  onTap: () => onSelect(i),
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2.5),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          phases[i].title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w600,
+                            color: i == selected ? c.accent : c.textMute,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          height: 14.0 + (30.0 * (i + 1) / phases.length),
+                          decoration: BoxDecoration(
+                            color: i == selected
+                                ? sdTeal
+                                : (i < selected ? sdTealGlow : c.lineSoft),
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(7),
+                              bottom: Radius.circular(3),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ],
-            Divider(color: dark ? kBorderDark : kBorderLight, height: 28),
-          ],
-          Text(
-            'Your recovery timeline',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: dark ? kTextPrimaryDark : kTextPrimaryLight,
             ),
-          ),
-          const SizedBox(height: 10),
-          Builder(builder: (context) {
-            if (trajectory.isEmpty) {
-              return const EmptySection(
-                icon: Icons.timeline_outlined,
-                title: 'No recovery timeline',
-                message:
-                    'Your document did not describe what to expect week by '
-                    'week. Ask your care team how long recovery usually takes '
-                    'and what you can do in the meantime.',
-              );
-            }
-            // Journey map (wave 3): visual path when the text parses into
-            // week phases; conservative fallback to plain text otherwise.
-            final phases = parseRecoveryPhases(trajectory);
-            if (phases.isEmpty) {
-              return PatientText(text: trajectory, fontSize: 14, collapsible: true);
-            }
-            final ext = extraction is Map ? extraction as Map : const {};
-            final here = currentPhaseIndex(
-                phases, '${ext['discharge_date'] ?? ''}');
-            return _JourneyPath(phases: phases, here: here, dark: dark);
-          }),
         ],
       ),
     );
@@ -213,6 +466,9 @@ class _GapCallout extends StatelessWidget {
     if (relevant.isEmpty) return const SizedBox.shrink();
 
     return Container(
+      // Full bleed: a short gap question must not draw a narrower
+      // tinted card than the one above it.
+      width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -248,232 +504,4 @@ class _GapCallout extends StatelessWidget {
   }
 }
 
-List<String> _extractTierBullets(String text, String start, String? next) {
-  final up = text.toUpperCase();
-  final s = up.indexOf(start.toUpperCase());
-  if (s < 0) return [];
-  final end = next == null ? text.length : up.indexOf(next.toUpperCase(), s + start.length);
-  final raw = end < 0
-      ? text.substring(s + start.length).trim()
-      : text.substring(s + start.length, end).trim();
-  if (raw.isEmpty) return [];
-  return raw
-      .split('\n')
-      .map((l) => l.replaceFirst(RegExp(r'^[•\-\*]\s*'), '').trim())
-      .where((l) => l.isNotEmpty)
-      .toList();
-}
-
-/// Per-phase accent colors for the recovery timeline. Each week gets its own
-/// calm hue so the phases read as distinct chapters instead of one long wall
-/// (user feedback July 2026: "week 1, 2, 3 is all too much info"). Cycles
-/// when a document has more phases than colors. Deliberately NO amber or red
-/// - those are reserved app-wide for warnings and escalation tiers.
-const List<Color> _kPhaseAccentsLight = [
-  kTeal, // week 1 - brand teal
-  Color(0xFF185FA5), // week 2 - calm blue
-  Color(0xFF6C5CA8), // week 3 - soft violet
-  Color(0xFF3B6D11), // week 4+ - settled green
-];
-const List<Color> _kPhaseAccentsDark = [
-  kTealGlow,
-  Color(0xFF8FB8E8),
-  Color(0xFFB3A6E3),
-  Color(0xFF9CC96B),
-];
-
-/// Recovery journey, one CARD per phase. The current week ("You are here",
-/// pinned by the discharge date) opens expanded; every other week collapses
-/// to its title + step count so the tab reads as a short list of weeks, not
-/// a wall of bullets (patient feedback July 2026). Past weeks tint green -
-/// progress framing, never a countdown.
-class _JourneyPath extends StatefulWidget {
-  const _JourneyPath({required this.phases, required this.here, required this.dark});
-
-  final List<RecoveryPhase> phases;
-  final int? here;
-  final bool dark;
-
-  @override
-  State<_JourneyPath> createState() => _JourneyPathState();
-}
-
-class _JourneyPathState extends State<_JourneyPath> {
-  late final Set<int> _open = {widget.here ?? 0};
-
-  @override
-  Widget build(BuildContext context) {
-    final dark = widget.dark;
-    final here = widget.here;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var i = 0; i < widget.phases.length; i++)
-          Builder(builder: (context) {
-            final phase = widget.phases[i];
-            final isHere = i == here;
-            final isPast = here != null && i < here;
-            final open = _open.contains(i);
-            // Each phase carries its own accent so the weeks scan as
-            // separate chapters at a glance.
-            final accent = (dark ? _kPhaseAccentsDark : _kPhaseAccentsLight)[
-                i % _kPhaseAccentsLight.length];
-            return Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: 10),
-              decoration: BoxDecoration(
-                // Any OPEN week wears its phase tint (matching the "You are
-                // here" card) so the expanded chapter reads as one colored
-                // block; collapsed weeks stay neutral.
-                color: (isHere || open)
-                    ? accent.withValues(alpha: dark ? 0.18 : 0.10)
-                    : (dark ? kCardDark : kCardLight),
-                borderRadius: BorderRadius.circular(kRadiusField),
-                // "You are here" keeps its accent outline; other steps are
-                // borderless tonal cards (2026 revamp).
-                border: Border.all(
-                  color: isHere ? accent : Colors.transparent,
-                  width: isHere ? 1.2 : 1,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  InkWell(
-                    borderRadius: BorderRadius.circular(kRadiusField),
-                    onTap: () => setState(() {
-                      open ? _open.remove(i) : _open.add(i);
-                    }),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-                      child: Row(
-                        children: [
-                          // Phase color stripe - the week's identity mark.
-                          Container(
-                            width: 4,
-                            height: 30,
-                            margin: const EdgeInsets.only(right: 10),
-                            decoration: BoxDecoration(
-                              color: accent,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                          // Week status marker: check = behind you, filled
-                          // ring = now, open ring = ahead.
-                          Icon(
-                            isPast
-                                ? Icons.check_circle_rounded
-                                : (isHere
-                                    ? Icons.radio_button_checked
-                                    : Icons.radio_button_unchecked),
-                            size: 20,
-                            color: isPast || isHere
-                                ? accent
-                                : (dark ? kTextHintDark : kTextHintLight),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              phase.title,
-                              style: TextStyle(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w700,
-                                color: dark ? kTextPrimaryDark : kTextPrimaryLight,
-                              ),
-                            ),
-                          ),
-                          if (isHere)
-                            Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: accent,
-                                borderRadius: BorderRadius.circular(kRadiusField),
-                              ),
-                              child: Text(
-                                'You are here',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: dark ? kBgDark : Colors.white,
-                                ),
-                              ),
-                            )
-                          else
-                            Padding(
-                              padding: const EdgeInsets.only(right: 6),
-                              child: Text(
-                                '${phase.bullets.length} steps',
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  color: dark
-                                      ? kTextSecondaryDark
-                                      : kTextSecondaryLight,
-                                ),
-                              ),
-                            ),
-                          Icon(
-                            open ? Icons.expand_less : Icons.expand_more,
-                            size: 20,
-                            color: dark ? kTextSecondaryDark : kTextSecondaryLight,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (open)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 14, 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (final b in phase.bullets)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 5),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 7),
-                                    child: Container(
-                                      width: 5,
-                                      height: 5,
-                                      decoration: BoxDecoration(
-                                        color: accent.withValues(alpha: 0.7),
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 9),
-                                  Expanded(
-                                    child: Text(
-                                      // Stray markdown emphasis markers never
-                                      // reach the patient (same rule as
-                                      // PatientText).
-                                      b.replaceAll('*', '').trim(),
-                                      style: TextStyle(
-                                        fontSize: 13.5,
-                                        height: 1.45,
-                                        color: dark
-                                            ? kTextPrimaryDark
-                                            : kTextPrimaryLight,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            );
-          }),
-      ],
-    );
-  }
-}
 

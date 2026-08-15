@@ -1,11 +1,14 @@
 import 'dart:math' show max, min;
 
 import 'package:dischargeiq_mobile/config.dart';
+import 'package:dischargeiq_mobile/section_design.dart';
 import 'package:dischargeiq_mobile/theme.dart' show kRadiusCard, kRadiusField;
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/services/calendar_link.dart';
 import 'package:dischargeiq_mobile/services/document_store.dart' show isUnusableRun;
+import 'package:dischargeiq_mobile/services/escalation_tiers.dart';
 import 'package:dischargeiq_mobile/services/game_store.dart';
+import 'package:dischargeiq_mobile/services/health_log.dart';
 import 'package:dischargeiq_mobile/services/learning_goals.dart';
 import 'package:dischargeiq_mobile/services/read_aloud.dart';
 import 'package:dischargeiq_mobile/services/share_summary.dart';
@@ -15,14 +18,17 @@ import 'package:dischargeiq_mobile/screens/original_document_screen.dart';
 import 'package:dischargeiq_mobile/screens/quiz_screen.dart';
 import 'package:dischargeiq_mobile/screens/scan_screen.dart';
 import 'package:dischargeiq_mobile/screens/settings_screen.dart';
+import 'package:dischargeiq_mobile/widgets/ai_disclaimer_dialog.dart';
 import 'package:dischargeiq_mobile/widgets/audio_explainer.dart';
 import 'package:dischargeiq_mobile/widgets/chat_sheet.dart';
 import 'package:dischargeiq_mobile/widgets/guided_tour.dart';
 import 'package:dischargeiq_mobile/widgets/learning_goal_sheet.dart';
+import 'package:dischargeiq_mobile/widgets/run_state_screens.dart';
 import 'package:dischargeiq_mobile/widgets/source_quote.dart';
 import 'package:dischargeiq_mobile/widgets/capped_list.dart';
 import 'package:dischargeiq_mobile/widgets/empty_section.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show MissingPluginException, PlatformException;
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,6 +39,7 @@ part 'results_check_body.dart';
 part 'results_dx_meds_body.dart';
 part 'results_warnings_body.dart';
 part 'results_recovery_body.dart';
+part 'results_weight_card.dart';
 part 'results_appointments_body.dart';
 
 
@@ -68,6 +75,10 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
     _loadReadAloudPref();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _maybeStartTour();
+      // The usage disclaimer gates everything after the tour: a patient
+      // should not be reading AI-written medical text before being told
+      // that is what it is. Blocking, and acknowledged per document.
+      await _maybeShowDisclaimer();
       // Goals are asked after the tour, and before the first star lands, so
       // the patient chooses what matters before the app starts rewarding.
       await _maybeAskLearningGoals();
@@ -118,7 +129,9 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
 
   Future<void> _startTour() async {
     if (!mounted) return;
-    showGuidedTourOverlay(
+    // Awaited: the tour owns the screen until it closes, and whatever comes
+    // next must not open on top of it.
+    await showGuidedTourOverlay(
       context: context,
       tabController: _tabController,
       onFinished: () {
@@ -152,6 +165,22 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
   ///
   /// Runs after the tour so two overlays never fight for the screen, and
   /// never on a rejected document - there is nothing to set goals about.
+  /// Show the AI usage disclaimer once per document.
+  ///
+  /// Skipped for a rejected document: there is no analysis to qualify, and
+  /// that screen already says the app could not use the upload.
+  Future<void> _maybeShowDisclaimer() async {
+    if (!mounted) return;
+    final provider = context.read<DischargeProvider>();
+    if ('${provider.result?['pipeline_status']}' == 'rejected') return;
+    final docId = provider.activeDocId;
+    // An unsaved run has no id to remember an acknowledgement against, so it
+    // shows every time rather than silently skipping the notice.
+    if (docId != null && await wasDisclaimerAcknowledged(docId)) return;
+    if (!mounted) return;
+    await showAiDisclaimer(context, docId: docId);
+  }
+
   Future<void> _maybeAskLearningGoals() async {
     if (!mounted) return;
     final provider = context.read<DischargeProvider>();
@@ -272,7 +301,7 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
     // Router gate: not a discharge document → dedicated screen. Rendering the
     // tabs would show seven empty sections plus an ungrounded chat and quiz.
     if ('${r['pipeline_status']}' == 'rejected') {
-      return _RejectedDocumentScreen(
+      return RejectedDocumentScreen(
         reason: '${r['rejection_reason'] ?? 'This does not look like a hospital discharge document.'}',
       );
     }
@@ -282,7 +311,7 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
     // Seven hollow tabs with "Extraction failed" as a diagnosis reads as a
     // broken app; a single honest try-again screen does not.
     if (isUnusableRun(r)) {
-      return const _AnalysisFailedScreen();
+      return const AnalysisFailedScreen();
     }
 
     return Scaffold(
@@ -398,6 +427,9 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
                     explanation: '${r['diagnosis_explanation'] ?? ''}',
                     extraction: r['extraction'],
                     documentType: '${r['document_type'] ?? ''}',
+                    // The closing card hands the patient the next question
+                    // rather than leaving them to find the tab strip.
+                    onNext: () => _tabController.animateTo(1),
                   ),
                 ),
                 KeyedSubtree(
@@ -459,132 +491,6 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
         foregroundColor: Colors.white,
         tooltip: 'Ask about your summary, or have it read aloud',
         child: const Icon(Icons.forum_outlined, size: 26),
-      ),
-    );
-  }
-}
-
-/// Full-screen notice for a run where analysis could not produce anything
-/// usable. Honest, jargon-free, one action. Never mentions API keys.
-class _AnalysisFailedScreen extends StatelessWidget {
-  const _AnalysisFailedScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: kTeal,
-        foregroundColor: Colors.white,
-        title: const Text('DischargeIQ'),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.cloud_off_outlined, size: 60, color: kTier2),
-                const SizedBox(height: 16),
-                Text(
-                  "We couldn't read your document right now",
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Our reading service is very busy at the moment. Nothing is '
-                  'wrong with your document, and nothing was lost.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Please try again in a few minutes. If it keeps happening, '
-                  'try later today - your paper document always has the '
-                  'complete instructions.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      height: 1.5,
-                      color: Theme.of(context).textTheme.bodySmall?.color),
-                ),
-                const SizedBox(height: 24),
-                FilledButton.icon(
-                  onPressed: () =>
-                      context.read<DischargeProvider>().clear(),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Try again'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-
-/// Full-screen notice for a document the router rejected (bill, EOB, random
-/// PDF). One action: go back and try another document.
-class _RejectedDocumentScreen extends StatelessWidget {
-  const _RejectedDocumentScreen({required this.reason});
-
-  final String reason;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: kTeal,
-        foregroundColor: Colors.white,
-        title: const Text('DischargeIQ'),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.description_outlined, size: 60, color: kTier2),
-                const SizedBox(height: 16),
-                Text(
-                  "This doesn't look like a discharge document",
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 10),
-                Text(reason,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5)),
-                const SizedBox(height: 10),
-                Text(
-                  'DischargeIQ works with the discharge summary your hospital '
-                  'gave you when you went home - it usually lists your '
-                  'diagnosis, medications, and follow-up appointments.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(height: 1.5, color: Theme.of(context).textTheme.bodySmall?.color),
-                ),
-                const SizedBox(height: 24),
-                FilledButton.icon(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.upload_file_outlined),
-                  label: const Text('Try another document'),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -759,27 +665,23 @@ class _PipelineStatusBanner extends StatelessWidget {
 
 /// Shared tab hero (2026 revamp): every section opens with an icon squircle,
 /// a big title, and a one-line purpose - the patient always knows what the
-/// tab is FOR before reading it. Tinted with the section's accent color;
-/// safety tabs pass their own semantic tint (never decorative).
+/// tab is FOR before reading it. Tinted with the app accent; the three
+/// redesigned sections open with a SectionEyebrow instead and do not use it.
 class _SectionHero extends StatelessWidget {
   const _SectionHero({
     required this.icon,
     required this.title,
     required this.subtitle,
-    this.tint,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
 
-  /// Accent for the icon chip; defaults to the app teal.
-  final Color? tint;
-
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final accent = tint ?? (dark ? kTealGlow : kTeal);
+    final accent = dark ? kTealGlow : kTeal;
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
       child: Row(

@@ -2,21 +2,36 @@
 // Same library: private classes and library imports are shared.
 part of 'results_screen.dart';
 
+/// What happened.
+///
+/// The redesign (Aug 2026) leads with the explanation's first sentence as a
+/// headline, because that sentence IS the answer to "what happened to me",
+/// and demotes the coded diagnosis to a supporting card that still carries
+/// its SourceQuote provenance. Nothing the original showed was dropped: the
+/// per-diagnosis audio explainer and the collapsible, glossary-aware
+/// [PatientText] rendering are the same widgets the old layout used.
 class _DiagnosisBody extends StatelessWidget {
   const _DiagnosisBody({
     required this.explanation,
     required this.extraction,
     this.documentType = '',
+    required this.onNext,
   });
+
   final String explanation;
   final dynamic extraction;
 
   /// Router classification - drives the per-diagnosis audio explainer.
   final String documentType;
 
+  /// Moves to the Medications tab. The closing card is the one place this
+  /// section points forward, so the patient is handed the next question
+  /// rather than left to find the tab strip.
+  final VoidCallback onNext;
+
   @override
   Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
+    final c = SectionColors.of(context);
     final ext = extraction is Map ? extraction as Map : <dynamic, dynamic>{};
     final primaryDx = '${ext['primary_diagnosis'] ?? ''}';
     final rawSec = ext['secondary_diagnoses'];
@@ -24,108 +39,147 @@ class _DiagnosisBody extends StatelessWidget {
         ? rawSec.map((e) => '$e').where((e) => e.isNotEmpty).toList()
         : <String>[];
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _SectionHero(
+    final sentences = _splitLead(explanation);
+    final medCount = _medCount(ext);
+
+    return SectionScroll(
+      children: [
+        const SectionEyebrow('What happened'),
+        const SizedBox(height: 8),
+        if (sentences.lead.isNotEmpty) ...[
+          SectionHeadline(sentences.lead, size: 25),
+          const SizedBox(height: 14),
+        ],
+        // Audio explainer for the five supported diagnoses. Unchanged from
+        // the original layout - it is the accessibility path for anyone who
+        // cannot comfortably read the summary.
+        if (documentType.isNotEmpty && documentType != 'unknown') ...[
+          AudioExplainerCard(documentType: documentType),
+          const SizedBox(height: 4),
+        ],
+        if (primaryDx.isNotEmpty || secList.isNotEmpty) ...[
+          SectionCard(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (primaryDx.isNotEmpty) ...[
+                  const SectionMiniLabel('Main condition'),
+                  const SizedBox(height: 4),
+                  Text(
+                    primaryDx,
+                    style: TextStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w600,
+                      color: c.text,
+                    ),
+                  ),
+                  // Provenance (trust feature): the exact document passage
+                  // Agent 1 extracted this diagnosis from.
+                  SourceQuote(source: ext['primary_diagnosis_source']),
+                ],
+                if (secList.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Divider(height: 1, color: c.lineSoft),
+                  const SizedBox(height: 12),
+                  const SectionMiniLabel('Also treated'),
+                  const SizedBox(height: 6),
+                  ...secList.map(
+                    (dx) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 16,
+                            height: 6,
+                            margin: const EdgeInsets.only(top: 6, right: 9),
+                            decoration: BoxDecoration(
+                              color: sdTealLight,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              dx,
+                              style: TextStyle(fontSize: 13.5, color: c.text),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+        ],
+        if (explanation.isEmpty)
+          const EmptySection(
             icon: Icons.monitor_heart_outlined,
-            title: 'What happened',
-            subtitle: 'Your diagnosis, explained in plain words',
-          ),
-          if (documentType.isNotEmpty && documentType != 'unknown')
-            AudioExplainerCard(documentType: documentType),
-          if (primaryDx.isNotEmpty || secList.isNotEmpty) ...[
-            if (primaryDx.isNotEmpty) ...[
-              _DxLabel(label: 'Your main condition', dark: dark),
-              const SizedBox(height: 4),
-              _DxBadgeRow(text: primaryDx, dark: dark),
-              // Provenance (trust feature): the exact document passage
-              // Agent 1 extracted this diagnosis from.
-              SourceQuote(source: ext['primary_diagnosis_source']),
-            ],
-            if (secList.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              _DxLabel(label: 'Other conditions treated', dark: dark),
-              const SizedBox(height: 4),
-              ...secList.map((dx) => _DxBadgeRow(text: dx, dark: dark)),
-            ],
-            const SizedBox(height: 12),
-            Divider(color: dark ? kBorderDark : kBorderLight),
-            const SizedBox(height: 12),
-          ],
-          explanation.isEmpty
-              ? const EmptySection(
-                  icon: Icons.monitor_heart_outlined,
-                  title: 'No diagnosis explanation',
-                  message:
-                      'We could not find a clear diagnosis in your document to '
-                      'explain. Ask your care team what your main condition is '
-                      'called, and what it means for you.',
-                )
-              : PatientText(text: explanation, collapsible: true),
-        ],
-      ),
-    );
-  }
-}
-
-class _DxLabel extends StatelessWidget {
-  const _DxLabel({required this.label, required this.dark});
-  final String label;
-  final bool dark;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label.toUpperCase(),
-      style: TextStyle(
-        fontSize: 10,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.8,
-        color: dark ? kTextSecondaryDark : kTextSecondaryLight,
-      ),
-    );
-  }
-}
-
-class _DxBadgeRow extends StatelessWidget {
-  const _DxBadgeRow({required this.text, required this.dark});
-  final String text;
-  final bool dark;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 18,
-            height: 8,
-            decoration: BoxDecoration(
-              color: dark ? kTealLight : kTeal,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 14,
-                color: dark ? kTextPrimaryDark : kTextPrimaryLight,
-              ),
+            title: 'No diagnosis explanation',
+            message:
+                'We could not find a clear diagnosis in your document to '
+                'explain. Ask your care team what your main condition is '
+                'called, and what it means for you.',
+          )
+        else
+          // PatientText, not a bare Text: it renders the agent's markdown,
+          // links glossary terms and collapses a long explanation. A plain
+          // Text here leaked ** into the patient's face.
+          PatientText(text: sentences.rest, collapsible: true),
+        if (medCount > 0) ...[
+          const SizedBox(height: 16),
+          SectionCard(
+            onTap: onNext,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Next: the $medCount medicines you came home with',
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: c.text,
+                    ),
+                  ),
+                ),
+                Icon(Icons.arrow_forward, size: 20, color: c.accent),
+              ],
             ),
           ),
         ],
-      ),
+      ],
     );
+  }
+
+  /// How many medicines the patient came home with, for the closing card.
+  int _medCount(Map ext) {
+    final m = ext['medications'];
+    return m is List ? m.length : 0;
+  }
+
+  /// First sentence becomes the headline, the rest stays body copy.
+  ///
+  /// A "sentence" longer than 180 characters is a paragraph, not a headline,
+  /// so in that case everything stays in the body and no headline is shown.
+  static _Lead _splitLead(String text) {
+    final t = text.trim();
+    if (t.isEmpty) return const _Lead('', '');
+    final idx = t.indexOf(RegExp(r'(?<=[.!?])\s'));
+    if (idx < 0 || idx > 180) return _Lead('', t);
+    return _Lead(t.substring(0, idx).trim(), t.substring(idx).trim());
   }
 }
 
+/// A diagnosis explanation split into its headline sentence and the rest.
+class _Lead {
+  const _Lead(this.lead, this.rest);
+  final String lead;
+  final String rest;
+}
 /// Medications tab - per-drug cards with status badge + expandable rationale.
 class _MedicationsBody extends StatelessWidget {
   const _MedicationsBody({

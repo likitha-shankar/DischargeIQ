@@ -63,4 +63,51 @@ void main() {
         currentPhaseIndex(phases, '2099-01-01', now: DateTime(2026, 7, 1)),
         isNull);
   });
+
+  group('non-week sections', () {
+    // Verbatim shape of the trailing section Agent 4 emits after the last
+    // week. It used to fall into that week's bullet list, so the Recovery
+    // tab showed "When to expect improvement" as a bullet of Week 3-4.
+    const guide = '''
+**Week 1:**
+- Rest often.
+
+**Week 3-4:**
+- You can walk for longer.
+
+**When to expect improvement:**
+- Improvement can be slow and takes time.
+- Progress will happen week by week.
+''';
+
+    test('a trailing section is its own block, not the last week\'s bullets', () {
+      final sections = parseRecoverySections(guide);
+      expect(sections, hasLength(3));
+      expect(sections.last.title, 'When to expect improvement');
+      expect(sections.last.weekStart, isNull);
+      expect(sections.last.bullets, hasLength(2));
+      // The dangerous part: week 3-4 keeping advice that is not its own.
+      final week34 = sections[1];
+      expect(week34.bullets, ['You can walk for longer.']);
+      expect(week34.bullets.join(' '), isNot(contains('Improvement can be slow')));
+    });
+
+    test('weekPhases keeps only the week-shaped sections', () {
+      final weeks = weekPhases(parseRecoverySections(guide));
+      expect(weeks.map((w) => w.title), ['Week 1', 'Week 3-4']);
+    });
+
+    test('the two-heading rule still applies to weeks alone', () {
+      // One week heading plus a trailing section is not a timeline.
+      const thin = '''
+**Week 1:**
+- Rest often.
+
+**When to expect improvement:**
+- Slowly.
+''';
+      expect(parseRecoveryPhases(thin), isEmpty);
+      expect(parseRecoverySections(thin), hasLength(2));
+    });
+  });
 }
