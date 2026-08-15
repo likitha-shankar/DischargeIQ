@@ -16,10 +16,18 @@ Resumable by design: documents with an existing output JSON are skipped, so a
 rate-limit crash or Ctrl-C loses nothing. Use --force to regenerate everything
 (only before review starts - never after clinicians have begun scoring).
 
+Corpus (decision, 30 Jul 2026): the primary corpus is the 106 real
+de-identified MTSamples summaries, which replaced the 50 generated synthetic
+documents. This script pointed at test-data/synthetic long after that
+directory stopped existing, which is why the run was never completed - it
+raised FileNotFoundError before touching a single document. The default is now
+the real corpus, with --corpus for anything else.
+
 Usage:
   python scripts/run_corpus_for_review.py               # all missing docs
-  python scripts/run_corpus_for_review.py --limit 2     # smoke test
+  python scripts/run_corpus_for_review.py --limit 20    # a review sample
   python scripts/run_corpus_for_review.py --force       # regenerate all
+  python scripts/run_corpus_for_review.py --corpus test-data/synthetic
 
 Requires: LLM provider keys in .env (same as the API). DATABASE_URL optional -
           the pipeline's history write is non-fatal without it.
@@ -45,17 +53,30 @@ from dischargeiq.pipeline.orchestrator import run_pipeline
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
-_CORPUS_DIR = Path("test-data/synthetic")
+# The real corpus is the default; the synthetic one is restorable with
+# `git checkout task-4.4-corpus-lock -- test-data/synthetic` when a run
+# against well-formed documents is wanted for comparison.
+_DEFAULT_CORPUS_DIR = Path("test-data/mtsamples")
 _OUTPUT_DIR = Path("evaluation/corpus_outputs")
 
 
-async def generate_outputs(limit: int | None, force: bool) -> tuple[int, int, int]:
+async def generate_outputs(
+    limit: int | None,
+    force: bool,
+    corpus_dir: Path = _DEFAULT_CORPUS_DIR,
+    delay_seconds: float = 0.0,
+) -> tuple[int, int, int]:
     """
     Run the pipeline over corpus PDFs and persist one JSON per document.
 
     Args:
         limit: Maximum number of documents to process this run (None = all).
         force: When True, regenerate even if an output file already exists.
+        corpus_dir: Directory of source PDFs. Defaults to the real corpus.
+        delay_seconds: Pause between documents. Vertex enforces a
+            per-minute quota that six sequential agent calls exhaust
+            quickly, so pacing turns a run that dies at document three
+            into one that finishes.
 
     Returns:
         (generated, skipped, failed) counts for the run summary.
@@ -63,10 +84,13 @@ async def generate_outputs(limit: int | None, force: bool) -> tuple[int, int, in
     Raises:
         FileNotFoundError: If the corpus directory does not exist.
     """
-    pdfs = sorted(_CORPUS_DIR.glob("*.pdf"))
+    pdfs = sorted(corpus_dir.glob("*.pdf"))
     if not pdfs:
         raise FileNotFoundError(
-            f"No PDFs in {_CORPUS_DIR} - run scripts/generate_synthetic_corpus.py first."
+            f"No PDFs in {corpus_dir}. The real corpus is gitignored and is "
+            f"rebuilt with scripts/build_mtsamples_corpus.py; the synthetic "
+            f"one is restored with "
+            f"`git checkout task-4.4-corpus-lock -- test-data/synthetic`."
         )
     _OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -79,6 +103,11 @@ async def generate_outputs(limit: int | None, force: bool) -> tuple[int, int, in
         if out_path.exists() and not force:
             skipped += 1
             continue
+
+        # Pace before the work, not after, so the delay also separates a
+        # retried document from the one that just tripped the quota.
+        if delay_seconds and (generated or failed):
+            await asyncio.sleep(delay_seconds)
 
         started = time.monotonic()
         try:
@@ -95,20 +124,27 @@ async def generate_outputs(limit: int | None, force: bool) -> tuple[int, int, in
         # burns the remaining quota on retries and fills the review set with
         # unusable JSON). Two consecutive quota/credit failures -> abort;
         # the run is resumable, so nothing already saved is lost.
+        # Any Agent 1 failure means the document produced no extraction, so the
+        # output is unusable for review whatever the cause. This used to test
+        # for 429/credit only, and a misconfigured model name (HTTP 400 on
+        # every call) sailed straight past it: the run reported
+        # "generated=20 failed=0" while writing twenty partial files with
+        # "Extraction failed" as the diagnosis. Judge the outcome, not the
+        # error code.
         warnings_text = " ".join(response.extraction_warnings)
-        if "Agent 1 error" in warnings_text and (
-            "429" in warnings_text or "credit balance" in warnings_text.lower()
-        ):
+        if "Agent 1 error" in warnings_text:
             quota_strikes += 1
             failed += 1
             logger.error(
-                "%s: provider quota/credit failure (%d/2) - output NOT saved",
-                pdf.name, quota_strikes,
+                "%s: extraction failed (%d/2) - output NOT saved: %s",
+                pdf.name, quota_strikes, warnings_text[:200],
             )
             if quota_strikes >= 2:
                 logger.error(
-                    "Provider quota exhausted - aborting. Re-run this script "
-                    "after the quota resets; existing outputs are kept."
+                    "Two consecutive extraction failures - aborting rather "
+                    "than filling the review set with unusable JSON. Check "
+                    "the error above (quota, credit, or a bad LLM_MODEL for "
+                    "this provider), then re-run; existing outputs are kept."
                 )
                 break
             continue
@@ -136,9 +172,23 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Generate corpus outputs for clinician review")
     parser.add_argument("--limit", type=int, default=None, help="Process at most N documents")
     parser.add_argument("--force", action="store_true", help="Regenerate existing outputs")
+    parser.add_argument(
+        "--delay",
+        type=float,
+        default=0.0,
+        help="Seconds to wait between documents (use ~30 on Vertex quota)",
+    )
+    parser.add_argument(
+        "--corpus",
+        type=Path,
+        default=_DEFAULT_CORPUS_DIR,
+        help=f"Directory of source PDFs (default: {_DEFAULT_CORPUS_DIR})",
+    )
     args = parser.parse_args()
 
-    generated, skipped, failed = asyncio.run(generate_outputs(args.limit, args.force))
+    generated, skipped, failed = asyncio.run(
+        generate_outputs(args.limit, args.force, args.corpus, args.delay)
+    )
     logger.info(
         "Done. generated=%d skipped(existing)=%d failed=%d -> %s",
         generated, skipped, failed, _OUTPUT_DIR,

@@ -169,9 +169,20 @@ def _get_vertex_client() -> tuple[OpenAI, str]:
         _vertex_creds.refresh(Request())
         _client_cache.pop("vertex", None)  # token rotated - cached client is stale
 
+    # Vertex's OpenAI-compatible endpoint requires a publisher-qualified model
+    # ("google/gemini-2.5-flash-lite"); the AI Studio path takes the bare name.
+    # LLM_MODEL is shared between them, so a .env tuned for LLM_PROVIDER=gemini
+    # silently poisoned every Vertex call with:
+    #   400 Malformed publisher model ... expected '<publisher>/<model>'
+    # Cloud Run never hit it because LLM_MODEL is unset there and the default
+    # already carries the prefix - so this only ever broke local and script
+    # runs, which is exactly where it is least likely to be noticed. Qualify
+    # the name here rather than asking every caller to remember.
     model_name = os.environ.get(
         "LLM_MODEL", _PROVIDER_DEFAULTS["vertex"]["default_model"]
     )
+    if "/" not in model_name:
+        model_name = f"google/{model_name}"
     if "vertex" in _client_cache:
         return _client_cache["vertex"]
 

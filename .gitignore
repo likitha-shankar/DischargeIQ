@@ -128,3 +128,11 @@ docs/CLINICIAN_FIELD_CARD.pdf
 # These contain real analysed discharge documents and PDFs - never commit them
 # (LOF rules bar clinical data in the repo, and this repo may become public).
 device-backups/
+
+# Clinician-review outputs derived from the MTSamples corpus. The corpus
+# itself is gitignored as externally sourced (see above); agent prose written
+# from those documents carries the same third-party provenance, so it is
+# regenerated with scripts/run_corpus_for_review.py rather than committed.
+# Outputs from the synthetic corpus (copd_01.json etc.) stay tracked - they
+# are ours, and the review portal needs a committed example to work from.
+evaluation/corpus_outputs/mtsamples_*.json
