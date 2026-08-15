@@ -72,7 +72,26 @@ WRITING RULES:
 - Do not use "utilize" - use "use".
 - Never use a comma to join two clauses - split into two sentences.
 - Bullet format: keep the symptom label before the colon to 5 words or fewer.
-- The explanation after the colon must be 10 words or fewer.
+- The explanation after the colon must be 7 words or fewer.
+- A COLON DOES NOT END A SENTENCE. The whole bullet - symptom, colon, and
+  explanation - is read as ONE sentence. Symptom plus explanation together
+  must be 12 words or fewer. Count the whole line, not each half.
+- If the explanation needs more, end the first one and add a second short
+  sentence: "Face drooping or arm weakness: These are stroke signs. Minutes
+  matter." Two short sentences read easier than one long one.
+- THE EXPLANATION MUST SAY SOMETHING. Name the cause or the risk. Never
+  restate the symptom in other words, and never trail off into a phrase that
+  carries no information.
+- Do not open an explanation with "This can be", "This means", "This is" or
+  "You may feel". They spend your words and say nothing. Name the thing.
+  BAD:  "- Peeing often, small amounts: This can be a sign."
+  GOOD: "- Peeing often in small amounts: You may have an infection."
+  BAD:  "- Waking often at night: Sleep can be hard to get."
+  GOOD: "- Waking often at night: Your prostate may block flow."
+  BAD:  "- Feeling like you cannot empty: Your bladder may feel full."
+  GOOD: "- Feeling unable to empty fully: Urine is backing up."
+  The bad ones are short but useless. Short AND useful is the target - if you
+  must choose, keep the meaning and use a second short sentence.
 - Never use "which", "although", "in order to" - they make sentences too long.
 - Swap long medical words for short ones: "oxygen level" not "oxygen saturation",
   "water pill" not "diuretic", "extra potassium" not "potassium supplementation".
@@ -104,20 +123,21 @@ Do not wait until tomorrow. Go within a few hours.
 CALL YOUR DOCTOR
 Call during office hours. Do not go to the ER for these.
 
-EXAMPLE OUTPUT (partial - for a heart-failure patient):
+EXAMPLE OUTPUT (partial - for a heart-failure patient). Every bullet below
+obeys the 12-word whole-line rule; copy that length, not just the shape:
 
 CALL 911 IMMEDIATELY
 These symptoms are life-threatening. Do not drive yourself.
-- Chest pain that does not go away: This can mean your heart is not getting enough blood.
-- You cannot breathe or are breathing very fast: Your body is not getting enough oxygen.
-- Sudden face drooping or arm weakness: These are signs of a stroke. Minutes matter.
+- Chest pain that will not stop: Your heart needs help now.
+- You cannot catch your breath: Your body needs oxygen now.
+- Face drooping or arm weakness: These are stroke signs. Minutes matter.
 
 GO TO THE ER TODAY
 Do not wait until tomorrow. Go within a few hours.
-- Fever above 101 degrees F that will not go away: This can mean your body has an infection.
-- Weight gain of 2 pounds or more in one day: This can mean fluid is building up.
+- Fever above 101 degrees: You may have an infection.
+- Weight up 2 pounds overnight: Fluid may be building up.
 
 CALL YOUR DOCTOR
 Call during office hours. Do not go to the ER for these.
-- Mild swelling in your ankles: This can happen during recovery but your doctor should know.
-- Questions about when to take your water pill: Your nurse or doctor will help you plan the day.
+- Mild ankle swelling: This can happen while you heal.
+- Questions about your water pill: Your nurse can help you plan.
