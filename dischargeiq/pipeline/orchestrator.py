@@ -296,8 +296,10 @@ async def _run_pipeline_internal(
     Returns:
         PipelineResponse: Aggregated outputs. pipeline_status is "complete"
         when Agent 1 succeeds and no gaps were flagged; "complete_with_warnings"
-        when only advisory completeness warnings fired; "partial" on any
-        critical gap or downstream agent failure.
+        when the source document was missing content, however important that
+        content is; "partial" only when THIS SYSTEM failed - a crashed agent,
+        a timeout, or exhausted quota. The distinction is what the patient is
+        told: "your paperwork does not say" versus "try again in a minute".
     """
     pipeline_start = time.monotonic()
     logger.info("Pipeline start - document: %s", pdf_path)
@@ -446,9 +448,23 @@ async def _run_pipeline_internal(
             extraction_warnings.append(warning)
 
     if completeness["is_critical"] and pipeline_status == "complete":
-        pipeline_status = "partial"
+        # NOT "partial". partial means this system failed - an agent crashed,
+        # timed out, or ran out of quota - and the patient should try again.
+        # Missing medications or red flags mean the HOSPITAL'S PAPERWORK does
+        # not contain them, which trying again cannot fix. Measured across the
+        # 106-document corpus: medications appear in 62% of real discharge
+        # documents and warning signs in 34%, so treating their absence as a
+        # failure mislabelled most real paperwork and told the patient "our
+        # reading service was busy" about a section that was never written.
+        #
+        # This downgrade also predates the router, which now gates genuine
+        # non-discharge uploads first-class with status "rejected" before any
+        # agent runs. The warnings themselves are still raised and still
+        # surfaced - only the status claim changes.
+        pipeline_status = "complete_with_warnings"
         logger.warning(
-            "Pipeline critical completeness failure for %s: %s",
+            "Pipeline critical completeness gaps for %s (source document, "
+            "not a pipeline failure): %s",
             pdf_path,
             completeness["critical_warnings"],
         )

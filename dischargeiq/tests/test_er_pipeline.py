@@ -246,3 +246,74 @@ def test_er_pipeline_simulator_fallback_does_not_partial():
     )
     assert result.patient_simulator is not None
     assert result.patient_simulator.missed_concepts == []
+
+
+# ── partial means WE failed, not that the paperwork was thin ──────────────────
+
+
+def _sparse_real_extraction() -> ExtractionOutput:
+    """
+    A real discharge summary with no medications and no red flags.
+
+    This is not a hypothetical. Measured across the 106-document
+    de-identified corpus, medications appear in 62% of documents and warning
+    signs in 34%, so this shape is the common case rather than the edge.
+    """
+    return ExtractionOutput(
+        primary_diagnosis="Right hemisphere disorder",
+        medications=[],
+        follow_up_appointments=[],
+        red_flag_symptoms=[],
+        activity_restrictions=[],
+        dietary_restrictions=[],
+        extraction_warnings=[],
+    )
+
+
+def test_sparse_real_document_is_not_reported_as_a_pipeline_failure():
+    """
+    A document missing medications AND red flags must not come back "partial".
+
+    partial drives a red banner reading "our reading service was busy - upload
+    again in a few minutes". Saying that about a section the hospital never
+    wrote sends the patient to re-upload forever and blames this system for
+    someone else's paperwork. Genuine non-discharge uploads are caught earlier
+    by the router, which returns "rejected" before any agent runs.
+    """
+    patches = _er_patches(_sparse_real_extraction())
+
+    with ExitStack() as stack:
+        for p in patches:
+            stack.enter_context(p)
+        result = _run_pipeline("sparse_real_01.pdf")
+
+    assert result.pipeline_status == "complete_with_warnings", (
+        f"Expected complete_with_warnings, got '{result.pipeline_status}'"
+    )
+    # The gaps are still reported - only the status claim changed.
+    joined = " ".join(result.extraction_warnings).lower()
+    assert "red-flag" in joined or "red flag" in joined
+    assert "medications" in joined
+
+
+def test_agent_failure_still_reports_partial():
+    """
+    The other half of the contract: a crashed agent MUST still be partial.
+
+    Without this, widening complete_with_warnings would quietly swallow real
+    failures and tell a patient their summary is fine when an agent died.
+    """
+    patches = _er_patches(_laceration_extraction())
+
+    with ExitStack() as stack:
+        for p in patches:
+            stack.enter_context(p)
+        # Agent 3 dies mid-run, the way an exhausted quota or a timeout kills it.
+        stack.enter_context(
+            patch(_MOCK_RUN_MEDICATION, side_effect=RuntimeError("429 quota exhausted"))
+        )
+        result = _run_pipeline("agent_failure_01.pdf")
+
+    assert result.pipeline_status == "partial", (
+        f"A failed agent must report partial, got '{result.pipeline_status}'"
+    )

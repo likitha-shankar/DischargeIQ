@@ -25,7 +25,8 @@ wins over any older text here). Compact version:
   clinical OR synthetic/eval data in a PUBLIC repo without written approval.
 - **Repo:** authoritative repo must be the LOF-controlled org (pending access).
   Until then it lives at `github.com/likitha-shankar/DischargeIQ`. Confirm repo
-  privacy before pushing (synthetic corpus is committed).
+  privacy before pushing - the de-identified test corpus is committed, and
+  the program rule above allows clinical/eval data only in a PRIVATE repo.
 - No unsupported clinical claims; assist/summarize/educate/triage only (already
   the HITL framing + hard rules below).
 
@@ -69,8 +70,10 @@ dated milestones) may be stale.
 (13 weeks, 4 phases, 3 gates - see the program-rules section at the top of
 this file and `docs/LOF_LABS_RULES.md`). Work plan:
 `docs/deliverables/README.md` maps every deliverable to commits and demo tags. New since June: supervisor/router agent, cross-provider
-LLM failover, Vertex AI (BAA) provider path, locked 50-doc synthetic corpus
-(`test-data/synthetic/` + Neon `synthetic_corpus`), and the teach-back quiz loop
+LLM failover, Vertex AI (BAA) provider path, the de-identified test corpus
+(`test-data/mtsamples/`, 106 documents - it replaced the generated 50-document
+synthetic corpus on 30 Jul 2026 and generated documents are no longer used for
+evaluation), and the teach-back quiz loop
 (`/quiz/generate`, `/quiz/score`, `quiz_scores` table, quiz UIs on mobile and
 Streamlit). Comprehension-lift target: 13% baseline → 50–70%.
 
@@ -92,7 +95,14 @@ Streamlit). Comprehension-lift target: 13% baseline → 50–70%.
   `"complete"`, `"complete_with_warnings"`, `"partial"`, or `"rejected"`** (not to crash
   on bad PDFs or LLM failures). `"partial"` runs may occur when an agent fails, rate
   limits hit (429), timeouts occur, or keys are missing. `"complete_with_warnings"` means
-  all agents ran but extraction completeness warnings were raised. `"rejected"` (July 2026)
+  all agents ran but extraction completeness warnings were raised - including
+  critical ones. **A missing section is never `"partial"`.** August 2026: the
+  orchestrator used to downgrade to `"partial"` when medications or red flags
+  were absent, which on the real corpus (medications in 62% of documents,
+  warning signs in 34%) told most patients "our reading service was busy"
+  about a section the hospital never wrote. `"partial"` now means THIS SYSTEM
+  failed and retrying may help; gaps in the source are
+  `"complete_with_warnings"`. Non-discharge uploads are the router's job. `"rejected"` (July 2026)
   means the router gated a non-discharge document (bill, EOB, invoice) BEFORE any agent
   ran; `rejection_reason` carries the router's one-sentence explanation and both UIs show
   a dedicated "try another document" screen instead of results tabs.
@@ -259,7 +269,8 @@ dischargeiq/
 │   ├── diabetes.md
 │   ├── hip_replacement.md
 │   └── surgical_case.md
-├── test-data/                 # 10 synthetic discharge PDFs (2 per diagnosis)
+├── test-data/                 # de-identified corpus (mtsamples/, 106 docs)
+│                              #   + 3 demo/beta sample PDFs at the top level
 ├── evaluation/
 │   ├── fk_log.csv
 │   ├── agent1_baseline.md
@@ -358,8 +369,9 @@ All agents are tested against these 5 conditions:
 4. Every agent text output must be run through fk_check() from utils/scorer.py.
    Target: Flesch-Kincaid grade ≤ 6.0 on all outputs.
 5. Never commit API keys or .env files. .env must be in .gitignore.
-6. No real patient data. All test documents must be synthetic or
-   de-identified.
+6. No identifiable patient data, ever. The test corpus is de-identified
+   third-party material (MTSamples transcriptions with identifiers removed);
+   it may live in this repo only while the repo is PRIVATE.
 7. The pipeline must never crash on a bad document. Use try/except per agent
    and set pipeline_status = "partial" with a fallback message if any agent
    fails.
