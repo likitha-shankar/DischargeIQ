@@ -77,16 +77,22 @@ second-person voice used for an infant's caregiver).
 
 Practical notes:
 
-- The corpus is **gitignored**. The content is third-party sourced and this
-  repository is public, so it is rebuilt from the script rather than
-  committed. This also satisfies the program rule against clinical or eval
-  data sitting in a public repo.
-- The synthetic corpus is **not lost**. It remains in the tags and the Neon
-  `synthetic_corpus` table is untouched. Restore with
-  `git checkout task-4.4-corpus-lock -- test-data/synthetic`.
-- Three synthetic documents (`heart_failure_01`, `copd_01`,
-  `hip_replacement_01`) stay committed at the top of `test-data/`: the beta
-  kit ships them and `test_ingest.py` parses one.
+- The corpus is **committed** as of 14 Aug 2026. It was gitignored while this
+  repository was public; the repo has been private since 31 Jul, and the
+  program rule allows clinical and eval data in a private repo. All 106
+  documents were scanned for SSNs, phone numbers, emails, MRNs and dates of
+  birth before committing - zero hits. If the repo is ever made public, the
+  corpus must come out of the working tree and out of history first.
+- Generated synthetic documents are **no longer used for evaluation**. They
+  remain in the tags and the Neon `synthetic_corpus` table is untouched;
+  restore with `git checkout task-4.4-corpus-lock -- test-data/synthetic` if a
+  comparison against well-formed documents is ever wanted.
+- Three generated documents (`heart_failure_01`, `copd_01`,
+  `hip_replacement_01`) stay committed at the top of `test-data/` as **demo
+  and beta fixtures, not evaluation data**: the demo script drives them, the
+  beta kit ships them, and `test_ingest.py` parses one. Handing a tester a
+  real de-identified stranger's discharge summary to practise on is a
+  different decision from evaluating against one.
 - **Task 5.2 rubric resolved (July 30 2026).** Real documents are the point
   of the product, so the corpus stays real and the *rubric* was fixed instead.
   Measured across the 106 documents: warning signs appear in 34%, discharge
@@ -106,7 +112,7 @@ Practical notes:
 |---|---|
 | Sprint 1 / Checkpoint 1 | ✅ delivered |
 | Sprint 2 / Checkpoint 2 (18 Aug) | ◑ build side met; **tester recruiting not started - the gating item** |
-| Sprint 3 (15 Sep) | ◻ dashboard built early; full-corpus accuracy run outstanding |
+| Sprint 3 (15 Sep) | ◑ dashboard built early; accuracy run unblocked 14 Aug (two bugs fixed: the script pointed at a deleted directory, and Vertex rejected the model name) and a 20-document sample is generating |
 | Sprint 4 (6 Oct) | ◻ adversarial audit already passed; clinician review blocked on LOF reviewers |
 
 Work has run ahead of the plan in places: the teach-back loop, the clinician
@@ -114,61 +120,6 @@ dashboard, and the adversarial safety audit all landed before their sprints.
 The items that are behind are the ones depending on other people - testers
 and clinician reviewers - which is why they are worth raising early rather
 than late.
-
-## Testing corpus change (decision, July 30 2026)
-
-The 50-document generated synthetic corpus has been replaced as the primary
-testing corpus by **106 real de-identified discharge summaries from
-MTSamples** (`test-data/mtsamples/`, built by
-`scripts/build_mtsamples_corpus.py`).
-
-Why: the synthetic documents were well-formed by construction, so they never
-exercised what real discharge paperwork actually looks like. The MTSamples
-documents are transcriptions of genuine dictated work with identifiers
-removed - narrative prose, no section headers, missing discharge fields,
-pediatric patients. They found two real defects within a day of being
-introduced (inpatient-only drugs extracted as take-home medications; adult
-second-person voice used for an infant's caregiver).
-
-Practical notes:
-
-- The corpus is **gitignored**. The content is third-party sourced and this
-  repository is public, so it is rebuilt from the script rather than
-  committed. This also satisfies the program rule against clinical or eval
-  data sitting in a public repo.
-- The synthetic corpus is **not lost**. It remains in the tags and the Neon
-  `synthetic_corpus` table is untouched. Restore with
-  `git checkout task-4.4-corpus-lock -- test-data/synthetic`.
-- Three synthetic documents (`heart_failure_01`, `copd_01`,
-  `hip_replacement_01`) stay committed at the top of `test-data/`: the beta
-  kit ships them and `test_ingest.py` parses one.
-- **Task 5.2 rubric resolved (July 30 2026).** Real documents are the point
-  of the product, so the corpus stays real and the *rubric* was fixed instead.
-  Measured across the 106 documents: warning signs appear in 34%, discharge
-  medications in 62%, follow-up in 69%, activity or diet in 53%. The old
-  anchors ("safe and complete", "dangerously incomplete") were absolute, so a
-  reviewer would have penalised correct output for a section the source never
-  contained - scoring the hospital's paperwork rather than this system. Every
-  anchor in `ui/clinician_review.py` is now phrased relative to the source,
-  and per-document guidance states the rule plainly: content absent from both
-  source and output is not a penalty; content in the output but not the source
-  is the serious failure. This keeps the gate measuring extraction fidelity,
-  which is what a median of ≥ 4.0 is supposed to certify.
-
-## Status at a glance (July 31, 2026 - Week 4)
-
-| Level | Item | Status |
-|---|---|---|
-| Gate 1 | Concept approved (Wk 2, Jul 21) | ✅ plan v2 delivered |
-| Sprint 1 | Cloud backend + extraction pipeline (1.1–1.6) | ✅ complete - Cloud Run live on Gemini (rev `dischargeiq-00003-pmg`, Jul 7) |
-| Sprint 2 | Mobile bridge + OCR (2.1–2.5) | ◑ 2.2/2.3/2.5 done; 2.4 re-scoped to the no-spend path (7-day iOS provisioning + direct APK) |
-| Sprint 3 | Teach-back loop (3.1–3.3) | ✅ built early, game layer at v3 (3.4 tuning awaits tester data) |
-| Sprint 4 | NotebookLM media + corpus lock | ◑ 4.4 lock tooling ready; 4.1/4.2 scaffolding + NotebookLM source docs built - actual audio gen remains |
-| Sprint 5 | Clinical validation | ◑ 5.1 portal built; **5.3 adversarial audit PASSED 31 Jul** (6/6, run on Anthropic, commit a17fcfa); 5.2 scoring waits on LOF reviewers |
-| Sprint 6 | Final packaging | ◑ 6.3 integration-readiness docs + 6.5 media-fallback tests done; 6.2 Python deps locked (release builds on paid-hold) |
-
-The teach-back loop (Sprint 3 core) was pulled forward because it is the
-headline metric - comprehension lift from ~13% baseline to a measured 50–70%.
 
 ## No-spend distribution path (decision, July 30 2026)
 
