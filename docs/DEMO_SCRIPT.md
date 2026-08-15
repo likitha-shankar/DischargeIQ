@@ -39,8 +39,10 @@ quiz that measures whether comprehension actually improved.
 ## 4. Core feature demo (3-4 min) - the path shown live
 
 1. **Upload** `heart_failure_01.pdf` (or scan on the phone app).
-2. **Results** - walk the tabs: What Happened, Medications, Appointments,
-   Warning Signs, Recovery, AI Review (gap score + missed concepts).
+2. **Results** - walk the seven tabs in the order the app shows them: What
+   happened, Medications, Appointments, Warning signs, Recovery, Test
+   yourself, Discharge Check (gap score + missed concepts). The tab is
+   labelled "Discharge Check" in the app, not "AI Review".
 3. **Teach-back loop** - baseline quiz (no feedback) -> learning cards ->
    post quiz (feedback + explanations) -> **comprehension delta** banner.
    This is the headline metric: ~13% baseline -> measured 60-80% target.
