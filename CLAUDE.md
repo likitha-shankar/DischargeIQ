@@ -142,7 +142,7 @@ Streamlit). Comprehension-lift target: 13% baseline → 50–70%.
 | POST | `/analyze` | Multipart PDF upload; runs full pipeline |
 | GET | `/pdf/{session_id}` | Retrieve stored PDF bytes for session (used with Streamlit viewer) |
 | POST | `/chat` | Grounded chat answer. Body: `message`, `session_id`, `pipeline_context` (CORS enabled for Streamlit origins) |
-| POST | `/quiz/generate` | Teach-back quiz: 5 non-leading MCQs from the session's extraction. Body: `session_id`, `extraction`. Stateless; rate-limited 10/min |
+| POST | `/quiz/generate` | Teach-back quiz: **up to 5** non-leading MCQs from the session's extraction (the prompt asks for exactly 5; questions that fail validation are dropped and the agent raises below 3, so a sparse document legitimately yields 4). Body: `session_id`, `extraction`. Stateless; rate-limited 10/min |
 | POST | `/quiz/score` | Score one quiz phase. Body: `session_id`, `phase` (`pre`\|`post`), `question_keys`, `answers`. Persists to `quiz_scores` (non-fatal without DB); post phases return `comprehension_delta` vs the first stored pre score |
 
 ### Frontend and tooling
