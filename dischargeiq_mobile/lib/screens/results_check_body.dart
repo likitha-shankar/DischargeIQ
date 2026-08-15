@@ -208,6 +208,10 @@ class _ConceptCard extends StatelessWidget {
     }
 
     return Container(
+      // Full bleed regardless of how short the question is. Without this the
+      // card shrink-wraps its text, so a one-line question drew a narrower
+      // tinted box than the one above it and the column looked ragged.
+      width: double.infinity,
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
