@@ -97,8 +97,13 @@ _archive/
 node_modules/
 .env.bak*
 .env.bak-jul10
-# MTSamples corpus - externally sourced, rebuild with scripts/build_mtsamples_corpus.py
-test-data/mtsamples/
+# The de-identified test corpus (test-data/mtsamples/) IS committed as of
+# 14 Aug 2026. It was excluded while this repository was public; the repo has
+# been private since 31 Jul, and the LABS rule allows clinical/eval data in a
+# private repo. Verified before committing: all 106 documents scanned for
+# SSNs, phone numbers, emails, MRNs and dates of birth - zero hits.
+# CONDITION: if this repository is ever made public, the corpus must come out
+# of the working tree AND out of history first.
 
 # Documents kept out of the repo.
 #
@@ -128,11 +133,3 @@ docs/CLINICIAN_FIELD_CARD.pdf
 # These contain real analysed discharge documents and PDFs - never commit them
 # (LOF rules bar clinical data in the repo, and this repo may become public).
 device-backups/
-
-# Clinician-review outputs derived from the MTSamples corpus. The corpus
-# itself is gitignored as externally sourced (see above); agent prose written
-# from those documents carries the same third-party provenance, so it is
-# regenerated with scripts/run_corpus_for_review.py rather than committed.
-# Outputs from the synthetic corpus (copd_01.json etc.) stay tracked - they
-# are ours, and the review portal needs a committed example to work from.
-evaluation/corpus_outputs/mtsamples_*.json

@@ -1,0 +1,644 @@
+{
+  "source": "https://raw.githubusercontent.com/socd06/medical-nlp/master/data/mtsamples.csv",
+  "source_site": "https://www.mtsamples.com/site/pages/browse.asp?type=89-Discharge+Summary",
+  "note": "De-identified real transcriptions. NOT the locked synthetic corpus.",
+  "document_count": 106,
+  "documents": [
+    {
+      "file": "mtsamples_001.pdf",
+      "sample_name": "Speech Therapy - Discharge Summary - 2",
+      "description": "The patient was referred for outpatient skilled speech therapy, secondary to right hemisphere disorder, status post stroke.  The patient attended nine outpatient skilled speech therapy sessions.",
+      "char_count": 1416
+    },
+    {
+      "file": "mtsamples_002.pdf",
+      "sample_name": "TAH - Discharge Summary",
+      "description": "Total abdominal hysterectomy (TAH).  Severe menometrorrhagia unresponsive to medical therapy, severe anemia, and symptomatic fibroid uterus.",
+      "char_count": 2396
+    },
+    {
+      "file": "mtsamples_003.pdf",
+      "sample_name": "Urology Discharge Summary",
+      "description": "Hispanic male patient was admitted because of enlarged prostate and symptoms of bladder neck obstruction.",
+      "char_count": 1335
+    },
+    {
+      "file": "mtsamples_004.pdf",
+      "sample_name": "Renal Disease - Discharge Summary",
+      "description": "Syncope, end-stage renal disease requiring hemodialysis, congestive heart failure, and hypertension.",
+      "char_count": 4088
+    },
+    {
+      "file": "mtsamples_005.pdf",
+      "sample_name": "Speech Therapy - Discharge Summary - 1",
+      "description": "The patient was referred to Medical Center's Outpatient Rehabilitation Department for skilled speech therapy to improve her functional communication skills and swallowing function and safety.",
+      "char_count": 3286
+    },
+    {
+      "file": "mtsamples_006.pdf",
+      "sample_name": "Psychiatric Discharge Summary",
+      "description": "The patient was discharged by court as a voluntary drop by prosecution.",
+      "char_count": 2935
+    },
+    {
+      "file": "mtsamples_007.pdf",
+      "sample_name": "Speech Therapy - Discharge Summary",
+      "description": "Speech therapy discharge summary.  The patient was admitted for skilled speech therapy secondary to cognitive-linguistic deficits.",
+      "char_count": 1027
+    },
+    {
+      "file": "mtsamples_008.pdf",
+      "sample_name": "Pyelonephritis - Discharge Summary",
+      "description": "Pyelonephritis likely secondary to mucous plugging of indwelling Foley in the ileal conduit, hypertension, mild renal insufficiency, and anemia, which has been present chronically over the past year.",
+      "char_count": 1443
+    },
+    {
+      "file": "mtsamples_009.pdf",
+      "sample_name": "Prematurity - Discharge Summary",
+      "description": "Prematurity, 34 weeks' gestation, now 5 days old, group B streptococcus exposure, but no sepsis, physiologic jaundice, and feeding problem.",
+      "char_count": 2966
+    },
+    {
+      "file": "mtsamples_010.pdf",
+      "sample_name": "Pancreatic Mass - Discharge Summary",
+      "description": "The patient has had abdominal pain associated with a 30-pound weight loss and then developed jaundice.  He had epigastric pain and was admitted to the hospital.  A thin-slice CT scan was performed, which revealed a pancreatic mass with involved lymph nodes and ring enhancing lesions consistent with liver metastases.",
+      "char_count": 3100
+    },
+    {
+      "file": "mtsamples_011.pdf",
+      "sample_name": "Otitis Media - Discharge Summary",
+      "description": "Fever, otitis media, and possible sepsis.",
+      "char_count": 4008
+    },
+    {
+      "file": "mtsamples_012.pdf",
+      "sample_name": "ORIF - Discharge Summary",
+      "description": "Open reduction and internal fixation (ORIF) of right Schatzker III tibial plateau fracture with partial medial meniscectomy.",
+      "char_count": 2289
+    },
+    {
+      "file": "mtsamples_013.pdf",
+      "sample_name": "Pneumonia & COPD - Discharge Summary",
+      "description": "Aspiration pneumonia and chronic obstructive pulmonary disease (COPD) exacerbation.  Acute respiratory on chronic respiratory failure secondary to chronic obstructive pulmonary disease exacerbation.  Systemic inflammatory response syndrome secondary to aspiration pneumonia.  No bacteria identified with blood cultures or sputum culture.",
+      "char_count": 6119
+    },
+    {
+      "file": "mtsamples_014.pdf",
+      "sample_name": "Neurology - Discharge Summary",
+      "description": "Contusion of the frontal lobe of the brain, closed head injury and history of fall, and headache, probably secondary to contusion.",
+      "char_count": 1526
+    },
+    {
+      "file": "mtsamples_015.pdf",
+      "sample_name": "Occupational Therapy Discharge Summary",
+      "description": "Occupational therapy discharge summary.  Traumatic brain injury, cervical musculoskeletal strain.",
+      "char_count": 821
+    },
+    {
+      "file": "mtsamples_016.pdf",
+      "sample_name": "Pneumonia - Discharge Summary",
+      "description": "Atypical pneumonia, hypoxia, rheumatoid arthritis, and suspected mild stress-induced adrenal insufficiency.  This very independent 79-year old had struggled with cough, fevers, weakness, and chills for the week prior to admission.",
+      "char_count": 2472
+    },
+    {
+      "file": "mtsamples_017.pdf",
+      "sample_name": "Post Thyroidectomy - Discharge Summary",
+      "description": "Symptomatic thyroid goiter.  Total thyroidectomy.",
+      "char_count": 1357
+    },
+    {
+      "file": "mtsamples_018.pdf",
+      "sample_name": "Mastoiditis - Discharge Summary",
+      "description": "Suspected mastoiditis ruled out, right acute otitis media, and severe ear pain resolving.  The patient is an 11-year-old male who was admitted from the ER after a CT scan suggested that the child had mastoiditis.",
+      "char_count": 2267
+    },
+    {
+      "file": "mtsamples_019.pdf",
+      "sample_name": "Mullerian Adenosarcoma",
+      "description": "Discharge summary of a patient presenting with a large mass aborted through the cervix.",
+      "char_count": 1197
+    },
+    {
+      "file": "mtsamples_020.pdf",
+      "sample_name": "Neonatal Discharge Summary - 1",
+      "description": "Respiratory distress syndrome, intrauterine growth restriction, thrombocytopenia, hypoglycemia, retinal immaturity.  The baby is an ex-32 weeks small for gestational age infant with birth weight 1102.",
+      "char_count": 4175
+    },
+    {
+      "file": "mtsamples_021.pdf",
+      "sample_name": "Leiomyosarcoma",
+      "description": "Discharge summary of patient with leiomyosarcoma and history of pulmonary embolism, subdural hematoma, pancytopenia, and pneumonia.",
+      "char_count": 3657
+    },
+    {
+      "file": "mtsamples_022.pdf",
+      "sample_name": "Multiple Medical Problems - Discharge Summary",
+      "description": "Seizure, hypoglycemia, anemia, dyspnea, edema. colon cancer status post right hemicolectomy, hospital-acquired pneumonia, \r\nand congestive heart failure.",
+      "char_count": 5892
+    },
+    {
+      "file": "mtsamples_023.pdf",
+      "sample_name": "Laryngitis - Discharge",
+      "description": "Chronic laryngitis, hoarseness.  The patient was referred to Medical Center's Outpatient Rehabilitation Department for skilled speech therapy secondary to voicing difficulties.",
+      "char_count": 2004
+    },
+    {
+      "file": "mtsamples_024.pdf",
+      "sample_name": "Neonatal Discharge Summary",
+      "description": "The patient is an 1812 g baby boy born by vaginal delivery to a 32-year-old gravida 3, para 2 at 34 weeks of gestation.  Mother had two previous C-sections.",
+      "char_count": 2279
+    },
+    {
+      "file": "mtsamples_025.pdf",
+      "sample_name": "Neck Pain - Discharge Summary",
+      "description": "Neck pain with right upper extremity radiculopathy and cervical spondylosis with herniated nucleus pulposus C4-C5, C5-C6, and C6-C7 with stenosis.",
+      "char_count": 2109
+    },
+    {
+      "file": "mtsamples_026.pdf",
+      "sample_name": "Knee Surgery - Discharge Summary",
+      "description": "Decreased ability to perform daily living activities secondary to right knee surgery.",
+      "char_count": 7013
+    },
+    {
+      "file": "mtsamples_027.pdf",
+      "sample_name": "Kawasaki Disease - Discharge Summary",
+      "description": "This is a 14-month-old baby boy Caucasian who came in with presumptive diagnosis of Kawasaki with fever for more than 5 days and conjunctivitis, mild arthritis with edema, rash, resolving and with elevated neutrophils and thrombocytosis, elevated CRP and ESR.",
+      "char_count": 1873
+    },
+    {
+      "file": "mtsamples_028.pdf",
+      "sample_name": "Hysterectomy - Discharge Summary - 2",
+      "description": "Total vaginal hysterectomy.  Microinvasive carcinoma of the cervix.",
+      "char_count": 1947
+    },
+    {
+      "file": "mtsamples_029.pdf",
+      "sample_name": "Lap Chole - Discharge Summary",
+      "description": "Laparoscopic cholecystectomy.  Acute cholecystitis, status post laparoscopic cholecystectomy, end-stage renal disease on hemodialysis, hyperlipidemia, hypertension, congestive heart failure, skin lymphoma 5 years ago, and hypothyroidism.",
+      "char_count": 3422
+    },
+    {
+      "file": "mtsamples_030.pdf",
+      "sample_name": "Knee Arthroplasty - Discharge Summary",
+      "description": "Painful right knee status post total knee arthroplasty many years ago.   Status post poly exchange, right knee, total knee arthroplasty.",
+      "char_count": 1953
+    },
+    {
+      "file": "mtsamples_031.pdf",
+      "sample_name": "Knee Osteoarthrosis - Discharge Summary",
+      "description": "A 66-year-old female with knee osteoarthrosis who failed conservative management.",
+      "char_count": 1962
+    },
+    {
+      "file": "mtsamples_032.pdf",
+      "sample_name": "Hysterectomy - Discharge Summary - 1",
+      "description": "Total vaginal hysterectomy.   Menometrorrhagia, dysmenorrhea, and small uterine fibroids.",
+      "char_count": 1331
+    },
+    {
+      "file": "mtsamples_033.pdf",
+      "sample_name": "Hemiarthroplasty - Discharge Summary",
+      "description": "Hemiarthroplasty, right hip.  Fracture of the right femoral neck, also history of Alzheimer's dementia, hypothyroidism, and status post hemiarthroplasty of the hip.",
+      "char_count": 1702
+    },
+    {
+      "file": "mtsamples_034.pdf",
+      "sample_name": "Hip Surgery - Discharge Summar",
+      "description": "Decreased ability to perform daily living activity secondary to recent right hip surgery.",
+      "char_count": 4747
+    },
+    {
+      "file": "mtsamples_035.pdf",
+      "sample_name": "Intrauterine Pregnancy - Discharge Summary",
+      "description": "Intrauterine pregnancy at term with previous cesarean.   Desired sterilization.  Status post repeat low transverse cesarean and bilateral tubal ligation.",
+      "char_count": 2185
+    },
+    {
+      "file": "mtsamples_036.pdf",
+      "sample_name": "GI Bleed - Discharge Summary",
+      "description": "GI bleed.   Upper gastrointestinal bleed.  CBC revealed microcytic anemia.",
+      "char_count": 2343
+    },
+    {
+      "file": "mtsamples_037.pdf",
+      "sample_name": "Hysterectomy - Discharge Summary",
+      "description": "The patient underwent a total vaginal hysterectomy.",
+      "char_count": 1482
+    },
+    {
+      "file": "mtsamples_038.pdf",
+      "sample_name": "Hypothermia - Discharge Summary",
+      "description": "Hypothermia.  Rule out sepsis, was negative as blood cultures, sputum cultures, and urine cultures were negative.  Organic brain syndrome.  Seizure disorder.  Adrenal insufficiency.  Hypothyroidism.  Anemia of chronic disease.",
+      "char_count": 2508
+    },
+    {
+      "file": "mtsamples_039.pdf",
+      "sample_name": "Gastric Bypass Summary",
+      "description": "Patient discharged after laparoscopic Roux-en-Y gastric bypass.",
+      "char_count": 2070
+    },
+    {
+      "file": "mtsamples_040.pdf",
+      "sample_name": "Gastroenteritis - Discharge Summary",
+      "description": "Acute gastroenteritis, resolved.  Gastrointestinal bleed and chronic inflammation of the mesentery of unknown etiology.",
+      "char_count": 2631
+    },
+    {
+      "file": "mtsamples_041.pdf",
+      "sample_name": "Goldenhar Syndrome - Discharge Summary",
+      "description": "Gastroenteritis versus bowel obstruction, gastroesophageal reflux, Goldenhar syndrome, and anemia, probably iron deficiency.",
+      "char_count": 3772
+    },
+    {
+      "file": "mtsamples_042.pdf",
+      "sample_name": "Gastrointestinal Bleed - Discharge Summary",
+      "description": "Gastrointestinal bleed, source undetermined, but possibly due to internal hemorrhoids.  Poor prep with friable internal hemorrhoids, but no gross lesions, no source of bleed.",
+      "char_count": 1802
+    },
+    {
+      "file": "mtsamples_043.pdf",
+      "sample_name": "Discharge Summary - Urology & Nephrology",
+      "description": "Solitary left kidney with obstruction and hypertension and chronic renal insufficiency, plus a Pseudomonas urinary tract infection.",
+      "char_count": 3624
+    },
+    {
+      "file": "mtsamples_044.pdf",
+      "sample_name": "Falls - Discharge Summary",
+      "description": "Falls at home.  Anxiety and depression.  The patient had been increasingly anxious and freely admitted that she was depressed at home.",
+      "char_count": 2874
+    },
+    {
+      "file": "mtsamples_045.pdf",
+      "sample_name": "Ectopic Pregnancy - Discharge Summary",
+      "description": "A 31-year-old white female admitted to the hospital with pelvic pain and vaginal bleeding.  Right ruptured ectopic pregnancy with hemoperitoneum.   Anemia secondary to blood loss.",
+      "char_count": 1934
+    },
+    {
+      "file": "mtsamples_046.pdf",
+      "sample_name": "Discharge Summary - Urology",
+      "description": "Discharge Summary of a patient with hematuria, benign prostatic hyperplasia, complex renal cyst versus renal cell carcinoma, and osteoarthritis.",
+      "char_count": 2912
+    },
+    {
+      "file": "mtsamples_047.pdf",
+      "sample_name": "ER Report - Chest Pain & Fever",
+      "description": "A 48-year-old white married female presents in the emergency room after two days of increasing fever with recent diagnosis of urinary tract infection on outpatient treatment with nitrofurantoin.",
+      "char_count": 4996
+    },
+    {
+      "file": "mtsamples_048.pdf",
+      "sample_name": "ESRD - Discharge Summary",
+      "description": "This is a 46-year-old gentleman with end-stage renal disease (ESRD) secondary to diabetes and hypertension, who had been on hemodialysis and is also status post cadaveric kidney transplant with chronic rejection.",
+      "char_count": 3880
+    },
+    {
+      "file": "mtsamples_049.pdf",
+      "sample_name": "Discharge Summary - Respiratory Distress",
+      "description": "A 3-year-old abrupt onset of cough and increased work of breathing.",
+      "char_count": 2611
+    },
+    {
+      "file": "mtsamples_050.pdf",
+      "sample_name": "Discharge Summary - Peripheral vascular disease",
+      "description": "The patient with multiple medical conditions including coronary artery disease, hypothyroidism, and severe peripheral vascular disease status post multiple revascularizations.",
+      "char_count": 5088
+    },
+    {
+      "file": "mtsamples_051.pdf",
+      "sample_name": "Discharge Summary - Respiratory Failure",
+      "description": "The patient was admitted after undergoing a drawn out process with a small bowel obstruction.",
+      "char_count": 4409
+    },
+    {
+      "file": "mtsamples_052.pdf",
+      "sample_name": "Discharge Summary - Multiple Trauma",
+      "description": "Aftercare of multiple trauma from an motor vehicle accident.",
+      "char_count": 3988
+    },
+    {
+      "file": "mtsamples_053.pdf",
+      "sample_name": "Discharge Summary - Nephrology",
+      "description": "Patient with left renal cell carcinoma, left renal cyst, had robotic-Assisted laparoscopic left renal cyst decortication and cystoscopy.",
+      "char_count": 3145
+    },
+    {
+      "file": "mtsamples_054.pdf",
+      "sample_name": "Discharge Summary - Lymphoma",
+      "description": "Diffuse Large B-cell Lymphoma",
+      "char_count": 5570
+    },
+    {
+      "file": "mtsamples_055.pdf",
+      "sample_name": "Discharge Summary - Mesothelioma - 1",
+      "description": "Mesothelioma, pleural effusion, atrial fibrillation, anemia, ascites, esophageal reflux, and history of deep venous thrombosis.",
+      "char_count": 1101
+    },
+    {
+      "file": "mtsamples_056.pdf",
+      "sample_name": "Discharge Summary - COPD",
+      "description": "Chest x-ray on admission, no acute finding, no interval change.  CT angiography, negative for pulmonary arterial embolism.  Chronic obstructive pulmonary disease exacerbation improving, on steroids and bronchodilators.",
+      "char_count": 2922
+    },
+    {
+      "file": "mtsamples_057.pdf",
+      "sample_name": "Discharge Summary - Hemodialysis",
+      "description": "The patient is being discharged for continued hemodialysis and rehab.",
+      "char_count": 2284
+    },
+    {
+      "file": "mtsamples_058.pdf",
+      "sample_name": "Discharge Summary - Migraine",
+      "description": "Intractable migraine with aura.  The patient is discharged home.  Secondary diagnoses are Bipolar disorder, iron deficiency anemia, anxiety disorder, and history of tubal ligation.",
+      "char_count": 3902
+    },
+    {
+      "file": "mtsamples_059.pdf",
+      "sample_name": "Discharge Summary - ATV Accident",
+      "description": "Trauma/ATV accident resulting in left open humerus fracture.",
+      "char_count": 4993
+    },
+    {
+      "file": "mtsamples_060.pdf",
+      "sample_name": "Discharge Summary - Gastric Bypass",
+      "description": "Patient suffered from morbid obesity for many years and made multiple attempts at nonsurgical weight loss without success.",
+      "char_count": 2216
+    },
+    {
+      "file": "mtsamples_061.pdf",
+      "sample_name": "Discharge Summary - Mesothelioma",
+      "description": "A patient with preoperative diagnosis of right pleural mass and postoperative diagnosis of mesothelioma.",
+      "char_count": 1222
+    },
+    {
+      "file": "mtsamples_062.pdf",
+      "sample_name": "Discharge Summary - Hip Surgery",
+      "description": "A 47-year-old female with a posttraumatic AV in the right femoral head.",
+      "char_count": 2856
+    },
+    {
+      "file": "mtsamples_063.pdf",
+      "sample_name": "Discharge Summary - 7",
+      "description": "Patient with fever of unknown origin.",
+      "char_count": 3541
+    },
+    {
+      "file": "mtsamples_064.pdf",
+      "sample_name": "Discharge Summary - Cholelithiasis",
+      "description": "Patient with complaint of symptomatic cholelithiasis.",
+      "char_count": 2362
+    },
+    {
+      "file": "mtsamples_065.pdf",
+      "sample_name": "Discharge Summary - 8",
+      "description": "A white female with a history of fevers.",
+      "char_count": 3765
+    },
+    {
+      "file": "mtsamples_066.pdf",
+      "sample_name": "Discharge Summary - Cerebral Palsy",
+      "description": "a pleasant 62-year-old male with cerebral palsy",
+      "char_count": 2261
+    },
+    {
+      "file": "mtsamples_067.pdf",
+      "sample_name": "Discharge Summary - 9",
+      "description": "A woman presented to the ER with complaints of nausea, vomiting, and epigastric discomfort, ongoing for about 4 to 5 months.",
+      "char_count": 4427
+    },
+    {
+      "file": "mtsamples_068.pdf",
+      "sample_name": "Discharge Summary - 6",
+      "description": "A white male veteran with multiple comorbidities, who has a history of bladder cancer diagnosed approximately two years ago by the VA Hospital.",
+      "char_count": 3700
+    },
+    {
+      "file": "mtsamples_069.pdf",
+      "sample_name": "Discharge Summary - 18",
+      "description": "The patient is a 53-year-old woman with history of hypertension, diabetes, and depression.  Serotonin syndrome secondary to high doses of Prozac and atypical chest pain with myocardial infarction ruled out.",
+      "char_count": 4170
+    },
+    {
+      "file": "mtsamples_070.pdf",
+      "sample_name": "Discharge Summary - 3",
+      "description": "Patient with increased shortness of breath of one day duration.",
+      "char_count": 2356
+    },
+    {
+      "file": "mtsamples_071.pdf",
+      "sample_name": "Discharge Summary - 2",
+      "description": "Patient with complaints of shortness of breath and was found to have acute COPD exacerbation.",
+      "char_count": 2197
+    },
+    {
+      "file": "mtsamples_072.pdf",
+      "sample_name": "Discharge Summary - 19",
+      "description": "The patient is a 93-year-old Caucasian female with a past medical history of chronic right hip pain, osteoporosis, hypertension, depression, and chronic atrial fibrillation admitted for evaluation and management of severe nausea and vomiting and urinary tract infection.",
+      "char_count": 4223
+    },
+    {
+      "file": "mtsamples_073.pdf",
+      "sample_name": "Discharge Summary - 17",
+      "description": "The patient underwent a scalp skin biopsy with pathology specimen obtained.   At the time of discharge, the patient had improved.",
+      "char_count": 4358
+    },
+    {
+      "file": "mtsamples_074.pdf",
+      "sample_name": "Discharge Summary - 5",
+      "description": "A female with the past medical history of Ewing sarcoma, iron deficiency anemia, hypertension, and obesity.",
+      "char_count": 1688
+    },
+    {
+      "file": "mtsamples_075.pdf",
+      "sample_name": "Discharge Summary - 4",
+      "description": "Patient admitted after an extensive workup for peritoneal carcinomatosis from appendiceal primary.",
+      "char_count": 4045
+    },
+    {
+      "file": "mtsamples_076.pdf",
+      "sample_name": "Discharge Summary - 12",
+      "description": "A 94-year-old female from the nursing home with several days of lethargy and anorexia.  She was found to have evidence of UTI and also has renal insufficiency and digitalis toxicity.",
+      "char_count": 1899
+    },
+    {
+      "file": "mtsamples_077.pdf",
+      "sample_name": "Discharge Summary - 15",
+      "description": "Gastroenteritis and autism.  She developed constipation one week prior to admission and mother gave her MiraLax and her constipation improved.",
+      "char_count": 3034
+    },
+    {
+      "file": "mtsamples_078.pdf",
+      "sample_name": "Discharge Summary - 11",
+      "description": "Hyperglycemia, cholelithiasis, obstructive sleep apnea, diabetes mellitus, hypertension, and cholecystitis.",
+      "char_count": 2429
+    },
+    {
+      "file": "mtsamples_079.pdf",
+      "sample_name": "Discharge Summary - 13",
+      "description": "Bradycardia, dizziness, diabetes, hypertension, abdominal pain, and sick sinus syndrome.",
+      "char_count": 2680
+    },
+    {
+      "file": "mtsamples_080.pdf",
+      "sample_name": "Death Summary - 2",
+      "description": "Cardiac arrest, severe congestive heart failure, acute on chronic respiratory failure, osteoporosis, and depression.",
+      "char_count": 2147
+    },
+    {
+      "file": "mtsamples_081.pdf",
+      "sample_name": "Discharge Summary - 14",
+      "description": "The patient is a 60-year-old female patient who off and on for the past 10 to 12 months has had almost daily diarrhea, nausea, inability to eat.",
+      "char_count": 1845
+    },
+    {
+      "file": "mtsamples_082.pdf",
+      "sample_name": "Death Summary - 1",
+      "description": "Death summary of patient with advanced non-small cell lung carcinoma with left malignant pleural effusion status post chest tube insertion status post chemical pleurodesis.",
+      "char_count": 2386
+    },
+    {
+      "file": "mtsamples_083.pdf",
+      "sample_name": "Discharge Summary - 16",
+      "description": "Upper respiratory illness with apnea, possible pertussis.  a one plus-month-old female with respiratory symptoms for approximately a week prior to admission.  This involved cough, post-tussive emesis, and questionable fever.",
+      "char_count": 2851
+    },
+    {
+      "file": "mtsamples_084.pdf",
+      "sample_name": "Discharge Summary - 10",
+      "description": "Patient with a history of a Nissen fundoplication performed six years ago for gastric reflux.",
+      "char_count": 3408
+    },
+    {
+      "file": "mtsamples_085.pdf",
+      "sample_name": "CVA - Discharge Summary",
+      "description": "Cerebrovascular accident (CVA) with right arm weakness and MRI indicating acute/subacute infarct involving the left posterior parietal lobe without mass effect.  2.  Old coronary infarct, anterior aspect of the right external capsule.  Acute bronchitis with reactive airway disease.",
+      "char_count": 2861
+    },
+    {
+      "file": "mtsamples_086.pdf",
+      "sample_name": "Discharge Summary - 1",
+      "description": "Acute cerebrovascular accident/left basal ganglia and deep white matter of the left parietal lobe, hypertension, urinary tract infection, and hypercholesterolemia.",
+      "char_count": 6331
+    },
+    {
+      "file": "mtsamples_087.pdf",
+      "sample_name": "Death Summary",
+      "description": "Death summary of an 80-year-old patient with a history of COPD.",
+      "char_count": 2711
+    },
+    {
+      "file": "mtsamples_088.pdf",
+      "sample_name": "Cognitive Linguistic Impairment - Discharge",
+      "description": "Cognitive linguistic impairment secondary to stroke.  The patient was referred to Medical Center's Outpatient Rehabilitation Department for skilled speech therapy secondary to cognitive linguistic deficits.",
+      "char_count": 1826
+    },
+    {
+      "file": "mtsamples_089.pdf",
+      "sample_name": "Discharge Summary",
+      "description": "Patient had some cold symptoms, was treated as bronchitis with antibiotics.",
+      "char_count": 2386
+    },
+    {
+      "file": "mtsamples_090.pdf",
+      "sample_name": "Cholestasis Of Pregnancy",
+      "description": "Delivered pregnancy, cholestasis of pregnancy, fetal intolerance to labor, failure to progress.  Primary low transverse cesarean section.",
+      "char_count": 2723
+    },
+    {
+      "file": "mtsamples_091.pdf",
+      "sample_name": "Cholecystitis - Discharge Summary",
+      "description": "Cholecystitis with choledocholithiasis.   Laparoscopic cholecystectomy with laparoscopy converted to open common bile duct exploration and stone extraction.",
+      "char_count": 2901
+    },
+    {
+      "file": "mtsamples_092.pdf",
+      "sample_name": "COPD - Discharge Summary",
+      "description": "A 67-year-old male with COPD and history of bronchospasm, who presents with a 3-day history of increased cough, respiratory secretions, wheezings, and shortness of breath.",
+      "char_count": 2002
+    },
+    {
+      "file": "mtsamples_093.pdf",
+      "sample_name": "D&C - Discharge Summary",
+      "description": "Hysteroscopy, dilatation and curettage (D&C), and myomectomy.  Severe menometrorrhagia unresponsive to medical therapy, severe anemia, and fibroid uterus.",
+      "char_count": 2029
+    },
+    {
+      "file": "mtsamples_094.pdf",
+      "sample_name": "COPD & Bronchitis - Discharge Summary",
+      "description": "Chronic obstructive pulmonary disease (COPD) exacerbation and acute bronchitis.",
+      "char_count": 1964
+    },
+    {
+      "file": "mtsamples_095.pdf",
+      "sample_name": "CHF & Pleural Effusion - Discharge Summary",
+      "description": "Congestive heart failure (CHF) with left pleural effusion.  Anemia of chronic disease.",
+      "char_count": 2186
+    },
+    {
+      "file": "mtsamples_096.pdf",
+      "sample_name": "Chronic Abscesses - Discharge Summary",
+      "description": "Multiple extensive subcutaneous abscesses, right thigh.  Massive open wound, right thigh, status post right excision of multiple subcutaneous abscesses, right thigh.",
+      "char_count": 3961
+    },
+    {
+      "file": "mtsamples_097.pdf",
+      "sample_name": "Cardio/Pulmo Discharge Summary",
+      "description": "A 49-year-old man with respiratory distress, history of coronary artery disease with prior myocardial infarctions, and recently admitted with pneumonia and respiratory failure.",
+      "char_count": 3827
+    },
+    {
+      "file": "mtsamples_098.pdf",
+      "sample_name": "Cellulitis - Discharge Summary",
+      "description": "Complex open wound right lower extremity complicated by a methicillin-resistant staphylococcus aureus cellulitis.  The patient is a 52-year-old male who has had a very complex course secondary to a right lower extremity complex open wound.",
+      "char_count": 2205
+    },
+    {
+      "file": "mtsamples_099.pdf",
+      "sample_name": "Back & Leg Pain - Discharge Summary",
+      "description": "Bilateral l5 spondylolysis with pars defects and spinal instability with radiculopathy.  Chronic pain syndrome.",
+      "char_count": 1401
+    },
+    {
+      "file": "mtsamples_100.pdf",
+      "sample_name": "Chest Pain & Respiratory Insufficiency",
+      "description": "A lady was admitted to the hospital with chest pain and respiratory insufficiency.  She has chronic lung disease with bronchospastic angina.",
+      "char_count": 1196
+    },
+    {
+      "file": "mtsamples_101.pdf",
+      "sample_name": "Bronchiolitis - Discharge Summary",
+      "description": "Bronchiolitis, respiratory syncytial virus positive; improved and stable.  Innocent heart murmur, stable.",
+      "char_count": 3519
+    },
+    {
+      "file": "mtsamples_102.pdf",
+      "sample_name": "BRCA-2 mutation",
+      "description": "Discharge summary of a patient with a BRCA-2 mutation.",
+      "char_count": 1291
+    },
+    {
+      "file": "mtsamples_103.pdf",
+      "sample_name": "Back Pain - Discharge Summary",
+      "description": "Decreased ability to perform daily living activities secondary to exacerbation of chronic back pain.",
+      "char_count": 5161
+    },
+    {
+      "file": "mtsamples_104.pdf",
+      "sample_name": "Cardiac Transfer Summary",
+      "description": "Need for cardiac catheterization.  Coronary artery disease, chest pain, history of diabetes, history of hypertension, history of obesity,  a 1.1 cm lesion in the medial aspect of the right parietal lobe, and deconditioning.",
+      "char_count": 2216
+    },
+    {
+      "file": "mtsamples_105.pdf",
+      "sample_name": "Anterior Cervical Discectomy & Fusion - Discharge Summary",
+      "description": "Anterior cervical discectomy and fusions C4-5, C5-6, C6-7 using Bengal cages and Slimlock plate C4 to C7; intraoperative x-ray.  Herniated nucleuses pulposus, C5-6 greater than C6-7, left greater than C4-5 right with left radiculopathy and moderate stenosis C5-6.",
+      "char_count": 2529
+    },
+    {
+      "file": "mtsamples_106.pdf",
+      "sample_name": "Abscess with Cellulitis - Discharge Summary",
+      "description": "Incision and drainage, first metatarsal head, left foot with culture and sensitivity.",
+      "char_count": 2643
+    }
+  ]
+}
