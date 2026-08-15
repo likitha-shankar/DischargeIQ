@@ -12,10 +12,12 @@
 # ANDROID vs iOS - they are not symmetric, and the kit is honest about it:
 #   Android: the APK in this kit installs directly. Nothing else needed.
 #   iOS:     Apple does not permit installing an app from a file the way
-#            Android does. A tester must be invited to TestFlight. The kit
-#            therefore carries instructions, not an installable iOS binary.
-#            An .ipa is included ONLY if one has been built, and even then it
-#            is ad-hoc signed and installs only on pre-registered UDIDs.
+#            Android does, and there is NO TestFlight build - that needs a
+#            paid Apple account this project does not have. An iPhone tester
+#            must hand the device to the developer for a cable install that
+#            lasts 7 days. The kit therefore carries instructions, not an
+#            installable iOS binary. An .ipa is included ONLY if one has been
+#            built, and even then it installs only on pre-registered UDIDs.
 #
 # The release build already points at the hosted Cloud Run backend (see
 # dischargeiq_mobile/lib/config.dart), so it works on any network with no
@@ -67,7 +69,7 @@ if [ -n "$IPA" ]; then
   cp "$IPA" "$KIT/DischargeIQ-ios.ipa"
   IPA_LINE="  DischargeIQ-ios.ipa    - ad-hoc build; installs ONLY on pre-registered devices"
 else
-  IPA_LINE="  (no iOS binary - iPhone testers install via TestFlight, see iOS-INSTALL.md)"
+  IPA_LINE="  (no iOS binary - iPhone needs a 7-day cable install, see iOS-INSTALL.md)"
 fi
 
 # Three synthetic documents, one per common diagnosis. Synthetic only -
@@ -108,7 +110,7 @@ echo "  Zip:    $ZIP  ($(du -h "$ZIP" | cut -f1))"
 if [ -z "$IPA" ]; then
   echo
   echo "NOTE: Android installs from this zip directly."
-  echo "      iPhone testers need a TestFlight invite - see docs/beta/IOS_INSTALL.md."
+  echo "      iPhone has no TestFlight build - 7-day cable install only, see docs/beta/IOS_INSTALL.md."
 fi
 
 # The app has no local fallback: every upload goes to the hosted backend. If

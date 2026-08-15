@@ -28,14 +28,22 @@ Lost them? Ask your contact for replacements - or print any PDF from
 3. Open **DischargeIQ**. No account or login needed. The app talks to our
    hosted backend automatically - any Wi‑Fi or mobile data works.
 
-Play Store internal-testing links replace this direct install later in the
-beta (you'll get a new invite; nothing to uninstall).
+Play Store internal-testing links would replace this direct install later,
+but there is no Play Console account this summer either, so the APK in this
+kit stays the distribution route for the whole beta.
 
-### iPhone (TestFlight - invites coming shortly)
+### iPhone (no invite is coming - please read)
 
-1. Install **TestFlight** from the App Store.
-2. Tap the TestFlight invite link in your invite message.
-3. Tap **Install** next to DischargeIQ.
+There is **no TestFlight build**. It needs a paid Apple Developer account,
+which this project does not have. Do not wait for an invite email.
+
+1. Use an **Android phone** if you can get hold of one. That is the supported
+   route and takes two minutes.
+2. Otherwise, hand your iPhone to the developer for ten minutes and it can be
+   installed over a cable. The app then works for **7 days** before it needs
+   the same ten minutes again.
+
+Details: `iOS-INSTALL.md` in this kit.
 
 ## What to test (15–20 minutes)
 
@@ -43,9 +51,11 @@ Do each of these at least once, on different days if you can:
 
 1. **Camera scan:** Scan → photograph all pages of a printed test document →
    check the text preview → Analyze. Try one scan in bad light on purpose.
-2. **Read the results:** all 7 tabs (What Happened, Medications,
-   Appointments, Warning Signs, Recovery, Test yourself, AI Review).
+2. **Read the results:** all 7 tabs (What happened, Medications,
+   Appointments, Warning signs, Recovery, Test yourself, Discharge Check).
    Flag anything confusing, wrong-sounding, or above ~6th-grade reading level.
+   A usage disclaimer appears the first time you open a new document; it
+   closes with the X or the OK button.
 3. **Take the quiz:** "Test yourself" tab → baseline quiz → learning cards →
    post-quiz. Miss a question on purpose once to see the focused review.
 4. **Ask the chat** 2–3 questions about the document (e.g. "when is my
