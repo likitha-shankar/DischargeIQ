@@ -11,9 +11,10 @@ appropriate HTTP status codes. No business logic lives here.
 import json
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
+from dischargeiq.api.middleware import has_valid_api_key
 from dischargeiq.api.schemas import ChatRequest, ChatResponse
 from dischargeiq.services.chat import chat_service
 from dischargeiq.services.session import session_store
@@ -24,8 +25,16 @@ logger = logging.getLogger(__name__)
 # runs in the patient's browser and calls this endpoint with fetch(), so a key
 # handed to it would sit in page source for anyone to read - that is not a gate,
 # it is a published key. Until the panel proxies its calls through the app
-# server, the protection here is the per-IP rate limit (30/min) plus the fact
-# that a caller must supply a full pipeline_context to get an answer at all.
+# server, the protection here is the per-IP rate limit (30/min) plus the rule
+# below on where the grounding context may come from.
+#
+# That second protection used to be "a caller must supply a full
+# pipeline_context", which was not a barrier at all: black-box testing on
+# 15 Aug 2026 got a complete grounded answer from two hand-written fields and
+# no key. Now an ANONYMOUS caller can only be answered from a session this
+# server already analysed - and /analyze is gated - while an authenticated
+# caller may still send its own context, which is what the mobile app needs
+# when a session has been evicted.
 #
 # The expensive routes - /analyze, /analyze/text, /analyze/image (full 6-agent
 # pipeline), /quiz/*, /media/case - ARE gated, and none of them is called from
@@ -33,7 +42,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-def _resolve_context(request: ChatRequest) -> dict:
+def _resolve_context(request: ChatRequest, authenticated: bool) -> dict:
     """
     Return the pipeline context for a chat request.
 
@@ -41,21 +50,34 @@ def _resolve_context(request: ChatRequest) -> dict:
     client sends only session_id), then the request's own pipeline_context
     (fallback for evicted sessions and older clients).
 
+    The fallback is available only to an authenticated caller. Without that
+    rule an anonymous caller could invent a discharge summary and have the
+    model answer questions about it, which is free LLM spend on made-up
+    clinical content wearing this project's name.
+
     Args:
-        request: The incoming ChatRequest.
+        request:       The incoming ChatRequest.
+        authenticated: Whether a valid API key accompanied the request.
 
     Returns:
         dict: PipelineResponse dict to ground the answer in.
 
     Raises:
+        HTTPException 401: Anonymous caller supplied its own context.
         HTTPException 409: Neither source has context - the client must
-            re-run /analyze (or re-send pipeline_context).
+            re-run /analyze (or re-send pipeline_context with a key).
     """
     context = session_store.get_context(request.session_id)
     if context is not None:
         return context
     if request.pipeline_context is not None:
-        return request.pipeline_context
+        if authenticated:
+            return request.pipeline_context
+        raise HTTPException(
+            status_code=401,
+            detail="Supplying pipeline_context requires an API key. Analyze a "
+                   "document first, then chat using that session id.",
+        )
     raise HTTPException(
         status_code=409,
         detail="No discharge context for this session. Please analyze the "
@@ -64,7 +86,10 @@ def _resolve_context(request: ChatRequest) -> dict:
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+async def chat(
+    request: ChatRequest,
+    authenticated: bool = Depends(has_valid_api_key),
+):
     """
     Answer a patient question grounded in their discharge summary.
 
@@ -96,7 +121,7 @@ async def chat(request: ChatRequest):
     try:
         reply, source_page, from_document = chat_service.answer(
             message=request.message,
-            pipeline_context=_resolve_context(request),
+            pipeline_context=_resolve_context(request, authenticated),
         )
     except HTTPException:
         raise
@@ -119,7 +144,10 @@ async def chat(request: ChatRequest):
 
 
 @router.post("/chat/stream")
-async def chat_stream(request: ChatRequest):
+async def chat_stream(
+    request: ChatRequest,
+    authenticated: bool = Depends(has_valid_api_key),
+):
     """
     Stream a grounded answer as Server-Sent Events.
 
@@ -146,7 +174,7 @@ async def chat_stream(request: ChatRequest):
             iter([f"data: {json.dumps(empty)}\n\n"]), media_type="text/event-stream"
         )
 
-    context = _resolve_context(request)
+    context = _resolve_context(request, authenticated)
     logger.info(
         "POST /chat/stream - session: %s, message: %.60s…",
         request.session_id, request.message,

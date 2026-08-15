@@ -120,7 +120,7 @@ def test_correct_key_passes_auth_and_reaches_route(monkeypatch: pytest.MonkeyPat
     assert resp.status_code == 415
 
 
-def test_chat_stays_open_by_design(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_chat_stays_reachable_without_a_key(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     /chat is deliberately ungated: the Streamlit panel calls it from browser
     JavaScript, where a key would be readable in page source. 409 (no session
@@ -129,6 +129,60 @@ def test_chat_stays_open_by_design(monkeypatch: pytest.MonkeyPatch) -> None:
     client = _keyed_client(monkeypatch)
     resp = client.post("/chat", json={"message": "hi", "session_id": "nope"})
     assert resp.status_code == 409
+
+
+def test_chat_refuses_caller_supplied_context_without_a_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    Reachable is not the same as free to abuse.
+
+    Black-box testing on 15 Aug 2026 got a full grounded answer from two
+    hand-written fields and no API key, which made /chat an open LLM endpoint
+    for anyone holding the URL. Grounding context invented by an anonymous
+    caller is now refused; only a session this server analysed (and /analyze
+    IS gated) will be answered.
+    """
+    client = _keyed_client(monkeypatch)
+    resp = client.post(
+        "/chat",
+        json={
+            "message": "what are my medicines",
+            "session_id": "invented-by-a-stranger",
+            "pipeline_context": {
+                "extraction": {"primary_diagnosis": "Heart failure"},
+                "diagnosis_explanation": "Made up.",
+            },
+        },
+    )
+    assert resp.status_code == 401
+
+
+def test_chat_accepts_caller_supplied_context_with_a_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    The mobile app re-sends its own context when a session has been evicted,
+    and it always carries the key. That path must keep working, or chat breaks
+    on the phone every time the server restarts.
+    """
+    client = _keyed_client(monkeypatch)
+    resp = client.post(
+        "/chat",
+        json={
+            "message": "what are my medicines",
+            "session_id": "evicted-session",
+            "pipeline_context": {
+                "extraction": {"primary_diagnosis": "Heart failure"},
+                "diagnosis_explanation": "Your heart is not pumping well.",
+            },
+        },
+        headers={"Authorization": "Bearer unit-test-key"},
+    )
+    # Not 401: the caller is authenticated, so the request reaches the service
+    # (which then needs an LLM, unavailable in the suite - anything but 401
+    # proves the gate let it through).
+    assert resp.status_code != 401
 
 
 def test_docs_hidden_when_keyed_and_shown_when_not(monkeypatch: pytest.MonkeyPatch) -> None:

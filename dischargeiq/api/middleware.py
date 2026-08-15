@@ -204,6 +204,35 @@ def sanitize_for_log(value: str, max_len: int = 255) -> str:
     return _LOG_UNSAFE_CHARS.sub("_", value)[:max_len]
 
 
+async def has_valid_api_key(
+    credentials: HTTPAuthorizationCredentials = Security(_bearer_scheme),
+) -> bool:
+    """
+    FastAPI dependency: report whether a valid Bearer token was supplied,
+    without rejecting the request.
+
+    For routes that must stay reachable without a key but should trust an
+    authenticated caller further than an anonymous one. /chat is the case this
+    exists for: the Streamlit panel calls it from the patient's browser, where
+    an embedded key would be a published key rather than a gate, so the route
+    cannot simply be closed.
+
+    Args:
+        credentials: Parsed Authorization header from HTTPBearer.
+
+    Returns:
+        bool: True when no key is configured (dev mode) or the supplied token
+            matches. False when a key is required and absent or wrong.
+    """
+    import hmac
+
+    required_key = os.environ.get("DISCHARGEIQ_API_KEY", "").strip()
+    if not required_key:
+        return True  # Dev mode: no key configured
+    token = credentials.credentials if credentials else ""
+    return hmac.compare_digest(token.encode(), required_key.encode())
+
+
 async def verify_api_key(
     credentials: HTTPAuthorizationCredentials = Security(_bearer_scheme),
 ) -> None:
