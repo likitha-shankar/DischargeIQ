@@ -131,8 +131,26 @@ async def generate_outputs(
         # "generated=20 failed=0" while writing twenty partial files with
         # "Extraction failed" as the diagnosis. Judge the outcome, not the
         # error code.
+        # A run is unusable for review if ANY narrative section came back
+        # empty. Agent 1 can succeed while agents 2-5 die one at a time on a
+        # rate limit, and the result is a document a clinician is asked to
+        # score with a blank section in it - which scores the outage, not the
+        # system. Eight such files reached the committed review set on
+        # 15 Aug before this check existed.
+        empty_sections = [
+            name for name, value in (
+                ("diagnosis", response.diagnosis_explanation),
+                ("medication", response.medication_rationale),
+                ("recovery", response.recovery_trajectory),
+                ("escalation", response.escalation_guide),
+            ) if not str(value or "").strip()
+        ]
         warnings_text = " ".join(response.extraction_warnings)
-        if "Agent 1 error" in warnings_text:
+        if "Agent 1 error" in warnings_text or empty_sections:
+            if empty_sections and "Agent 1 error" not in warnings_text:
+                warnings_text = (
+                    f"empty after agent failure: {', '.join(empty_sections)}"
+                )
             quota_strikes += 1
             failed += 1
             logger.error(
