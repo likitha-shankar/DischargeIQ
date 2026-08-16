@@ -138,3 +138,48 @@ improved.
 - Record the backup demo while the app is in a known-good state.
 - Connect the clinicians and complete the sample review.
 - Settle the repository handover and the Apple account question with LOF.
+
+## 9. Recording the backup (task 4.8)
+
+The backup recording exists for one job: if the venue network, the phone or
+the backend fails at Tribune Tower, this plays instead. It does not need to be
+polished. It needs to be COMPLETE and HONEST - a recording that skips the
+rejected-document step is worthless precisely when you need it.
+
+Record it while the system is verified green, not on the morning of the event.
+State verified 16 Aug 2026: revision dischargeiq-00022-mdb, 9/9 guardrails,
+phone build installed, iOS profile valid to ~22 Aug.
+
+### Setup (5 minutes)
+
+1. Connect the iPhone by cable and unlock it.
+2. Open QuickTime Player, File > New Movie Recording, and pick the iPhone as
+   both the camera and the microphone source. The phone screen becomes the
+   video feed.
+3. Silence notifications on the phone (Focus / Do Not Disturb). A message
+   banner mid-recording means recording again.
+4. Have the printed heart-failure summary ready if demonstrating the camera
+   scan, and the invoice PDF reachable for step 4.
+5. Run the pre-flight from section 0 immediately before recording.
+
+### Shot list, with timings
+
+| Time | Shot | Say |
+|---|---|---|
+| 0:00-0:30 | Home screen | The problem: discharge documents are written for the next clinician. ~13% full comprehension. |
+| 0:30-1:15 | Scan or upload heart_failure_01 | What the patient does at hour zero, at home. |
+| 1:15-1:35 | The disclaimer appears | Written by AI, not medical advice, cannot be dismissed by tapping away. Say this out loud - it is the HITL point Frank raised on 5 Aug. |
+| 1:35-3:00 | Walk the seven tabs | On Warning signs: all three tiers open, and each symptom says WHY it matters. On Recovery: one card per week. |
+| 3:00-4:15 | Teach-back loop | Baseline quiz, learning cards, post quiz, then the comprehension delta banner. The headline metric. |
+| 4:15-4:45 | Upload the invoice | One honest "try another document" screen with a reason. No empty tabs, no crash. |
+| 4:45-5:15 | Clinician dashboard | The session with its delta, and any post-quiz miss in the flagged-gaps list. |
+| 5:15-5:45 | Limitations | Say them plainly, from section 7. Ending on limitations is what makes the rest credible. |
+
+Six minutes total. Do not re-record for small stumbles - a human voice
+correcting itself reads as honest; a polished demo reads as a sales pitch.
+
+### After recording
+
+- Store it OUTSIDE this repository (it shows real analysis output). The
+  device-backups convention applies: gitignored, or better, off the laptop.
+- Note in the deliverables that 4.8's recording exists and where it lives.
