@@ -89,6 +89,29 @@ class CaseAudioPlayer extends ChangeNotifier {
 
   Future<void> pause() async => _player.pause();
 
+  /// Jump to a position, clamped inside the track.
+  ///
+  /// Seeking past the end would complete the track and clear the bar, which
+  /// is not what someone dragging near the end is asking for.
+  Future<void> seek(Duration to) async {
+    if (_url == null) return;
+    var target = to;
+    if (target < Duration.zero) target = Duration.zero;
+    if (_duration > Duration.zero && target > _duration) {
+      target = _duration - const Duration(milliseconds: 200);
+    }
+    _position = target;
+    notifyListeners();
+    await _player.seek(target);
+  }
+
+  /// Move [delta] from where we are - negative rewinds.
+  ///
+  /// Fifteen seconds because this is spoken explanation, not music: it is
+  /// roughly one sentence back, which is what someone who missed a drug name
+  /// actually wants.
+  Future<void> skip(Duration delta) => seek(_position + delta);
+
   /// Stop and forget the track, so the bar disappears.
   Future<void> stop() async {
     await _player.stop();

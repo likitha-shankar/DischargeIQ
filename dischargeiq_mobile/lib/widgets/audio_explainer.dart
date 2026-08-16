@@ -136,6 +136,17 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
             children: [
               // Big tap targets on purpose - older patients, rule of thumb 48dp.
               if (_audioAvailable) ...[
+                // Rewind sits BEFORE play: someone who missed a drug name
+                // reaches for "back" first, and it should be where their
+                // thumb already is.
+                IconButton(
+                  tooltip: 'Back 15 seconds',
+                  iconSize: 26,
+                  onPressed: isThisTrack
+                      ? () => audio.skip(const Duration(seconds: -15))
+                      : null,
+                  icon: const Icon(Icons.replay_10_rounded, color: kTeal),
+                ),
                 IconButton.filled(
                   style: IconButton.styleFrom(backgroundColor: kTealMid),
                   iconSize: 28,
@@ -147,7 +158,15 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
                       playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
                       color: Colors.white),
                 ),
-                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: 'Forward 15 seconds',
+                  iconSize: 26,
+                  onPressed: isThisTrack
+                      ? () => audio.skip(const Duration(seconds: 15))
+                      : null,
+                  icon: const Icon(Icons.forward_10_rounded, color: kTeal),
+                ),
+                const SizedBox(width: 4),
               ],
               if (_videoAvailable) ...[
                 IconButton.filled(
@@ -173,13 +192,26 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
           ),
           if (_audioAvailable && duration > Duration.zero) ...[
             const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
+            // Draggable, not just an indicator. The skip buttons above are
+            // the primary control - a thin slider is hard for older hands -
+            // but someone who wants the last third of the explainer should
+            // be able to go straight there.
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 6,
+                activeTrackColor: kTealMid,
+                inactiveTrackColor: Colors.white,
+                thumbColor: kTeal,
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+              ),
+              child: Slider(
                 value: progress,
-                minHeight: 6,
-                backgroundColor: Colors.white,
-                valueColor: const AlwaysStoppedAnimation(kTealMid),
+                onChanged: isThisTrack && duration > Duration.zero
+                    ? (v) => audio.seek(duration * v)
+                    : null,
+                semanticFormatterCallback: (v) =>
+                    'Position ${_clock(duration * v)} of ${_clock(duration)}',
               ),
             ),
             const SizedBox(height: 4),

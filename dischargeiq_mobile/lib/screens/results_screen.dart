@@ -664,6 +664,13 @@ class _AudioNowPlayingBar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
+            tooltip: 'Back 15 seconds',
+            visualDensity: VisualDensity.compact,
+            onPressed: () => audio.skip(const Duration(seconds: -15)),
+            icon: Icon(Icons.replay_10_rounded,
+                size: 20, color: dark ? kTealGlow : kTeal),
+          ),
+          IconButton(
             tooltip: audio.isPlaying ? 'Pause' : 'Play',
             visualDensity: VisualDensity.compact,
             onPressed: () => audio.isPlaying
@@ -673,6 +680,13 @@ class _AudioNowPlayingBar extends StatelessWidget {
               audio.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
               color: dark ? kTealGlow : kTeal,
             ),
+          ),
+          IconButton(
+            tooltip: 'Forward 15 seconds',
+            visualDensity: VisualDensity.compact,
+            onPressed: () => audio.skip(const Duration(seconds: 15)),
+            icon: Icon(Icons.forward_10_rounded,
+                size: 20, color: dark ? kTealGlow : kTeal),
           ),
           Expanded(
             child: Column(
