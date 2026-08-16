@@ -39,8 +39,13 @@ logger = logging.getLogger(__name__)
 
 # Documented multi-speaker TTS model (verified hands-on, Task 1.12).
 _TTS_MODEL = os.environ.get("TTS_MODEL", "gemini-2.5-flash-preview-tts")
+# The key travels in a header, NOT in the query string. requests puts the
+# full URL into HTTPError messages, so a query-string key is reproduced in
+# every 4xx and 5xx traceback - which is how GOOGLE_API_KEY ended up in a
+# terminal log on 16 Aug 2026 from nothing more than a 429. Headers are not
+# echoed in those messages.
 _TTS_URL = (
-    "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
+    "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 )
 # Two distinct prebuilt voices for the Sam/Alex dialogue.
 _VOICES = {"Sam": "Kore", "Alex": "Puck"}
@@ -155,8 +160,9 @@ def synthesize_dialogue_bytes(script: str) -> bytes:
         },
     }
     resp = requests.post(
-        _TTS_URL.format(model=_TTS_MODEL, key=api_key),
+        _TTS_URL.format(model=_TTS_MODEL),
         json=body,
+        headers={"x-goog-api-key": api_key},
         timeout=180,
     )
     resp.raise_for_status()
