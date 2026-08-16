@@ -58,9 +58,14 @@ def test_build_dialogue_script_rejects_scriptless_reply():
 
 
 def test_synthesize_dialogue_writes_valid_wav(tmp_path, monkeypatch):
-    """Mocked TTS PCM lands on disk as a well-formed 24 kHz mono WAV."""
-    monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
-    pcm = b"\x00\x01" * 2400  # 0.1 s of fake PCM
+    """
+    Mocked Cloud TTS audio lands on disk as a well-formed 24 kHz mono WAV.
+
+    One synthesis call per dialogue turn, each with that speaker's voice, and
+    the PCM concatenated into a single stream - this project has no
+    multi-speaker voice available, so the two-host effect is built here.
+    """
+    pcm = b"\x00\x01" * 2400  # 0.1 s of fake PCM per turn
 
     class _Resp:
         status_code = 200
@@ -69,24 +74,42 @@ def test_synthesize_dialogue_writes_valid_wav(tmp_path, monkeypatch):
             pass
 
         def json(self):  # noqa: D102 - test double
-            return {"candidates": [{"content": {"parts": [{"inlineData": {
-                "mimeType": "audio/L16;codec=pcm;rate=24000",
-                "data": base64.b64encode(pcm).decode(),
-            }}]}}]}
+            return {"audioContent": base64.b64encode(pcm).decode()}
 
-    with patch.object(case_audio.requests, "post", return_value=_Resp()) as post:
+    class _Creds:
+        token = "fake-adc-token"
+
+        def refresh(self, _request):  # noqa: D102 - test double
+            pass
+
+    with patch.object(case_audio.requests, "post", return_value=_Resp()) as post, \
+         patch("google.auth.default", return_value=(_Creds(), "test-project")), \
+         patch("google.auth.transport.requests.Request", return_value=object()):
         out = case_audio.synthesize_dialogue(_SCRIPT, tmp_path / "case.wav")
 
     raw = out.read_bytes()
     assert raw[:4] == b"RIFF" and raw[8:12] == b"WAVE"
     # Sample rate field in the fmt chunk must be 24000.
     assert struct.unpack("<I", raw[24:28])[0] == 24000
-    assert raw[44:] == pcm  # payload untouched after the 44-byte header
-    # Multi-speaker config with both hosts went out in the request body.
-    body = post.call_args.kwargs["json"]
-    speakers = {c["speaker"] for c in body["generationConfig"]["speechConfig"]
-                ["multiSpeakerVoiceConfig"]["speakerVoiceConfigs"]}
-    assert speakers == {"Sam", "Alex"}
+
+    turns = case_audio._dialogue_turns(_SCRIPT)
+    assert len(turns) >= 2, "fixture should exercise both hosts"
+    assert post.call_count == len(turns), "one synthesis call per turn"
+    assert raw[44:] == pcm * len(turns), "turns concatenated, headers stripped"
+
+    # Each host was voiced with its own voice, and no API key was involved.
+    voices = {call.kwargs["json"]["voice"]["name"] for call in post.call_args_list}
+    assert voices == set(case_audio._VOICES.values())
+    for call in post.call_args_list:
+        assert call.kwargs["headers"]["Authorization"].startswith("Bearer ")
+        assert "x-goog-api-key" not in call.kwargs["headers"]
+
+
+def test_dialogue_turns_keeps_continuation_lines():
+    """A line without a speaker prefix belongs to the previous speaker."""
+    turns = case_audio._dialogue_turns("Sam: first part\nstill sam\nAlex: reply")
+    assert turns[0] == ("Sam", "first part still sam")
+    assert turns[1] == ("Alex", "reply")
 
 
 # ── POST /media/case serving path (decision D-5: on-demand, flag-gated) ──────

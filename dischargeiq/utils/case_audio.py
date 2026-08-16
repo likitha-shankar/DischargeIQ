@@ -31,7 +31,6 @@ from dischargeiq.utils.llm_client import (
     call_chat_with_fallback,
     get_llm_client,
     load_agent_prompt,
-    require_provider_api_key,
 )
 from dischargeiq.utils.scorer import fk_check
 
@@ -39,16 +38,19 @@ logger = logging.getLogger(__name__)
 
 # Documented multi-speaker TTS model (verified hands-on, Task 1.12).
 _TTS_MODEL = os.environ.get("TTS_MODEL", "gemini-2.5-flash-preview-tts")
-# The key travels in a header, NOT in the query string. requests puts the
-# full URL into HTTPError messages, so a query-string key is reproduced in
-# every 4xx and 5xx traceback - which is how GOOGLE_API_KEY ended up in a
-# terminal log on 16 Aug 2026 from nothing more than a 429. Headers are not
-# echoed in those messages.
+# Google Cloud Text-to-Speech, authenticated with Application Default
+# Credentials - the same service account the pipeline already uses for Vertex.
+# No API key exists on this path, which is the point: the previous
+# implementation called the AI Studio endpoint with GOOGLE_API_KEY, a
+# credential outside the BAA-covered GCP surface and one that leaked into a
+# terminal log on 16 Aug from an ordinary 429.
 _TTS_URL = (
-    "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+    "https://texttospeech.googleapis.com/v1/text:synthesize"
 )
 # Two distinct prebuilt voices for the Sam/Alex dialogue.
-_VOICES = {"Sam": "Kore", "Alex": "Puck"}
+# Cloud TTS voice per host. Two distinct Neural2 voices stand in for the
+# multi-speaker voice this project does not have available.
+_VOICES = {"Sam": "en-US-Neural2-D", "Alex": "en-US-Neural2-F"}
 _PCM_SAMPLE_RATE = 24000  # Gemini TTS returns 24 kHz 16-bit mono PCM
 
 
@@ -123,14 +125,47 @@ def _wrap_pcm_as_wav(pcm: bytes, sample_rate: int = _PCM_SAMPLE_RATE) -> bytes:
     )
 
 
+def _dialogue_turns(script: str) -> list[tuple[str, str]]:
+    """
+    Split a "Sam: ... / Alex: ..." script into (speaker, line) turns.
+
+    Lines without a recognised speaker prefix are attached to the previous
+    speaker rather than dropped, so a stray continuation line is still voiced.
+
+    Args:
+        script: Dialogue text as written by build_dialogue_script.
+
+    Returns:
+        Ordered turns. Empty when the script contains no speech.
+    """
+    turns: list[tuple[str, str]] = []
+    for raw in script.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        speaker, sep, said = line.partition(":")
+        if sep and speaker.strip() in _VOICES:
+            said = said.strip()
+            if said:
+                turns.append((speaker.strip(), said))
+        elif turns:
+            turns[-1] = (turns[-1][0], f"{turns[-1][1]} {line}")
+    return turns
+
+
 def synthesize_dialogue_bytes(script: str) -> bytes:
     """
-    Render a Sam/Alex dialogue script to WAV bytes via Gemini TTS.
+    Render a Sam/Alex dialogue script to WAV bytes via Google Cloud TTS.
 
-    One multi-speaker generateContent call; the returned 24 kHz PCM is
-    wrapped as WAV. This is the serving primitive: POST /media/case returns
-    these bytes directly (on-demand model, decision D-5), and the CLI wraps
-    them in a file for the pre-generated per-diagnosis slots.
+    Each turn is synthesized with its speaker's voice and the PCM is
+    concatenated, which is how the two-host format is produced without a
+    multi-speaker voice: this project has none available. The result is the
+    same 24 kHz mono WAV the callers already expect, so POST /media/case and
+    the pre-generated per-diagnosis slots are unchanged.
+
+    Authentication is Application Default Credentials - the runtime service
+    account on Cloud Run, the developer's gcloud login locally. There is no
+    API key on this path by design.
 
     Args:
         script: Dialogue text in "Sam: ... / Alex: ..." format.
@@ -139,37 +174,54 @@ def synthesize_dialogue_bytes(script: str) -> bytes:
         bytes: Complete WAV file contents.
 
     Raises:
-        ValueError: If GOOGLE_API_KEY is missing.
-        requests.HTTPError: If the TTS call fails (quota, model, network).
+        ValueError: If the script contains no recognisable speech.
+        google.auth.exceptions.DefaultCredentialsError: If ADC is unavailable.
+        requests.HTTPError: If a synthesis call fails (quota, network).
     """
-    # Validates presence with a clear ValueError; the key itself comes from env.
-    require_provider_api_key("gemini")
-    api_key = os.environ["GOOGLE_API_KEY"].strip()
-    body = {
-        "contents": [{"parts": [{"text": "TTS the following conversation, warm and calm:\n" + script}]}],
-        "generationConfig": {
-            "responseModalities": ["AUDIO"],
-            "speechConfig": {
-                "multiSpeakerVoiceConfig": {
-                    "speakerVoiceConfigs": [
-                        {"speaker": name, "voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}}
-                        for name, voice in _VOICES.items()
-                    ]
-                }
-            },
-        },
-    }
-    resp = requests.post(
-        _TTS_URL.format(model=_TTS_MODEL),
-        json=body,
-        headers={"x-goog-api-key": api_key},
-        timeout=180,
+    import google.auth
+    import google.auth.transport.requests
+
+    turns = _dialogue_turns(script)
+    if not turns:
+        raise ValueError("Dialogue script contained no speech to synthesize.")
+
+    credentials, project = google.auth.default(
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
     )
-    resp.raise_for_status()
-    part = resp.json()["candidates"][0]["content"]["parts"][0]["inlineData"]
-    pcm = base64.b64decode(part["data"])
-    logger.info("TTS audio synthesized (%.1fs)", len(pcm) / _PCM_SAMPLE_RATE / 2)
-    return _wrap_pcm_as_wav(pcm)
+    credentials.refresh(google.auth.transport.requests.Request())
+    headers = {"Authorization": f"Bearer {credentials.token}"}
+    # A user-credential ADC needs a billing/quota project named explicitly;
+    # a service account carries its own and ignores this.
+    quota_project = os.environ.get("VERTEX_PROJECT") or project
+    if quota_project:
+        headers["x-goog-user-project"] = quota_project
+
+    pcm = bytearray()
+    for speaker, said in turns:
+        body = {
+            "input": {"text": said},
+            "voice": {"languageCode": "en-US", "name": _VOICES[speaker]},
+            "audioConfig": {
+                "audioEncoding": "LINEAR16",
+                "sampleRateHertz": _PCM_SAMPLE_RATE,
+                # Slightly under normal pace: this is read by someone who has
+                # just come home from hospital.
+                "speakingRate": 0.95,
+            },
+        }
+        resp = requests.post(_TTS_URL, json=body, headers=headers, timeout=120)
+        resp.raise_for_status()
+        chunk = base64.b64decode(resp.json()["audioContent"])
+        # Cloud TTS returns a complete WAV per request; strip the 44-byte
+        # header so the concatenation is one continuous stream rather than
+        # several files glued together.
+        pcm += chunk[44:] if chunk[:4] == b"RIFF" else chunk
+
+    logger.info(
+        "TTS audio synthesized: %d turns, %.1fs",
+        len(turns), len(pcm) / _PCM_SAMPLE_RATE / 2,
+    )
+    return _wrap_pcm_as_wav(bytes(pcm))
 
 
 def synthesize_dialogue(script: str, out_path: str | Path) -> Path:
