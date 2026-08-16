@@ -7,6 +7,7 @@ import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/services/calendar_link.dart';
 import 'package:dischargeiq_mobile/services/document_store.dart' show isUnusableRun;
 import 'package:dischargeiq_mobile/services/escalation_tiers.dart';
+import 'package:dischargeiq_mobile/services/case_audio_player.dart';
 import 'package:dischargeiq_mobile/services/game_store.dart';
 import 'package:dischargeiq_mobile/services/health_log.dart';
 import 'package:dischargeiq_mobile/services/learning_goals.dart';
@@ -427,6 +428,10 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
           // multi-page packet. One tap returns to the scan screen with all
           // captured pages intact to add the rest and re-analyze.
           if (dp.isScanSession) _AddPagesRow(pageCount: dp.scanPages.length),
+          // Pinned under the tabs: an explainer started on What happened can
+          // be paused from Medications, which is where a patient listening
+          // to it is most likely to be looking.
+          const _AudioNowPlayingBar(),
           Expanded(
             child: TabBarView(
               controller: _tabController,
@@ -630,6 +635,86 @@ class _VisitPrepCard extends StatelessWidget {
                 ],
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Playback control for the case explainer, visible on every tab.
+///
+/// Shown whenever a track is loaded, playing or paused, so a patient who
+/// pauses to read something can resume without hunting for the card that
+/// started it. Hidden entirely when nothing is queued.
+class _AudioNowPlayingBar extends StatelessWidget {
+  const _AudioNowPlayingBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final audio = context.watch<CaseAudioPlayer>();
+    if (!audio.hasTrack) return const SizedBox.shrink();
+    final dark = Theme.of(context).brightness == Brightness.dark;
+
+    String clock(Duration d) =>
+        '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
+
+    return Container(
+      color: dark ? kTeal.withValues(alpha: 0.22) : kTealPale,
+      padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: audio.isPlaying ? 'Pause' : 'Play',
+            visualDensity: VisualDensity.compact,
+            onPressed: () => audio.isPlaying
+                ? audio.pause()
+                : audio.play(audio.url!, label: audio.label),
+            icon: Icon(
+              audio.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              color: dark ? kTealGlow : kTeal,
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  audio.label.isEmpty ? 'Audio explainer' : audio.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                LinearProgressIndicator(
+                  value: audio.progress,
+                  minHeight: 3,
+                  backgroundColor:
+                      (dark ? kTealGlow : kTeal).withValues(alpha: 0.2),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (audio.duration > Duration.zero)
+            Text(
+              '${clock(audio.position)} / ${clock(audio.duration)}',
+              style: TextStyle(
+                fontSize: 11,
+                color: dark ? kTextSecondaryDark : kTextSecondaryLight,
+              ),
+            ),
+          IconButton(
+            tooltip: 'Stop',
+            visualDensity: VisualDensity.compact,
+            onPressed: audio.stop,
+            icon: Icon(Icons.close,
+                size: 18, color: dark ? kTextSecondaryDark : kTextSecondaryLight),
+          ),
         ],
       ),
     );

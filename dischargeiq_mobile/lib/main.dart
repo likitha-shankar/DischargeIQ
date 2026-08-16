@@ -1,4 +1,5 @@
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
+import 'package:dischargeiq_mobile/services/case_audio_player.dart';
 import 'package:dischargeiq_mobile/providers/theme_provider.dart';
 import 'package:dischargeiq_mobile/screens/intro_screen.dart';
 import 'package:dischargeiq_mobile/screens/results_screen.dart';
@@ -17,6 +18,9 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider<ThemeProvider>.value(value: themeProvider),
         ChangeNotifierProvider<DischargeProvider>(create: (_) => DischargeProvider()),
+        // Above the tabs on purpose: an explainer keeps playing while the
+        // patient reads another section, and can be paused from any of them.
+        ChangeNotifierProvider<CaseAudioPlayer>(create: (_) => CaseAudioPlayer()),
       ],
       child: const DischargeIQApp(),
     ),

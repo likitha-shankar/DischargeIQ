@@ -11,7 +11,9 @@
 /// caption pointing back at the patient-specific written summary.
 library;
 
-import 'package:audioplayers/audioplayers.dart';
+import 'package:provider/provider.dart';
+
+import 'package:dischargeiq_mobile/services/case_audio_player.dart';
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -28,14 +30,12 @@ class AudioExplainerCard extends StatefulWidget {
 }
 
 class _AudioExplainerCardState extends State<AudioExplainerCard> {
-  final _player = AudioPlayer();
+  // The player lives above the tabs (CaseAudioPlayer) so playback survives a
+  // tab change. This card only drives it and reflects its state.
   VideoPlayerController? _video;
   bool _audioAvailable = false;
   bool _videoAvailable = false;
   bool _showVideo = false;
-  bool _playing = false;
-  Duration _position = Duration.zero;
-  Duration _duration = Duration.zero;
 
   String get _audioUrl => '${ApiConfig.baseUrl}/media/${widget.documentType}';
   String get _videoUrl => '$_audioUrl/video';
@@ -44,15 +44,6 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
   void initState() {
     super.initState();
     _probe();
-    _player.onPlayerStateChanged.listen((s) {
-      if (mounted) setState(() => _playing = s == PlayerState.playing);
-    });
-    _player.onPositionChanged.listen((p) {
-      if (mounted) setState(() => _position = p);
-    });
-    _player.onDurationChanged.listen((d) {
-      if (mounted) setState(() => _duration = d);
-    });
   }
 
   Future<void> _probe() async {
@@ -81,15 +72,25 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
   Future<void> _toggleAudio() async {
     // One medium at a time - starting the podcast pauses the video.
     _video?.pause();
-    if (_playing) {
-      await _player.pause();
-    } else {
-      await _player.play(UrlSource(_audioUrl));
-    }
+    await context.read<CaseAudioPlayer>().toggle(
+          _audioUrl,
+          label: _friendlyLabel,
+        );
+  }
+
+  /// Minutes and seconds, e.g. "1:07".
+  String _clock(Duration d) =>
+      '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
+
+  /// "Heart failure explainer" from a document_type of "heart_failure".
+  String get _friendlyLabel {
+    final words = widget.documentType.replaceAll('_', ' ').trim();
+    if (words.isEmpty) return 'Audio explainer';
+    return '${words[0].toUpperCase()}${words.substring(1)} explainer';
   }
 
   Future<void> _toggleVideo() async {
-    await _player.pause();
+    await context.read<CaseAudioPlayer>().pause();
     if (_video == null) {
       final controller = VideoPlayerController.networkUrl(Uri.parse(_videoUrl));
       await controller.initialize();
@@ -105,7 +106,8 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
 
   @override
   void dispose() {
-    _player.dispose();
+    // Only the video belongs to this card. Disposing the shared audio player
+    // here is what used to kill playback on every tab change.
     _video?.dispose();
     super.dispose();
   }
@@ -113,9 +115,12 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
   @override
   Widget build(BuildContext context) {
     if (!_audioAvailable && !_videoAvailable) return const SizedBox.shrink();
-    final progress = _duration.inMilliseconds > 0
-        ? (_position.inMilliseconds / _duration.inMilliseconds).clamp(0.0, 1.0)
-        : 0.0;
+    final audio = context.watch<CaseAudioPlayer>();
+    final isThisTrack = audio.isCurrent(_audioUrl);
+    final playing = isThisTrack && audio.isPlaying;
+    final progress = isThisTrack ? audio.progress : 0.0;
+    final position = isThisTrack ? audio.position : Duration.zero;
+    final duration = isThisTrack ? audio.duration : Duration.zero;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
@@ -135,7 +140,11 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
                   style: IconButton.styleFrom(backgroundColor: kTealMid),
                   iconSize: 28,
                   onPressed: _toggleAudio,
-                  icon: Icon(_playing ? Icons.pause_rounded : Icons.headphones_rounded,
+                  // A play triangle, not headphones. Headphones say "audio
+                  // exists here"; they do not say "tap this to start it", and
+                  // the control read as decoration until it was playing.
+                  icon: Icon(
+                      playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
                       color: Colors.white),
                 ),
                 const SizedBox(width: 8),
@@ -162,7 +171,7 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
               ),
             ],
           ),
-          if (_audioAvailable && _duration > Duration.zero) ...[
+          if (_audioAvailable && duration > Duration.zero) ...[
             const SizedBox(height: 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
@@ -172,6 +181,14 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
                 backgroundColor: Colors.white,
                 valueColor: const AlwaysStoppedAnimation(kTealMid),
               ),
+            ),
+            const SizedBox(height: 4),
+            // How long this takes, which is the question before "should I
+            // start it" - a patient just home from hospital is deciding
+            // whether they have the energy for five minutes of audio.
+            Text(
+              '${_clock(position)} of ${_clock(duration)}',
+              style: const TextStyle(fontSize: 11, color: kTextSecondaryLight),
             ),
           ],
           if (_showVideo && _video != null && _video!.value.isInitialized) ...[
