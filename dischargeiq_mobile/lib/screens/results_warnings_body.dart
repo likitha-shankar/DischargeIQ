@@ -220,17 +220,20 @@ class _Tier1Card extends StatelessWidget {
           Container(
             color: sdDanger,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.emergency, size: 20, color: Colors.white),
-                SizedBox(width: 10),
-                Text(
-                  'CALL 911 NOW IF',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.3,
-                    color: Colors.white,
+                const Icon(Icons.emergency, size: 20, color: Colors.white),
+                const SizedBox(width: 10),
+                Semantics(
+                  header: true,
+                  child: const Text(
+                    'CALL 911 NOW IF',
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.3,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
@@ -253,12 +256,17 @@ class _Tier1Card extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(
-            height: 52,
+          // Minimum height, not fixed height. This app allows text scaling to
+          // 2.2x (see main.dart), at which "Call 911" no longer fits in 52px
+          // and a fixed box clips the label on the one control a frightened
+          // patient must be able to read. The button grows instead.
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 52),
             child: FilledButton.icon(
               style: FilledButton.styleFrom(
                 backgroundColor: sdDanger,
                 shape: const RoundedRectangleBorder(),
+                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
               onPressed: () => _open(context, Uri(scheme: 'tel', path: '911')),
               icon: const Icon(Icons.call, size: 21),
@@ -298,17 +306,20 @@ class _Tier2Card extends StatelessWidget {
             decoration: const BoxDecoration(
               border: Border(bottom: BorderSide(color: Color(0xFFF5E4C4))),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.schedule, size: 19, color: sdWarn),
-                SizedBox(width: 10),
-                Text(
-                  'GO TO THE ER TODAY IF',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                    color: sdWarnInk,
+                const Icon(Icons.schedule, size: 19, color: sdWarn),
+                const SizedBox(width: 10),
+                Semantics(
+                  header: true,
+                  child: const Text(
+                    'GO TO THE ER TODAY IF',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                      color: sdWarnInk,
+                    ),
                   ),
                 ),
               ],
@@ -362,17 +373,20 @@ class _Tier3Card extends StatelessWidget {
             decoration: const BoxDecoration(
               border: Border(bottom: BorderSide(color: sdSafeLine)),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.phone_in_talk_outlined, size: 19, color: sdSafe),
-                SizedBox(width: 10),
-                Text(
-                  'CALL YOUR DOCTOR IF',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                    color: sdSafeInk,
+                const Icon(Icons.phone_in_talk_outlined, size: 19, color: sdSafe),
+                const SizedBox(width: 10),
+                Semantics(
+                  header: true,
+                  child: const Text(
+                    'CALL YOUR DOCTOR IF',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                      color: sdSafeInk,
+                    ),
                   ),
                 ),
               ],

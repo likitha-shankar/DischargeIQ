@@ -312,8 +312,12 @@ class _PhaseRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SectionColors.of(context);
+    // The rail carries a text label above each bar, so its height has to
+    // follow the text. At 2.2x scaling a fixed 62px box clipped the week
+    // labels, which are the only thing that says which phase you are on.
+    final scale = MediaQuery.textScalerOf(context).scale(1.0);
     return SizedBox(
-      height: 62,
+      height: 62 + (scale - 1.0) * 22,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [

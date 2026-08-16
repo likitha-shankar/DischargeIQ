@@ -73,7 +73,11 @@ class SectionColors {
   Color get lineSoft => dark ? sdLineDark : sdLineSoft;
   Color get text => dark ? Colors.white : sdInk;
   Color get textSub => dark ? const Color(0xCCE1F5EE) : sdTextSub;
-  Color get textMute => dark ? const Color(0x99E1F5EE) : sdTextMute;
+  // 0x99 (60% alpha) measured 4.36:1 against sdCardDark on 16 Aug 2026,
+  // under the 4.5 WCAG AA floor for small text - and this token carries
+  // dates, hints and secondary labels, all of which are small. 0xA5 (65%)
+  // measures 4.80:1, which clears it with margin rather than by a hair.
+  Color get textMute => dark ? const Color(0xA5E1F5EE) : sdTextMute;
   Color get accent => dark ? sdTealGlow : sdTeal;
   Color get accentTint => dark ? kTeal.withValues(alpha: 0.22) : sdTealPale;
 
@@ -115,14 +119,19 @@ class SectionHeadline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SectionColors.of(context);
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: size,
-        height: 1.24,
-        letterSpacing: -0.3,
-        fontWeight: FontWeight.w400,
-        color: c.text,
+    // header: true lets a screen-reader user jump between sections by
+    // heading instead of swiping through every line of a discharge summary.
+    return Semantics(
+      header: true,
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: size,
+          height: 1.24,
+          letterSpacing: -0.3,
+          fontWeight: FontWeight.w400,
+          color: c.text,
+        ),
       ),
     );
   }
