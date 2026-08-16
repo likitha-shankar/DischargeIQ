@@ -97,13 +97,25 @@ _archive/
 node_modules/
 .env.bak*
 .env.bak-jul10
-# The de-identified test corpus (test-data/mtsamples/) IS committed as of
-# 14 Aug 2026. It was excluded while this repository was public; the repo has
-# been private since 31 Jul, and the LABS rule allows clinical/eval data in a
-# private repo. Verified before committing: all 106 documents scanned for
-# SSNs, phone numbers, emails, MRNs and dates of birth - zero hits.
-# CONDITION: if this repository is ever made public, the corpus must come out
-# of the working tree AND out of history first.
+# The de-identified test corpus and the agent prose derived from it are NOT
+# tracked (decision reversed 16 Aug 2026 - they were briefly committed on
+# 14 Aug). Rebuild the corpus with scripts/build_mtsamples_corpus.py and the
+# outputs with scripts/run_corpus_for_review.py; neither is authored here, and
+# keeping clinical evaluation material out of the tree makes the pending
+# handover to an LOF-controlled repository a decision about code alone.
+#
+# NOTE: untracking is not deletion. Both directories remain in history from
+# the 14-15 Aug commits, so a clone can still retrieve them. If this
+# repository is ever made public, or transferred under data-governance
+# conditions, history has to be purged as a separate deliberate step.
+test-data/mtsamples/
+evaluation/corpus_outputs/
+
+# The three generated demo fixtures at the top of test-data/ stay tracked on
+# purpose: the beta kit ships them, scripts/verify_live_service.py drives
+# them, and dischargeiq/tests/test_ingest.py parses one. They are ours and
+# contain no patient material.
+!test-data/*.pdf
 
 # Documents kept out of the repo.
 #
