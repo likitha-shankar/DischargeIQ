@@ -1,7 +1,7 @@
 # Corpus accuracy run (task 3.4)
 
 Generated 2026-08-16 by `scripts/corpus_accuracy_report.py`
-over 68 pipeline outputs in `evaluation/corpus_outputs/`.
+over 55 pipeline outputs in `evaluation/corpus_outputs/`.
 
 The corpus is 106 real de-identified discharge summaries (MTSamples
 transcriptions with identifiers removed). Neither the corpus nor these
@@ -14,28 +14,28 @@ Target: Flesch-Kincaid grade <= 6.0 on every patient-facing output.
 
 | Agent | Section | Mean | Max | At or under target |
 |---|---|---|---|---|
-| agent2 | What happened | 3.74 | 6.29 | 61/63 |
-| agent3 | Medications | 4.12 | 6.33 | 60/61 |
-| agent4 | Recovery | 4.32 | 5.58 | 59/59 |
-| agent5 | Warning signs | 4.53 | 5.89 | 56/56 |
+| agent2 | What happened | 3.79 | 6.29 | 53/55 |
+| agent3 | Medications | 4.14 | 6.33 | 54/55 |
+| agent4 | Recovery | 4.30 | 5.58 | 55/55 |
+| agent5 | Warning signs | 4.54 | 5.89 | 55/55 |
 
-**99% of 239 outputs meet the sixth-grade target**, mean grade 4.17.
+**99% of 220 outputs meet the sixth-grade target**, mean grade 4.19.
 
 ## 2. Grounding (output against source)
 
-Checked 68 of 68 outputs against their source document.
+Checked 55 of 55 outputs against their source document.
 
 - **Medication names not present in the source: 0**. Agent 1 is contractually forbidden from inventing a field value, so any hit here is a contract violation.
-- **Outputs containing a number absent from the source: 50**. Week numbers and 911 are excluded, so this measures dosages, weights and thresholds.
+- **Outputs containing a number absent from the source: 47**. Week numbers and 911 are excluded, so this measures dosages, weights and thresholds.
 
 These are not random fabrications. They fall into two classes,
 and only one of them is a defect in this system:
 
-**Clinical thresholds the prompts supply** (51 occurrences): fever limits such as "over 101 F" and "100.4 F". These come from the agent prompts, not from the patient's document. They are standard clinical guidance, but they are shown to the patient as if their own paperwork said so.
+**Clinical thresholds the prompts supply** (46 occurrences): fever limits such as "over 101 F" and "100.4 F". These come from the agent prompts, not from the patient's document. They are standard clinical guidance, but they are shown to the patient as if their own paperwork said so.
 
-**Activity targets the model invents** (40 occurrences): "walk for 15 minutes each day", "do not bend your new knee more than 90 degrees". The agent 4 prompt REQUIRES one specific goal per week, so when the source document sets none, the model supplies a number. The requirement causes the invention.
+**Activity targets the model invents** (38 occurrences): "walk for 15 minutes each day", "do not bend your new knee more than 90 degrees". The agent 4 prompt REQUIRES one specific goal per week, so when the source document sets none, the model supplies a number. The requirement causes the invention.
 
-**Everything else**: 6 occurrences.
+**Everything else**: 5 occurrences.
 
 ### The question for clinician review
 
@@ -53,18 +53,17 @@ paperwork rather than a failure of this system.
 
 | Field | Documents containing it |
 |---|---|
-| follow-up appointments | 60/68 (88%) |
-| medications | 59/68 (87%) |
-| activity or diet | 27/68 (40%) |
-| discharge date | 25/68 (37%) |
-| red flag symptoms | 17/68 (25%) |
+| follow-up appointments | 51/55 (93%) |
+| medications | 47/55 (85%) |
+| discharge date | 23/55 (42%) |
+| activity or diet | 19/55 (35%) |
+| red flag symptoms | 15/55 (27%) |
 
 ## 4. Pipeline status
 
 | Status | Count |
 |---|---|
-| `complete_with_warnings` | 53 |
-| `partial` | 14 |
+| `complete_with_warnings` | 54 |
 | `complete` | 1 |
 
 `complete_with_warnings` is the expected majority on real paperwork:
