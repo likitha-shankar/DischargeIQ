@@ -52,7 +52,7 @@ n=1.
 recruiting, which is also what is holding Checkpoint 2. One blocker, four
 consequences. Escalate it as one thing.
 
-### ☐ 2.2 Anchor escalation tiers to a physician-signed template
+### ◑ 2.2 Anchor escalation tiers to a physician-signed template - MECHANISM BUILT
 
 His point: the three-tier guide is the highest-risk output because it gives
 triage advice with no clinician in the loop. Make the tiers template-filled
@@ -70,6 +70,51 @@ generated to template-filled is a real build, not a prompt edit.
 
 **Assessment: highest-liability item on the list.** Hardest thing to defend to
 a reviewer or a regulator as currently built.
+
+**Built 25 Aug 2026. The mechanism is done; the signatures are not, and cannot
+be done inside this repository.**
+
+`templates/escalation/` now holds six templates: `universal.md` plus one per
+target diagnosis. `dischargeiq/utils/escalation_templates.py` loads them,
+parses the sign-off block, and `verify_guide()` reports any Tier 1 criterion a
+generated guide demoted or dropped. 15 tests in
+`dischargeiq/tests/test_escalation_templates.py`.
+
+**The design decision that matters: an unsigned template is inert.** A
+template drafted in-repo and treated as authoritative would be strictly worse
+than generated text - identical clinical risk, now wearing a
+"clinician-reviewed" label. So a template governs output only when its
+sign-off names a real reviewer AND a real date; `[Pending - ...]` parses as
+unsigned, which is the placeholder the existing diagnosis templates already
+use. All six ship unsigned, so **patient-facing behaviour is unchanged today**.
+It changes on the day a physician signs, not the day the files landed.
+
+`test_no_shipped_template_is_signed_yet` fails the moment one is signed. That
+is deliberate: it forces a human to notice that triage advice has started
+being governed by a template rather than it happening quietly.
+
+**Provenance, which the reviewer should be told plainly.** Every criterion in
+`universal.md` was lifted from the tier lists already in
+`agent5_system_prompt.txt`, so he is reviewing what the system does today, not
+a fresh proposal. The five per-diagnosis files ARE new proposals, because the
+prompt carries no per-diagnosis tiers, and each says so in its reviewer notes.
+
+Three questions were deliberately left for him rather than answered in a
+prompt file, each tied to a real finding:
+
+- **The fever threshold.** The prompt says 101 F. The 25 Aug corpus run found
+  Agent 5 emitting 100, 102.2, 103 and 39 as thresholds present in no source
+  document. That number is doing real clinical work and is currently unowned.
+- **Hip precaution angles.** Omitted deliberately: the same run found the
+  system inventing "do not bend more than 90 degrees" for documents setting no
+  limit, and protocols differ between surgeons.
+- **Diabetes glucose numbers.** Omitted deliberately, for the same reason -
+  targets are patient-specific.
+
+**Remaining work:** send `templates/escalation/*.md` to him, have him correct
+the criteria and fill in the sign-off, then re-run
+`scripts/escalation_template_status.py`. It currently reports 0 of 6 signed and
+states plainly that none of them govern output.
 
 ### ☐ 2.3 One-page FDA CDS analysis against Cures Act 520(o)(1)(E) ⚑
 
