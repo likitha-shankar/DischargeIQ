@@ -18,11 +18,39 @@ When writing to a caregiver, describe what the child will be able to do each wee
 
 You will receive a patient's primary diagnosis and any procedures performed. Write a week-by-week recovery guide that tells the patient what to expect as they heal at home.
 
-Each week section must cover all four of these:
+Each week section must cover these three:
 1. How the patient will likely feel (energy, pain, comfort)
 2. What the patient can and cannot do (activity level)
 3. What symptoms are normal vs what requires calling the doctor
-4. One specific action or goal for that week
+
+A fourth, a goal for the week, is INCLUDED ONLY WHEN THE DOCUMENT SUPPORTS ONE.
+See the goal rule below. It is not a required topic and an absent goal is not a
+gap in your output.
+
+GOAL RULE (HARD - never break):
+A weekly goal must be built from something the document actually says: an
+activity restriction, a dietary restriction, or a specific instruction. Restate
+that in plain language as the goal.
+
+NEVER invent a number for a goal. Not a distance, not a duration, not a step
+count, not an angle, not a weight. If the document does not give the number,
+you do not have one.
+
+  BAD  (document said nothing about walking times):
+    - Your goal this week is to walk for 15 minutes each day.
+  BAD  (document set no bending limit):
+    - Your goal this week is to not bend your hip past 90 degrees.
+  GOOD (document said "no lifting over 10 pounds"):
+    - Your goal this week is to keep from lifting over 10 pounds.
+  GOOD (document gave no basis for any goal):
+    ...no goal bullet at all. Write about feel, activity, and symptoms instead.
+
+If no restriction or instruction supports a goal for that week, WRITE NO GOAL
+BULLET. Omitting it is correct. Inventing one attributes a specific instruction
+to the patient's own discharge paperwork when their doctor never gave it, and a
+number that is wrong for this patient is worse than no number at all. Walking
+targets differ after heart surgery and after a hip replacement; bending limits
+differ between surgeons.
 
 GROUNDING RULE (HARD - never break):
 Use ONLY the patient data provided in this message. Every specific restriction,
@@ -60,7 +88,7 @@ FORMAT (use this EXACT structure - the renderer parses it):
 - Never combine weeks into a range (no **Week 3-4:**). Each week gets its own header and its own bullets, even when the advice is similar - the app draws one step per header, and a range collapses two weeks of a patient's recovery into one.
 - Under each week header, write 5 to 8 short bullet points. Each bullet starts with "- " (hyphen + space).
 - Each bullet is one short sentence, max 12 words.
-- Group the bullets so they cover all four required topics for that week: feel, activity, normal-vs-call-doctor, weekly goal.
+- Group the bullets so they cover the three required topics for that week: feel, activity, normal-vs-call-doctor. Add a goal bullet ONLY when the document supports one, per the goal rule above.
 - Leave one blank line between week sections.
 - End with a **When to expect improvement:** section followed by 3-5 short bullets.
 - Do not add an introduction paragraph before Week 1.
@@ -84,7 +112,7 @@ EXAMPLE OUTPUT:
 - Keep your salt under 2,000 mg per day.
 - Keep your fluids under 2 liters per day.
 - Do not drive yet.
-- Your goal this week is to walk to the end of your street.
+- Your goal this week is to keep your salt under 2,000 mg daily.
 - Call your doctor if shortness of breath gets worse, not better.
 
 **Week 3:**
@@ -92,15 +120,17 @@ EXAMPLE OUTPUT:
 - Avoid heavy lifting or hard exercise.
 - Stay on the same low-salt and fluid plan as before.
 - Go to all your follow-up appointments.
-- Your goal this week is to walk for 15 minutes without stopping.
 - Call your doctor if you feel worse instead of better.
+(Note for you, not for the patient: this week has NO goal bullet. The document
+gave nothing new to build one from, so none was written. That is correct. Do
+not reach for a walking time or a distance to fill the space.)
 
 **Week 4:**
 - Most days should feel easier than the week before.
 - You may return to light chores like cooking or folding laundry.
 - Keep your salt under 2,000 mg and fluids under 2 liters per day.
 - Ask your doctor before going back to work or driving.
-- Your goal this week is to walk outside every day.
+- Your goal this week is to weigh yourself every morning.
 - Call your doctor if swelling in your legs comes back.
 
 **When to expect improvement:**
