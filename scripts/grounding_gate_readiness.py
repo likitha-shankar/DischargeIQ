@@ -26,6 +26,7 @@ import argparse
 import json
 import sys
 from collections import Counter
+from datetime import date
 from pathlib import Path
 
 _REPO = Path(__file__).resolve().parents[1]
@@ -34,6 +35,11 @@ sys.path.insert(0, str(_REPO / "scripts"))
 
 from corpus_accuracy_report import source_text  # noqa: E402 - path set above
 from dischargeiq.utils.grounding import verify_output  # noqa: E402
+
+
+def _today() -> str:
+    """Today's date as ISO text, for stamping a saved baseline."""
+    return date.today().isoformat()
 
 
 def measure(outputs_dir: Path) -> dict:
@@ -83,11 +89,64 @@ def measure(outputs_dir: Path) -> dict:
     }
 
 
+def _rate(result: dict, key: str) -> float:
+    """Percentage of checked outputs matching one counter, 0 when nothing ran."""
+    checked = result.get("checked") or 0
+    return 100 * result.get(key, 0) / checked if checked else 0.0
+
+
+def compare(baseline: dict, current: dict) -> list[str]:
+    """
+    Describe how the current run moved against a saved baseline.
+
+    A prompt fix is a prediction until something measures it. This turns
+    "expected: the block rate collapses" into a number that either happened or
+    did not, and it reports a regression as plainly as an improvement.
+
+    Args:
+        baseline: A previously saved result dict.
+        current: The result dict from this run.
+
+    Returns:
+        Human-readable lines describing each movement.
+    """
+    lines = [
+        f"baseline saved {baseline.get('saved_at', 'unknown')} "
+        f"({baseline.get('checked', 0)} outputs, note: {baseline.get('note', '')})",
+        "",
+    ]
+    for key, label in (("would_block", "blocked (all)"),
+                       ("would_block_invented", "blocked (invented only)")):
+        was, now = _rate(baseline, key), _rate(current, key)
+        delta = now - was
+        # Comparing rates rather than counts: the two runs may cover different
+        # numbers of documents, and a raw count would then mislead in either
+        # direction.
+        direction = "no change" if abs(delta) < 0.5 else (
+            f"IMPROVED by {abs(delta):.0f} points" if delta < 0
+            else f"WORSE by {delta:.0f} points")
+        lines.append(f"{label:26} {was:.0f}% -> {now:.0f}%   {direction}")
+
+    base_agents = baseline.get("by_agent", {})
+    curr_agents = current.get("by_agent", {})
+    for agent in sorted(set(base_agents) | set(curr_agents)):
+        lines.append(f"  invented, {agent:8} {base_agents.get(agent, 0):>4} -> "
+                     f"{curr_agents.get(agent, 0):<4}")
+    return lines
+
+
 def main() -> None:
     """Print the readiness figures and a plain verdict on enforcement."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--outputs", type=Path,
                         default=_REPO / "evaluation" / "corpus_outputs")
+    parser.add_argument("--save-baseline", metavar="NOTE",
+                        help="Record this run as the baseline to compare later "
+                             "runs against. NOTE says what state it captures, "
+                             "e.g. 'before the agent4 goal fix'.")
+    parser.add_argument("--baseline", type=Path,
+                        default=_REPO / "evaluation" / "grounding_baseline.json",
+                        help="Baseline file to compare against and write to.")
     args = parser.parse_args()
 
     result = measure(args.outputs)
@@ -117,6 +176,29 @@ def main() -> None:
     else:
         print(f"VERDICT: {blocked_pct:.0f}% would be blocked. Review the remaining")
         print("cases individually; if each is a real defect, enforcement is ready.")
+
+    if args.save_baseline is not None:
+        # Stamped by the caller rather than generated here: the note is what
+        # makes a baseline interpretable a month later.
+        payload = dict(result)
+        payload["note"] = args.save_baseline
+        payload["saved_at"] = _today()
+        args.baseline.write_text(json.dumps(payload, indent=2))
+        print()
+        print(f"baseline written to {args.baseline}")
+        print(f"note: {args.save_baseline}")
+    elif args.baseline.exists():
+        print()
+        print("=== against saved baseline ===")
+        try:
+            baseline = json.loads(args.baseline.read_text())
+        except (OSError, ValueError) as exc:
+            # A corrupt baseline must not hide the current numbers, which are
+            # the point of the run.
+            print(f"could not read baseline ({exc}); current figures stand alone")
+        else:
+            for line in compare(baseline, result):
+                print(line)
 
 
 if __name__ == "__main__":

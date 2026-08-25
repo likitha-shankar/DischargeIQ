@@ -1,0 +1,59 @@
+{
+  "checked": 59,
+  "clean": 9,
+  "would_block": 50,
+  "would_block_invented": 38,
+  "categories": {
+    "invented": 55,
+    "prompt_threshold": 39
+  },
+  "by_agent": {
+    "agent4": 48,
+    "agent2": 1,
+    "agent5": 6
+  },
+  "top_values": [
+    [
+      "agent4:15",
+      26
+    ],
+    [
+      "agent4:100.4",
+      8
+    ],
+    [
+      "agent4:20",
+      6
+    ],
+    [
+      "agent4:30",
+      4
+    ],
+    [
+      "agent4:90",
+      3
+    ],
+    [
+      "agent5:100.4",
+      2
+    ],
+    [
+      "agent2:40",
+      1
+    ],
+    [
+      "agent5:102.2",
+      1
+    ],
+    [
+      "agent5:39",
+      1
+    ],
+    [
+      "agent4:100",
+      1
+    ]
+  ],
+  "note": "before the agent4 goal fix and agent5 number rule; prompts changed 25 Aug but outputs not yet regenerated",
+  "saved_at": "2026-08-25"
+}
