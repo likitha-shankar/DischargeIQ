@@ -35,6 +35,7 @@ Requires: LLM provider keys in .env (same as the API). DATABASE_URL optional -
 
 import argparse
 import asyncio
+import hashlib
 import json
 import logging
 import os
@@ -59,6 +60,31 @@ logger = logging.getLogger(__name__)
 # against well-formed documents is wanted for comparison.
 _DEFAULT_CORPUS_DIR = Path("test-data/mtsamples")
 _OUTPUT_DIR = Path("evaluation/corpus_outputs")
+_PROMPT_DIR = Path(__file__).resolve().parents[1] / "dischargeiq" / "prompts"
+
+
+def prompt_versions() -> dict[str, str]:
+    """
+    A short content hash of every agent prompt, for output provenance.
+
+    Prompts change more often than models on this project and change output
+    just as much, so "which model" alone cannot tell two runs apart. A hash is
+    used rather than a timestamp because it survives a file being touched,
+    reformatted or checked out, and it changes if and only if the text does.
+
+    Returns:
+        Prompt filename stem -> first 8 hex characters of its SHA-256. An
+        unreadable prompt maps to "unknown" rather than raising: provenance is
+        metadata, and losing it must never fail a corpus run.
+    """
+    versions: dict[str, str] = {}
+    for path in sorted(_PROMPT_DIR.glob("*.txt")):
+        try:
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()[:8]
+        except OSError:
+            digest = "unknown"
+        versions[path.stem] = digest
+    return versions
 
 
 async def generate_outputs(
@@ -182,6 +208,13 @@ async def generate_outputs(
             # item 3.7 of the Liebovitz review.
             "llm_provider": os.environ.get("LLM_PROVIDER", "gemini"),
             "llm_model": os.environ.get("LLM_MODEL", "") or "<provider default>",
+            # Which PROMPTS produced it. The model stamp above is not enough:
+            # on 25 Aug 2026 three agent prompts changed within an hour and
+            # nothing in an output distinguished before from after, so a
+            # baseline was auto-saved mixing both and labelled as though the
+            # whole corpus had been regenerated. Prompts change far more often
+            # than models here, and they change output just as much.
+            "prompt_versions": prompt_versions(),
         }
         out_path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
         generated += 1
