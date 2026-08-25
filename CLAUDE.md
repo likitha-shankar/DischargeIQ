@@ -86,11 +86,20 @@ Streamlit). Comprehension-lift target: 13% baseline → 50–70%.
 - **Primary surface for demos:** **Streamlit** (`streamlit_app.py`), started by
   `./start.sh` (or `start.bat` on Windows). Default URL: http://127.0.0.1:8501.
 - **Backend:** FastAPI in `dischargeiq/main.py`, typically http://127.0.0.1:8000.
-- **Hosted deployment (verified June 2026):** Cloud Run at
-  https://dischargeiq-1015692703359.us-central1.run.app - nginx multiplexes
+- **Hosted deployment (verified 25 Aug 2026):** Cloud Run, project
+  `dischargeiq-502723`, revision `dischargeiq-00022-mdb`. nginx multiplexes
   one container: `/api/*` → FastAPI, everything else → Streamlit. Backend
   health check is `GET /api/health` (plain `/health` returns Streamlit HTML).
-  Deployed from outside the repo (no URL reference in source by design).
+  Two URLs serve the same service, both verified 200:
+  - `https://dischargeiq-678599658918.us-central1.run.app` - **the one the
+    mobile app calls**, hardcoded in `dischargeiq_mobile/lib/config.dart`
+  - `https://dischargeiq-dyzqwhs5va-uc.a.run.app` - what
+    `gcloud run services describe` reports
+
+  **Do not use `https://dischargeiq-1015692703359.us-central1.run.app`.** It
+  is the pre-July-2026 project and now returns **503**. This file advertised
+  it until 25 Aug 2026, which cost a demo-eve panic about a backend that was
+  perfectly healthy. Verify against `config.dart`, not against docs.
 - **Failure mode:** The pipeline is designed to return **`pipeline_status` of
   `"complete"`, `"complete_with_warnings"`, `"partial"`, or `"rejected"`** (not to crash
   on bad PDFs or LLM failures). `"partial"` runs may occur when an agent fails, rate
