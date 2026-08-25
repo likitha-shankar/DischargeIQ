@@ -1,7 +1,7 @@
-# Response to Dr. Leibowitz faculty review
+# Response to Dr. Liebovitz faculty review
 
 Review document dated **22 August 2026**, worked through on **25 August**
-(`docs/DischargeIQ_Review_Leibowitz.docx`, kept out of git by the existing
+(`docs/DischargeIQ_Review_Liebovitz.docx`, kept out of git by the existing
 `docs/*.docx` ignore rule - this markdown file is the tracked record). This file
 tracks every item in it: what we do, who owns it, and the commit that closes
 it. It is the working artefact for **task 4.2** (clinician sample
@@ -10,10 +10,13 @@ verification), which until now had no clinician input recorded against it.
 Status key: ✅ done · ◑ in progress · ◻ not started · ⚑ needs a decision from
 someone other than the developer
 
-**On the name:** he is spelled three ways across our files (`Liebovitz` in
-`DischargeIQ_Clinical_Brief_Liebovitz.docx`, `LEIBOWITZ` in the questions
-filename, `Leibovitz` in body text). Settle on one spelling and correct the
-rest before anything else goes to him.
+**On the name - RESOLVED 25 Aug 2026.** He was spelled three ways across our
+files. The correct spelling is **Liebovitz**: David M. Liebovitz, MD,
+Associate Vice Chair for Clinical Informatics and Professor of Medicine at
+Northwestern University, board certified in clinical informatics. Every file
+and reference has been corrected. Worth noting that clinical informatics is
+his actual specialty, which is why the review engages with the architecture
+rather than skimming it.
 
 ## What he endorsed
 
@@ -77,16 +80,34 @@ output the user cannot independently review.
 once. This is not boilerplate risk language.
 
 **Owner: Steve and Frank, plausibly with counsel. Not the developer, and not
-drafted by an AI assistant.** `LEIBOWITZ_CLINICAL_QUESTIONS.md` already
+drafted by an AI assistant.** `LIEBOVITZ_CLINICAL_QUESTIONS.md` already
 proposed routing liability questions to them; this confirms it.
 
-### ☐ 2.4 Source the 40-80% statistic to Kessels (2003)
+### ◑ 2.4 Source the 40-80% statistic to Kessels (2003) - CITATION FOUND
 
-Cheap and correct. The figure is not in any `.md` in this repository, so it
-lives in the pitch deck or the NABC presentation. Fix it wherever it appears
-and tie the readmission claim to a specific measurable outcome rather than a
-general association. Unsourced headline numbers are the first thing a
-reviewer checks.
+**Reference confirmed and recorded in `docs/CITATIONS.md`:**
+Kessels RPC. "Patients' memory for medical information." *J R Soc Med.*
+2003;96(5):219-222. The 40-80% figure is correctly attributed to this paper.
+
+Two further findings from the same source strengthen our case rather than
+merely sourcing it, and should go into the deck alongside the headline:
+
+- **Nearly half of what patients do remember is remembered incorrectly.** This
+  matters more to us than forgetting: re-handing someone the same document
+  does not fix misremembering, which is exactly the gap this product targets.
+- **Written summaries improve recall by 20.8%** - direct evidence for the
+  product premise, from the same paper as the problem statement.
+
+**Still open, and deliberately left open:** the readmission claim, which he
+also flagged. It is currently an association presented as a mechanism, and
+fixing it needs either a study measuring readmission against a comprehension
+intervention or an honest restatement. Also unsourced: the 13% comprehension
+baseline behind the 50-70% target in `CLAUDE.md`. Both are tracked in
+`CITATIONS.md` under "Claims that still need a citation".
+
+**Remaining work is manual:** the figure lives in the slide decks and clinical
+brief, which are binaries built outside the repository, so the decks have to
+be updated to match `CITATIONS.md`.
 
 ### ✅ 2.5 Weight omission recall above fluency - DONE 25 Aug 2026
 

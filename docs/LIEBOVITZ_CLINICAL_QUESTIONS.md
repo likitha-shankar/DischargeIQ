@@ -1,9 +1,9 @@
-# Questions for Dr. Leibowitz - clinical validation of DischargeIQ
+# Questions for Dr. Liebovitz - clinical validation of DischargeIQ
 
 **Status: draft v2, for Tanuj and Steve to work through before it reaches
 Dr. L.** Not yet a final list. Rev. 6 August 2026.
 
-Dr. Leibowitz is the clinician validator for this project. These are the
+Dr. Liebovitz is the clinician validator for this project. These are the
 application questions only a clinician can answer, each with the context he
 needs to answer it and what is already built.
 

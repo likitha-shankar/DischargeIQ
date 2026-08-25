@@ -126,7 +126,7 @@ def omitted_medications(output: dict) -> list[str]:
 
     Errors of omission are the dominant failure mode and are invisible to the
     patient: a dropped drug yields a clean, confident, incorrect document
-    (Leibowitz review, item 2.5). This measures the leg of that risk we own
+    (Liebovitz review, item 2.5). This measures the leg of that risk we own
     completely - Agent 1 extracted the drug, and Agent 3 did not explain it.
     No annotation is needed, because the extraction record IS the ground truth
     for this comparison.

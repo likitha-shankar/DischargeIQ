@@ -96,7 +96,7 @@ early if the answer is yes.
 - Consent covering the before/after quiz data.
 - Whether nurse managers see engagement data - which turns a comprehension
   tool into a compliance tool, and is a question already on the Dr.
-  Leibowitz list (`docs/LEIBOWITZ_CLINICAL_QUESTIONS.md`).
+  Liebovitz list (`docs/LIEBOVITZ_CLINICAL_QUESTIONS.md`).
 
 ---
 

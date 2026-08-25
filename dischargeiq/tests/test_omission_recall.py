@@ -2,7 +2,7 @@
 Regression tests for the omission-recall checks in the corpus accuracy run.
 
 Covers `scripts/corpus_accuracy_report.py`, which answers the question raised
-as item 2.5 of the Dr. Leibowitz faculty review (25 Aug 2026): errors of
+as item 2.5 of the Dr. Liebovitz faculty review (25 Aug 2026): errors of
 omission are the dominant failure mode and are invisible to the patient,
 because a dropped medication or warning sign yields a clean, confident,
 incorrect document.
