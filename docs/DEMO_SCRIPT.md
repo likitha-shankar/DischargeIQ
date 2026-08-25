@@ -35,6 +35,43 @@ Then check, in order:
 **Never deploy on the day.** A revision change returned 502 for roughly three
 minutes on 5 Aug.
 
+## 0b. If it 429s mid-demo - the offline fallback
+
+**Open `docs/demo_fallback.html` in a browser. That is the whole procedure.**
+
+No backend, no network, no API key, no terminal. It renders real pipeline
+output captured earlier, with the same seven-tab layout in the same order, so
+you can carry on talking through the identical material.
+
+Why this exists rather than "hope it works": Vertex serves Gemini through
+**dynamic shared quota**. There is no reserved capacity and no reset window,
+so a 429 is possible at any moment and nothing you do the morning of the demo
+prevents it. One analysis needs six calls in a row. Verified 25 Aug 2026: a
+paced corpus run was losing roughly 40% of documents to 429s.
+
+What to say if you switch to it, rather than going quiet:
+
+> "That's the shared-capacity limit on the model provider's side, which is
+>  exactly the failure mode the system is built to survive. Here's the same
+>  document analysed a few minutes ago."
+
+That is a better answer than a spinner, and it demonstrates the resilience
+argument instead of describing it.
+
+Rebuild it whenever the fixtures or prompts change:
+
+```bash
+python scripts/build_demo_fallback.py     # no API calls, instant
+```
+
+**It is a fallback, not a mock.** Every word came from a real run against the
+committed fixture, and the page states its generation timestamp on its face.
+Do not present it as live.
+
+Currently included: `heart_failure_01` and `copd_01` - both documents the live
+path below actually drives. The page lists anything missing rather than
+quietly omitting it, so check the top of it before you present.
+
 ## 1. Stable demo dataset
 
 Three committed fixtures, in this order. These are **generated** documents

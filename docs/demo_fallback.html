@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DischargeIQ Demo Fallback</title><style>
+:root{--bg:#ffffff;--fg:#12211c;--muted:#5c6f68;--line:#dbe5e0;--teal:#1FA47F;
+--card:#f6faf8;--crit:#b3261e;--mod:#a06000;--min:#3a6b5c;}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+--bg:#0d1512;--fg:#e6efe9;--muted:#9fb3aa;--line:#26332e;--teal:#5DCAA5;
+--card:#131e1a;--crit:#f2b8b5;--mod:#e6c07a;--min:#8fd3bb;}}
+:root[data-theme="dark"]{--bg:#0d1512;--fg:#e6efe9;--muted:#9fb3aa;--line:#26332e;
+--teal:#5DCAA5;--card:#131e1a;--crit:#f2b8b5;--mod:#e6c07a;--min:#8fd3bb;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+.wrap{max-width:900px;margin:0 auto;padding:24px 20px 64px}
+.banner{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--teal);
+border-radius:8px;padding:14px 16px;margin-bottom:24px}
+.banner strong{color:var(--teal)}
+h1{font-size:1.6rem;margin:0 0 4px}
+h2{font-size:1.3rem;margin:0 0 4px}
+h3{font-size:1rem;margin:20px 0 8px}
+h3.tier{color:var(--teal);letter-spacing:.04em}
+h3.wk{color:var(--fg)}
+.meta{color:var(--muted);font-size:.85rem;margin:2px 0}
+.case{border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:28px;
+background:var(--card)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0;border-bottom:1px solid var(--line);
+padding-bottom:8px}
+.tab{background:none;border:1px solid var(--line);color:var(--muted);cursor:pointer;
+padding:6px 12px;border-radius:999px;font-size:.85rem;font-family:inherit}
+.tab.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+.panel{display:none}
+.panel.active{display:block}
+ul{padding-left:20px;margin:8px 0}
+li{margin:4px 0}
+table{width:100%;border-collapse:collapse;font-size:.92rem;display:block;overflow-x:auto}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600}
+.notice{background:var(--bg);border:1px solid var(--line);border-radius:8px;
+padding:10px 12px;font-size:.88rem;color:var(--muted)}
+.score{font-size:1.05rem}
+.score span{color:var(--muted);font-size:.85rem;font-weight:400}
+.gap{border-left:3px solid var(--line);padding:8px 12px;margin:10px 0;background:var(--bg);
+border-radius:0 6px 6px 0}
+.gap .sev{display:inline-block;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;
+margin-bottom:4px}
+.gap.critical{border-left-color:var(--crit)} .gap.critical .sev{color:var(--crit)}
+.gap.moderate{border-left-color:var(--mod)} .gap.moderate .sev{color:var(--mod)}
+.gap.minor{border-left-color:var(--min)} .gap.minor .sev{color:var(--min)}
+.gap p{margin:4px 0 0;font-size:.92rem}
+.empty{color:var(--muted);font-style:italic}
+code{font-size:.85em;background:var(--bg);padding:1px 5px;border-radius:4px;
+border:1px solid var(--line)}
+</style></head>
+<body><div class="wrap">
+<div class="banner">
+  <strong>Offline demo fallback.</strong> Real pipeline output, captured
+  earlier and rendered from saved JSON. No backend, no network, no API key.
+  Use this if a live analysis returns 429 mid-demo: Vertex serves Gemini on
+  dynamic shared quota, so capacity is never guaranteed.
+  <span class="meta">Built 2026-08-25.</span>
+</div>
+<h1>DischargeIQ</h1>
+<p class="meta">Generated demo fixtures. No real or program-provided patient
+data appears here.</p>
+<p class="meta">Not included (no clean output on disk): hip_replacement_01. Regenerate with <code>scripts/run_corpus_for_review.py</code> while quota allows.</p>
+
+<article class="case" id="case-heart_failure_01">
+  <header>
+    <h2>Acute Decompensated Heart Failure (HFrEF)</h2>
+    <p class="meta">Fixture <code>heart_failure_01.pdf</code> &middot;
+       pipeline status <code>complete</code> &middot;
+       generated 2026-08-25T19:52:07</p>
+    <p class="meta">Readability (Flesch-Kincaid grade): agent2: 2.71, agent3: 3.61, agent4: 4.04, agent5: 4.33</p>
+  </header>
+  <nav class="tabs"><button class="tab active" data-target="heart_failure_01-0">What happened</button><button class="tab" data-target="heart_failure_01-1">Medications</button><button class="tab" data-target="heart_failure_01-2">Appointments</button><button class="tab" data-target="heart_failure_01-3">Warning signs</button><button class="tab" data-target="heart_failure_01-4">Recovery</button><button class="tab" data-target="heart_failure_01-5">Discharge Check</button></nav>
+  <section class="panel active" id="heart_failure_01-0"><p>Your heart was not pumping well. This is called acute decompensated heart failure. It means your heart is weak. Your heart muscle is weaker than normal. This is called HFrEF.</p>
+<p>You also have high blood pressure. This is called hypertension. Your body has too much sugar. This is type 2 diabetes. Your kidneys do not work as well as they should. This is chronic kidney disease. Your blood has too much fat. This is hyperlipidemia.</p></section><section class="panel" id="heart_failure_01-1"><p>Furosemide:</p>
+<p>This medicine helps your body get rid of extra salt and water. This can ease swelling and make breathing easier. You may need to urinate more often. This is normal. Call your doctor if you feel dizzy. Also call if you get leg cramps.</p>
+<p>Lisinopril:</p>
+<p>This medicine helps your heart pump blood better. It also lowers your blood pressure. You might get a dry cough. This is a common side effect. Call your doctor if your face or lips swell.</p>
+<p>Carvedilol:</p>
+<p>This medicine helps your heart beat more slowly and with less force. This lowers your blood pressure. It also helps your heart pump blood more easily. You may feel tired at first. This is normal. Call your doctor if you feel dizzy. Also call if you get very slow heartbeats.</p>
+<p>Spironolactone:</p>
+<p>This medicine helps your body get rid of extra salt and water. It helps keep important minerals in your body. You may get diarrhea. This is a common side effect. Call your doctor if you feel very dizzy. Also call if your breasts become tender.</p>
+<p>Metoprolol:</p>
+<p>This medicine helps your heart beat more slowly. It lowers your blood pressure. This makes your heart&#x27;s job easier. You may feel tired or dizzy. This is a common side effect. Call your doctor if your heart beats very slowly.</p>
+<p>Metformin:</p>
+<p>This medicine helps control your blood sugar levels. It works by lowering the amount of sugar your liver makes. You may have an upset stomach. This is common when you start. Call your doctor if you have trouble breathing. Also call if you have unusual muscle pain.</p></section><section class="panel" id="heart_failure_01-2"><table><thead><tr><th>Who</th><th>When</th><th>Why</th></tr></thead><tbody><tr><td><strong>Dr. Anne Fitzgerald</strong></td><td>2026-04-02</td><td>medication titration and renal panel</td></tr><tr><td><strong>Dr. Laura Chen</strong></td><td>2026-04-05</td><td>post-discharge echo review</td></tr><tr><td><strong>Nutritionist</strong></td><td>2026-04-12</td><td>follow-up on sodium restriction</td></tr></tbody></table></section><section class="panel" id="heart_failure_01-3"><h3 class="tier">CALL 911 IMMEDIATELY</h3>
+<p>These symptoms are life-threatening. Do not drive yourself.</p>
+<ul>
+<li>Lips, fingernails, or face blue: You need oxygen right now.</li>
+<li>You cannot catch your breath: Your body needs oxygen now.</li>
+<li>Waking gasping for air: Your lungs may be filling up.</li>
+<li>Sudden dizziness or fainting: Your brain is not getting blood.</li>
+<li>Sudden extreme confusion: Your brain is not working right.</li>
+</ul>
+<h3 class="tier">GO TO THE ER TODAY</h3>
+<p>Do not wait until tomorrow. Go within a few hours.</p>
+<ul>
+<li>Weight gain over 3 lbs: Fluid may be building up.</li>
+<li>More swelling in legs or abdomen: Fluid is building up.</li>
+<li>Shortness of breath while resting: Your body needs more help.</li>
+<li>Fast or irregular heartbeat: Your heart needs checking now.</li>
+<li>Chest pain that will not stop: Your heart needs help now.</li>
+</ul>
+<h3 class="tier">CALL YOUR DOCTOR</h3>
+<p>Call during office hours. Do not go to the ER for these.</p>
+<ul>
+<li>Questions about your water pill: Your nurse can help you plan.</li>
+<li>Questions about your heart medicine: Your nurse can help you plan.</li>
+<li>Questions about your sugar medicine: Your nurse can help you plan.</li>
+</ul></section><section class="panel" id="heart_failure_01-4"><h3 class="wk">Week 1:</h3>
+<ul>
+<li>You may feel very tired and have little energy.</li>
+<li>Pain or discomfort from your condition is normal.</li>
+<li>Rest often between short periods of activity.</li>
+<li>Do not lift more than 10 pounds this week.</li>
+<li>Walk for 5 minutes two times each day.</li>
+<li>Eat less than 2,000mg of salt per day.</li>
+<li>Drink no more than 2 liters of fluids daily.</li>
+<li>Keep your legs up while you are sitting.</li>
+<li>Call your doctor if you gain over 3 pounds in one day.</li>
+</ul>
+<h3 class="wk">Week 2:</h3>
+<ul>
+<li>You may start to feel a bit more energy.</li>
+<li>Keep your activity light and take many rests.</li>
+<li>Do not lift more than 10 pounds this week.</li>
+<li>Increase your walking time a little each day.</li>
+<li>Your goal this week is to eat less than 2,000mg of salt daily.</li>
+<li>Keep your daily fluids between 1.5 and 2 liters.</li>
+<li>Call your doctor if your legs swell more than before.</li>
+</ul>
+<h3 class="wk">Week 3:</h3>
+<ul>
+<li>You might be able to do more daily tasks.</li>
+<li>Avoid any hard exercise or heavy lifting.</li>
+<li>Continue to limit salt to less than 2,000mg per day.</li>
+<li>Keep your fluid intake to 1.5–2.0 liters daily.</li>
+<li>Your goal this week is to walk a little longer each day.</li>
+<li>Call your doctor if you wake up gasping for air.</li>
+</ul>
+<h3 class="wk">Week 4:</h3>
+<ul>
+<li>You should feel better most days this week.</li>
+<li>You can likely do light chores around your home.</li>
+<li>Do not lift anything heavier than 10 pounds.</li>
+<li>Continue your daily walks, increasing them slowly.</li>
+<li>Your goal this week is to keep your legs elevated when sitting.</li>
+<li>Eat fresh foods. Avoid processed items and salty snacks.</li>
+<li>Call your doctor if you have fast or irregular heartbeats.</li>
+</ul>
+<h3 class="wk">Week 5:</h3>
+<ul>
+<li>You may feel ready for more of your usual activities.</li>
+<li>Keep avoiding strenuous exercise and heavy lifting.</li>
+<li>Continue limiting salt to under 2,000mg each day.</li>
+<li>Keep your fluid intake to 1.5–2.0 liters daily.</li>
+<li>Your goal this week is to eat a heart-healthy diet.</li>
+<li>Call your doctor if you feel dizzy or faint.</li>
+</ul>
+<h3 class="wk">Week 6:</h3>
+<ul>
+<li>You should notice steady progress in your energy levels.</li>
+<li>You can resume most normal daily activities.</li>
+<li>Keep avoiding strenuous exercise or lifting heavy items.</li>
+<li>Continue to eat a low-salt, heart-healthy diet.</li>
+<li>Your goal this week is to drink no more than 2 liters of fluid daily.</li>
+<li>Call your doctor if your lips or fingernails turn blue or grey.</li>
+</ul>
+<h3 class="wk">When to expect improvement:</h3>
+<ul>
+<li>You will likely feel better over the next 4 to 6 weeks.</li>
+<li>Continue to monitor your weight and fluid intake daily.</li>
+<li>Keep your salt intake low for long-term health.</li>
+<li>Follow up with your doctor as scheduled.</li>
+<li>Progress happens little by little.</li>
+</ul></section><section class="panel" id="heart_failure_01-5"><p class="notice">These are questions a patient might ask that this document does not answer. They are for discussion with a care team, not medical advice.</p>
+<p class="score">Gap score: <strong>7</strong> out of 10 <span>(higher means more unanswered questions)</span></p>
+<p>Low-literacy patients will struggle most. Biggest gap is medication instructions.</p>
+<h3>Not answered by this document</h3>
+<div class="gap critical"><span class="sev">critical</span><strong>Nobody told me what to do if I miss a dose of my furosemide or lisinopril. What should I do?</strong><p>Needs instructions for missed doses of furosemide and lisinopril.</p></div>
+<div class="gap critical"><span class="sev">critical</span><strong>The paper says to call 911 if my lips turn blue, but what if they just look a little pale? When is it serious?</strong><p>Needs clear definition of when blue/grey lips are an emergency.</p></div>
+<div class="gap moderate"><span class="sev">moderate</span><strong>The paper says my heart is not pumping well, but I don&#x27;t understand what HFrEF means. Can you explain it simply for me?</strong><p>Needs simple explanation of what HFrEF is.</p></div>
+<div class="gap moderate"><span class="sev">moderate</span><strong>I see I need to see Dr. Fitzgerald and Dr. Chen, but how do I actually make these appointments? I don&#x27;t see a phone number.</strong><p>Needs contact info to book follow-up appointments.</p></div>
+<div class="gap moderate"><span class="sev">moderate</span><strong>It says to limit salt but I don&#x27;t know which foods are the worst for me. Can you give me examples of what to avoid?</strong><p>Needs specific examples of high-sodium foods to avoid.</p></div>
+<div class="gap moderate"><span class="sev">moderate</span><strong>What happens if I forget to take my metformin today? Should I take it later or skip it?</strong><p>Needs instructions for missed metformin dose.</p></div>
+<div class="gap moderate"><span class="sev">moderate</span><strong>I need to limit my fluids, but does that include things like soup or ice cream?</strong><p>Needs clarification on what counts towards fluid limit.</p></div></section>
+</article>
+<article class="case" id="case-copd_01">
+  <header>
+    <h2>Acute Exacerbation of Chronic Obstructive Pulmonary Disease (COPD)</h2>
+    <p class="meta">Fixture <code>copd_01.pdf</code> &middot;
+       pipeline status <code>complete</code> &middot;
+       generated 2026-08-25T19:51:37</p>
+    <p class="meta">Readability (Flesch-Kincaid grade): agent2: 1.83, agent3: 4.29, agent4: 4.97, agent5: 5.36</p>
+  </header>
+  <nav class="tabs"><button class="tab active" data-target="copd_01-0">What happened</button><button class="tab" data-target="copd_01-1">Medications</button><button class="tab" data-target="copd_01-2">Appointments</button><button class="tab" data-target="copd_01-3">Warning signs</button><button class="tab" data-target="copd_01-4">Recovery</button><button class="tab" data-target="copd_01-5">Discharge Check</button></nav>
+  <section class="panel active" id="copd_01-0"><p>Your lungs have a long term problem. It is called COPD. It means your lungs get blocked. This makes it hard to breathe. You had a flare up of this problem. We call it an acute exacerbation. Your bronchitis also flared up. This is long term swelling in your airways. You also have high blood pressure. This is called hypertension. You used to smoke. You stopped smoking 35 years ago. You sometimes feel anxious. This is linked to trouble breathing.</p></section><section class="panel" id="copd_01-1"><p>Prednisone:</p>
+<p>This medicine helps lower swelling in your lungs.</p>
+<p>It was given to help with your breathing problem.</p>
+<p>You may feel more hungry or have trouble sleeping.</p>
+<p>You might feel restless or have mood changes.</p>
+<p>Call your doctor if you get a fever or feel sick.</p>
+<p>Also call if you have black, tarry stools.</p>
+<p>Azithromycin:</p>
+<p>This medicine is an antibiotic.</p>
+<p>It fights germs that can cause infection in your lungs.</p>
+<p>You might have an upset stomach or diarrhea.</p>
+<p>Call your doctor if you get a rash or feel very weak.</p>
+<p>Also call if you have yellow skin or eyes.</p>
+<p>Call 911 right away if you have sudden face drooping, arm weakness, or trouble speaking.</p>
+<p>Tiotropium (Spiriva):</p>
+<p>This medicine helps open your airways.</p>
+<p>It makes breathing easier for you.</p>
+<p>You should not feel much when it works.</p>
+<p>Call your doctor if you get blurry vision.</p>
+<p>Also call if you have dry mouth or eye pain.</p>
+<p>Call 911 right away if you have sudden face drooping, arm weakness, or trouble speaking.</p>
+<p>Albuterol (ProAir HFA):</p>
+<p>This medicine helps you breathe easier when you are short of breath.</p>
+<p>It quickly opens your airways.</p>
+<p>You may feel your heart beat faster.</p>
+<p>You might also feel shaky or nervous.</p>
+<p>Call your doctor if these feelings are strong.</p>
+<p>Call 911 right away if you have sudden face drooping, arm weakness, or trouble speaking.</p>
+<p>Fluticasone/Salmeterol (Advair Diskus):</p>
+<p>This medicine helps control swelling in your airways.</p>
+<p>It is used every day to help you breathe better.</p>
+<p>You may get a sore throat or headache.</p>
+<p>You might also have a hoarse voice.</p>
+<p>Call your doctor if you get white patches in your mouth.</p>
+<p>Call 911 right away if you have sudden face drooping, arm weakness, or trouble speaking.</p>
+<p>Amlodipine:</p>
+<p>This medicine helps relax your blood vessels.</p>
+<p>It lowers your blood pressure.</p>
+<p>You may have swollen ankles or feet.</p>
+<p>You might feel dizzy or tired.</p>
+<p>Call your doctor if you feel dizzy often.</p>
+<p>Also call if your ankles swell a lot.</p>
+<p>Call 911 right away if you have sudden face drooping, arm weakness, or trouble speaking.</p></section><section class="panel" id="copd_01-2"><table><thead><tr><th>Who</th><th>When</th><th>Why</th></tr></thead><tbody><tr><td><strong>Dr. Anne Fitzgerald</strong></td><td>2026-03-24</td><td>medication review and prednisone
+taper check</td></tr><tr><td><strong>Dr. James Okafor</strong></td><td>2026-03-26</td><td>post-exacerbation check and repeat
+spirometry</td></tr><tr><td><strong>Pulmonary Rehab</strong></td><td>2026-04-02</td><td>Assessment scheduled</td></tr></tbody></table></section><section class="panel" id="copd_01-3"><h3 class="tier">CALL 911 IMMEDIATELY</h3>
+<p>These symptoms are life-threatening. Do not drive yourself.</p>
+<ul>
+<li>Lips, nails, or face blue or grey: Your body needs oxygen.</li>
+<li>Breathing does not improve or worsens: Your airways are blocked.</li>
+<li>Confusion, difficulty speaking, or extreme drowsiness: This is a medical emergency.</li>
+<li>Coughing up blood or blood tinged mucus: Seek help right now.</li>
+<li>Unable to complete full sentence due to breathlessness: Your breathing is too hard.</li>
+<li>Chest pain or rapid, racing heartbeat: Call 911 now.</li>
+</ul>
+<h3 class="tier">GO TO THE ER TODAY</h3>
+<p>Do not wait until tomorrow. Go within a few hours.</p>
+<ul>
+<li>Fever above 101 degrees F: You may have a new infection.</li>
+</ul>
+<h3 class="tier">CALL YOUR DOCTOR</h3>
+<p>Call during office hours. Do not go to the ER for these.</p>
+<ul>
+<li>No symptoms in this tier for your diagnosis.</li>
+</ul></section><section class="panel" id="copd_01-4"><h3 class="wk">Week 1:</h3>
+<ul>
+<li>You may feel tired and have less energy this week.</li>
+<li>Focus on resting at home for the first 3 to 5 days.</li>
+<li>Start by walking for 5 minutes, twice a day.</li>
+<li>Increase your walking time slowly as your breathing allows.</li>
+<li>Do not do heavy lifting or strenuous activity.</li>
+<li>Eat small meals often. Avoid large meals that can make breathing harder.</li>
+<li>Drink 6 to 8 cups of water daily to help thin mucus.</li>
+<li>Avoid smoke, dust, strong fumes, and cold air.</li>
+<li>Call your doctor if your lips or face turn blue or grey.</li>
+<li>Call your doctor if you cannot finish a sentence due to shortness of breath.</li>
+</ul>
+<h3 class="wk">Week 2:</h3>
+<ul>
+<li>You might start to feel a little stronger.</li>
+<li>Continue to gradually increase your activity level.</li>
+<li>No strenuous activity or heavy lifting is allowed for 2 weeks.</li>
+<li>Use pursed-lip breathing when you are active. This helps with shortness of breath.</li>
+<li>Keep eating small meals and drinking 6-8 cups of water daily.</li>
+<li>Avoid carbonated drinks and foods that cause gas.</li>
+<li>Limit caffeine and alcohol to help with sleep.</li>
+<li>Do not drive if prednisone makes you feel drowsy or jittery.</li>
+<li>Call your doctor if your breathing does not improve after using your inhaler.</li>
+<li>Call your doctor if you have chest pain or a rapid heartbeat.</li>
+</ul>
+<h3 class="wk">Week 3:</h3>
+<ul>
+<li>You can likely do more light activities around the house.</li>
+<li>Keep avoiding strenuous activity and heavy lifting.</li>
+<li>Continue to increase your walking time slowly each day.</li>
+<li>Remember to use pursed-lip breathing when you get short of breath.</li>
+<li>Eat small, frequent meals. Stay well hydrated with 6-8 cups of water.</li>
+<li>Eat foods with potassium, especially while taking steroid medicine.</li>
+<li>Keep avoiding smoke, dust, strong fumes, and cold air.</li>
+<li>Call your doctor if you become confused or extremely drowsy.</li>
+<li>Call your doctor if you have a fever over 101 degrees F (38.3 C).</li>
+</ul>
+<h3 class="wk">Week 4:</h3>
+<ul>
+<li>Your breathing should feel better than it did last week.</li>
+<li>You may start to feel more energy for daily tasks.</li>
+<li>Continue to increase your walking and other light activities slowly.</li>
+<li>Your goal this week is to eat small, frequent meals.</li>
+<li>Keep drinking 6-8 cups of water daily to keep mucus thin.</li>
+<li>Keep avoiding things that can trigger your COPD symptoms.</li>
+<li>Call your doctor if you cough up blood or bloody mucus.</li>
+<li>Call your doctor if your breathing gets worse instead of better.</li>
+</ul>
+<h3 class="wk">When to expect improvement:</h3>
+<ul>
+<li>Your breathing should steadily get better over the next few weeks.</li>
+<li>Continue to avoid smoke, dust, strong fumes, and cold air.</li>
+<li>Keep up with drinking plenty of fluids to keep mucus thin.</li>
+<li>Listen to your body and do not push yourself too hard.</li>
+<li>Follow your doctor&#x27;s plan for your breathing treatments and medicines.</li>
+</ul></section><section class="panel" id="copd_01-5"><p class="notice">These are questions a patient might ask that this document does not answer. They are for discussion with a care team, not medical advice.</p>
+<p class="score">Gap score: <strong>7</strong> out of 10 <span>(higher means more unanswered questions)</span></p>
+<p>I get confused easily. Biggest issue is not knowing what to do for missed medicine.</p>
+<h3>Not answered by this document</h3>
+<div class="gap critical"><span class="sev">critical</span><strong>The paper says I need to take prednisone, but it doesn&#x27;t say what happens if I forget a dose.</strong><p>Missing information on missed prednisone doses.</p></div>
+<div class="gap critical"><span class="sev">critical</span><strong>It says to call 911 if my breathing gets worse, but what does &#x27;worse&#x27; mean exactly? Like, how bad does it have to be?</strong><p>Needs clearer signs for worse breathing.</p></div>
+<div class="gap critical"><span class="sev">critical</span><strong>If I accidentally miss my Tiotropium or Fluticasone dose, should I take it later or just skip it?</strong><p>Missing missed dose instructions for inhalers.</p></div>
+<div class="gap moderate"><span class="sev">moderate</span><strong>What does COPD really mean and why did it make me so sick that I needed to go to the hospital?</strong><p>Explain diagnosis in simple words for me.</p></div>
+<div class="gap moderate"><span class="sev">moderate</span><strong>I see I have to take Azithromycin, but I don&#x27;t know what it&#x27;s for or if I can stop it once I feel better.</strong><p>Explain what Azithromycin does and how long to take.</p></div>
+<div class="gap moderate"><span class="sev">moderate</span><strong>My paper says to see Dr. Fitzgerald on March 24th, but it doesn&#x27;t say how to call her office to make sure the appointment is set.</strong><p>Needs contact info to book appointment.</p></div>
+<div class="gap minor"><span class="sev">minor</span><strong>It says I should eat small meals, but does that mean I should avoid certain foods completely?</strong><p>Not specific about foods to avoid.</p></div>
+<div class="gap minor"><span class="sev">minor</span><strong>It says I should increase potassium-rich foods because of the steroid. Is there a list of these foods so I know what to buy?</strong><p>Missing examples of potassium-rich foods.</p></div></section>
+</article>
+</div><script>
+document.querySelectorAll('.tabs').forEach(function(nav){
+  nav.addEventListener('click', function(e){
+    var btn = e.target.closest('.tab'); if(!btn) return;
+    var card = nav.closest('.case');
+    card.querySelectorAll('.tab').forEach(function(b){b.classList.remove('active');});
+    card.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+    btn.classList.add('active');
+    var panel = document.getElementById(btn.dataset.target);
+    if(panel) panel.classList.add('active');
+  });
+});
+</script></body></html>
