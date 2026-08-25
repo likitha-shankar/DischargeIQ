@@ -272,12 +272,9 @@ dischargeiq/
 │   └── warnings.py            # assess_extraction_completeness()
 ├── db/
 │   └── history.py             # save_discharge_history(), get_history_for_session()
-├── templates/                 # Clinician-reviewed diagnosis templates (markdown)
-│   ├── heart_failure.md
-│   ├── copd.md
-│   ├── diabetes.md
-│   ├── hip_replacement.md
-│   └── surgical_case.md
+│                              # NOTE: dischargeiq/templates/ is EMPTY (.gitkeep
+│                              #   only). The templates live at the REPO ROOT,
+│                              #   outside this package - see below.
 ├── test-data/                 # de-identified corpus (mtsamples/, 106 docs)
 │                              #   + 3 demo/beta sample PDFs at the top level
 ├── evaluation/
@@ -292,6 +289,36 @@ dischargeiq/
     ├── extraction_schema.json
     └── extraction_schema_notes.md
 ```
+
+## Templates live at the repo root, not inside the package
+
+Corrected 25 Aug 2026. This file previously showed five diagnosis templates
+under `dischargeiq/templates/`. That directory contains only `.gitkeep`. The
+real locations are:
+
+```
+templates/                     # REPO ROOT - diagnosis explanation templates
+├── heart_failure.md           #   reference/eval material for Agent 2.
+├── copd.md                    #   NOT loaded automatically by the pipeline.
+├── diabetes.md
+├── hip_replacement.md
+├── surgical_case.md
+└── escalation/                # Agent 5 tier criteria, added 25 Aug 2026
+    ├── _FORMAT.md             #   format spec + what a reviewer signs
+    ├── universal.md           #   diagnosis-independent tiers
+    ├── heart_failure.md       #   per-diagnosis additions
+    ├── copd.md
+    ├── diabetes.md
+    ├── hip_replacement.md
+    └── surgical_case.md
+```
+
+**The escalation templates are INERT until a physician signs them.** A
+template governs output only when its sign-off block names a real reviewer AND
+a real date; `[Pending - ...]` parses as unsigned. All six ship unsigned, so
+Agent 5 generates all three tiers exactly as it always has. Loader and
+verifier: `dischargeiq/utils/escalation_templates.py`. Status:
+`python scripts/escalation_template_status.py`.
 
 ## Agent 1 JSON output schema (LOCKED - do not change casually)
 
