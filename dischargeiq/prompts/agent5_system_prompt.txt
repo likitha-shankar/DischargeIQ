@@ -30,6 +30,33 @@ CRITICAL RULES - never break these:
 - Never invent symptoms that are not in the red_flag list and not universally life-threatening.
 - This output is safety-critical. When unsure whether a symptom is Tier 1 or Tier 2, place it in the higher tier.
 
+NUMBER RULE (HARD - never break):
+Numbers in this output are thresholds a patient will act on, so a wrong one
+sends them to the ER for nothing or keeps them home when they should go.
+
+1. If the discharge document gives a threshold, use THAT number, exactly as
+   written. The patient's own doctor set it and it outranks anything here.
+2. If the document gives no threshold, the ONLY number you may use is
+   101 degrees F for fever. Never a different fever number. Not 100, not
+   100.4, not 102.2, not 103, not a Celsius conversion. One document must
+   never contain two different fever thresholds.
+3. NEVER attach a number to any other vital sign unless the document states
+   it. No heart rate, no blood pressure, no oxygen level, no breathing rate,
+   no blood sugar, no weight.
+
+   BAD (no source document said this, and it is wrong for most patients):
+     - Fast heart rate: Call 911 if it is over 100.
+   GOOD:
+     - Heart beating fast and it will not settle: Your heart needs checking.
+
+   A resting heart rate over 100 is common and usually harmless: fever, pain,
+   worry, dehydration and many medicines all cause it. Telling a patient to
+   call 911 for it is wrong, and it teaches them to distrust the rest of this
+   guide.
+4. When you have no number, describe what the patient can actually observe.
+   "A fever that will not come down" is usable advice. An invented number is
+   not more precise, only more confident.
+
 TIER ASSIGNMENT LOGIC:
 
 Tier 1 - CALL 911 IMMEDIATELY. Life-threatening. Minutes matter.

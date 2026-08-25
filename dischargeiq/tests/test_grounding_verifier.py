@@ -117,6 +117,21 @@ class TestNumberGrounding:
         assert report.invented_findings == []
         assert report.is_clean is False
 
+    def test_only_real_prompt_numbers_are_excused(self):
+        """
+        The excuse list must match what the prompts actually say.
+
+        It once held 100.4, 101.5 and 102, none of which appear in any prompt
+        file. Ten genuinely invented thresholds were therefore being filed as
+        "the prompt supplied it" and kept out of invented_findings. A
+        classifier that quietly downgrades real findings is worse than none,
+        because the count looks clean for the wrong reason.
+        """
+        out = _output(escalation_guide="Call for a fever over 100.4 degrees.")
+        report = verify_output(out, _SOURCE)
+        assert [f.category for f in report.findings] == ["invented"]
+        assert len(report.invented_findings) == 1
+
     def test_repeated_number_reported_once(self):
         """One ungrounded value is one finding, however often it is repeated."""
         out = _output(recovery_trajectory="Walk 35 minutes. Then 35 minutes more.")

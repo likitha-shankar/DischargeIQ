@@ -41,12 +41,19 @@ _BENIGN_NUMBERS = frozenset(
     {"911", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "12", "24"}
 )
 
-# Numeric values that come from the agent PROMPTS rather than from any
-# patient's document: standard clinical thresholds. These are real and
-# defensible as general patient education, and indefensible when shown as if
-# the patient's own paperwork said so. They are classified separately because
-# the fix is a clinical decision about attribution, not a bug fix.
-_PROMPT_SUPPLIED_THRESHOLDS = frozenset({"100.4", "101", "101.5", "102", "38.5"})
+# Numeric values that genuinely come from the agent PROMPTS rather than from
+# any patient's document. These are defensible as general patient education and
+# indefensible when shown as if the patient's own paperwork said so, so they are
+# classified separately: the fix is a clinical decision about attribution rather
+# than a code bug.
+#
+# Kept to what agent5_system_prompt.txt ACTUALLY contains, verified 25 Aug 2026.
+# The set previously also held 100.4, 101.5 and 102, none of which appear in any
+# prompt - so genuinely invented thresholds were being excused as "the prompt
+# said so" and hidden from invented_findings. A classifier that quietly
+# downgrades real findings is worse than no classifier, because the count looks
+# clean for the wrong reason.
+_PROMPT_SUPPLIED_THRESHOLDS = frozenset({"101", "38.5"})
 
 # Sections checked, mapped to the agent that produces them.
 _NARRATIVE_FIELDS = {
