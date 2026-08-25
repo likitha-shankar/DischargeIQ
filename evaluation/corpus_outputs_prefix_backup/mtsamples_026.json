@@ -1,0 +1,395 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": "2007-09-03",
+    "discharge_date_source": {
+      "page": 2,
+      "text": "The patient continued to make great progress with her therapies so much so that we are anticipating her discharge on Monday, 09/03/2007."
+    },
+    "primary_diagnosis": "Status post right total knee replacement secondary to degenerative joint disease",
+    "primary_diagnosis_source": {
+      "page": 2,
+      "text": "1. Status post right total knee replacement secondary to degenerative joint disease performed on 08/21/2007."
+    },
+    "secondary_diagnoses": [
+      "Anxiety disorder",
+      "Insomnia secondary to pain and anxiety postoperatively",
+      "Postoperative constipation",
+      "Contact dermatitis secondary to preoperative gardening activities",
+      "Hypertension",
+      "Hypothyroidism",
+      "Gastroesophageal reflux disease",
+      "Morton neuroma of the feet bilaterally",
+      "Distant history of migraine headaches"
+    ],
+    "procedures_performed": [
+      "Right total knee replacement",
+      "Physical Therapy",
+      "Occupational Therapy",
+      "CPM machine use",
+      "Venous Doppler study obtained on 08/27/2007",
+      "UA on 08/28/2007",
+      "CBC",
+      "Chemistries"
+    ],
+    "medications": [
+      {
+        "name": "Celebrex",
+        "dose": "200 mg",
+        "frequency": "daily",
+        "duration": "for one month",
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "The patient is advised to continue taking the following medications: Celebrex 200 mg daily, for one month"
+        }
+      },
+      {
+        "name": "Colace",
+        "dose": "100 mg",
+        "frequency": "twice daily",
+        "duration": "for one month",
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "Colace 100 mg b.i.d. for one month"
+        }
+      },
+      {
+        "name": "Protonix",
+        "dose": "40 mg",
+        "frequency": "twice daily",
+        "duration": "for one month",
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "Protonix 40 mg b.i.d. for one month"
+        }
+      },
+      {
+        "name": "Synthroid",
+        "dose": "137 mcg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "Synthroid 137 mcg daily"
+        }
+      },
+      {
+        "name": "Diprosone cream",
+        "dose": "0.05% cream",
+        "frequency": "twice daily",
+        "duration": "to the right arm and right abdomen",
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "Diprosone cream 0.05% cream b.i.d. to the right arm and right abdomen"
+        }
+      },
+      {
+        "name": "oxycodone SR",
+        "dose": "20 mg",
+        "frequency": "by mouth q.12h.",
+        "duration": "for five days, then decrease to oxycodone SR 10 mg p.o. q.12h. for five days",
+        "status": "changed",
+        "source": {
+          "page": 3,
+          "text": "oxycodone SR 20 mg p.o. q.12h. for five days, then decrease to oxycodone SR 10 mg p.o. q.12h. for five days"
+        }
+      },
+      {
+        "name": "Percocet",
+        "dose": "5/325 mg one to two tablets",
+        "frequency": "q.6h. to be used as needed",
+        "duration": "for breakthrough pain",
+        "status": "changed",
+        "source": {
+          "page": 3,
+          "text": "Percocet 5/325 mg one to two tablets q.6h. to be used p.r.n. for breakthrough pain"
+        }
+      },
+      {
+        "name": "Trazodone",
+        "dose": "50 mg",
+        "frequency": "by mouth every night at bedtime as needed",
+        "duration": "for two weeks",
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "trazodone 50 mg p.o. at bedtime p.r.n. for two weeks"
+        }
+      },
+      {
+        "name": "Ativan",
+        "dose": "0.25 mg",
+        "frequency": "twice daily",
+        "duration": "for two weeks",
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "Ativan 0.25 mg b.i.d. for two weeks"
+        }
+      },
+      {
+        "name": "Toprol-XL",
+        "dose": "50 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "and Toprol-XL 50 mg daily."
+        }
+      },
+      {
+        "name": "Coumadin",
+        "dose": "7 mg",
+        "frequency": "daily",
+        "duration": "for 30 days",
+        "status": "changed",
+        "source": {
+          "page": 3,
+          "text": "At the present time, the patient is taking Coumadin 7 mg daily. She will remain on Coumadin for 30 days."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. A",
+        "specialty": null,
+        "date": "2007-09-21",
+        "reason": null,
+        "source": {
+          "page": 3,
+          "text": "Finally, the patient has a followup appointment with Dr. A on 09/21/2007 at noon at his office."
+        }
+      },
+      {
+        "provider": "Dr. B",
+        "specialty": "Primary Care Physician",
+        "date": null,
+        "reason": null,
+        "source": {
+          "page": 3,
+          "text": "The patient is encouraged to follow up with her primary care physician, Dr. B."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "stable and improved",
+    "discharge_condition_source": {
+      "page": 3,
+      "text": "As mentioned above, the patient will be discharged on 09/03/2007 in stable and improved condition since she is status post right total knee replacement and has made good progress with her therapies and rehabilitation."
+    },
+    "extraction_warnings": [
+      "Conflicting doses for oxycodone SR: found 20mg, 10mg in document. Verify against original.",
+      "Conflicting doses for Percocet: found 20mg, 325mg in document. Verify against original."
+    ]
+  },
+  "diagnosis_explanation": "You had surgery to replace your right knee. This was done because your knee joint had wear and tear. This surgery is often called a total knee replacement. Your knee should feel much better now.",
+  "medication_rationale": "Celebrex 200 mg:\nThis medicine helps reduce pain and swelling. It is used after your knee surgery. You should feel less pain in your knee. This means the medicine is working. Call your doctor if you have stomach pain, black stools, or vomit blood.\n\nColace 100 mg:\nThis medicine helps soften your stools. It makes it easier to have a bowel movement. You will notice your stools are softer. This means the medicine is working. Call your doctor if you have severe stomach pain or cramping.\n\nProtonix 40 mg:\nThis medicine reduces stomach acid. It can help prevent stomach problems from other medicines. You may notice less stomach upset. This means the medicine is working. Call your doctor if you have severe stomach pain or trouble swallowing.\n\nSynthroid 137 mcg:\nThis medicine replaces a hormone your thyroid gland makes. It helps control your body's energy. You should feel more energetic and less tired. This means the medicine is working. Call your doctor if you have a fast heartbeat, feel nervous, or have trouble sleeping.\n\nDiprosone cream 0.05%:\nThis cream helps reduce redness and itching. It is for your right arm and right abdomen. The skin on your arm and abdomen should look and feel better. This means the cream is working. Call your doctor if the skin becomes more red, itchy, or burns.\n\noxycodone SR 20 mg:\nThis medicine is a strong pain reliever. It is for moderate to severe pain after your surgery. You should feel your pain lessen. This means the medicine is working. Call your doctor if you feel too sleepy, have trouble breathing, or are unable to urinate.\n\nPercocet 5/325 mg:\nThis medicine is a pain reliever. It is for sudden, sharp pain that may occur. You should feel your breakthrough pain get better quickly. This means the medicine is working. Call your doctor if you feel too sleepy, have trouble breathing, or are unable to urinate.\n\nTrazodone 50 mg:\nThis medicine can help you sleep. It is for short-term use after your surgery. You may fall asleep more easily at night. This means the medicine is working. Call your doctor if you feel very restless or agitated.\n\nAtivan 0.25 mg:\nThis medicine can help reduce anxiety. It is for short-term use after your surgery. You may feel calmer and less worried. This means the medicine is working. Call your doctor if you feel very drowsy or have trouble thinking clearly.\n\nToprol-XL 50 mg:\nThis medicine helps control your heart rate and blood pressure. It is used for your heart condition. You may notice your heart beating slower. This means the medicine is working. Call your doctor if you feel dizzy, tired, or have trouble breathing.\n\nCoumadin 7 mg:\nThis medicine helps prevent blood clots from forming. This is important after your surgery. You may not notice any changes. This means the medicine is working. Call your doctor if you notice any unusual bleeding or bruising.\nImportant: Do not stop taking this medicine without calling your doctor first.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired and may have some pain in your knee.\n- Keep your surgical leg straight when resting.\n- Use the CPM machine as directed by your therapist.\n- Walk short distances inside your home.\n- Do not bend your new knee more than 90 degrees.\n- Do not put any weight on your surgical leg.\n- You may drive if you are not taking pain medicine.\n- Call your doctor if you have a fever over 101\u00b0F.\n- Your goal is to do all your exercises every day.\n\n**Week 2:**\n- Your knee pain should start to get a little better.\n- You will feel more energy than last week.\n- Continue CPM machine use as directed.\n- You can put light weight on your surgical leg.\n- Try to walk a bit more inside your home.\n- Do not bend your knee past 90 degrees.\n- Call your doctor if you see redness or swelling at the incision.\n\n**Week 3:**\n- You may feel less pain and more comfort.\n- You can start doing more activities around the house.\n- Continue physical and occupational therapy sessions.\n- You can begin to put full weight on your surgical leg.\n- Keep bending your knee to 90 degrees.\n- You can drive again if you are not taking pain medicine.\n- Your goal this week is to walk for 10 minutes.\n- Call your doctor if your calf pain gets worse.\n\n**Week 4:**\n- Your knee should feel more stable and less swollen.\n- You can walk longer distances without pain.\n- You can start doing light chores around your home.\n- Continue exercises and therapy as planned.\n- You may increase bending your knee slowly.\n- Ask your doctor before going back to work.\n- Your goal is to walk outside for short periods.\n- Call your doctor if your surgical leg feels numb or tingly.\n\n**When to expect improvement:**\n- You should see steady progress over the next few weeks.\n- Keep up with your therapy exercises daily.\n- Manage your pain with the medications prescribed.\n- Listen to your body and rest when you need to.\n- Most people return to normal activities in 6 weeks.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- No symptoms in this tier for your diagnosis.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Severe pain not helped by medicine: Your pain is too bad.\n- Leg swells badly with pain: You may have a blood clot.\n- Wounds look infected: Red streaks or pus mean trouble.\n- You cannot keep fluids down: You may get too dry.\n- You feel very confused: This can be a serious sign.\n- You fall and get hurt: You need a check right away.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild pain that slowly gets better: This is normal healing.\n- Mild swelling without pain: This can happen after surgery.\n- Wound healing slower than expected: Check for infection signs.\n- Questions about your medicine: Your doctor can explain doses.\n- Mild redness not spreading: This is often not serious.\n- Waking often at night: Pain or anxiety can disrupt sleep.\n- Constipation that is mild: Your body is adjusting slowly.\n- Rash from gardening: Your skin is healing from contact.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.33,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.98,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.14,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.81,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Conflicting doses for oxycodone SR: found 20mg, 10mg in document. Verify against original.",
+    "Conflicting doses for Percocet: found 20mg, 325mg in document. Verify against original.",
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "My oxycodone says \"SR\" and my Percocet is \"as needed\". What is the difference and how should I take them?",
+        "answered_by_doc": false,
+        "gap_summary": "Instructions for taking oxycodone and Percocet are unclear.",
+        "severity": "critical"
+      },
+      {
+        "question": "The paper says my Coumadin dose changed. What do I need to watch out for now?",
+        "answered_by_doc": false,
+        "gap_summary": "Guidance on Coumadin dose change is missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What happens if I miss a dose of my Coumadin or Toprol-XL?",
+        "answered_by_doc": false,
+        "gap_summary": "Instructions for missed Coumadin or Toprol-XL are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "I see I have new medicines called Protonix and Diprosone cream. What are they for?",
+        "answered_by_doc": false,
+        "gap_summary": "The purpose of Protonix and Diprosone is unclear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How long should I keep taking the Colace and Percocet for constipation and pain?",
+        "answered_by_doc": false,
+        "gap_summary": "Duration for taking Colace and Percocet is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I have hypertension and hypothyroidism. What do I need to do differently at home for these?",
+        "answered_by_doc": false,
+        "gap_summary": "Diet or activity changes for hypertension are missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "When should I call Dr. B about my new medications or pain after surgery?",
+        "answered_by_doc": false,
+        "gap_summary": "Signs to contact the doctor are not listed.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does it mean that I had a knee replacement because of \"degenerative joint disease\"?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation needed for what degenerative joint disease means.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "Anxious patients will struggle. Many critical medication questions remain unanswered.",
+    "fk_grade": 8.27,
+    "passes": false,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Celebrex 200 mg",
+        "questions": [
+          "What side effects should I watch for?",
+          "Can I take this with other pain pills?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Colace 100 mg",
+        "questions": [
+          "How long should I take this medication?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Protonix 40 mg",
+        "questions": [
+          "What is this medication for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Synthroid 137 mcg",
+        "questions": [
+          "What should I do if I miss a dose?",
+          "Are there foods I should avoid?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Diprosone cream 0.05% cream",
+        "questions": [
+          "How often should I apply this cream?",
+          "What area of my body should I use it on?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "oxycodone SR 20 mg",
+        "questions": [
+          "What is the difference between this and Percocet?",
+          "How often can I take this medication?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Percocet 5/325 mg",
+        "questions": [
+          "What is the maximum amount I can take?",
+          "How often can I take this medication?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Trazodone 50 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "Can I drive after taking this?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Ativan 0.25 mg",
+        "questions": [
+          "What side effects should I watch for?",
+          "How long should I take this medication?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Toprol-XL 50 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "What should I do if my heart beats too slow?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Coumadin 7 mg",
+        "questions": [
+          "What foods should I avoid while taking this?",
+          "Do I need regular blood tests for this?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. A - 2007-09-21",
+        "questions": [
+          "What should I bring to this appointment?",
+          "What do I need to prepare for this visit?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. B - Primary Care Physician",
+        "questions": [
+          "What questions should I ask my primary doctor?",
+          "Should I bring my discharge papers?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_026",
+    "source_pdf": "test-data/mtsamples/mtsamples_026.pdf",
+    "generated_at": "2026-08-15T13:19:34",
+    "elapsed_seconds": 10.4
+  }
+}

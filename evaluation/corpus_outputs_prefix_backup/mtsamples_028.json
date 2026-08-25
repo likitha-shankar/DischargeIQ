@@ -1,0 +1,225 @@
+{
+  "extraction": {
+    "patient_name": "36-year-old, white female",
+    "patient_name_source": {
+      "page": 1,
+      "text": "The patient is a 36-year-old, white female, gravida 7, para 5, last period mid March, status\npost tubal ligation."
+    },
+    "discharge_date": "2007-04-11",
+    "discharge_date_source": {
+      "page": 1,
+      "text": "She was taken to the operating room on 04/02/2007"
+    },
+    "primary_diagnosis": "Microinvasive carcinoma of the cervix",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "Microinvasive carcinoma of the cervix."
+    },
+    "secondary_diagnoses": [],
+    "procedures_performed": [
+      "Total vaginal hysterectomy.",
+      "Chest x-ray was clear."
+    ],
+    "medications": [
+      {
+        "name": "Vicodin",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": null,
+        "source": {
+          "page": 2,
+          "text": "Vicodin, Motrin, and Macrodantin at bedtime for urinary tract infection suppression."
+        }
+      },
+      {
+        "name": "Motrin",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": null,
+        "source": {
+          "page": 2,
+          "text": "Vicodin, Motrin, and Macrodantin at bedtime for urinary tract infection suppression."
+        }
+      },
+      {
+        "name": "Macrodantin",
+        "dose": null,
+        "frequency": "every night at bedtime",
+        "duration": null,
+        "status": null,
+        "source": {
+          "page": 2,
+          "text": "Vicodin, Motrin, and Macrodantin at bedtime for urinary tract infection suppression."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "in ten days",
+        "reason": "for a cystogram and catheter removal",
+        "source": {
+          "page": 1,
+          "text": "Followup will be in ten days for a\ncystogram and catheter removal with followup in the office at that time."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": "followup in the office at that time",
+        "source": {
+          "page": 1,
+          "text": "Followup will be in ten days for a\ncystogram and catheter removal with followup in the office at that time."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "Good.",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "Good."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your cervix has cancer. This cancer is very small. It has not grown much. Doctors call this microinvasive carcinoma. We will talk about how to treat this.",
+  "medication_rationale": "Vicodin:\nThis medicine is a pain reliever. It can help manage any pain you have. You may feel sleepy or a bit dizzy at first. This should pass as your body gets used to it. Call your doctor if you have trouble breathing or feel very confused.\n\nMotrin:\nThis medicine helps reduce pain and swelling. It is used to help with your urinary tract infection. You might notice some stomach upset. Taking it with food can help prevent this. Call your doctor if you have black or bloody stools, or if you have chest pain.\n\nMacrodantin every night at bedtime:\nThis medicine fights germs that cause urinary tract infections. It helps keep your urinary tract healthy. You may notice your urine turns a darker yellow or brown color. This is a normal side effect. Call your doctor if you have a fever, chills, or a rash.",
+  "recovery_trajectory": "**Week 1:**\n- You will likely feel tired and sore. This is normal.\n- Rest is important. Avoid all heavy lifting.\n- You may have some light vaginal bleeding. This is normal.\n- Call your doctor if you have heavy bleeding.\n- Call your doctor if you have a fever over 100.4 F.\n- Your goal this week is to walk short distances inside your home.\n\n**Week 2:**\n- Your energy may start to slowly return.\n- You can do light activities around the house.\n- Avoid lifting anything heavier than 5 pounds.\n- Avoid sexual activity.\n- Call your doctor if you have bad pelvic pain.\n- Your goal this week is to walk a little longer each day.\n\n**Week 3:**\n- You may feel less pain and more comfort.\n- You can try slightly longer walks.\n- Continue to avoid heavy lifting or strenuous exercise.\n- You can start to do very light household chores.\n- Call your doctor if you see pus from the incision.\n- Your goal this week is to walk for 10 minutes without stopping.\n\n**Week 4:**\n- You should notice steady improvement in how you feel.\n- You can increase your walking distance slowly.\n- Keep avoiding heavy lifting for now.\n- Discuss returning to work with your doctor.\n- Your goal this week is to walk outside daily.\n- Call your doctor if you have any new or worsening pain.\n\n**When to expect improvement:**\n- You should feel much better over the next 4 weeks.\n- Healing takes time. Be patient with yourself.\n- Attend all follow-up appointments.\n- Continue to follow your doctor's instructions.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- No symptoms in this tier for your diagnosis.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- No symptoms in this tier for your diagnosis.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- No symptoms in this tier for your diagnosis.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.56,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.69,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.3,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.47,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "How much Vicodin should I take and when?",
+        "answered_by_doc": false,
+        "gap_summary": "Dosing and timing instructions for Vicodin.",
+        "severity": "critical"
+      },
+      {
+        "question": "What is Macrodantin for and what happens if I forget a dose?",
+        "answered_by_doc": false,
+        "gap_summary": "Medicine purpose and missed dose plan.",
+        "severity": "critical"
+      },
+      {
+        "question": "What symptoms would mean I need to go to the ER?",
+        "answered_by_doc": false,
+        "gap_summary": "Warning signs that need emergency care.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does microinvasive carcinoma of the cervix mean for me?",
+        "answered_by_doc": false,
+        "gap_summary": "Diagnosis explained in simple terms for me.",
+        "severity": "moderate"
+      },
+      {
+        "question": "When should I take Motrin and how much?",
+        "answered_by_doc": false,
+        "gap_summary": "Dosing and timing instructions for Motrin.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Who do I call to schedule my cystogram and catheter removal in ten days?",
+        "answered_by_doc": false,
+        "gap_summary": "Who to call to book the appointment.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What activities should I avoid while I recover?",
+        "answered_by_doc": false,
+        "gap_summary": "Specific advice on rest and activity.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "I would be very confused. Biggest gap is the cancer meaning. I need clear next steps.",
+    "fk_grade": 5.43,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Vicodin",
+        "questions": [
+          "How much should I take?",
+          "When should I take it?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Motrin",
+        "questions": [
+          "How much should I take?",
+          "When should I take it?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Macrodantin",
+        "questions": [
+          "What does this medicine do?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "cystogram and catheter removal in ten days",
+        "questions": [
+          "Who should I call to schedule this?",
+          "What should I expect at this appointment?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "followup in the office at that time",
+        "questions": [
+          "What should I prepare for this visit?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Microinvasive carcinoma of the cervix",
+        "questions": [
+          "What does this diagnosis mean for me?",
+          "What are the next steps for treatment?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_028",
+    "source_pdf": "test-data/mtsamples/mtsamples_028.pdf",
+    "generated_at": "2026-08-15T13:20:45",
+    "elapsed_seconds": 5.1
+  }
+}

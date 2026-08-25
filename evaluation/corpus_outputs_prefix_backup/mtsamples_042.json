@@ -1,0 +1,341 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Gastrointestinal bleed, source undetermined, but possibly due to internal hemorrhoids",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "DIAGNOSES ON DISCHARGE,1. Gastrointestinal bleed, source undetermined, but possibly"
+    },
+    "secondary_diagnoses": [
+      "Atherosclerotic cardiovascular disease",
+      "Hypothyroidism"
+    ],
+    "procedures_performed": [
+      "Colonoscopy"
+    ],
+    "medications": [
+      {
+        "name": "Imdur",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "He is continuing on his usual medications of Imdur, metoprolol, and Synthroid."
+        }
+      },
+      {
+        "name": "Metoprolol",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "He is continuing on his usual medications of Imdur, metoprolol, and Synthroid."
+        }
+      },
+      {
+        "name": "Synthroid",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "He is continuing on his usual medications of Imdur, metoprolol, and Synthroid."
+        }
+      },
+      {
+        "name": "Plavix",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "discontinued",
+        "source": {
+          "page": 1,
+          "text": "His Plavix is discontinued."
+        }
+      },
+      {
+        "name": "Protonix",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 1,
+          "text": "He is given IV Protonix. I am hesitant to use Prilosec or Protonix because of his history of pancreatitis associated with Prilosec."
+        }
+      },
+      {
+        "name": "Pepcid",
+        "dose": "40 mg",
+        "frequency": "at night",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "He will continue his Pepcid 40 mg at night, Imdur, Synthroid, and metoprolol as prior to admission."
+        }
+      },
+      {
+        "name": "Imdur",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "He will continue his Pepcid 40 mg at night, Imdur, Synthroid, and metoprolol as prior to admission."
+        }
+      },
+      {
+        "name": "Synthroid",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "He will continue his Pepcid 40 mg at night, Imdur, Synthroid, and metoprolol as prior to admission."
+        }
+      },
+      {
+        "name": "Metoprolol",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "He will continue his Pepcid 40 mg at night, Imdur, Synthroid, and metoprolol as prior to admission."
+        }
+      },
+      {
+        "name": "Plavix",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "discontinued",
+        "source": {
+          "page": 1,
+          "text": "He will hold his Plavix for now."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "Thursday",
+        "reason": null,
+        "source": {
+          "page": 1,
+          "text": "They will follow up in the office on Thursday."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [
+      "regular diet"
+    ],
+    "red_flag_symptoms": [
+      "further dark stools"
+    ],
+    "discharge_condition": "stable",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "His vital signs are stable."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your body had some bleeding in your stomach area. The doctors are not sure where it came from. It might have been from internal hemorrhoids.\n\nYou also have a problem with your heart and blood vessels. This is due to hardening of the arteries. Your thyroid gland also makes too little thyroid hormone.",
+  "medication_rationale": "Imdur:\nThis medicine helps your heart work better. It widens blood vessels. This can relieve chest pain. You may feel dizzy or get a headache. These feelings should pass. Call your doctor if you feel faint.\n\nMetoprolol:\nThis medicine helps your heart beat slower. It also lowers your blood pressure. This helps your heart pump blood. You may feel tired. Your hands or feet may feel cold. Call your doctor if your heart beats too slow. Also call if you feel very dizzy.\n\nSynthroid:\nThis medicine replaces a hormone your thyroid gland makes. It helps your body's energy levels. You may feel more energetic. Your mood may improve. You might notice faster nail growth. Call your doctor if you feel very nervous. Also call if you have trouble sleeping.\n\nPlavix - stopping:\nYour doctor wants you to stop taking this medicine. This medicine was helping to prevent blood clots. Do not take it until your doctor tells you it is safe to start again.\n\nProtonix:\nThis medicine reduces the amount of acid in your stomach. This can help your stomach heal. You might notice less stomach pain. Your heartburn may get better. Call your doctor if you get a rash. Also call if you have severe stomach pain.\n\nPepcid 40 mg at night:\nThis medicine reduces the amount of acid in your stomach. This can help your stomach heal. You might notice less stomach pain. Your heartburn may get better. Call your doctor if you get a rash. Also call if you have severe stomach pain.",
+  "recovery_trajectory": "**Week 1:**\n- You will likely feel tired and weak. This is normal.\n- Rest when you need to. Short walks inside are good.\n- Do not lift anything heavier than 10 pounds.\n- Eat your regular diet as usual.\n- Drink plenty of fluids.\n- You may have some discomfort. This is expected.\n- Call your doctor if you see dark, tarry stools.\n\n**Week 2:**\n- You may start to feel a little more energy.\n- You can try walking a bit longer each day.\n- Continue to avoid lifting heavy items.\n- Keep eating your regular diet.\n- Pay attention to how your body feels.\n- Your goal is to walk for 10 minutes at a time.\n- Call your doctor if you have more dark stools.\n\n**Week 3:**\n- You should feel stronger than last week.\n- You can do more light activities at home.\n- Avoid lifting anything over 10 pounds.\n- Stick to your regular diet.\n- Watch for any changes in your bowel movements.\n- Your goal is to walk 3 times today for 10 minutes each.\n- Call your doctor if you notice dark or bloody stools.\n\n**Week 4:**\n- Most days should feel easier than before.\n- You can increase your daily walking.\n- You can resume light household chores.\n- Continue to avoid lifting heavy objects.\n- Eat your regular diet and drink enough fluids.\n- Your goal is to walk for 15 minutes without stopping.\n- Call your doctor if you have any more dark stools.\n\n**When to expect improvement:**\n- You should feel a steady increase in energy.\n- Continue to listen to your body's signals.\n- Keep your activity level moderate.\n- Report any return of dark stools to your doctor.\n- Healing is a gradual process.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Dark stools: This means you are bleeding. Call 911 now.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- No symptoms in this tier for your diagnosis.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Further dark stools: Report any bleeding to your doctor.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 4.55,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 3.4,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.06,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 3.72,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What should I do if I have more dark stools?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say what to do if symptoms return.",
+        "severity": "critical"
+      },
+      {
+        "question": "I see Plavix is stopped. Why was it stopped and do I need to worry about it?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say why Plavix was stopped.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What do Imdur and Metoprolol do? I see they are continued.",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say what these medicines do.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What happens if I forget to take my Synthroid at night?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say what to do for missed Synthroid.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My follow-up is Thursday. Who should I call to make sure it is booked?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say who to call for appointment.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says \"regular diet\". Can I eat anything I want or are there foods I should not have?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not list foods to avoid.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does gastrointestinal bleed mean in simple words and why did I have it?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain my diagnosis simply.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "I don't understand my sickness or medicines. I am worried about my symptoms and follow-up.",
+    "fk_grade": 5.26,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Imdur",
+        "questions": [
+          "What does this medicine do?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Metoprolol",
+        "questions": [
+          "What does this medicine do?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Synthroid",
+        "questions": [
+          "What does this medicine do?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Plavix",
+        "questions": [
+          "Why was this stopped?",
+          "What are the risks now?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Protonix",
+        "questions": [
+          "Why was this changed?",
+          "What is the new plan?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Pepcid 40 mg",
+        "questions": [
+          "What does this medicine do?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Thursday",
+        "questions": [
+          "Who should I call to book this?",
+          "What do I need to bring?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "further dark stools",
+        "questions": [
+          "How soon should I call if this happens?",
+          "What should I do first?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Gastrointestinal bleed, source undetermined, but possibly due to internal hemorrhoids",
+        "questions": [
+          "Can you explain this in simple words?",
+          "What caused this to happen?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Atherosclerotic cardiovascular disease",
+        "questions": [
+          "Can you explain this in simple words?",
+          "What caused this to happen?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Hypothyroidism",
+        "questions": [
+          "Can you explain this in simple words?",
+          "What caused this to happen?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "regular diet",
+        "questions": [
+          "Are there any foods I should avoid?",
+          "Are there any foods I should eat more of?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_042",
+    "source_pdf": "test-data/mtsamples/mtsamples_042.pdf",
+    "generated_at": "2026-08-16T12:33:10",
+    "elapsed_seconds": 8.4
+  }
+}

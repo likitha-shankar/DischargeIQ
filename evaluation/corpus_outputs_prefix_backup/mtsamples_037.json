@@ -1,0 +1,136 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": "2007-09-06",
+    "discharge_date_source": {
+      "page": 1,
+      "text": "The patient was ready for discharge on Monday morning of 09/06/2007."
+    },
+    "primary_diagnosis": "Status post vaginal hysterectomy",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "DISCHARGE DIAGNOSIS:\nStatus post vaginal hysterectomy."
+    },
+    "secondary_diagnoses": [
+      "Menorrhagia",
+      "Uterus enlargement",
+      "Pelvic pain"
+    ],
+    "procedures_performed": [
+      "The patient underwent a total vaginal hysterectomy.",
+      "Total vaginal hysterectomy."
+    ],
+    "medications": [],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": "postoperatively",
+        "source": {
+          "page": 2,
+          "text": "She was instructed to follow up in the\noffice postoperatively."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "stable",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "The patient was discharged to home in stable condition."
+    },
+    "extraction_warnings": [
+      "Document is unusually short for a discharge summary - may be incomplete or a partial document."
+    ]
+  },
+  "diagnosis_explanation": "Your uterus was removed. This surgery is called a hysterectomy.\n\nYou had bleeding that was heavier than normal. Your uterus was also larger than normal. You also had pain in your lower belly.",
+  "medication_rationale": "Your doctor did not give you any new medicines to take at home. Ask at your next visit if you need to start any.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired and sore after surgery.\n- Rest often and avoid heavy lifting.\n- Do not lift anything heavier than 10 pounds.\n- Avoid straining with bowel movements.\n- You may have some light vaginal spotting or discharge.\n- Call your doctor if you have heavy bleeding.\n- Call your doctor if you have a fever.\n- Your goal is to rest and take short walks.\n\n**Week 2:**\n- Your energy levels should slowly start to increase.\n- You may still feel some soreness.\n- Continue to avoid lifting heavy items.\n- Light activities around the house are okay.\n- Avoid sexual activity or using tampons.\n- Call your doctor if you have strong pelvic pain.\n- Your goal is to walk a little longer each day.\n\n**Week 3:**\n- You should feel more comfortable this week.\n- You can likely do more light chores.\n- Continue to avoid heavy lifting or strenuous exercise.\n- You may notice decreased vaginal discharge.\n- Call your doctor if discharge has a bad smell.\n- Call your doctor if you have difficulty urinating.\n- Your goal is to walk for 15-20 minutes daily.\n\n**Week 4:**\n- You should have significantly more energy.\n- Most soreness should be gone.\n- You can gradually increase your activity level.\n- Discuss returning to work with your doctor.\n- You can likely resume most normal activities.\n- Call your doctor if you feel a return of severe pain.\n- Your goal is to walk daily for 30 minutes.\n\n**When to expect improvement:**\n- You should feel much better in about 4 to 6 weeks.\n- Recovery is different for everyone.\n- Keep following your doctor's instructions.\n- Continue light activity as you feel able.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- No symptoms in this tier for your diagnosis.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- No symptoms in this tier for your diagnosis.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- No symptoms in this tier for your diagnosis.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 6.29,
+      "passes": false
+    },
+    "agent3": {
+      "fk_grade": 3.84,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 5.42,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.47,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document is unusually short for a discharge summary - may be incomplete or a partial document.",
+    "No red-flag symptoms extracted.",
+    "No medications extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "I had pelvic pain, but the paper doesn't say if I should still have some pain after surgery. How much is normal?",
+        "answered_by_doc": false,
+        "gap_summary": "Explain recovery expectations.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says I need a postoperative follow-up but doesn't say when or who I should call to make it.",
+        "answered_by_doc": false,
+        "gap_summary": "Provide appointment details and contact number.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does \"status post vaginal hysterectomy\" mean and why did it happen to me?",
+        "answered_by_doc": false,
+        "gap_summary": "Explain diagnosis in simple terms.",
+        "severity": "minor"
+      },
+      {
+        "question": "My discharge paper says I had menorrhagia but I don't know what that is. Can you tell me?",
+        "answered_by_doc": false,
+        "gap_summary": "Explain diagnosis in simple terms.",
+        "severity": "minor"
+      },
+      {
+        "question": "The paper mentions my uterus was enlarged. Does that mean I had a tumor?",
+        "answered_by_doc": false,
+        "gap_summary": "Explain diagnosis in simple terms.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 4,
+    "simulator_summary": "I get confused easily. I need clear instructions. The biggest gap is knowing when to follow up.",
+    "fk_grade": 8.28,
+    "passes": false,
+    "caregiver_questions": [
+      {
+        "item_type": "appointment",
+        "item_label": "postoperatively",
+        "questions": [
+          "When is my follow-up appointment?",
+          "Who do I call to schedule it?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_037",
+    "source_pdf": "test-data/mtsamples/mtsamples_037.pdf",
+    "generated_at": "2026-08-16T12:30:00",
+    "elapsed_seconds": 4.5
+  }
+}

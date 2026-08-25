@@ -1,0 +1,611 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": "2008-08-01",
+    "discharge_date_source": {
+      "page": 2,
+      "text": "On August 1, 2008, he returned to the OR for final irrigation and debridement of his below-knee amputation."
+    },
+    "primary_diagnosis": "A nonhealing right below-knee amputation",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "DISCHARGE DIAGNOSIS:\nA nonhealing right below-knee amputation."
+    },
+    "secondary_diagnoses": [
+      "Peripheral vascular disease, bilateral carotid artery stenosis status post bilateral carotid endarterectomies.",
+      "Peripheral vascular disease status post aortobifemoral bypass and bilateral femoropopliteal bypass grafting.",
+      "Hypertension.",
+      "Diverticulosis.",
+      "Hypothyroidism.",
+      "Chronic renal insufficiency.",
+      "Status post open incision and drainage of an intestinal abscess at an unknown point."
+    ],
+    "procedures_performed": [
+      "Extensive debridement of right below-knee amputation with debridement of skin, subcutaneous tissue, muscle, and bone on July 17, 2008.",
+      "Irrigation and debridement of right below-knee amputation wound on July 21, 2008, July 24, 2008, July 28, 2008, and August 1, 2008."
+    ],
+    "medications": [
+      {
+        "name": "Acetaminophen",
+        "dose": "325 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "1. Acetaminophen 325 mg daily."
+        }
+      },
+      {
+        "name": "Albuterol",
+        "dose": "2 puffs",
+        "frequency": "every six hours as needed",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "He was given p.r.n. albuterol and infusion of Lasix, resulting in significant urine output."
+        }
+      },
+      {
+        "name": "Vitamin C",
+        "dose": "500 mg",
+        "frequency": "one to two times daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "3. Vitamin C 500 mg one to two times daily."
+        }
+      },
+      {
+        "name": "Aspirin",
+        "dose": "81 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "4. Aspirin 81 mg daily."
+        }
+      },
+      {
+        "name": "Symbicort",
+        "dose": "1 puff",
+        "frequency": "every morning and 1 puff every evening",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "5. Symbicort 1 puff every morning and 1 puff every evening."
+        }
+      },
+      {
+        "name": "Tums",
+        "dose": null,
+        "frequency": "as needed",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "6. Tums p.r.n."
+        }
+      },
+      {
+        "name": "Calcium",
+        "dose": "600 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "7. Calcium 600 mg plus vitamin D daily."
+        }
+      },
+      {
+        "name": "Plavix",
+        "dose": "75 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "8. Plavix 75 mg daily."
+        }
+      },
+      {
+        "name": "Clorazepate dipotassium",
+        "dose": "7.5 mg",
+        "frequency": "every six hours as needed",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "9. Clorazepate dipotassium 7.5 mg every six hours as needed."
+        }
+      },
+      {
+        "name": "Lexapro",
+        "dose": "10 mg",
+        "frequency": "daily every night at bedtime",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "10. Lexapro 10 mg daily at bedtime."
+        }
+      },
+      {
+        "name": "Hydrochlorothiazide",
+        "dose": "25 mg one-half tablet",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "11. Hydrochlorothiazide 25 mg one-half tablet daily."
+        }
+      },
+      {
+        "name": "Ibuprofen",
+        "dose": "200 mg three pills",
+        "frequency": "as needed",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 3,
+          "text": "12. Ibuprofen 200 mg three pills as needed."
+        }
+      },
+      {
+        "name": "Imdur",
+        "dose": "30 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "13. Imdur 30 mg daily."
+        }
+      },
+      {
+        "name": "Levoxyl",
+        "dose": "112 mcg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "14. Levoxyl 112 mcg daily."
+        }
+      },
+      {
+        "name": "Ativan",
+        "dose": "0.5 mg one-half tablet",
+        "frequency": "every six hours as needed",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "15. Ativan 0.5 mg one-half tablet every six hours as needed."
+        }
+      },
+      {
+        "name": "Lopressor",
+        "dose": "50 mg one-half tablet",
+        "frequency": "twice daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "16. Lopressor 50 mg one-half tablet twice daily."
+        }
+      },
+      {
+        "name": "Flagyl",
+        "dose": "500 mg",
+        "frequency": "every six hours",
+        "duration": "for 10 days",
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "He was also started on Flagyl, empirically."
+        }
+      },
+      {
+        "name": "Multivitamin",
+        "dose": null,
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "18. Multivitamin daily."
+        }
+      },
+      {
+        "name": "Nitrostat",
+        "dose": "0.4 mg",
+        "frequency": "to take as directed",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "19. Nitrostat 0.4 mg to take as directed."
+        }
+      },
+      {
+        "name": "Omeprazole",
+        "dose": "20 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "20. Omeprazole 20 mg daily."
+        }
+      },
+      {
+        "name": "Oxycodone-acetaminophen",
+        "dose": "5/325 mg",
+        "frequency": "every four to six hours as needed for pain",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "21. Oxycodone-acetaminophen 5/325 mg every four to six hours as needed for pain."
+        }
+      },
+      {
+        "name": "Lyrica",
+        "dose": "25 mg",
+        "frequency": "daily every night at bedtime",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "22. Lyrica 25 mg daily at bedtime."
+        }
+      },
+      {
+        "name": "Zocor",
+        "dose": "40 mg one-half tablet",
+        "frequency": "daily every night at bedtime",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "23. Zocor 40 mg one-half tablet daily at bedtime."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": "Vascular",
+        "date": null,
+        "reason": "follow up with the Vascular Clinic as scheduled",
+        "source": {
+          "page": 2,
+          "text": "and instructed to follow up with the Vascular Clinic as scheduled."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": "Arrangements were made for home health and wound VAC care upon discharge.",
+        "source": {
+          "page": 2,
+          "text": "Arrangements were made for home health and wound VAC care upon discharge."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "The patient is resting comfortably. He denies shortness of breath or chest pain. He has mild bibasilar wheezing, but breathing is otherwise nonlabored. All other exams normal.",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "The patient is resting comfortably. He denies shortness of breath or chest pain. He has mild bibasilar wheezing, but breathing is otherwise nonlabored. All other exams normal."
+    },
+    "extraction_warnings": [
+      "Document says continue home meds but no medication list provided"
+    ]
+  },
+  "diagnosis_explanation": "Your right leg needed to be amputated below the knee. It was not healing well. This was related to poor blood flow in your body. It also relates to blockages in the arteries of your neck. You also had bypasses done to help blood flow to your legs. You have high blood pressure. You also have small pouches in your colon. Your thyroid gland does not make enough thyroid hormone. Your kidneys are not working as well as they should. You had an abscess in your intestine that was drained.",
+  "medication_rationale": "Acetaminophen 325 mg daily:\nThis medicine helps with pain. It can also lower a fever. You may not notice much when you take this. It is meant to help prevent pain from worsening. Some people get an upset stomach. This is usually mild. Call your doctor if you get a skin rash.\n\nAlbuterol 2 puffs every six hours as needed:\nThis medicine helps you breathe easier. It opens up the airways in your lungs. You may feel your heart beat faster. You might also feel a little shaky. This is common. Call your doctor if your breathing does not get better.\n\nVitamin C 500 mg one to two times daily:\nThis is a vitamin. It helps your body heal. You may not notice any change. It supports your body's natural healing process. This medicine has no common side effects. Call your doctor if you get stomach pain.\n\nAspirin 81 mg daily:\nThis medicine helps prevent blood clots. This can help with blood flow. You may not feel this medicine working. It is taken to protect your heart and brain. Some people get an upset stomach. This is common. Call your doctor if you get black or tarry stools. Call 911 right away if you have sudden face drooping, arm weakness, or trouble speaking.\n\nSymbicort 1 puff every morning and 1 puff every evening:\nThis medicine helps you breathe better. It reduces swelling in your airways. You might feel your heart beat faster. You may also get shaky. This is common. Rinse your mouth after using it. Call your doctor if your breathing gets worse.\n\nTums as needed:\nThis medicine helps with heartburn. It reduces stomach acid. You will likely feel relief from heartburn. You may have constipation. This is usually mild. Call your doctor if you get stomach cramps.\n\nCalcium 600 mg daily:\nThis helps keep your bones strong. It also helps your body work right. You may not notice this medicine. It supports your body's functions. Some people get constipation. This is common. Call your doctor if you get kidney stones.\n\nPlavix 75 mg daily:\nThis medicine helps prevent blood clots. This is important for blood flow. You may not feel this medicine working. It protects against clots forming. You might bruise more easily. This is common. Call your doctor if you bleed for a long time. Call 911 right away if you have sudden face drooping, arm weakness, or trouble speaking.\n\nClorazepate dipotassium 7.5 mg every six hours as needed:\nThis medicine helps you relax. It can reduce anxiety and muscle spasms. You may feel sleepy or dizzy. This is common. Do not drive or use machines. Call your doctor if you feel confused. Call your doctor if you have trouble breathing.\n\nLexapro 10 mg daily every night at bedtime:\nThis medicine helps improve your mood. It can help with feelings of sadness. You may notice a change in your mood over time. Some people get an upset stomach. You may also have trouble sleeping. This is common. Call your doctor if you think about hurting yourself.\n\nHydrochlorothiazide 25 mg one-half tablet daily:\nThis medicine helps your body get rid of salt and water. This can lower your blood pressure. You may urinate more often. You might feel dizzy. This is common. Call your doctor if you get muscle cramps. Call your doctor if you feel very weak.\n\nIbuprofen 200 mg three pills as needed:\nThis medicine helps with pain and swelling. It can also lower a fever. You may feel relief from pain. You might get an upset stomach. This is common. Call your doctor if you have black, tarry stools.\n\nImdur 30 mg daily:\nThis medicine helps relax your blood vessels. This improves blood flow to your heart. You may get a headache. This is common. Call your doctor if you get severe headaches. Call your doctor if you feel faint.\n\nLevoxyl 112 mcg daily:\nThis medicine replaces a hormone your thyroid gland makes. It helps your body's energy levels. You may feel more energetic. You might have a faster heart rate. This is common. Call your doctor if you have chest pain. Call your doctor if you get tremors.\n\nAtivan 0.5 mg one-half tablet every six hours as needed:\nThis medicine helps calm you. It can reduce anxiety and restlessness. You may feel sleepy or dizzy. This is common. Do not drive or use machines. Call your doctor if you have trouble breathing. Call your doctor if you feel confused.\n\nLopressor 50 mg one-half tablet twice daily:\nThis medicine helps lower your blood pressure. It makes your heart beat slower. You may feel tired or dizzy. This is common. Call your doctor if your heart beats too slow. Call your doctor if you feel short of breath.\n\nFlagyl 500 mg every six hours:\nThis medicine fights certain types of germs. It is used to treat infections. You might get an upset stomach. You may also have a metallic taste. This is common. Call your doctor if you get a rash. Call your doctor if you have severe diarrhea.\n\nMultivitamin daily:\nThis vitamin helps fill gaps in your diet. It supports your body's health. You will likely not notice any change. It provides needed nutrients. This medicine has no common side effects. Call your doctor if you get stomach pain.\n\nNitrostat 0.4 mg to take as directed:\nThis medicine opens up blood vessels. This helps blood flow to your heart. You may get a headache. This is common. This medicine is for chest pain. Call your doctor if chest pain is not relieved. Call 911 right away if you have sudden face drooping, arm weakness, or trouble speaking.\n\nOmeprazole 20 mg daily:\nThis medicine reduces stomach acid. It helps with heartburn or ulcers. You may not notice much effect right away. It helps your stomach heal. Some people get diarrhea. This is usually mild. Call your doctor if you have severe stomach pain.\n\nOxycodone-acetaminophen 5/325 mg every four to six hours as needed for pain:\nThis medicine helps relieve moderate to severe pain. It is a strong pain reliever. You may feel sleepy or dizzy. You might feel constipated. This is common. Do not drive or use machines. Call your doctor if you stop breathing. Call your doctor if you are too drowsy to wake up.\n\nLyrica 25 mg daily every night at bedtime:\nThis medicine helps with nerve pain. It can also help with anxiety. You may feel dizzy or sleepy. You might gain weight. This is common. Do not drive or use machines. Call your doctor if you have problems breathing. Call your doctor if you have swelling in your legs or feet.\n\nZocor 40 mg one-half tablet daily every night at bedtime:\nThis medicine lowers your cholesterol. High cholesterol can harm your heart. You may not notice any direct feeling. It works over time to protect your heart. You might get muscle aches. This is common. Call your doctor if you have severe muscle pain. Call your doctor if your urine is dark.",
+  "recovery_trajectory": "**Week 1:**\n- You may feel tired and sore from your procedure.\n- Rest is important for healing right now.\n- Keep the wound area clean and dry.\n- Do not apply anything to the wound unless told to.\n- Your goal this week is to rest and follow all wound care.\n- Call your doctor if you have a fever over 100.4 F.\n- Call your doctor if the wound looks red or has pus.\n\n**Week 2:**\n- You might still feel some pain or discomfort.\n- You can start moving around your home more.\n- Keep your wound clean and dry as instructed.\n- Do not lift anything heavy.\n- Your goal this week is to increase your walking distance inside your home.\n- Call your doctor if pain gets worse instead of better.\n- Call your doctor if you see more swelling or redness.\n\n**Week 3:**\n- You may start to feel a little more energy.\n- You can do light activities around your home.\n- Avoid strenuous exercise or heavy lifting.\n- Continue to care for your wound as directed.\n- Your goal this week is to walk for short periods outside.\n- Call your doctor if you have shortness of breath or chest pain.\n- Call your doctor if the wound shows signs of infection.\n\n**Week 4:**\n- Your comfort level should continue to improve.\n- You can slowly add more normal activities back.\n- Do not stress the amputation site.\n- Keep the wound clean and protected.\n- Your goal this week is to walk a little longer each day.\n- Call your doctor if you have any new or worsening symptoms.\n- Call your doctor if the wheezing in your lungs gets worse.\n\n**When to expect improvement:**\n- Healing takes time, so be patient with yourself.\n- Keep your wound clean and follow all instructions.\n- Slowly increase your activity as you feel able.\n- Listen to your body and rest when you need to.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- You cannot breathe: Your body needs oxygen now.\n- Uncontrolled bleeding: This needs help right now.\n- Loss of consciousness: You are not responding now.\n- Signs of stroke: Face droops or arm weakness.\n- Chest pain or pressure: Your heart needs help now.\n- Seizure: You are shaking uncontrollably.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever over 101 degrees: You may have an infection.\n- Wound looks infected: Red streaks or pus are present.\n- Severe pain not helped by medicine: Your pain is too bad.\n- Cannot keep any liquids down: You cannot stay hydrated.\n- Sudden large swelling in your leg: This could be a blood clot.\n- New confusion or acting strange: Your thinking is unclear.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild pain improving slowly: Your pain is getting better.\n- Questions about your medicine: Your nurse can help you plan.\n- Wound healing slower than expected: No signs of infection are seen.\n- Mild swelling without pain: This can happen while you heal.\n- Nausea without vomiting: You feel sick but not throwing up.\n- Fatigue that is improving: You are slowly getting more energy.\n- Minor redness not spreading: The redness is not getting larger.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.78,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 3.94,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 3.92,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.94,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document says continue home meds but no medication list provided",
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "The paper mentions needing wound VAC care at home. What is that and how does it work?",
+        "answered_by_doc": false,
+        "gap_summary": "Does not explain wound VAC care instructions.",
+        "severity": "critical"
+      },
+      {
+        "question": "If my leg pain gets really bad, what should I watch out for that means I need to go to the ER?",
+        "answered_by_doc": false,
+        "gap_summary": "Does not list any specific warning signs to call 911.",
+        "severity": "critical"
+      },
+      {
+        "question": "My paper says I had a below-knee amputation because it wouldn't heal. What does that really mean for me and my leg?",
+        "answered_by_doc": false,
+        "gap_summary": "Does not explain what amputation means in plain language.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I have a lot of new medicines like Plavix and Symbicort. What do these do and why am I taking them?",
+        "answered_by_doc": false,
+        "gap_summary": "Does not explain what new medicines do.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says I need to see the Vascular Clinic but doesn't say when or how to book it. What do I do?",
+        "answered_by_doc": false,
+        "gap_summary": "Does not give specific appointment details or booking instructions.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I have a lot of pain pills. What happens if I miss a dose of my pain medicine?",
+        "answered_by_doc": false,
+        "gap_summary": "Does not explain what to do for missed pain medicine doses.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What kind of foods should I eat or not eat with all these health problems I have?",
+        "answered_by_doc": false,
+        "gap_summary": "Does not provide any diet or activity guidance.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "This is confusing for someone with low reading skills. The biggest gap is not knowing what to do if pain gets worse.",
+    "fk_grade": 5.49,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Acetaminophen 325 mg",
+        "questions": [
+          "What is this medicine for?",
+          "How many pills can I take each day?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Albuterol",
+        "questions": [
+          "When should I use this medicine?",
+          "What if I forget to use it?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Vitamin C",
+        "questions": [
+          "How many pills should I take each day?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Aspirin 81 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Symbicort",
+        "questions": [
+          "How do I use the inhaler correctly?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Tums",
+        "questions": [
+          "How many can I take at once?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Calcium 600 mg",
+        "questions": [
+          "What is this medicine for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Plavix 75 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Clorazepate dipotassium 7.5 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lexapro 10 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Hydrochlorothiazide 25 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Ibuprofen 200 mg",
+        "questions": [
+          "How many pills can I take in one day?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Imdur 30 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Levoxyl 112 mcg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Ativan 0.5 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lopressor 50 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Flagyl 500 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Multivitamin",
+        "questions": [
+          "How many should I take each day?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Nitrostat 0.4 mg",
+        "questions": [
+          "When do I use this medicine?",
+          "How many can I take?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Omeprazole 20 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Oxycodone-acetaminophen 5/325 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "Are there any food interactions?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lyrica 25 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Zocor 40 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Vascular Clinic",
+        "questions": [
+          "How do I schedule this appointment?",
+          "What should I bring to the visit?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "nonhealing right below-knee amputation",
+        "questions": [
+          "What does amputation mean for my leg?",
+          "How do I care for the wound?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "General Diet",
+        "questions": [
+          "What foods should I avoid?",
+          "What activities should I limit?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_050",
+    "source_pdf": "test-data/mtsamples/mtsamples_050.pdf",
+    "generated_at": "2026-08-16T12:38:15",
+    "elapsed_seconds": 13.6
+  }
+}

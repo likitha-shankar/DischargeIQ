@@ -1,0 +1,200 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": "2007-09-09",
+    "discharge_date_source": {
+      "page": 1,
+      "text": "The patient was dismissed on 09/09/2007 to be followed in my office in 4 days."
+    },
+    "primary_diagnosis": "Right ruptured ectopic pregnancy with hemoperitoneum",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "1. Right ruptured ectopic pregnancy with hemoperitoneum."
+    },
+    "secondary_diagnoses": [
+      "Anemia secondary to blood loss"
+    ],
+    "procedures_performed": [
+      "laparotomy was performed with findings of a right ruptured ectopic pregnancy",
+      "right salpingectomy was performed"
+    ],
+    "medications": [
+      {
+        "name": "Pain Medication",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "The patient will be dismissed on pain medication and iron therapy."
+        }
+      },
+      {
+        "name": "Iron Therapy",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "The patient will be dismissed on pain medication and iron therapy."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "in 4 days",
+        "reason": null,
+        "source": {
+          "page": 1,
+          "text": "The patient was dismissed on 09/09/2007 to be followed in my office in 4 days."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": null,
+    "discharge_condition_source": null,
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your body had a problem with a pregnancy. It started growing in the wrong place. This caused bleeding inside your belly. You also had blood loss. This made your blood count low.",
+  "medication_rationale": "Pain Medication (new):\nThis medicine is given to help with your pain.\nIt will make you feel more comfortable.\nYou may feel sleepy or groggy. This is normal.\nCall your doctor if your pain gets worse.\nCall your doctor if you have trouble breathing.\n\nIron Therapy (new):\nThis medicine is to help your body make more red blood cells.\nYou lost blood and your body needs help to replace it.\nYour stools may turn black. This is normal.\nCall your doctor if you get bad stomach pain.\nCall your doctor if you vomit blood.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired and sore after surgery.\n- You will have some pain around your incision.\n- You can do light activities inside your home.\n- Do not lift anything heavier than 10 pounds.\n- Walk a little bit each day.\n- Your goal is to walk to your mailbox.\n- Call your doctor if you have a fever over 101\u00b0F.\n- Call your doctor if you have heavy vaginal bleeding.\n\n**Week 2:**\n- Your pain should start to get better.\n- You will still feel tired but may have more energy.\n- You can increase your walking distance slowly.\n- Continue to avoid lifting anything heavier than 10 pounds.\n- Eat regular meals.\n- Your goal is to walk for 10 minutes twice a day.\n- Call your doctor if you have bad nausea or vomiting.\n\n**Week 3:**\n- You should feel more comfortable moving around.\n- You may be able to do light chores.\n- Continue to avoid heavy lifting or strenuous exercise.\n- You can likely walk for longer periods now.\n- Your goal is to walk for 15 minutes each day.\n- Call your doctor if your incision starts to look red or swollen.\n\n**Week 4:**\n- Most days should feel easier than the week before.\n- You can likely resume most normal daily activities.\n- You may return to work if your job is not strenuous.\n- Continue to avoid heavy lifting for a few more weeks.\n- Your goal is to walk for 20 minutes each day.\n- Call your doctor if you have any new or worsening pain.\n\n**When to expect improvement:**\n- Your energy levels will gradually increase.\n- Pain will continue to decrease each week.\n- You should feel back to your normal self in 4 to 6 weeks.\n- Healing is a process, so be patient with your body.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Severe pain in your belly: This could be bleeding inside.\n- Dizziness or fainting: You may be losing too much blood.\n- Fast heart rate and pale skin: Your body needs blood flow.\n- Feeling like you will pass out: This means your blood pressure is low.\n- Bleeding more than a period: This is not normal for you.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Mild belly pain that worsens: Keep an eye on your pain.\n- Feeling weak or very tired: You lost blood and need to rest.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Questions about your pain medicine: Your doctor can help you manage pain.\n- Questions about your iron pills: Your doctor can check your iron levels.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 2.39,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 2.91,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.53,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.05,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What signs should I watch for that mean I need to go to the ER right away?",
+        "answered_by_doc": false,
+        "gap_summary": "Danger signs that require emergency care are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does \"ruptured ectopic pregnancy with hemoperitoneum\" mean in simple words?",
+        "answered_by_doc": false,
+        "gap_summary": "The main problem is not explained in simple terms.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What should I do if I forget to take my new pain medicine?",
+        "answered_by_doc": false,
+        "gap_summary": "Instructions for missing a pain medicine dose are not clear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does the iron therapy do for me?",
+        "answered_by_doc": false,
+        "gap_summary": "The reason for the iron therapy is not explained.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I need to see a doctor in 4 days, but who should I call to make the appointment?",
+        "answered_by_doc": false,
+        "gap_summary": "It is not clear who to call for the appointment.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Can I drive myself to my follow-up appointment in 4 days?",
+        "answered_by_doc": false,
+        "gap_summary": "Activity restrictions after discharge are not stated.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "The patient has a low reading level and is scared. The biggest gap is not knowing when to seek emergency care.",
+    "fk_grade": 5.88,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Pain Medication",
+        "questions": [
+          "How much should I take?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Iron Therapy",
+        "questions": [
+          "How long do I need to take this?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Follow-up appointment in 4 days",
+        "questions": [
+          "Who should I call to book this?",
+          "What should I bring to this visit?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "Sudden severe belly pain",
+        "questions": [
+          "How do I know if the pain is too bad?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "Heavy bleeding",
+        "questions": [
+          "What counts as heavy bleeding that needs help?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Right ruptured ectopic pregnancy with hemoperitoneum",
+        "questions": [
+          "What does this diagnosis mean for my health?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Anemia secondary to blood loss",
+        "questions": [
+          "Why do I have anemia now?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_045",
+    "source_pdf": "test-data/mtsamples/mtsamples_045.pdf",
+    "generated_at": "2026-08-16T12:35:04",
+    "elapsed_seconds": 5.9
+  }
+}

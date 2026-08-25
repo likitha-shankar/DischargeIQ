@@ -51,12 +51,21 @@ diagnosis-specific template adds to this list; it never removes from it.
 - Every criterion here was taken from the tier lists already in
   `agent5_system_prompt.txt`. Nothing was authored for this file. The reviewer
   is therefore reviewing what the system does today, not a new proposal.
-- The prompt states the fever threshold as "above 101 degrees F (38.5 C)".
-  Rendered here without the Celsius conversion to keep the reading level down.
-  **Reviewer: confirm 101 F is the right universal threshold, or set the right
-  one.** The 25 Aug corpus run found Agent 5 emitting 100, 102.2, 103 and 39 as
-  thresholds that appear in no source document, so this number is doing real
-  work and is currently unowned.
+- **The fever threshold is the single most important thing to decide here, and
+  it is demonstrably not safe to guess at.** Evidence from 25 Aug 2026:
+    - The corpus run found Agent 5 emitting 100, 100.4, 102.2, 103 and 39 as
+      thresholds appearing in no source document.
+    - A prompt rule was then tried that permitted only 101 F. On re-running,
+      the model produced "Fever above 100.4 degrees F" for a NEONATAL document
+      that mentioned no fever at all. For an infant, 100.4 F is the clinically
+      correct threshold and 101 F is not, so the rule would have made that
+      output worse had it been obeyed.
+    - Agent 5 now supplies NO number when the document gives none, and
+      describes the sign instead ("a fever that will not come down").
+  **Reviewer: set the thresholds, and say whether they differ by age.** A
+  single universal number appears to be wrong; an invented one is worse. This
+  is the clearest case in the project of a clinical decision that cannot be
+  made in a prompt file.
 - The prompt also instructs the agent to promote a universally
   life-threatening symptom to Tier 1 even when the discharge document omits it.
   **Reviewer: confirm that behaviour is wanted.** It is a deliberate departure

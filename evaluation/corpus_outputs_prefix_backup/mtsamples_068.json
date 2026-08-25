@@ -1,0 +1,143 @@
+{
+  "extraction": {
+    "patient_name": "Mr. ABC",
+    "patient_name_source": {
+      "page": 1,
+      "text": "HISTORY OF PRESENT ILLNESS: Mr. ABC is a"
+    },
+    "discharge_date": null,
+    "discharge_date_source": {
+      "page": 1,
+      "text": "DISCHARGE DATE: MM/DD/YYYY,HISTORY OF PRESENT ILLNESS: Mr. ABC is a"
+    },
+    "primary_diagnosis": "Coronary artery disease status post percutaneous coronary artery intervention to the right coronary artery and to the LAD",
+    "primary_diagnosis_source": {
+      "page": 2,
+      "text": "1. Coronary artery disease status post percutaneous coronary artery intervention to the right\ncoronary artery and to the LAD."
+    },
+    "secondary_diagnoses": [
+      "Bladder cancer",
+      "Diabetes",
+      "Dyslipidemia",
+      "Hypertension",
+      "Carotid artery stenosis, status post right carotid endarterectomy in 2004",
+      "Multiple resections of the bladder tumor",
+      "Distant history of appendectomy",
+      "Distant history of ankle surgery"
+    ],
+    "procedures_performed": [
+      "On MM/DD/YYYY, cardiac MRI adenosine stress.",
+      "On MM/DD/YYYY, left heart catheterization, coronary angiogram, left ventriculogram,\ncoronary angioplasty with four Multi-Link Vision bare metal stents, two placed to the LAD in\ntwo placed to the RCA."
+    ],
+    "medications": [
+      {
+        "name": "Plavix",
+        "dose": null,
+        "frequency": "daily",
+        "duration": "for one month",
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "He was stable for discharge home on MM/DD/YYYY with instructions to take Plavix daily for one month and Urology is aware of the same."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "primary care physician",
+        "specialty": null,
+        "date": "within one to two weeks",
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "Mr. ABC is to see his primary care physician within one to two weeks,"
+        }
+      },
+      {
+        "provider": "Dr. XYZ",
+        "specialty": null,
+        "date": "in four to six weeks",
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "return to Dr. XYZ's clinic in four to six weeks, appointment card to be mailed him."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": "Urology",
+        "date": "MM/DD/YYYY at 10 o'clock",
+        "reason": "scheduled CT scan at that time",
+        "source": {
+          "page": 2,
+          "text": "He is to follow up with Urology in their clinic on MM/DD/YYYY at 10 o'clock and then to scheduled\nCT scan at that time."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "not lift greater than 10 pounds for seven days",
+      "not drive for two days",
+      "not immerse in water for two weeks"
+    ],
+    "dietary_restrictions": [
+      "low-fat, low-salt, low-cholesterol, and heart healthy diabetic diet"
+    ],
+    "red_flag_symptoms": [
+      "bleeding",
+      "edema",
+      "signs of infection"
+    ],
+    "discharge_condition": "stable",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "Mr. ABC had a noncomplicated post-intervention hospital course. He was stable for discharge home on MM/DD/YYYY with instructions to take Plavix daily for one month and Urology is aware of the same."
+    },
+    "extraction_warnings": [
+      "Document uses abbreviated clinical shorthand - verify medication names and instructions against original document."
+    ]
+  },
+  "diagnosis_explanation": "Your heart has a problem with its arteries. These arteries supply blood to your heart muscle. Your coronary arteries were narrowed. This is called coronary artery disease. A procedure was done to open these blocked arteries. This procedure is called a percutaneous coronary artery intervention. This helped blood flow to your heart.\n\nYou also have a bladder cancer. It was treated with surgery. You had surgery to remove the tumor from your bladder.\n\nYou have diabetes. This means your body has trouble using sugar for energy. Your blood sugar needs to be watched.\n\nYou have dyslipidemia. This means you have high levels of certain fats in your blood. This can lead to problems.\n\nYou have high blood pressure. This is also called hypertension. It means the pressure of blood in your body is too high.\n\nYou have a narrowing in a blood vessel in your neck. This vessel is called the carotid artery. It supplies blood to your brain. Surgery was done to fix this. It was called a right carotid endarterectomy. You had this surgery in the past.\n\nYou also had your appendix removed a long time ago. You had surgery on your ankle a long time ago too.",
+  "medication_rationale": "Plavix:\nThis medicine helps prevent blood clots.\nIt is given to keep your treated arteries open.\nYou might notice bruises more easily.\nThis is a common effect.\nCall your doctor if you have unusual bruising.\nAlso call if you see blood in your urine or stool.\nCall 911 right away if you have sudden face drooping, arm weakness, or trouble speaking.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired after coming home.\n- You may have some chest discomfort. This is normal.\n- Do not lift anything heavier than 10 pounds.\n- Do not drive a car for the first two days.\n- Do not soak in a bathtub or pool.\n- Eat low-fat, low-salt, and low-cholesterol foods.\n- Follow a heart-healthy diabetic diet.\n- Call your doctor if you see bleeding or swelling.\n\n**Week 2:**\n- Your energy levels should start to slowly return.\n- Mild chest discomfort may continue but should lessen.\n- Do not immerse your body in water, like baths or pools. Showers are fine.\n- Keep following your low-fat, low-salt diet.\n- Continue to eat foods that are good for diabetes and your heart.\n- Your goal this week is to walk short distances inside your home.\n- Watch for signs of infection like redness or fever. Call your doctor if you see them.\n\n**Week 3:**\n- You may start to feel more comfortable moving around.\n- Continue to avoid heavy lifting or strenuous activities.\n- You can do light tasks around your house.\n- You can now immerse yourself in water, like baths or hot tubs.\n- Keep up with your special diet for your heart and diabetes.\n- Your goal this week is to walk for 10 to 15 minutes outside.\n- Call your doctor if you notice swelling in your legs or feet.\n\n**Week 4:**\n- Most days should feel easier than the week before.\n- You can likely do more of your usual daily activities.\n- Continue to avoid lifting anything over 10 pounds.\n- Keep your diet heart-healthy and good for diabetes.\n- Your goal this week is to walk a bit longer each day.\n- Call your doctor if you have heavy bleeding or signs of infection.\n\n**When to expect improvement:**\n- You should feel a steady increase in energy over the next weeks.\n- Continue all your diet plans for long-term heart health.\n- Follow up with your doctor as scheduled.\n- Healing takes time, so be patient with yourself.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Bleeding that will not stop: You are losing too much blood.\n- Sudden trouble breathing: Your body needs oxygen right now.\n- Chest pain or pressure: Your heart needs help fast.\n- Signs of stroke: face drooping, arm weakness, trouble speaking.\n- Seizure or fainting spells.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Swelling in arms or legs: Fluid may be building up.\n- Signs of infection: red streaks, pus, or warm skin.\n- Fever over 101 degrees F: You may have an infection.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Bleeding that is not bad: Use pressure to slow it.\n- Mild swelling without pain: This can happen while you heal.\n- Questions about your Plavix: Your nurse can help you plan.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 4.88,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 5.02,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.5,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 3.71,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document uses abbreviated clinical shorthand - verify medication names and instructions against original document.",
+    "Missing discharge date."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [],
+    "overall_gap_score": 0,
+    "simulator_summary": "",
+    "fk_grade": 0.0,
+    "passes": false,
+    "caregiver_questions": []
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_068",
+    "source_pdf": "test-data/mtsamples/mtsamples_068.pdf",
+    "generated_at": "2026-08-16T12:49:21",
+    "elapsed_seconds": 6.9
+  }
+}

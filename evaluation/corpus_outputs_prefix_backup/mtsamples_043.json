@@ -1,0 +1,370 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Solitary left kidney with obstruction and hypertension and chronic renal insufficiency, plus a Pseudomonas urinary tract infection",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "Solitary left kidney with obstruction and hypertension and chronic renal insufficiency, plus a\nPseudomonas urinary tract infection."
+    },
+    "secondary_diagnoses": [
+      "Solitary left kidney with obstruction",
+      "hypertension",
+      "chronic renal insufficiency"
+    ],
+    "procedures_performed": [
+      "Cystoscopy under anesthesia, ureteroscopy, an attempted tube placement, stent removal with\nretrograde pyelography, percutaneous tube placement, and nephrostomy by Radiology."
+    ],
+    "medications": [
+      {
+        "name": "Macrodantin",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "The patient has problems with hypertension for which he\nis on enalapril at home in addition to his Macrodantin prophylaxis."
+        }
+      },
+      {
+        "name": "Enalapril",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "The patient has problems with hypertension for which he\nis on enalapril at home in addition to his Macrodantin prophylaxis."
+        }
+      },
+      {
+        "name": "Hydralazine",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "On admission was Macrodantin, hydralazine, and enalapril."
+        }
+      },
+      {
+        "name": "Enalapril",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "On admission was Macrodantin, hydralazine, and enalapril."
+        }
+      },
+      {
+        "name": "Hydralazine",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "gave him some hydralazine and Lasix to improve his urine output, in\naddition to manage his blood pressure."
+        }
+      },
+      {
+        "name": "Lasix",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "gave him some hydralazine and Lasix to improve his urine output, in\naddition to manage his blood pressure."
+        }
+      },
+      {
+        "name": "Fortaz",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "so he was kept on Fortaz, and was switched over to\nciprofloxacin without difficulty."
+        }
+      },
+      {
+        "name": "Ciprofloxacin",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "so he was kept on Fortaz, and was switched over to\nciprofloxacin without difficulty."
+        }
+      },
+      {
+        "name": "Ciprofloxacin",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "The patient was discharged home in stable condition with\nciprofloxacin, enalapril, and\nrecommendation for followup in Urology in 1 to 2 weeks for the surgical correction in 2 to 3 weeks of repeat pyeloplasty or possible ureterocalicostomy."
+        }
+      },
+      {
+        "name": "Enalapril",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "The patient was discharged home in stable condition with\nciprofloxacin, enalapril, and\nrecommendation for followup in Urology in 1 to 2 weeks for the surgical correction in 2 to 3 weeks of repeat pyeloplasty or possible ureterocalicostomy."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": "Urology",
+        "date": "1 to 2 weeks",
+        "reason": "surgical correction in 2 to 3 weeks of repeat pyeloplasty or possible ureterocalicostomy",
+        "source": {
+          "page": 2,
+          "text": "recommendation for followup in Urology in 1 to 2 weeks for the surgical correction in 2 to 3 weeks of repeat pyeloplasty or possible ureterocalicostomy."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "stable",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "The patient was discharged home in stable condition with\nciprofloxacin, enalapril, and\nrecommendation for followup in Urology in 1 to 2 weeks for the surgical correction in 2 to 3 weeks of repeat pyeloplasty or possible ureterocalicostomy."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your child has a urinary tract infection. It was caused by a germ called Pseudomonas. This germ can make a person feel sick. Your child also has high blood pressure. This is called hypertension. Their kidneys are not working as well as they should. This is called chronic renal insufficiency. Your child was born with only one kidney. This kidney is on the left side. It has a blockage. This is called an obstruction.",
+  "medication_rationale": "Macrodantin:\nThis medicine helps prevent urinary tract infections. Your child has a single kidney. It is important to protect that kidney. Your child may have an upset stomach. This medicine can make your child's urine look darker. This is normal. Call your doctor if your child gets a rash or has trouble breathing.\n\nEnalapril:\nThis medicine helps lower your child's high blood pressure. It helps the kidneys work better. Your child might have a dry cough. This is expected. Your child could feel dizzy. Call your doctor if your child's face or lips swell. Also call if the cough is very bothersome.\n\nHydralazine:\nThis medicine helps lower your child's blood pressure. It can also help with urine flow. Your child might get a headache. They may also feel dizzy. This is often mild. Call your doctor if your child feels very tired. Also call if they have chest pain.\n\nLasix:\nThis medicine helps your child's body get rid of extra fluid. This helps the kidneys and blood pressure. Your child will urinate more often. This is normal. Your child might feel dizzy. Call your doctor if your child gets muscle cramps. Also call if your child's heart beats very fast.\n\nFortaz:\nThis medicine fights a type of bacteria causing your child's infection. It helps clear up the urinary tract infection. Your child may have diarrhea. This is common. Your child might get a rash. Call your doctor if your child gets hives or trouble breathing.\n\nCiprofloxacin:\nThis medicine fights bacteria causing your child's infection. It helps clear up the urinary tract infection. Your child may have an upset stomach or diarrhea. These are often mild. Your child could get dizzy or feel sleepy. Call your doctor right away if your child has severe stomach pain. Also call if they have swelling in their joints.\nImportant: Do not stop taking this medicine without calling your doctor first.\nCall 911 right away if you have sudden face drooping, arm weakness, or trouble speaking.",
+  "recovery_trajectory": "**Week 1:**\n- Your child may feel tired and uncomfortable after the procedures.\n- Keep your child resting most of the day.\n- Watch for fever, vomiting, or increased pain.\n- Call your doctor if your child has trouble breathing.\n- Your child cannot have anything by mouth except clear liquids today.\n- Your child can have a light meal of soft foods tonight.\n- Your child's goal is to drink small sips of clear liquids often.\n- Your child must not have salt added to food.\n\n**Week 2:**\n- Your child may have less pain and more energy this week.\n- Your child can start doing light activities around the house.\n- Keep your child from running or jumping.\n- Do not let your child lift anything heavy.\n- Your child can eat a regular diet. Do not add salt to food.\n- Watch for signs of infection like fever or cloudy urine.\n- Call your doctor if your child has pain when urinating.\n- Your child's goal is to drink fluids well between meals.\n\n**Week 3:**\n- Your child should feel more like themselves this week.\n- Your child can increase activity slowly. Avoid rough play.\n- Do not let your child lift anything over 5 pounds.\n- Make sure your child takes all prescribed medicines.\n- Monitor your child for any signs of infection.\n- Call your doctor if your child has a high fever.\n- Your child's goal is to walk around the house more each day.\n- Avoid foods high in salt.\n\n**Week 4:**\n- Your child should have good energy levels this week.\n- Your child can do most normal activities but still no rough play.\n- Continue to avoid lifting heavy items.\n- Your child's goal is to walk outside for short periods.\n- Watch for any changes in your child's urine.\n- Call your doctor if your child has back pain or swelling.\n- Keep salt intake low.\n- Ensure your child drinks plenty of fluids.\n\n**When to expect improvement:**\n- Your child's symptoms should get better over the next few weeks.\n- Keep your child on a low-salt diet long term.\n- Ensure your child takes all medications as directed.\n- Follow up with all scheduled doctor appointments.\n- Monitor your child for any signs of a urinary tract infection.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Breathing trouble or gasping: Your child needs oxygen now.\n- Chest pain or pressure: This is a medical emergency.\n- Uncontrolled bleeding that will not stop: Apply pressure now.\n- Signs of stroke: face drooping, arm weakness, trouble speaking.\n- Seizure or loss of consciousness: Call for help right now.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever over 101 F (38.5 C) that is not going down: Your child may have an infection.\n- Your child cannot keep fluids down: They need help staying hydrated.\n- New and worsening confusion: This needs urgent medical review.\n- Sudden bad pain in your child's leg: This could be a blood clot.\n- Wound looks infected, red streaks, warm to touch: This needs to be seen.\n- Sudden weight gain of 2+ lbs in one day: Fluid may be building up fast.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Your child has mild pain: This should get better slowly.\n- Your child's wound is healing slowly: Watch for infection signs.\n- Mild swelling without pain: This can happen while healing.\n- Questions about your child's medicine: Your doctor can help you.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.3,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.02,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 3.92,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.45,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "caregiver",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What happens if I miss a dose of my new Lasix medicine?",
+        "answered_by_doc": false,
+        "gap_summary": "Missed dose instructions for new medication are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does it mean that I have a solitary kidney? Does that mean my one kidney is broken?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of what a solitary kidney is needed.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My paper says I have a 'Pseudomonas urinary tract infection.' What is that and why is it bad?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of the specific infection is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I see Lasix is a new medicine. What is this for and how will it help me?",
+        "answered_by_doc": false,
+        "gap_summary": "Purpose of the new medication is unclear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "The paper lists Enalapril and Hydralazine twice. Are these two different medicines or is it a mistake?",
+        "answered_by_doc": false,
+        "gap_summary": "Duplicate medication listing needs clarification.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I don't know how much water or salt I should have with my kidney problems and high blood pressure.",
+        "answered_by_doc": false,
+        "gap_summary": "Specific diet advice for kidney and blood pressure is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says I need surgery in a few weeks. What is a 'pyeloplasty' and 'ureterocalicostomy'?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of planned surgery is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What side effects should I watch for with Fortaz and Ciprofloxacin?",
+        "answered_by_doc": false,
+        "gap_summary": "Side effects for new antibiotics are not listed.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "This patient has many complex problems. They will struggle with new medicines and surgery plans. Not knowing what the infections mean is a big gap.",
+    "fk_grade": 8.74,
+    "passes": false,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Macrodantin",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Enalapril",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Hydralazine",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lasix",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Fortaz",
+        "questions": [
+          "What is this medicine for?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Ciprofloxacin",
+        "questions": [
+          "What is this medicine for?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Urology - 1 to 2 weeks",
+        "questions": [
+          "Who should I call to book this appointment?",
+          "What should I bring to this visit?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "possible ureterocalicostomy",
+        "questions": [
+          "What should I expect during this surgery?",
+          "When will we know if I need this?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "repeat pyeloplasty",
+        "questions": [
+          "What should I expect during this surgery?",
+          "When will we know if I need this?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Solitary left kidney with obstruction",
+        "questions": [
+          "What does 'solitary kidney' mean for me?",
+          "What does 'obstruction' mean for my kidney?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "hypertension",
+        "questions": [
+          "What is my target blood pressure number?",
+          "What happens if my blood pressure is too high?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "chronic renal insufficiency",
+        "questions": [
+          "What does 'chronic renal insufficiency' mean?",
+          "How do I protect my kidney health?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Pseudomonas urinary tract infection",
+        "questions": [
+          "How did I get this infection?",
+          "What are the signs this infection is returning?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "Diet",
+        "questions": [
+          "How much water should I drink daily?",
+          "What foods should I avoid or eat more of?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "Activity",
+        "questions": [
+          "What level of activity is safe for me?",
+          "When can I go back to my normal activities?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_043",
+    "source_pdf": "test-data/mtsamples/mtsamples_043.pdf",
+    "generated_at": "2026-08-16T12:33:51",
+    "elapsed_seconds": 10.8
+  }
+}

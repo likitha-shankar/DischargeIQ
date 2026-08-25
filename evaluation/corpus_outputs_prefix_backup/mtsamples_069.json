@@ -1,0 +1,350 @@
+{
+  "extraction": {
+    "patient_name": "woman",
+    "patient_name_source": {
+      "page": 1,
+      "text": "The patient is a 53-year-old woman with history of hypertension, diabetes, and depression."
+    },
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Serotonin syndrome secondary to high doses of Prozac",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "1. Serotonin syndrome secondary to high doses of Prozac."
+    },
+    "secondary_diagnoses": [
+      "Atypical chest pain with myocardial infarction ruled out",
+      "Diabetes mellitus",
+      "Hypertension",
+      "Diarrhea resolved"
+    ],
+    "procedures_performed": [],
+    "medications": [
+      {
+        "name": "Omeprazole",
+        "dose": "20 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "1. Omeprazole 20 mg daily."
+        }
+      },
+      {
+        "name": "Temazepam",
+        "dose": "15 mg",
+        "frequency": "at night",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "2. Temazepam 15 mg at night."
+        }
+      },
+      {
+        "name": "Ativan",
+        "dose": "one-half to one",
+        "frequency": "three times daily as needed",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "3. Ativan 1 mg one-half to one three times a day as needed."
+        }
+      },
+      {
+        "name": "Cozaar",
+        "dose": "50",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "4. Cozaar 50 daily."
+        }
+      },
+      {
+        "name": "Prandin",
+        "dose": "1 mg",
+        "frequency": "before meals",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "5. Prandin 1 mg before meals."
+        }
+      },
+      {
+        "name": "Aspirin",
+        "dose": "81 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "6. Aspirin 81 mg."
+        }
+      },
+      {
+        "name": "Multivitamin",
+        "dose": null,
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "7. Multivitamin daily."
+        }
+      },
+      {
+        "name": "Lantus",
+        "dose": "60 units",
+        "frequency": "every night at bedtime",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "8. Lantus 60 units at bedtime."
+        }
+      },
+      {
+        "name": "Percocet",
+        "dose": "one to two",
+        "frequency": "at night",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 3,
+          "text": "9. Percocet 10/325 one to two at night for chronic pain. She is running out of that, so we are calling a prescription for #10 of those."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. X",
+        "specialty": null,
+        "date": "Monday or Tuesday",
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "The patient does have a counselor."
+        }
+      },
+      {
+        "provider": "Dr. X",
+        "specialty": null,
+        "date": "Monday or Tuesday",
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "She will be following up with Dr. X on Monday or Tuesday."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "feeling back to normal",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "At time of discharge, she was really feeling back to normal."
+    },
+    "extraction_warnings": [
+      "Document uses abbreviated clinical shorthand - verify medication names and instructions against original document."
+    ]
+  },
+  "diagnosis_explanation": "Your body had too much of a brain chemical called serotonin. This can happen when taking certain medicines. Doctors are giving you medicine to help lower the serotonin. You also have chest pain. It is not from your heart. You have diabetes and high blood pressure. You had diarrhea but it is now gone.",
+  "medication_rationale": "Omeprazole 20 mg daily:\nThis medicine helps your stomach make less acid.\nIt can help your stomach heal.\nYou may get a headache.\nYou might also get diarrhea.\nCall your doctor if you get a bad rash.\n\nTemazepam 15 mg at night:\nThis medicine helps you sleep.\nIt calms your mind and body.\nYou might feel sleepy or dizzy.\nThis can happen during the day too.\nBe careful when moving around.\n\nAtivan one-half to one three times daily as needed:\nThis medicine helps calm you down.\nIt can ease anxiety and worry.\nYou may feel sleepy or less alert.\nAvoid driving or using machines.\nCall your doctor if you feel too drowsy.\nAlso call if you have trouble breathing.\n\nCozaar 50 daily:\nThis medicine helps control your blood pressure.\nIt helps your heart pump blood better.\nYou may feel dizzy at first.\nYour body will get used to it.\nCall your doctor if you get swelling in your face.\n\nPrandin 1 mg before meals:\nThis medicine helps lower your blood sugar.\nIt works best when taken before you eat.\nYou might get low blood sugar.\nThis can make you feel shaky or sweaty.\nCall your doctor if you feel very weak.\n\nAspirin 81 mg daily:\nThis medicine helps prevent blood clots.\nIt can also help with pain and swelling.\nYou might get an upset stomach.\nTaking it with food can help.\nCall your doctor if you see black or bloody stools.\n\nMultivitamin daily:\nThis medicine gives your body needed vitamins.\nIt helps keep you healthy.\nYou usually will not feel any changes.\nSome people get an upset stomach.\nLet your doctor know if this happens.\n\nLantus 60 units every night at bedtime:\nThis medicine is a form of insulin.\nIt helps lower your blood sugar.\nIt works for a long time.\nYou might get low blood sugar.\nWatch for shaking or sweating.\nCall your doctor if your sugar stays high.\n\nPercocet one to two at night:\nThis medicine helps manage your pain.\nIt has two pain relievers in it.\nYou may feel sleepy or light headed.\nIt can also cause constipation.\nCall your doctor if you have trouble breathing.\nCall your doctor if your pain gets worse.",
+  "recovery_trajectory": "**Week 1:**\n- You may feel tired and weak.\n- Rest often during the day.\n- Walk for short periods inside your home.\n- You can do light tasks like sitting up.\n- Do not do any strenuous activities.\n- Call your doctor if you have new or worsening symptoms.\n- Your goal is to rest and recover at home.\n\n**Week 2:**\n- You might start to feel a little more energy.\n- Continue short walks around your home.\n- Avoid any activities that make you tired.\n- Listen to your body and rest when needed.\n- Your goal is to increase walking time slightly.\n- Call your doctor if you feel worse instead of better.\n\n**Week 3:**\n- You should feel more like yourself this week.\n- You can try light activities around the house.\n- Avoid lifting heavy items.\n- Continue to avoid strenuous exercise.\n- Your goal is to walk a bit longer each day.\n- Call your doctor if you notice any strange symptoms.\n\n**Week 4:**\n- You are likely feeling much closer to normal now.\n- You can start doing more normal daily activities.\n- Keep avoiding heavy lifting and intense workouts.\n- Your goal is to resume your regular routine slowly.\n- Continue to rest as needed.\n- Call your doctor if you have any concerns.\n\n**When to expect improvement:**\n- Most people feel back to their normal selves within 4 to 6 weeks.\n- Recovery takes time, so be patient with yourself.\n- Continue with rest and gentle activity as you feel able.\n- Listen to your body and don't push yourself too hard.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- You cannot catch your breath: Your body needs oxygen now.\n- Chest pain that will not stop: Your heart needs help now.\n- Uncontrolled bleeding that will not stop: Apply pressure right now.\n- Signs of stroke: face droops or arm weakness. Call 911 now.\n- Loss of consciousness or fainting: Call 911 right away.\n- Seizure that is not stopping: Call 911 right away.\n- Severe allergic reaction signs: throat swells, trouble breathing. Call 911.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- High fever over 101 degrees: You may have an infection.\n- Confusion or seeing things: This could be serious.\n- Stomach pain that is severe: This needs fast checking.\n- Vomiting for more than 12 hours: You cannot keep fluids down.\n- Fast heart rate or rhythm: Your heart is beating too fast.\n- Muscle shaking or twitching: This is a warning sign.\n- Feeling very agitated or restless: You seem very uneasy.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild diarrhea that is resolved: You are feeling better now.\n- Mild nausea that comes and goes: This can improve with time.\n- Mild body aches and pains: These signs should get better.\n- Feeling tired or sleepy: This can be a side effect.\n- Questions about your medicine: Your doctor can explain doses.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 5.12,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 3.47,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.73,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.65,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document uses abbreviated clinical shorthand - verify medication names and instructions against original document.",
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing discharge date."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "diabetes",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What should I do if I get severe chest pain again like I did before?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not list warning signs to call 911.",
+        "severity": "critical"
+      },
+      {
+        "question": "What is serotonin syndrome and how did I get it from my medicine?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain what this diagnosis means.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What happens if I miss my Temazepam dose that I take at night?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say what to do if a dose is missed.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My paper says I take Ativan three times a day as needed - how do I know when I need it?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain how to use this as needed medicine.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What foods or drinks should I avoid while taking Cozaar and Prandin together?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not list any diet or drink restrictions.",
+        "severity": "moderate"
+      },
+      {
+        "question": "If I run out of Percocet early, how do I get more medicine?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain how to get refills for this medicine.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My doctor is Dr. X and the paper says I need to see them Monday or Tuesday, but what do I do now?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say how to book the follow-up appointment.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "People who are anxious will struggle. The biggest gap is knowing when to seek emergency care.",
+    "fk_grade": 5.7,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Omeprazole 20 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Temazepam 15 mg",
+        "questions": [
+          "What if I miss my nightly dose?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Ativan one-half to one",
+        "questions": [
+          "How often can I take this medicine?",
+          "What if I take too much?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Cozaar 50",
+        "questions": [
+          "What side effects can happen?",
+          "Are there foods I cannot eat?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Prandin 1 mg",
+        "questions": [
+          "When should I take this before meals?",
+          "What if I forget to take it before eating?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Aspirin 81 mg",
+        "questions": [
+          "Can I take this with other pain medicine?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Multivitamin",
+        "questions": [
+          "What does this vitamin do for me?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lantus 60 units",
+        "questions": [
+          "What are signs my blood sugar is too high or low?",
+          "What if I miss my nightly dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Percocet one to two",
+        "questions": [
+          "How many can I take at once?",
+          "What if I get too sleepy?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Serotonin syndrome secondary to high doses of Prozac",
+        "questions": [
+          "Can you explain what this means in simple words?",
+          "What caused this to happen?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Atypical chest pain with myocardial infarction ruled out",
+        "questions": [
+          "What does this diagnosis mean for me?",
+          "Is my heart okay now?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. X",
+        "questions": [
+          "How do I schedule my appointment?",
+          "What date is best for my first visit?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. X",
+        "questions": [
+          "Do I need to bring anything to this visit?",
+          "Who should I call if I have questions?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_069",
+    "source_pdf": "test-data/mtsamples/mtsamples_069.pdf",
+    "generated_at": "2026-08-16T12:50:00",
+    "elapsed_seconds": 8.7
+  }
+}

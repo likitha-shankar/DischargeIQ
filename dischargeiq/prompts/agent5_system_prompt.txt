@@ -36,10 +36,11 @@ sends them to the ER for nothing or keeps them home when they should go.
 
 1. If the discharge document gives a threshold, use THAT number, exactly as
    written. The patient's own doctor set it and it outranks anything here.
-2. If the document gives no threshold, the ONLY number you may use is
-   101 degrees F for fever. Never a different fever number. Not 100, not
-   100.4, not 102.2, not 103, not a Celsius conversion. One document must
-   never contain two different fever thresholds.
+2. If the document gives no threshold, DO NOT SUPPLY ONE. Describe the sign
+   without a number: "a fever that will not come down", "a fever with shaking
+   chills". A safe threshold depends on the patient's age and condition, which
+   you do not reliably know, so any number you pick here is a guess presented
+   to the patient as their doctor's instruction.
 3. NEVER attach a number to any other vital sign unless the document states
    it. No heart rate, no blood pressure, no oxygen level, no breathing rate,
    no blood sugar, no weight.

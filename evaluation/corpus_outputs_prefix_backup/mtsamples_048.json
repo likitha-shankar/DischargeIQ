@@ -1,0 +1,303 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "End-stage renal disease (ESRD)",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "DISCHARGE DIAGNOSIS:\nEnd-stage renal disease (ESRD)."
+    },
+    "secondary_diagnoses": [
+      "Diabetes mellitus",
+      "Hypertension",
+      "Coronary artery disease",
+      "Chronic rejection"
+    ],
+    "procedures_performed": [
+      "Cadaveric renal transplant.",
+      "Coronary artery bypass graft x5 in 1995",
+      "cadaveric renal transplant in 1996"
+    ],
+    "medications": [
+      {
+        "name": "Prograf",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "The patient was started on Prograf by postoperative day #2. Initial Prograf levels came back high at 18. The patient's Prograf doses were changed accordingly and today, the patient is deemed stable to be discharged home."
+        }
+      },
+      {
+        "name": "Metoprolol",
+        "dose": null,
+        "frequency": "extra dose",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "The patient is being given an extra dose of metoprolol for this blood pressure."
+        }
+      },
+      {
+        "name": "Insulin",
+        "dose": null,
+        "frequency": "extra dose",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "for this reason he has been given an extra dose of insulin."
+        }
+      },
+      {
+        "name": "Thymoglobulin",
+        "dose": null,
+        "frequency": "final dose",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "During the patient's stay, the patient received four total doses of\nThymoglobulin. Today, he will complete his final dose of Thymoglobulin prior to being\ndischarged."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": "Transplant Clinic",
+        "date": "tomorrow",
+        "reason": "his labs will be rechecked",
+        "source": {
+          "page": 2,
+          "text": "The patient will be followed up in the Transplant Clinic at ABCD tomorrow, at which\ntime, his labs will be rechecked."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": "Renal Transplant Clinic",
+        "date": "tomorrow",
+        "reason": "Prograf levels at the time of discharge are pending; however, given that his Prograf dose was decreased, he will be followed tomorrow at the Renal Transplant Clinic.",
+        "source": {
+          "page": 2,
+          "text": "The patient's Prograf levels at the time of discharge are\npending; however, given that his Prograf dose was decreased, he will be followed tomorrow at\nthe Renal Transplant Clinic."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "activity as tolerated",
+      "no underwater soaking activities for approximately two weeks"
+    ],
+    "dietary_restrictions": [
+      "low-potassium diet"
+    ],
+    "red_flag_symptoms": [
+      "fevers",
+      "chills",
+      "nausea",
+      "vomiting",
+      "decreased urine output",
+      "other concerns"
+    ],
+    "discharge_condition": null,
+    "discharge_condition_source": null,
+    "extraction_warnings": [
+      "Document is unusually short for a discharge summary - may be incomplete or a partial document."
+    ]
+  },
+  "diagnosis_explanation": "Your kidneys have a serious problem. This means they cannot clean your blood well. You have diabetes. This can hurt your kidneys. You also have high blood pressure. This can hurt your kidneys too. You have a heart problem. It is called coronary artery disease. Your body is also having trouble with a past kidney transplant. This is called chronic rejection.",
+  "medication_rationale": "Prograf:\nThis medicine helps stop your body from rejecting the new kidney. It is an immunosuppressant medicine. You may notice it helps you feel better. You might feel a little shaky. Your doctor will check your medicine levels often. Call your doctor if you get a bad headache. Call if you feel very tired. Call if you have trouble breathing.\n\nMetoprolol extra dose:\nThis medicine helps your heart beat slower. It also lowers your blood pressure. You might feel your heart beating slower. You may feel less tired. Call your doctor if you feel very dizzy. Call if you feel like you might faint. Call if your breathing is short.\n\nInsulin extra dose:\nThis medicine helps lower the sugar in your blood. Your blood sugar was too high. You may feel less thirsty. You may need to use the bathroom less. You might feel more energetic. Call your doctor if your blood sugar gets too low. You may feel shaky or sweaty. You may get confused.\n\nThymoglobulin final dose:\nThis medicine helps stop your body from rejecting the new kidney. It is an immunosuppressant medicine. You may have flu-like symptoms. This can include fever and chills. You might get a rash. Call your doctor if you have trouble breathing. Call if your skin turns very red. Call if your heart beats very fast.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired and sore from your surgery.\n- Do not take baths or go swimming for two weeks.\n- You can walk short distances inside your home.\n- Eat foods low in potassium.\n- Avoid processed foods, nuts, and seeds.\n- Call your doctor if you have a fever or chills.\n- Call your doctor if you feel very sick to your stomach.\n- Your goal is to rest and take short walks.\n\n**Week 2:**\n- Your pain should start to get better this week.\n- You can still do light activities around the house.\n- Keep avoiding baths and swimming pools for now.\n- Continue eating foods low in potassium.\n- Pay attention to how much urine you make.\n- Call your doctor if you vomit or have diarrhea.\n- Call your doctor if your urine output decreases.\n- Your goal is to increase your walking time each day.\n\n**Week 3:**\n- You should have more energy this week.\n- You can do more of your normal daily activities.\n- You can take showers, but no baths or swimming yet.\n- Keep following your low-potassium diet.\n- Watch for any other new concerns you have.\n- Call your doctor if you have nausea that does not stop.\n- Your goal is to walk for 15 to 20 minutes daily.\n\n**Week 4:**\n- You should feel much stronger by now.\n- You can resume most normal activities as you feel able.\n- You may now take baths and go swimming.\n- Continue with your low-potassium diet long term.\n- Your goal is to get back to your regular routine slowly.\n- Call your doctor if you have a fever or chills.\n- Call your doctor if you have concerns about your recovery.\n\n**When to expect improvement:**\n- You will feel better over the next several weeks.\n- Listen to your body and do not overdo it.\n- Continue following all diet and activity rules.\n- Keep your follow-up appointments with your doctor.\n- Report any new or worsening symptoms right away.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Fevers over 103 degrees F: This is a very bad sign.\n- Severe chills that will not stop: You may have a severe infection.\n- You cannot keep any fluids down: You may get too dry.\n- Decreased urine output, unable to pee: Your kidneys may be failing fast.\n- Signs of stroke: face drooping, arm weakness, trouble speaking. Minutes matter.\n- Uncontrolled bleeding that will not stop.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever over 101 degrees F: You may have an infection.\n- Chills that are shaking badly: You may need urgent care.\n- You cannot keep fluids down for 12 hours: You may get too dry.\n- Vomiting more than 4 times in one day: This needs fast care.\n- Confusion or disorientation, new and worse: Your body is telling you something.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Nausea without vomiting: This can happen while you heal.\n- Decreased urine output but still peeing: Call us to check your levels.\n- Other concerns about your health: We can help you figure it out.\n- Questions about your medicine: Your nurse can help you plan.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 4.01,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 3.62,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.34,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 5.03,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document is unusually short for a discharge summary - may be incomplete or a partial document.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What happens if I miss my Metoprolol extra dose?",
+        "answered_by_doc": false,
+        "gap_summary": "Missing an extra dose of this drug needs explanation.",
+        "severity": "critical"
+      },
+      {
+        "question": "What should I do if I forget to take my insulin?",
+        "answered_by_doc": false,
+        "gap_summary": "What to do if I miss insulin needs clear steps.",
+        "severity": "critical"
+      },
+      {
+        "question": "What symptoms mean I need to go to the ER right away?",
+        "answered_by_doc": false,
+        "gap_summary": "Specific warning signs to seek emergency care are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does end-stage renal disease mean for me?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of my main sickness is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What is Prograf for and why was the dose changed?",
+        "answered_by_doc": false,
+        "gap_summary": "What this drug does and why the dose changed is not clear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What is Thymoglobulin and why did I get the last dose?",
+        "answered_by_doc": false,
+        "gap_summary": "What this drug does and why I got the last dose is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Do I need to call someone to schedule my transplant clinic visits?",
+        "answered_by_doc": false,
+        "gap_summary": "How to book follow-up appointments is unclear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How much potassium can I eat and what foods have it?",
+        "answered_by_doc": false,
+        "gap_summary": "Specific foods to avoid on my diet are missing.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "I have many serious sicknesses. I don't know what to do if I miss my insulin or blood pressure medicine. This puts me at risk.",
+    "fk_grade": 4.46,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Prograf",
+        "questions": [
+          "What side effects should I watch for?",
+          "When do I need refills?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Metoprolol",
+        "questions": [
+          "What happens if I miss an extra dose?",
+          "What should I do if I feel dizzy?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Insulin",
+        "questions": [
+          "What if I forget my insulin dose?",
+          "How do I store this medicine?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Thymoglobulin",
+        "questions": [
+          "What side effects should I look for?",
+          "Is this medicine finished now?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Transplant Clinic - tomorrow",
+        "questions": [
+          "Who should I call to confirm this visit?",
+          "What do I need to bring?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Renal Transplant Clinic - tomorrow",
+        "questions": [
+          "Who should I call to confirm this visit?",
+          "What lab results are pending?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "fevers",
+        "questions": [
+          "How high does my temperature need to be to call?",
+          "When should I call the doctor instead of going to the ER?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "chills",
+        "questions": [
+          "When do chills mean I need to seek care?",
+          "What should I do first if I get chills?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "nausea",
+        "questions": [
+          "How much nausea means I need to call?",
+          "What should I do if I cannot stop feeling sick?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "vomiting",
+        "questions": [
+          "How many times vomiting means I need help?",
+          "What should I do after I vomit?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "decreased urine output",
+        "questions": [
+          "How little urine is too little?",
+          "What counts as a normal amount of urine?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "other concerns",
+        "questions": [
+          "What other symptoms should worry me?",
+          "Who should I call if I have other worries?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_048",
+    "source_pdf": "test-data/mtsamples/mtsamples_048.pdf",
+    "generated_at": "2026-08-16T12:36:55",
+    "elapsed_seconds": 8.2
+  }
+}

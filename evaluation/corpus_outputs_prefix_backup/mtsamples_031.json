@@ -1,0 +1,256 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": "2007-03-19",
+    "discharge_date_source": {
+      "page": 2,
+      "text": "She was felt to be ready for discharge home on 03/19/2007."
+    },
+    "primary_diagnosis": "Knee osteoarthrosis",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "Knee osteoarthrosis."
+    },
+    "secondary_diagnoses": [],
+    "procedures_performed": [
+      "Total knee arthroplasty.",
+      "right total knee arthroplasty.",
+      "Mechanical and chemical deep venous thrombosis (DVT) prophylaxis were initiated.",
+      "Routine postoperative antibiotics were administered.",
+      "Hemovac drain was discontinued on postoperative day #2.",
+      "Physical therapy was initiated.",
+      "Continuous passive motion (CPM) was also initiated."
+    ],
+    "medications": [
+      {
+        "name": "Mirapex",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": null,
+        "source": {
+          "page": 1,
+          "text": "Mirapex, ibuprofen, and Ambien."
+        }
+      },
+      {
+        "name": "Ibuprofen",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": null,
+        "source": {
+          "page": 1,
+          "text": "Mirapex, ibuprofen, and Ambien."
+        }
+      },
+      {
+        "name": "Ambien",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": null,
+        "source": {
+          "page": 1,
+          "text": "Mirapex, ibuprofen, and Ambien."
+        }
+      },
+      {
+        "name": "Percocet",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "Prescriptions were written for Percocet and Coumadin."
+        }
+      },
+      {
+        "name": "Coumadin",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "Prescriptions were written for Percocet and Coumadin."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. X",
+        "specialty": null,
+        "date": "in one week",
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "Follow up with Dr. X in one week."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "Discharged to home.",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "Discharged to home."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your knee has a problem with wear and tear. This is called osteoarthritis. It can cause pain and make it hard to move.",
+  "medication_rationale": "Mirapex:\nThis medicine helps your body move more easily. It can help with stiffness. You may feel sleepy or dizzy. This is often mild. Call your doctor if you feel very tired. Also call if you get nausea or vomiting.\n\nIbuprofen:\nThis medicine reduces pain and swelling in your knee. It is an anti-inflammatory. You may notice your stomach feels upset. Taking it with food can help. Call your doctor if you see black or tarry stools. Also call if you get severe stomach pain.\n\nAmbien:\nThis medicine helps you fall asleep. It is for short-term use. You may feel drowsy the next day. Do not drive or do tasks needing alertness. Call your doctor if you do things like sleepwalk or eat while asleep. You do not remember these actions.\n\nPercocet:\nThis medicine is a strong pain reliever. It is for severe pain. You may feel sleepy or dizzy. Constipation is also common. Call your doctor if you have trouble breathing. Also call if you feel very confused.\n\nCoumadin:\nThis medicine helps prevent blood clots. It makes your blood flow more smoothly. You may bruise or bleed more easily. This is expected. Call your doctor right away if you bleed a lot. Also call if you notice blood in your urine or stool.\nImportant: Do not stop taking this medicine without calling your doctor first.\nCall 911 right away if you have sudden face drooping, arm weakness, or trouble speaking.",
+  "recovery_trajectory": "**Week 1:**\n- You will likely feel tired and have some pain in your knee.\n- Keep your knee clean and dry.\n- Do not put any weight on your right leg.\n- Use your walker or crutches for all walking.\n- Follow your physical therapist's instructions carefully.\n- Do not bend your knee more than 90 degrees.\n- Your goal this week is to do your exercises every day.\n- Call your doctor if your pain gets much worse or is not controlled.\n\n**Week 2:**\n- Your pain should start to get a little better.\n- You may feel a little more energy each day.\n- Continue to use your walker or crutches for support.\n- You can start putting a little weight on your right leg.\n- Keep bending your knee gently as instructed by therapy.\n- Your goal this week is to walk a little more inside your home.\n- Call your doctor if you see any redness or swelling around your knee.\n\n**Week 3:**\n- You should feel less pain and more comfort.\n- You can start to walk with one crutch or a cane.\n- Continue with your physical therapy exercises.\n- Do not push yourself too hard; listen to your body.\n- Your goal this week is to walk a short distance outside.\n- Call your doctor if you have a fever over 101 degrees Fahrenheit.\n\n**Week 4:**\n- You will likely have more energy and less pain.\n- You may be able to walk without a cane or crutches.\n- Continue all prescribed exercises to build strength.\n- You can start to do light household chores.\n- Your goal this week is to walk for 10 minutes at a time.\n- Call your doctor if you notice any sudden swelling or pain in your calf.\n\n**When to expect improvement:**\n- Your knee will feel better over the next few months.\n- Keep up with your physical therapy exercises.\n- Continue to walk regularly to build strength.\n- Follow your doctor's advice for long-term recovery.\n- Most people return to normal activities in about 3 to 6 months.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- No symptoms in this tier for your diagnosis.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- No symptoms in this tier for your diagnosis.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Knee pain is not better: Ask about pain relief options.\n- Knee swelling is worse: Your doctor can check the joint.\n- Trouble walking or moving: Discuss ways to improve motion.\n- Questions about your medicine: Your doctor can explain doses.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 2.28,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.24,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.46,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.89,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "I don't know how to take Ambien. How much should I take?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say how much medicine to take.",
+        "severity": "critical"
+      },
+      {
+        "question": "What happens if I forget to take my Coumadin one morning?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say what to do for missed doses.",
+        "severity": "critical"
+      },
+      {
+        "question": "Are there any foods or drinks I should avoid while taking Coumadin?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not list any foods to avoid with Coumadin.",
+        "severity": "critical"
+      },
+      {
+        "question": "My paper says Mirapex is for my knee, but what does it actually do for me?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain what this medicine is for.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says I need to see Dr. X in one week, but who should I call to make the appointment?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say who to call to book the visit.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Percocet has a warning about constipation. What should I do if it happens?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say what to do about side effects.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What is knee osteoarthrosis and why did it make me come to the hospital?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain my diagnosis in simple words.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "I am scared because I do not understand my sickness. The medicine instructions are missing. Going home feels unsafe.",
+    "fk_grade": 5.02,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Mirapex",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Ibuprofen",
+        "questions": [
+          "How much should I take?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Ambien",
+        "questions": [
+          "How much should I take?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Percocet",
+        "questions": [
+          "How much should I take?",
+          "What if I forget a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Coumadin",
+        "questions": [
+          "How much should I take?",
+          "What if I forget a dose?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. X - in one week",
+        "questions": [
+          "Who should I call to book this appointment?",
+          "What should I bring to this visit?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Knee osteoarthrosis",
+        "questions": [
+          "What is this condition?",
+          "What caused this to happen to me?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "Coumadin diet",
+        "questions": [
+          "What foods should I avoid with this medicine?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_031",
+    "source_pdf": "test-data/mtsamples/mtsamples_031.pdf",
+    "generated_at": "2026-08-16T12:26:21",
+    "elapsed_seconds": 5.6
+  }
+}

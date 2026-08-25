@@ -1,0 +1,219 @@
+{
+  "extraction": {
+    "patient_name": "white male",
+    "patient_name_source": {
+      "page": 1,
+      "text": "The patient is a 77-year-old white male who presented to Hospital of Bossier on April 14,"
+    },
+    "discharge_date": "2008-05-09",
+    "discharge_date_source": {
+      "page": 1,
+      "text": "On the day of discharge, on May 9, 2008, the patient was in good spirits, was very clear and lucid."
+    },
+    "primary_diagnosis": "End-stage renal disease, on hemodialysis",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "1. End-stage renal disease, on hemodialysis."
+    },
+    "secondary_diagnoses": [
+      "History of T9 vertebral fracture",
+      "Diskitis",
+      "Thrombocytopenia",
+      "Congestive heart failure with ejection fraction of approximately 30%",
+      "Diabetes, type 2",
+      "Protein malnourishment",
+      "History of anemia"
+    ],
+    "procedures_performed": [
+      "continued hemodialysis",
+      "rehab",
+      "extensive antibiotic therapy",
+      "rehab fairly well",
+      "management [of constipation]",
+      "PPD was negative",
+      "SMS form was filled out"
+    ],
+    "medications": [],
+    "follow_up_appointments": [],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "good spirits, was very clear and lucid. He denied any complaints of pain. He did have some trouble with sleep at times, but I think this was mainly tied into the fact that he sleeps a lot during the day. The patient has increased his appetite some and has been eating some. His vital signs remain stable. His blood pressure on discharge was 126/63, heart rate is 80, respiratory rate of 20 and temperature was 98.3.",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "On the day of discharge, on May 9, 2008, the patient was in good spirits, was very clear and lucid. He denied any complaints of pain. He did have some trouble with sleep at times, but I think this was mainly tied into the fact that he sleeps a lot during the day. The patient has increased his appetite some and has been eating some. His vital signs remain stable. His blood pressure on discharge was 126/63, heart rate is 80, respiratory rate of 20 and temperature was 98.3."
+    },
+    "extraction_warnings": [
+      "Document says continue home meds but no medication list provided"
+    ]
+  },
+  "diagnosis_explanation": "Your kidneys are not working well enough. This is called end-stage renal disease. You are getting dialysis treatments. This helps clean your blood.\n\nYou also have trouble with your heart. It is not pumping blood as strongly as it should. This is called congestive heart failure. Your diabetes can also affect your body. It can lead to other problems. You have low blood platelet counts. This means you have less blood than is normal. Your body is also not getting enough nutrients. This is protein malnourishment. You also had a broken bone in your back. This was a T9 vertebral fracture. You also had an infection in the disc in your spine. This is called diskitis.",
+  "medication_rationale": "Your doctor did not give you any new medicines to take at home. Ask at your next visit if you need to start any.",
+  "recovery_trajectory": "**Week 1:**\n- You might feel tired from treatment this week.\n- You can move around your home slowly.\n- You can eat more food now.\n- You should drink plenty of fluids.\n- Call your doctor if you feel confused or very sleepy.\n- Your goal this week is to walk short distances inside.\n\n**Week 2:**\n- You may have more energy as the week goes on.\n- You can do light tasks around the house.\n- Do not lift anything heavy.\n- You can eat more foods now.\n- Continue drinking plenty of fluids.\n- Call your doctor if you have trouble breathing.\n- Your goal this week is to walk a little longer each day.\n\n**Week 3:**\n- You should feel more like yourself this week.\n- You can do more light activities.\n- Avoid lifting anything heavy or very hard work.\n- Keep eating well and drinking fluids.\n- Call your doctor if you have a fast heartbeat.\n- Your goal this week is to walk for 15 minutes outside.\n\n**Week 4:**\n- You will likely feel much better this week.\n- You can go back to many normal activities.\n- Talk to your doctor about returning to work.\n- Continue eating and drinking well.\n- Call your doctor if you have no appetite.\n- Your goal this week is to walk daily for 20 minutes.\n\n**When to expect improvement:**\n- Your body needs time to recover.\n- Keep attending your dialysis treatments.\n- Eat healthy foods and drink your fluids.\n- Talk to your care team about any worries.\n- You will likely feel stronger over the next few weeks.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Shortness of breath: Your body needs oxygen now.\n- Chest pain: Your heart needs help now.\n- Fast heart rate: Call 911 if it is over 100.\n- Feeling faint or passing out: Your brain is not getting blood.\n- Severe pain: Get help right away.\n- Bleeding that will not stop: Apply pressure and call 911.\n- Confusion or acting strange: You may have had a stroke.\n- Seizure: You lost control of your body.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever over 101 degrees: You may have an infection.\n- Vomiting for 12 hours: You cannot keep any fluids down.\n- Wound red streaks or pus: Infection can spread fast.\n- Swelling in one leg: This could be a blood clot.\n- Sudden weight gain of 2 pounds: Fluid may be building up.\n- New confusion getting worse: You may have an infection.\n- Fall with injury: Get checked out today.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- No symptoms in this tier for your diagnosis.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.65,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 3.84,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 3.54,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 3.71,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document says continue home meds but no medication list provided",
+    "No red-flag symptoms extracted.",
+    "Medications: document references home medications without a specific list in this PDF.",
+    "No follow-up appointments extracted.",
+    "No activity or dietary restrictions extracted."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "heart_failure",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "Nobody told me if I need to change how much water or salt I eat.",
+        "answered_by_doc": false,
+        "gap_summary": "Specific diet and fluid limits are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What do I do if I miss my hemodialysis appointment?",
+        "answered_by_doc": false,
+        "gap_summary": "Instructions for missing dialysis are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "When should I call the doctor or go to the ER if I feel worse?",
+        "answered_by_doc": false,
+        "gap_summary": "Specific warning signs to watch for are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does end-stage renal disease mean in simple words for me?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of what kidney failure is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How bad is my heart failure with that 30% ejection fraction number?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of the heart failure severity is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My paper says I have Thrombocytopenia - what does that mean?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of the low platelet count is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "The paper lists a lot of medicines, but I don't know what they are all for.",
+        "answered_by_doc": false,
+        "gap_summary": "What each medicine does is not explained.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What kind of exercises can I do now that I am going home?",
+        "answered_by_doc": false,
+        "gap_summary": "Specific activity restrictions are missing.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "People with kidney failure or heart problems may struggle. The biggest gap is not knowing when to get emergency help.",
+    "fk_grade": 8.02,
+    "passes": false,
+    "caregiver_questions": [
+      {
+        "item_type": "diagnosis",
+        "item_label": "End-stage renal disease, on hemodialysis",
+        "questions": [
+          "What does this mean for my body?",
+          "How often is my dialysis?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Congestive heart failure with ejection fraction of approximately 30%",
+        "questions": [
+          "What does this specific heart number mean?",
+          "What symptoms should I worry about most?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Diabetes, type 2",
+        "questions": [
+          "What foods should I avoid?",
+          "What should my blood sugar be?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Protein malnourishment",
+        "questions": [
+          "What foods should I eat more of?",
+          "How do I get better nutrition?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "History of anemia",
+        "questions": [
+          "What should my iron levels be?",
+          "Will I need more blood tests?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "medications",
+        "questions": [
+          "What is this medicine for?",
+          "What happens if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "diet and fluid limits",
+        "questions": [
+          "How much salt can I have?",
+          "How much water can I drink?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "activity",
+        "questions": [
+          "What exercises are safe for me?",
+          "When can I return to normal activities?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "feeling worse",
+        "questions": [
+          "What symptoms mean I need help?",
+          "How much worse is too bad?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_057",
+    "source_pdf": "test-data/mtsamples/mtsamples_057.pdf",
+    "generated_at": "2026-08-16T12:42:35",
+    "elapsed_seconds": 5.8
+  }
+}

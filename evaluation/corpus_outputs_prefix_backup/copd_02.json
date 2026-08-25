@@ -1,0 +1,332 @@
+{
+  "extraction": {
+    "patient_name": "Patient 12",
+    "patient_name_source": {
+      "page": 1,
+      "text": "Name: Patient 12"
+    },
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Acute exacerbation of Chronic Obstructive Pulmonary Disease, GOLD Stage 4 (Very Severe)",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "Primary: Acute exacerbation of Chronic Obstructive Pulmonary Disease (COPD), GOLD Stage 4 (Very Severe)"
+    },
+    "secondary_diagnoses": [
+      "Paroxysmal atrial fibrillation (rate-controlled on current regimen)",
+      "Obesity (BMI 34.2)",
+      "Hypertension",
+      "Type 2 Diabetes Mellitus"
+    ],
+    "procedures_performed": [
+      "Chest X-ray (CXR): hyperinflation consistent with COPD without acute infiltrate",
+      "Arterial Blood Gas (ABG) on admission: pH 7.32, pCO2 52 (mild hypercapnia), pO2 71 on room air",
+      "EKG monitoring for AF management",
+      "Sputum culture obtained (pending at discharge)",
+      "Incentive spirometry",
+      "Pulmonary hygiene education"
+    ],
+    "medications": [
+      {
+        "name": "Tiotropium",
+        "dose": "18 mcg",
+        "frequency": "once daily",
+        "duration": "ongoing",
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "Tiotropium (LAMA) | 18 mcg | Once daily via DPI | Ongoing; use Handihaler device"
+        }
+      },
+      {
+        "name": "Formoterol/Budesonide",
+        "dose": "120/4.5 mcg",
+        "frequency": "2 inhalations twice daily",
+        "duration": "ongoing",
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "Formoterol/Budesonide (LABA/ICS combo) | 120/4.5 mcg | 2 inhalations BID | Ongoing; rinse mouth after use"
+        }
+      },
+      {
+        "name": "Albuterol",
+        "dose": "90 mcg",
+        "frequency": "2 inhalations every 4-6 hours as needed",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "Albuterol (SABA) | 90 mcg | 2 inhalations q.4\u20136h PRN | As needed for acute dyspnea"
+        }
+      },
+      {
+        "name": "Prednisone",
+        "dose": "40 mg then 30 mg then 20 mg",
+        "frequency": "once daily",
+        "duration": "5 days at 40 mg, then 5 days at 30 mg, then 5 days at 20 mg",
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "Prednisone (oral taper) | 40 mg q.d. \u00d7 5d, then 30 mg q.d. \u00d7 5d, then 20 mg q.d. \u00d7 5d | Taper schedule | Complete full taper; do NOT stop abruptly"
+        }
+      },
+      {
+        "name": "Digoxin",
+        "dose": "0.125 mg",
+        "frequency": "once daily",
+        "duration": "ongoing",
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "Digoxin | 0.125 mg | Once daily (for AF rate control) | Ongoing; monitor heart rate"
+        }
+      },
+      {
+        "name": "Metoprolol tartrate",
+        "dose": "25 mg",
+        "frequency": "twice daily",
+        "duration": "ongoing",
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "Metoprolol tartrate | 25 mg | BID | Ongoing"
+        }
+      },
+      {
+        "name": "Lisinopril",
+        "dose": "10 mg",
+        "frequency": "once daily",
+        "duration": "ongoing",
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "Lisinopril | 10 mg | Once daily | Ongoing"
+        }
+      },
+      {
+        "name": "Metformin",
+        "dose": "500 mg",
+        "frequency": "twice daily with meals",
+        "duration": "ongoing",
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "Metformin | 500 mg | BID with meals | Ongoing"
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. S. Chen",
+        "specialty": "Pulmonology",
+        "date": "in 2 weeks",
+        "reason": null,
+        "source": {
+          "page": 3,
+          "text": "Pulmonology \u2014 Dr. S. Chen, MD at Metro Medical Center \u2014 In 2 weeks"
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "stable",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "Discharged in stable condition on optimized regimen."
+    },
+    "extraction_warnings": [
+      "Document is incomplete - follow-up appointments section appears to be cut off at the end of page 3",
+      "Discharge date listed as '[Current Date]' which is a placeholder, not an actual calendar date"
+    ]
+  },
+  "diagnosis_explanation": "# Your Lung Condition\n\nYou have a lung disease called COPD. Your lungs have trouble moving air in and out. Right now, your condition got worse. That is called an exacerbation.\n\nCOPD happens over many years. Smoking or air pollution can cause it. Your lungs get more and more scarred. The airways get narrow and tight.\n\nWhen you have an exacerbation, your symptoms get much worse. You may cough more. You may feel short of breath. You may feel tired.\n\nThe hospital treated you for this flare-up. Now you need to keep taking care of your lungs at home.\n\n---\n\n# Your Other Health Conditions\n\n**Your Heart Rhythm:**\nYour heart sometimes beats in an odd way. This is called atrial fibrillation. Your doctors are watching this. The medicines you take help keep it steady.\n\n**Your Weight:**\nYour weight is higher than is best for your health. Extra weight makes it harder for your heart and lungs to work. Losing even a small amount can help you feel better.\n\n**Your Blood Pressure:**\nYour blood pressure is higher than normal. This puts extra work on your heart.\n\n**Your Blood Sugar:**\nYou have Type 2 Diabetes. Your blood sugar is higher than it should be. This can affect many parts of your body over time.\n\nAll of these conditions are linked. Taking care of one helps the others too.",
+  "medication_rationale": "Tiotropium:\nThis medicine keeps your lungs open all day and night. It helps you breathe easier by relaxing the muscles around your airways. You use it once a day with a special device called a Handihaler. Use it even when you feel fine. Your breathing should feel a bit easier each day.\n\nFormoterol/Budesonide:\nThis is a two-in-one medicine for your lungs. It opens your airways and reduces swelling inside them. You take two puffs twice a day, even when feeling okay. Rinse your mouth with water after each use. This helps prevent mouth infections. Your chest may feel less tight over the next few days.\n\nAlbuterol:\nUse this medicine when you feel short of breath or tight in the chest. It opens your airways very fast, usually within minutes. Take two puffs and wait a few minutes. You can use it every four to six hours as needed. If you need this more than three times a week, tell your doctor.\n\nPrednisone:\nThis strong medicine reduces the swelling in your lungs caused by your flare-up. Start with 40 mg once a day for five days. Then drop to 30 mg once a day for five days. Then drop to 20 mg once a day for five days. Follow this exact schedule your doctor gave you. You may feel hungrier or have trouble sleeping. This is normal with this medicine. You may also feel your mood change a bit. These side effects go away when you finish the medicine. Call your doctor if you feel very shaky, very confused, or have a high fever.\nImportant: Do not stop taking this medicine without calling your doctor first.\n\nDigoxin:\nThis medicine helps control your heart rate. It slows down a heart rhythm problem you have called atrial fibrillation. Take one pill once a day. Your heart should beat at a steadier pace. Tell your doctor right away if your heart feels like it is racing, skipping beats, or fluttering. Also call if you feel very sick to your stomach or throw up a lot.\n\nMetoprolol tartrate:\nThis medicine helps your heart work better and lowers blood pressure. Take 25 mg twice a day. You may feel a bit tired or slow at first. This usually goes away after a week or two. Call your doctor if your heart beats very slowly, you feel very dizzy, or you cannot catch your breath.\n\nLisinopril:\nThis medicine lowers your blood pressure and helps your heart pump better. Take 10 mg once a day. You may get a dry cough. This is common and not dangerous. Your blood pressure should go down over the next week or two. Call your doctor if your face or lips swell, or if you feel dizzy when standing up.\n\nMetformin:\nThis medicine helps control your blood sugar. Take 500 mg twice a day with your meals. Your stomach may feel upset or you may have loose stools at first. Eating with this medicine helps reduce these issues. These side effects usually get better in a few days. Call your doctor if you have severe stomach pain or if your stools stay very loose.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired and short of breath at first. This is normal.\n- Rest most of the day. Walk slowly inside your home only.\n- Use your inhaler exactly as your doctor prescribed. Do not skip doses.\n- Do your breathing exercises with the incentive spirometer every 2 hours while awake.\n- Cough up mucus into a tissue. Wash your hands after.\n- Call your doctor if you cough up blood or rust-colored mucus.\n- Your goal this week is to use your spirometer 8 times per day.\n\n**Week 2:**\n- You may have a little more energy than last week.\n- Walk slowly for 5 to 10 minutes, two times per day.\n- Keep using your inhalers on the same schedule as before.\n- Do your breathing exercises every 2 hours. This helps clear your lungs.\n- Drink plenty of water to help loosen mucus in your chest.\n- Call your doctor if you feel more short of breath, not less.\n- Your goal is to cough up less mucus each day.\n\n**Week 3-4:**\n- You should feel stronger. Shortness of breath should improve with rest.\n- Slowly increase walking. Try 10 to 15 minutes, two times per day.\n- Keep taking all your inhalers. Use them before you walk or exercise.\n- Do your breathing exercises at least 4 times per day.\n- Avoid smoke, dust, and cold air. These can trigger coughing.\n- Go to your follow-up doctor visit. Bring a list of your medications.\n- Call your doctor if you have a fever or yellow-green mucus.\n\n**When to expect improvement:**\n- Shortness of breath gets better slowly over several weeks.\n- Keep your inhalers with you at all times.\n- Do your breathing exercises every day. This is very important.\n- Avoid people who are sick or coughing near you.\n- Tell your doctor right away if you feel worse.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Cannot breathe or gasping for air: Your lungs need help right now.\n- Chest pain or pressure that will not go away: This can mean a heart problem.\n- Blue lips or blue fingernails: Your body is not getting enough oxygen.\n- Passing out or losing consciousness: Your brain needs oxygen right now.\n- Coughing up blood: This is a sign of serious bleeding.\n- Fast or very irregular heartbeat with dizziness: Your heart may not be pumping right.\n- Signs of stroke like face drooping or arm weakness: Minutes matter for stroke treatment.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever above 101 degrees F that will not go down: This can mean an infection.\n- Coughing up yellow or green mucus: This can mean a lung infection.\n- Wheezing that does not get better with your rescue inhaler: Your airways are blocked.\n- Trouble speaking or swallowing: Your throat or airways may be swelling.\n- Confusion or feeling very tired and weak: Your lungs may not be working well.\n- Swelling in your legs or ankles: This can mean fluid is building up.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild cough that is slowly getting better: This is normal after treatment.\n- Slight wheezing when you walk: This can happen during recovery from an attack.\n- Questions about when to take your rescue inhaler: Your doctor will help you plan.\n- Mild tiredness that is improving: Your body needs time to heal.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.02,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.17,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 3.85,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 5.52,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document is incomplete - follow-up appointments section appears to be cut off at the end of page 3",
+    "Discharge date listed as '[Current Date]' which is a placeholder, not an actual calendar date",
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing discharge date."
+  ],
+  "pipeline_status": "partial",
+  "rejection_reason": null,
+  "document_type": "copd",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What does it mean that I have Stage 4 COPD, and why did I end up in the hospital this time?",
+        "answered_by_doc": false,
+        "gap_summary": "The paper does not explain what Stage 4 means or what caused this flare-up.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I'm on prednisone but the paper shows three different doses - am I supposed to take less each day, and for how long?",
+        "answered_by_doc": false,
+        "gap_summary": "No instructions on which dose to take on which day or when to stop.",
+        "severity": "critical"
+      },
+      {
+        "question": "What do I do if I run out of my prednisone before I'm supposed to stop, or if I forget a dose?",
+        "answered_by_doc": false,
+        "gap_summary": "No guidance on what to do if I miss a dose or run out early.",
+        "severity": "critical"
+      },
+      {
+        "question": "What are the signs that my breathing is getting worse and I need to go to the hospital instead of calling my doctor?",
+        "answered_by_doc": false,
+        "gap_summary": "No list of red-flag symptoms that mean emergency care is needed right now.",
+        "severity": "critical"
+      },
+      {
+        "question": "My paper says to call Dr. Chen in 2 weeks, but how do I make the appointment, and what should I tell them when I call?",
+        "answered_by_doc": false,
+        "gap_summary": "No phone number, office name, or instructions on how to book the visit.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Can I eat salt and drink as much water as I want, or do I need to watch that because of my heart and COPD?",
+        "answered_by_doc": false,
+        "gap_summary": "No diet or fluid restrictions explained for my conditions.",
+        "severity": "moderate"
+      },
+      {
+        "question": "If I start coughing up blood or my chest hurts a lot, is that something to call 911 for right away, or should I call my doctor first?",
+        "answered_by_doc": false,
+        "gap_summary": "No clear instructions on which symptoms need 911 versus a regular doctor call.",
+        "severity": "critical"
+      },
+      {
+        "question": "What happens if I get a side effect from one of my medicines, like my heart racing or my stomach upset, and I don't know which medicine is causing it?",
+        "answered_by_doc": false,
+        "gap_summary": "No list of common side effects or what to do if they happen.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 8,
+    "simulator_summary": "A patient with very bad lung disease and a weak heart would be confused about how to take prednisone and when to call 911. The biggest gaps are the steroid taper schedule, red-flag symptoms, and how to schedule the follow-up visit.",
+    "fk_grade": 6.02,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Prednisone 40 mg, 30 mg, 20 mg taper",
+        "questions": [
+          "Which dose do I take on which day?",
+          "When do I stop taking prednisone?",
+          "What do I do if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Tiotropium 18 mcg once daily",
+        "questions": [
+          "How do I use this inhaler correctly?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Formoterol/Budesonide 120/4.5 mcg twice daily",
+        "questions": [
+          "Do I use this before or after my other inhaler?",
+          "What if I feel no better after using it?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Albuterol 90 mcg as needed",
+        "questions": [
+          "How many times a day is it safe to use this?",
+          "What if I need it more than every 4 hours?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Digoxin 0.125 mg once daily",
+        "questions": [
+          "What should I watch for as a side effect?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Metoprolol tartrate 25 mg twice daily",
+        "questions": [
+          "Can I take this with food or on an empty stomach?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lisinopril 10 mg once daily",
+        "questions": [
+          "What if I feel dizzy after taking this?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Metformin 500 mg twice daily with meals",
+        "questions": [
+          "What if I skip a meal, do I still take it?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Pulmonology - Dr. S. Chen - in 2 weeks",
+        "questions": [
+          "How do I call to make this appointment?",
+          "What should I bring or do to prepare?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "Shortness of breath getting worse",
+        "questions": [
+          "How bad does it need to be before I call 911?",
+          "What do I do while I wait for help?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "Coughing up blood",
+        "questions": [
+          "Is this a reason to call 911 right away?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "Chest pain",
+        "questions": [
+          "How bad does the pain need to be before I call 911?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "copd_02",
+    "source_pdf": "test-data/synthetic/copd_02.pdf",
+    "generated_at": "2026-07-18T14:45:59",
+    "elapsed_seconds": 19.8
+  }
+}

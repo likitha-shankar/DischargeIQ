@@ -1,0 +1,562 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Aspiration pneumonia",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "1. Aspiration pneumonia."
+    },
+    "secondary_diagnoses": [
+      "Aspiration disorder in setting of severe chronic obstructive pulmonary disease",
+      "Chronic obstructive pulmonary disease (COPD) exacerbation",
+      "Acute respiratory on chronic respiratory failure secondary to chronic obstructive pulmonary disease exacerbation",
+      "Hypercapnia on admission secondary to chronic obstructive pulmonary disease",
+      "Systemic inflammatory response syndrome secondary to aspiration pneumonia",
+      "Atrial fibrillation with episodic rapid ventricular rate, now rate control",
+      "Hyperglycemia secondary to poorly controlled type ii diabetes mellitus, insulin requiring",
+      "Benign essential hypertension, poorly controlled on admission, now well controlled on discharge",
+      "Aspiration disorder exacerbated by chronic obstructive pulmonary disease and acute respiratory failure",
+      "Hyperlipidemia",
+      "Acute renal failure on chronic renal failure on admission, now resolved"
+    ],
+    "procedures_performed": [
+      "Chest X-ray (2024-07-14): Hyperinflation consistent with COPD, no acute pneumonia or pneumothorax",
+      "Chest X-ray PA and lateral after 2 weeks of treatment",
+      "Dysphagia 2 diet, thin liquids are okay",
+      "BiPAP support for COPD exacerbation",
+      "IV Solu-Medrol for COPD exacerbation",
+      "Frequent small volume nebulizers for COPD exacerbation",
+      "p.o. digoxin for rate control",
+      "diltiazem for rate control",
+      "IV antibiotics including Levaquin and Zosyn",
+      "Supplemental O2 at night",
+      "Physical therapy",
+      "Ambulation from bed to bathroom",
+      "Dysphagia 2 diet",
+      "Modified barium swallow",
+      "Chest x-ray on admission revealed some mild vascular congestion and bilateral pleural effusions that appeared to be unchanged.",
+      "More pronounced patchy alveolar opacity, which appeared to be, \"mass like\" in the right suprahilar region.",
+      "Chest x-ray 2 views, which allowing for differences in technique revealed little change in the bibasilar infiltrates and atelectatic changes at the bases bilaterally.",
+      "Minimal bilateral effusions.",
+      "Home health has been ordered",
+      "Dietary and speech therapy evaluation has been ordered",
+      "Speech therapy to treat for chronic dysphagia and aspiration in the setting of severe chronic obstructive pulmonary disease."
+    ],
+    "medications": [
+      {
+        "name": "Home oxygen",
+        "dose": null,
+        "frequency": "at all times",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "Home oxygen 1 to 2 liters to maintain O2 saturations at 89 to 91% at all times."
+        }
+      },
+      {
+        "name": "Ativan",
+        "dose": "1 mg",
+        "frequency": "three times daily",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "Ativan 1 mg p.o. t.i.d."
+        }
+      },
+      {
+        "name": "Metformin",
+        "dose": "1000 mg",
+        "frequency": "twice daily",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "Metformin 1000 mg p.o. b.i.d."
+        }
+      },
+      {
+        "name": "Glucotrol",
+        "dose": "5 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "Glucotrol 5 mg p.o. daily."
+        }
+      },
+      {
+        "name": "Spiriva",
+        "dose": "1 puff",
+        "frequency": "twice daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "Spiriva 1 puff b.i.d."
+        }
+      },
+      {
+        "name": "Lantus",
+        "dose": "25 units",
+        "frequency": "q.a.m.",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "Lantus 25 units subcu q.a.m."
+        }
+      },
+      {
+        "name": "Cardizem CD",
+        "dose": "180 mg",
+        "frequency": "q.a.m.",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 3,
+          "text": "Cardizem CD 180 mg p.o. q.a.m."
+        }
+      },
+      {
+        "name": "Advair",
+        "dose": "250/50 mcg, 1 puff",
+        "frequency": "twice daily",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 3,
+          "text": "Advair 250/50 mcg, 1 puff b.i.d. The patient is instructed to rinse with mouthwash after each use."
+        }
+      },
+      {
+        "name": "Iron",
+        "dose": "325 mg",
+        "frequency": "twice daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "Iron 325 mg p.o. b.i.d."
+        }
+      },
+      {
+        "name": "Aspirin",
+        "dose": "325 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "Aspirin 325 mg p.o. daily."
+        }
+      },
+      {
+        "name": "Lipitor",
+        "dose": "10 mg",
+        "frequency": "bedtime",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "Lipitor 10 mg p.o. bedtime."
+        }
+      },
+      {
+        "name": "Digoxin",
+        "dose": "0.25 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 3,
+          "text": "Digoxin 0.25 mg p.o. daily."
+        }
+      },
+      {
+        "name": "Lisinopril",
+        "dose": "20 mg",
+        "frequency": "q.a.m.",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 3,
+          "text": "Lisinopril 20 mg p.o. q.a.m."
+        }
+      },
+      {
+        "name": "DuoNeb",
+        "dose": null,
+        "frequency": "every 4 hours for the next several weeks, then q.6 h. thereafter",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "DuoNeb every 4 hours for the next several weeks, then q.6 h. thereafter, dispensed 180 DuoNeb ampule's with one refill."
+        }
+      },
+      {
+        "name": "Prednisone",
+        "dose": "40 mg",
+        "frequency": "q.a.m. x3 days followed by 30 mg by mouth q.a.m. x3 days, then followed by 20 mg by mouth q.a.m. x5 days, then 10 mg by mouth q.a.m. x14 days, then discontinue",
+        "duration": "#30 days supply given. No refills.",
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "Prednisone 40 mg p.o. q.a.m. x3 days followed by 30 mg p.o. q.a.m. x3 days, then followed by 20 mg p.o. q.a.m. x5 days, then 10 mg p.o. q.a.m. x14 days, then discontinue, #30 days supply given. No refills."
+        }
+      },
+      {
+        "name": "Clindamycin",
+        "dose": "300 mg",
+        "frequency": "four times daily",
+        "duration": "x2 weeks",
+        "status": "changed",
+        "source": {
+          "page": 3,
+          "text": "Clindamycin 300 mg p.o. q.i.d. x2 weeks, dispensed #64 with one refill."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": "Sleep study",
+        "source": {
+          "page": 2,
+          "text": "The patient may require a sleep study after discharge"
+        }
+      },
+      {
+        "provider": "Shaun Eagan",
+        "specialty": "physician assistant",
+        "date": null,
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "the case has been discussed in detail with Shaun Eagan, physician assistant at Eureka Community Health Center."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": "Home health",
+        "date": null,
+        "reason": null,
+        "source": {
+          "page": 3,
+          "text": "The patient discharged with home health."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": "Dietary",
+        "date": null,
+        "reason": "evaluation",
+        "source": {
+          "page": 3,
+          "text": "A dietary and speech therapy evaluation has been ordered."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": "Speech therapy",
+        "date": null,
+        "reason": "treatment for chronic dysphagia and aspiration",
+        "source": {
+          "page": 3,
+          "text": "Speech therapy to treat for chronic dysphagia and aspiration in the setting of severe chronic obstructive pulmonary disease."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "Home oxygen 1 to 2 liters to maintain O2 saturations at 89 to 91% at all times.",
+      "Dysphagia 2 diet, thin liquids are okay."
+    ],
+    "dietary_restrictions": [
+      "Dysphagia 2 diet, thin liquids are okay."
+    ],
+    "red_flag_symptoms": [
+      "severe shortness of breath"
+    ],
+    "discharge_condition": "Stable",
+    "discharge_condition_source": {
+      "page": 3,
+      "text": "The patient discharged as well on a dysphagia 2 diet, thin liquids are okay."
+    },
+    "extraction_warnings": [
+      "The document is unusually short for a discharge summary - may be incomplete or a partial document.",
+      "Discharge condition 'Stable' was not found in the document text - please verify it against your discharge papers."
+    ]
+  },
+  "diagnosis_explanation": "Your lungs got irritated and infected. This happened because food or liquid went into your lungs by mistake. We call this aspiration pneumonia.\n\nYou also have a lung condition called COPD. This makes breathing harder. Sometimes COPD can get worse. This can make breathing very difficult.\n\nYour breathing was not good enough for your body. This was because of your COPD getting worse. Your body also had trouble breathing out carbon dioxide.\n\nYour heart had a fast or irregular beat. We were able to get it back to a normal rhythm.\n\nYou have high blood sugar. This is related to your diabetes. You need insulin for this.\n\nYou have high blood pressure. It is now controlled well.\n\nYou also have high cholesterol.\n\nYour kidneys were not working well for a time. They are now working fine again.",
+  "medication_rationale": "Home oxygen:\nThis medicine gives you extra oxygen to breathe. It helps your body get the oxygen it needs. You may feel more comfortable breathing. This is a sign it is working well. There are no side effects to watch for.\n\nAtivan:\nThis medicine helps you feel calm and relaxed. It can help with breathing problems. You may feel sleepy or a little dizzy. This is normal and should pass. Call your doctor if you feel too drowsy or confused.\n\nMetformin:\nThis medicine helps control your blood sugar. It is for diabetes. You may have an upset stomach. This is common when you start. Call your doctor if you have trouble breathing or feel very weak.\n\nGlucotrol:\nThis medicine helps lower your blood sugar. It is for diabetes. You may feel dizzy or shaky. This can happen if your blood sugar gets too low. Eat something if you feel this way. Call your doctor if you have trouble breathing.\n\nSpiriva:\nThis medicine helps you breathe easier. It opens up your airways. You may notice your mouth feels dry. This is a common side effect. Call your doctor if you have trouble urinating or feel dizzy.\n\nLantus:\nThis medicine is a type of insulin. It helps control your blood sugar. It is for diabetes. You might have redness or swelling where you inject it. This is usually mild. Call your doctor if your blood sugar gets too low. Symptoms include shaking or sweating.\n\nCardizem CD:\nThis medicine helps your heart pump better. It also lowers blood pressure. You may feel tired or dizzy. This is common. Call your doctor if you feel very dizzy or your heart beats too slowly.\n\nAdvair:\nThis medicine helps open your airways. It makes it easier to breathe. You may get a headache or feel shaky. This is not usually serious. Rinse your mouth after using it. Call your doctor if your breathing gets worse.\n\nIron:\nThis medicine helps your body make more red blood cells. Red blood cells carry oxygen. You may have constipation or an upset stomach. Drink plenty of water. Call your doctor if you have severe stomach pain.\n\nAspirin:\nThis medicine helps prevent blood clots. It can also reduce pain and fever. You may have an upset stomach. Taking it with food can help. Call your doctor if you have black, tarry stools or severe stomach pain.\n\nLipitor:\nThis medicine helps lower your cholesterol. High cholesterol can harm your heart. You may have muscle aches. This is usually mild. Call your doctor if you have severe muscle pain or weakness.\n\nDigoxin:\nThis medicine helps your heart pump blood better. It can also help control your heart rhythm. You may feel dizzy or sick to your stomach. Call your doctor if you have vision changes or feel very weak.\n\nLisinopril:\nThis medicine helps relax your blood vessels. This lowers your blood pressure. You may develop a dry cough. This is a common side effect. Call your doctor if your face or lips swell.\n\nDuoNeb:\nThis medicine helps you breathe easier. It relaxes the muscles around your airways. You may feel shaky or have a faster heart rate. This is common. Call your doctor if your breathing gets worse.\n\nPrednisone:\nThis medicine reduces swelling in your body. It is for inflammation. You may feel more hungry or have trouble sleeping. You may also get a sore throat. Call your doctor if you have mood changes or severe stomach pain.\n\nClindamycin:\nThis medicine fights a bacterial infection. It is for pneumonia. You may have an upset stomach or diarrhea. Call your doctor if you have severe diarrhea or a rash.",
+  "recovery_trajectory": "**Week 1:**\n- You will likely feel very tired and weak.\n- You can walk from your bed to the bathroom.\n- Use your home oxygen as directed, 1 to 2 liters.\n- Eat soft foods and thick liquids. Thin liquids are okay.\n- Call your doctor if you have severe shortness of breath.\n- Your goal this week is to rest and heal.\n\n**Week 2:**\n- You may start to feel a little more energy.\n- Try to walk a little more each day inside your home.\n- Continue to use your home oxygen at 1 to 2 liters.\n- Stick to your Dysphagia 2 diet. Thin liquids are okay.\n- Call your doctor if you have severe shortness of breath.\n- Your goal this week is to walk to your mailbox.\n\n**Week 3:**\n- You might feel less pain and more comfortable.\n- You can do light activities around the house.\n- Keep using your oxygen at 1 to 2 liters.\n- Continue your Dysphagia 2 diet. Thin liquids are okay.\n- Call your doctor if you have severe shortness of breath.\n- Your goal this week is to walk for 10 minutes.\n\n**Week 4:**\n- You should feel stronger and have more energy each day.\n- You can increase your walking time slowly.\n- Continue using your oxygen as prescribed, 1 to 2 liters.\n- Eat your Dysphagia 2 diet. Thin liquids are okay.\n- Call your doctor if you have severe shortness of breath.\n- Your goal this week is to walk around your block once.\n\n**When to expect improvement:**\n- Recovery takes time, so be patient with yourself.\n- Continue to follow all diet and oxygen instructions.\n- Keep up with your walking and activity as you feel able.\n- Call your doctor if you have any concerns.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Severe shortness of breath: You may not be getting enough oxygen.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever above 101 degrees: You may have an infection.\n- Confusion or disorientation, new and worsening: This needs quick checks.\n- Fast heart rate that returns: Your heart rhythm may be unstable.\n- Coughing up thick, discolored mucus: This could mean a bad infection.\n- Chest pain or pressure that will not stop: Your lungs may be strained.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Trouble breathing that is slowly improving: You still need monitoring.\n- Mild body aches: This can happen as you recover.\n- Feeling tired and weak: Your body needs time to heal.\n- Questions about your medicines: Your doctor can clarify doses.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 4.14,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.14,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 3.9,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 5.62,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "The document is unusually short for a discharge summary - may be incomplete or a partial document.",
+    "Discharge condition 'Stable' was not found in the document text - please verify it against your discharge papers.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "copd",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "It says I need DuoNeb every 4 hours now. What if I forget to use it?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain what to do if DuoNeb is missed.",
+        "severity": "critical"
+      },
+      {
+        "question": "The doctor gave me a lot of pills. What should I do if I miss my Lantus or Metformin?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain missed doses for Lantus or Metformin.",
+        "severity": "critical"
+      },
+      {
+        "question": "It says to call if I have severe shortness of breath. How do I know if it's severe enough?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain what counts as severe shortness of breath.",
+        "severity": "critical"
+      },
+      {
+        "question": "My paper says I have aspiration pneumonia. What does that mean and why did I get so sick?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain what this diagnosis means.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says I have a swallowing problem. What does that mean for me at home?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain swallowing problem implications.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I have a lot of new medications. What exactly does the prednisone do for me?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain what prednisone does.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says I have a swallowing problem and need speech therapy. What foods should I really avoid?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not list specific foods to avoid.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I have to see Shaun Eagan and get a sleep study. Who do I call to make these appointments?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say who to call for appointments.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "This patient has many new drugs. They need to know what to do if they miss a dose. Going home without this is risky.",
+    "fk_grade": 5.25,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Ativan 1 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "What are the side effects to watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Metformin 1000 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "Can I eat normally with this?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Glucotrol 5 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "Can I eat normally with this?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Spiriva 1 puff",
+        "questions": [
+          "What if I miss a dose?",
+          "What if I miss a puff?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lantus 25 units",
+        "questions": [
+          "What if I miss a dose?",
+          "How do I store extra pens?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Cardizem CD 180 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "What are the side effects to watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Advair 250/50 mcg",
+        "questions": [
+          "What if I miss a dose?",
+          "How do I clean the inhaler?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Iron 325 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "Can this cause stomach upset?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Aspirin 325 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "Should I take this with food?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lipitor 10 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "What are the side effects to watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Digoxin 0.25 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "What are the side effects to watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lisinopril 20 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "What are the side effects to watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "DuoNeb",
+        "questions": [
+          "How long should I use this?",
+          "What if I miss a treatment?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Prednisone 40 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "How do I taper off this medicine?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Clindamycin 300 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "Can this cause stomach upset?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Shaun Eagan - physician assistant",
+        "questions": [
+          "What information should I bring to this visit?",
+          "What should I expect at this appointment?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Sleep study",
+        "questions": [
+          "Where do I go for this test?",
+          "What do I need to do before the test?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Home health",
+        "questions": [
+          "When will they come to my house?",
+          "What help can they provide me?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dietary - evaluation",
+        "questions": [
+          "What should I discuss at this visit?",
+          "What foods should I ask about?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Speech therapy - treatment for chronic dysphagia and aspiration",
+        "questions": [
+          "What specific foods are unsafe?",
+          "How long will therapy last?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "severe shortness of breath",
+        "questions": [
+          "How bad does it have to be?",
+          "What should I do first?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_013",
+    "source_pdf": "test-data/mtsamples/mtsamples_013.pdf",
+    "generated_at": "2026-08-15T12:58:51",
+    "elapsed_seconds": 11.8
+  }
+}

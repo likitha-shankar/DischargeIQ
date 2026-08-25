@@ -1,0 +1,193 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Menorrhagia",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "DISCHARGE DIAGNOSES:\n1. Menorrhagia."
+    },
+    "secondary_diagnoses": [
+      "Dysmenorrhea",
+      "Small uterine fibroids"
+    ],
+    "procedures_performed": [
+      "Total vaginal hysterectomy."
+    ],
+    "medications": [
+      {
+        "name": "Vicodin",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "Preoperative meds plus Vicodin for pain."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "in four weeks",
+        "reason": null,
+        "source": {
+          "page": 1,
+          "text": "Routine postoperative instructions given and said follow up will be in four weeks in the office."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "Good",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "Good."
+    },
+    "extraction_warnings": [
+      "Document is unusually short for a discharge summary - may be incomplete or a partial document."
+    ]
+  },
+  "diagnosis_explanation": "Your period bleeding was heavier than normal. This is called menorrhagia. You also had painful periods. This is called dysmenorrhea. You have small fibroids in your uterus. Fibroids are small lumps of muscle in the uterus. They are usually not cancer.",
+  "medication_rationale": "Vicodin:\nThis medicine is given to help with pain.\nIt is a pain reliever.\nYou may feel sleepy or dizzy.\nYour mouth may feel dry.\nCall your doctor if you have trouble breathing.\nAlso call if you feel very confused.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired and sore after surgery.\n- Rest often is important for healing.\n- Do not lift anything heavier than 10 pounds.\n- Avoid strenuous activity. This includes heavy housework.\n- Walking around your home is encouraged.\n- You may have light vaginal bleeding or spotting.\n- Call your doctor if bleeding soaks a pad in one hour.\n- Your goal is to walk a little more each day.\n\n**Week 2:**\n- You may start to feel a bit more energy.\n- Pain should slowly get better each day.\n- Continue to avoid heavy lifting and strenuous activity.\n- Light walking is still good for you.\n- You can return to light household tasks.\n- Call your doctor for heavy bleeding or fever over 100.4 F.\n- Your goal is to walk for 5 to 10 minutes twice a day.\n\n**Week 3:**\n- Most discomfort should be manageable now.\n- You can likely do more around the house.\n- Continue to avoid lifting more than 10 pounds.\n- Avoid any activities that strain your belly.\n- Keep up with your walking routine.\n- Call your doctor if you have worsening pain or new swelling.\n\n**Week 4:**\n- You should feel a good improvement in energy.\n- Most surgical pain should be gone.\n- You can return to most normal activities.\n- Check with your doctor before resuming sexual activity.\n- Continue to avoid very heavy lifting for now.\n- Your goal is to walk for 20 to 30 minutes daily.\n- Call your doctor with any concerns about vaginal discharge.\n\n**When to expect improvement:**\n- You will feel better each week.\n- Healing continues for several weeks.\n- Most people return to normal life within 6 weeks.\n- Keep following any instructions from your doctor.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Uncontrolled bleeding that will not stop: This needs urgent care now.\n- Severe pain that will not stop: This needs urgent care now.\n- Signs of stroke: face drooping, arm weakness, trouble speaking. Minutes matter.\n- Loss of consciousness or fainting: Get help right away.\n- Fast heart rate with dizziness: Call 911 right now.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Bleeding that is heavy and soaking pads: Change pads every hour.\n- Passing blood clots larger than a golf ball: This needs review today.\n- Severe cramping that is not helped by medicine: This needs review today.\n- Feeling dizzy or lightheaded often: You may be losing too much blood.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild bleeding that is less than a heavy period: Manage at home.\n- Questions about your pain medicine: Your nurse can help you plan.\n- Cramping that is mild and slowly getting better: This is expected.\n- Mild fatigue or feeling tired: This will improve with rest.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 6.27,
+      "passes": false
+    },
+    "agent3": {
+      "fk_grade": 2.94,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 5.19,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.93,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document is unusually short for a discharge summary - may be incomplete or a partial document.",
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "How do I take Vicodin and what should I do if I miss a dose?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain how to take Vicodin or missed doses.",
+        "severity": "critical"
+      },
+      {
+        "question": "What symptoms should I watch out for that mean I need to call the doctor or go to the ER?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not list any warning signs.",
+        "severity": "critical"
+      },
+      {
+        "question": "What do I do if I run out of Vicodin before my next appointment?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain how to get more Vicodin.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What activities should I avoid doing around the house while I recover?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not list any activity restrictions.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Who do I call to schedule my follow-up appointment in four weeks?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say who to call.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does menorrhagia mean and why did it make me need to come to the hospital?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain the diagnosis in simple words.",
+        "severity": "minor"
+      },
+      {
+        "question": "What does dysmenorrhea mean?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain this diagnosis in simple words.",
+        "severity": "minor"
+      },
+      {
+        "question": "What kinds of foods should I not eat while I am recovering?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not give any diet advice.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "I am scared about my health. I do not know what is wrong with me. I need help understanding my problems and my medicine.",
+    "fk_grade": 5.58,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Vicodin",
+        "questions": [
+          "How often should I take this medicine?",
+          "What should I do if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Follow-up in four weeks",
+        "questions": [
+          "Who should I call to make this appointment?",
+          "What should I bring to this visit?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Menorrhagia",
+        "questions": [
+          "What does this diagnosis mean for me?",
+          "What caused this problem?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Dysmenorrhea",
+        "questions": [
+          "What does this diagnosis mean for me?",
+          "What caused this problem?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Small uterine fibroids",
+        "questions": [
+          "What do fibroids mean for me?",
+          "What caused this problem?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_032",
+    "source_pdf": "test-data/mtsamples/mtsamples_032.pdf",
+    "generated_at": "2026-08-16T12:26:56",
+    "elapsed_seconds": 4.3
+  }
+}

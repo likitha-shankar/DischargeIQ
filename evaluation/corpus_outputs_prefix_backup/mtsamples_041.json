@@ -1,0 +1,221 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Gastroenteritis versus bowel obstruction",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "DISCHARGE DIAGNOSES,1. Gastroenteritis versus bowel obstruction."
+    },
+    "secondary_diagnoses": [
+      "Gastroesophageal reflux",
+      "Goldenhar syndrome",
+      "Anemia, probably iron deficiency",
+      "Vomiting, probably secondary to gastroenteritis",
+      "Goldenhar syndrome",
+      "Severe gastroesophageal reflux",
+      "Past history of aspiration and aspiration pneumonia"
+    ],
+    "procedures_performed": [
+      "Head is with anterior fontanelle open.",
+      "Eye: Red reflex elicited bilaterally.",
+      "Left ear is without an external ear canal and the right is not well visualized at this time.",
+      "Nose is presently without any discharge, and throat is nonerythematous.",
+      "Neck with torticollis exhibited.",
+      "Presently are clear to auscultation.",
+      "Regular rate without murmur, click or gallop present.",
+      "Moderately distended, but soft.",
+      "Bowel sounds are decreased, and there is a G-tube and a J-tube in place.",
+      "The skin surrounding the G-tube is moderately erythematous, but without any discharges",
+      "J-tube is with a dressing in place and well evaluated.",
+      "Grossly normal.",
+      "Hip defects are not checked at this time.",
+      "Normal female.",
+      "The infant does have a suck reflex, feeding grasp-reflex, and a feeding Moro reflex.",
+      "Warm and dry and there is a macular area to the left ___ that is approximately 1 cm in length.",
+      "WBC count on October 12, 2003 is 12,600 with 16 segs, 6 bands, 54 lymphocytes, 13% of which are noted to be reactive.",
+      "Hemoglobin is 10.4, hematocrit 30.8, and she has abnormal red blood cell morphology.",
+      "RDW is 13.1 and MCV is 91.",
+      "Sodium level is 138, potassium 5.4, chloride 103, CO2 23, BUN 7, creatinine 0.4, glucose 84, calcium 9.9, and at this dictation, the report on the abdominal flat plate is pending."
+    ],
+    "medications": [
+      {
+        "name": "Pepcid",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "her medications, Pepcid and Reglan, were given in an attempt to increase bowel motility."
+        }
+      },
+      {
+        "name": "Reglan",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "her medications, Pepcid and Reglan, were given in an attempt to increase bowel motility."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": "continued diagnosis and treatment",
+        "source": {
+          "page": 2,
+          "text": "With Dr. X and Dr. Y and the child is now ready for transport for continued diagnosis and treatment."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "stable",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "Her condition at discharge is stable."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your child has a stomach problem. It is called gastroenteritis. This means the stomach and gut are upset. Doctors are not sure if there is also a blockage in the gut. This is called a bowel obstruction.\n\nYour child also has trouble with acid coming up from the stomach. This is called reflux. It is a big problem for your child. Your child sometimes throws up. This is likely from the stomach upset.\n\nYour child has a condition called Goldenhar syndrome. This is something your child was born with. It can affect how the head and face grow. Your child also has low blood count. This is called anemia. It may be from not having enough iron.\n\nYour child had trouble breathing in food or liquid before. This is called aspiration. It led to a lung problem called pneumonia. Doctors will watch your child closely.",
+  "medication_rationale": "Pepcid:\nThis medicine was given to help your child's stomach problems. It reduces the amount of acid in the stomach. Your child might not notice much as this medicine works. Some children get headaches. Your doctor wants you to watch for signs of a bad reaction. Call your doctor if your child has trouble breathing.\n\nReglan:\nThis medicine was given to help your child's bowels move more easily. This can help if your child has a blockage. Your child might feel less sick to their stomach. Some children get sleepy or dizzy. Watch for movements that are jerky or uncontrolled. Call your doctor if these happen or if your child gets a rash.\nImportant: Do not stop taking this medicine without calling your doctor first.",
+  "recovery_trajectory": "**Week 1:**\n- Your child may feel uncomfortable and have a decreased appetite.\n- Keep your child\u2019s head elevated.\n- Watch for increased redness or drainage around the G-tube.\n- Make sure your child is taking their feeds through the G-tube and J-tube as directed.\n- Your child\u2019s goal this week is to tolerate feeds without spitting up.\n- Call your doctor if your child has a fever over 100.4F.\n- Call your doctor if your child seems more sleepy than usual.\n\n**Week 2:**\n- Your child may start to show more interest in feeding.\n- Continue to feed your child as directed by the doctor.\n- Monitor the G-tube site for any signs of infection.\n- Watch for any changes in your child's breathing or stool.\n- Your child\u2019s goal this week is to have stable bowel sounds.\n- Call your doctor if your child has vomiting or diarrhea.\n- Call your doctor if your child\u2019s tummy becomes very hard.\n\n**Week 3:**\n- Your child might show slightly more energy this week.\n- Continue to follow the feeding plan for the G-tube and J-tube.\n- Keep the area around the G-tube clean and dry.\n- Ensure the dressing on the J-tube is clean and secure.\n- Your child\u2019s goal this week is to maintain a stable weight.\n- Call your doctor if you see blood in your child's stool.\n- Call your doctor if your child has trouble breathing.\n\n**Week 4:**\n- Your child may be able to tolerate slightly larger feeds.\n- Continue with the prescribed tube feedings.\n- Watch the G-tube site for any signs of irritation or leakage.\n- Make sure your child\u2019s bowel sounds are consistent.\n- Your child\u2019s goal this week is to show consistent signs of comfort during feeds.\n- Call your doctor if your child develops a rash or skin irritation.\n- Call your doctor if your child has any signs of poor feeding.\n\n**When to expect improvement:**\n- Improvement is usually seen over several weeks.\n- Continue all prescribed tube feedings carefully.\n- Monitor your child closely for any new symptoms.\n- Follow up with your doctor as scheduled.\n- Patience is key as your child recovers.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Your child cannot breathe: This is an emergency. Call 911 now.\n- Your child is unresponsive: Call 911 right away.\n- Your child has a seizure: Call 911 at once.\n- Your child is bleeding badly: Call 911 if it won't stop.\n- Your child shows stroke signs: Face droops or arm weakness. Call 911 now.\n- Your child has chest pain: Call 911 if it is severe.\n- Your child has a severe allergic reaction: Call 911 if they can't breathe.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Your child has a high fever: Over 101 degrees F. This needs care.\n- Your child cannot keep fluids down: For 12 hours or more. They need fluids.\n- Your child's belly is very hard: And they have bad pain. This needs checking.\n- Your child has a wound with red streaks: Or pus. This looks infected.\n- Your child has significant swelling in one leg: With pain. This could be a clot.\n- Your child is very confused: Or not acting right. This is new.\n- Your child fell hard: And may have hurt themselves.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Your child has mild pain: That is slowly getting better.\n- Your child has mild nausea: Without any vomiting.\n- Your child is healing slowly: But has no signs of infection.\n- You have questions about medicine: Talk to your doctor's office.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.11,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.4,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.79,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 2.81,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "caregiver",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What specific symptoms mean I need to go to the ER right away?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not list warning signs to watch for at home.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does it mean that I have gastroenteritis or a bowel obstruction?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain my sickness in simple terms.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What is Pepcid for and when do I take it?",
+        "answered_by_doc": false,
+        "gap_summary": "I do not know what this medicine is for or how to take it.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What is Reglan for and why is it changed?",
+        "answered_by_doc": false,
+        "gap_summary": "I do not know what this medicine is for or why it changed.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What kind of doctor do I see for my continued treatment?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say who to call to make an appointment.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What foods or drinks should I avoid with my stomach problems?",
+        "answered_by_doc": false,
+        "gap_summary": "I do not know what foods or drinks to stay away from.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "This patient is confused about their sickness. They need to know what signs mean an emergency.",
+    "fk_grade": 3.73,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Pepcid",
+        "questions": [
+          "What is this medicine for?",
+          "How often should I take it?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Reglan",
+        "questions": [
+          "What is this medicine for?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "continued diagnosis and treatment",
+        "questions": [
+          "Who should I call to schedule this?",
+          "What should I bring to the appointment?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Gastroenteritis versus bowel obstruction",
+        "questions": [
+          "What does this sickness mean for me?",
+          "What happened in my body?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Severe gastroesophageal reflux",
+        "questions": [
+          "What should I do about heartburn?",
+          "What foods should I avoid?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "Vomiting",
+        "questions": [
+          "How much vomiting is too much?",
+          "When should I call the doctor?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_041",
+    "source_pdf": "test-data/mtsamples/mtsamples_041.pdf",
+    "generated_at": "2026-08-25T13:05:29",
+    "elapsed_seconds": 23.1
+  }
+}

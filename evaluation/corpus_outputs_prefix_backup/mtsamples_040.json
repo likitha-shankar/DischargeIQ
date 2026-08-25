@@ -1,0 +1,345 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Acute gastroenteritis, resolved",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "DISCHARGE DIAGNOSES,1. Acute gastroenteritis, resolved."
+    },
+    "secondary_diagnoses": [
+      "Gastrointestinal bleed and chronic inflammation of the mesentery of unknown etiology",
+      "diabetes type 2",
+      "dyslipidemia",
+      "hypertension",
+      "hemorrhoids",
+      "chronic obstructive pulmonary disease",
+      "left lower lobe calcified granuloma"
+    ],
+    "procedures_performed": [
+      "trop x1 done, which was negative",
+      "ECG showed to be of normal sinus rhythm",
+      "stool study was done which showed few white blood cells, negative for Clostridium difficile and moderate amount of occult blood and moderate amount of RBCs",
+      "Amylase and lipase were also done which were normal",
+      "LDH and CRP was also done which are also normal",
+      "LFTs were done which were also normal as well"
+    ],
+    "medications": [
+      {
+        "name": "Prandin",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "He can resume his home medications of Prandin, Actos, Lipitor, Glucophage, Benicar, and Advair."
+        }
+      },
+      {
+        "name": "Actos",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "He can resume his home medications of Prandin, Actos, Lipitor, Glucophage, Benicar, and Advair."
+        }
+      },
+      {
+        "name": "Lipitor",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "He can resume his home medications of Prandin, Actos, Lipitor, Glucophage, Benicar, and Advair."
+        }
+      },
+      {
+        "name": "Glucophage",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "He can resume his home medications of Prandin, Actos, Lipitor, Glucophage, Benicar, and Advair."
+        }
+      },
+      {
+        "name": "Benicar",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "He can resume his home medications of Prandin, Actos, Lipitor, Glucophage, Benicar, and Advair."
+        }
+      },
+      {
+        "name": "Advair",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "He can resume his home medications of Prandin, Actos, Lipitor, Glucophage, Benicar, and Advair."
+        }
+      },
+      {
+        "name": "Prednisone",
+        "dose": "15 mg p.o.",
+        "frequency": "for seven days",
+        "duration": "for 4 weeks",
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "We will also start him on a tapered dose of prednisone for 4 weeks. We will start him on 15 mg p.o. for seven days."
+        }
+      },
+      {
+        "name": "Prednisone",
+        "dose": "40 mg",
+        "frequency": null,
+        "duration": "for 1 week",
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "Then, week #2, we will start him on 40 mg for 1 week."
+        }
+      },
+      {
+        "name": "Prednisone",
+        "dose": "30 mg",
+        "frequency": null,
+        "duration": "for 1 week",
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "Then, week #3, we will start him on 30 mg for 1 week,"
+        }
+      },
+      {
+        "name": "Prednisone",
+        "dose": "20 mg",
+        "frequency": null,
+        "duration": "for 1 week",
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "and then, 20 mg for 1 week, and then finally we will stop."
+        }
+      }
+    ],
+    "follow_up_appointments": [],
+    "activity_restrictions": [],
+    "dietary_restrictions": [
+      "clear liquid diet",
+      "diet was advanced slowly"
+    ],
+    "red_flag_symptoms": [],
+    "discharge_condition": "resolved",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "Acute gastroenteritis, resolved."
+    },
+    "extraction_warnings": [
+      "Conflicting doses for Prednisone: found 60mg, 15mg in document. Verify against original."
+    ]
+  },
+  "diagnosis_explanation": "Your stomach and gut had a sudden problem. This is now better.\n\nYou also have other health issues. You have bleeding in your gut. Your body also has long lasting swelling in the tissue that holds your bowels. The cause is not known. You also have diabetes. This means your body has trouble using sugar. You have high cholesterol too. Your blood pressure is high. You have swollen veins in your anus. You also have trouble breathing with your lungs. A small spot on your left lung is hardened.",
+  "medication_rationale": "Prandin:\nThis medicine helps control your blood sugar.\nIt is given because your diabetes is not well controlled.\nYou may notice your thirst or urination decrease.\nCall your doctor if you get a very fast heartbeat.\nAlso call if you feel very weak or shaky.\n\nActos:\nThis medicine helps control your blood sugar.\nIt is given because your diabetes is not well controlled.\nYou may notice your thirst or urination decrease.\nCall your doctor if you get very swollen feet or ankles.\nAlso call if you gain weight very quickly.\n\nLipitor:\nThis medicine helps lower your cholesterol.\nHigh cholesterol can hurt your heart and blood vessels.\nYou may notice fewer headaches.\nCall your doctor if you get muscle pain or weakness.\nAlso call if your skin or eyes turn yellow.\n\nGlucophage:\nThis medicine helps control your blood sugar.\nIt is given because your diabetes is not well controlled.\nYou may notice less nausea or an upset stomach.\nCall your doctor right away if you have trouble breathing.\nAlso call if your stomach hurts a lot.\n\nBenicar:\nThis medicine helps lower your blood pressure.\nHigh blood pressure can harm your heart and blood vessels.\nYou may feel less dizzy.\nCall your doctor if your face or lips swell.\nAlso call if you feel very lightheaded.\n\nAdvair:\nThis medicine helps you breathe more easily.\nIt opens up your airways in the lungs.\nYou may feel less short of breath.\nCall your doctor if your breathing gets worse.\nAlso call if you get a rash or hives.\n\nPrednisone 15 mg:\nThis medicine is a steroid that reduces swelling.\nIt is given to help with inflammation.\nYou may feel more energetic.\nYou might get hungry more often.\nCall your doctor if you have mood changes.\nAlso call if your blood sugar gets too high.\n\nPrednisone 40 mg:\nThis medicine is a steroid that reduces swelling.\nIt is given to help with inflammation.\nYou may feel more energetic.\nYou might get hungry more often.\nCall your doctor if you have mood changes.\nAlso call if your blood sugar gets too high.\n\nPrednisone 30 mg:\nThis medicine is a steroid that reduces swelling.\nIt is given to help with inflammation.\nYou may feel more energetic.\nYou might get hungry more often.\nCall your doctor if you have mood changes.\nAlso call if your blood sugar gets too high.\n\nPrednisone 20 mg:\nThis medicine is a steroid that reduces swelling.\nIt is given to help with inflammation.\nYou may feel more energetic.\nYou might get hungry more often.\nCall your doctor if you have mood changes.\nAlso call if your blood sugar gets too high.",
+  "recovery_trajectory": "**Week 1:**\n- You will likely feel weak and tired this week.\n- Focus on drinking clear liquids.\n- Eat only clear liquids for now.\n- This includes water, broth, and clear juices.\n- Call your doctor if you have severe stomach pain.\n- Call your doctor if you cannot keep liquids down.\n- Your goal this week is to stay hydrated with clear liquids.\n\n**Week 2:**\n- You may start to feel a little more energy.\n- Slowly add soft, bland foods to your diet.\n- Examples include toast, crackers, and rice.\n- Avoid dairy, fatty foods, and spicy foods.\n- Call your doctor if your stomach pain gets worse.\n- Call your doctor if you see blood in your stool.\n- Your goal this week is to eat small amounts of bland food.\n\n**Week 3:**\n- Your energy levels should continue to improve.\n- You can gradually add more foods back.\n- Continue to avoid very fatty or spicy foods.\n- You can start light walking around your home.\n- Call your doctor if you have ongoing vomiting.\n- Call your doctor if you have frequent watery stools.\n- Your goal this week is to walk for 5 minutes twice a day.\n\n**Week 4:**\n- You should feel much stronger this week.\n- You can likely return to most normal foods.\n- Listen to your body and eat what feels good.\n- Continue to avoid heavy or greasy meals for now.\n- Call your doctor if your stomach still feels very upset.\n- Your goal this week is to walk for 10 minutes daily.\n\n**When to expect improvement:**\n- Most people feel much better after a few weeks.\n- Keep your diet light if your stomach is sensitive.\n- You can increase your activity as you feel stronger.\n- Your recovery should continue to progress steadily.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- No symptoms in this tier for your diagnosis.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- No symptoms in this tier for your diagnosis.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Questions about your medicine: Your doctor can explain doses.\n- Trouble breathing when active: Your COPD may be worse.\n- Blood sugar too high: This could make you feel sick.\n- Blood sugar too low: This could make you feel dizzy.\n- Mild belly pain continues: This could be inflammation returning.\n- Nausea but no vomiting: You might feel better soon.\n- Wounds healing slowly: Check for signs of infection.\n- Hemorrhoid pain continues: You may need creams or other care.\n- Feeling tired: This can happen when you recover.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.12,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.38,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.04,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 5.0,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Conflicting doses for Prednisone: found 60mg, 15mg in document. Verify against original.",
+    "No red-flag symptoms extracted.",
+    "No follow-up appointments extracted.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "I see I need to take Prednisone, but there are three different doses listed. How much should I take and for how long?",
+        "answered_by_doc": false,
+        "gap_summary": "Prednisone dosing instructions are confusing and unclear.",
+        "severity": "critical"
+      },
+      {
+        "question": "What happens if I miss a dose of my Prednisone while I'm taking it for a week?",
+        "answered_by_doc": false,
+        "gap_summary": "Instructions missing for a missed dose of Prednisone.",
+        "severity": "critical"
+      },
+      {
+        "question": "It says I have COPD but doesn't say if I should worry about my breathing getting worse or what to do if it does.",
+        "answered_by_doc": false,
+        "gap_summary": "No warning signs listed for COPD symptoms.",
+        "severity": "critical"
+      },
+      {
+        "question": "The paper says I have a stomach bug that's gone, but also that I had bleeding inside me and my insides are inflamed for no reason. What does all that mean for me?",
+        "answered_by_doc": false,
+        "gap_summary": "Diagnosis means unclear and scary terms used in the explanation.",
+        "severity": "moderate"
+      },
+      {
+        "question": "The paper says I have diabetes, high blood pressure, and high cholesterol. Does this mean I need to change what I eat or drink now?",
+        "answered_by_doc": false,
+        "gap_summary": "No specific diet advice given for chronic conditions.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What side effects should I watch out for with Prednisone since I'm starting a new dose?",
+        "answered_by_doc": false,
+        "gap_summary": "No side effects listed for new medication Prednisone.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says to follow up with my doctor, but doesn't say when or how to make the appointment.",
+        "answered_by_doc": false,
+        "gap_summary": "Follow-up appointment details are missing.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "People with many health problems will be confused. The instructions for Prednisone are the biggest worry.",
+    "fk_grade": 7.92,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Prandin",
+        "questions": [
+          "What is this medication for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Actos",
+        "questions": [
+          "What is this medication for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lipitor",
+        "questions": [
+          "What is this medication for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Glucophage",
+        "questions": [
+          "What is this medication for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Benicar",
+        "questions": [
+          "What is this medication for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Advair",
+        "questions": [
+          "What is this medication for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Prednisone",
+        "questions": [
+          "How much Prednisone do I take each day?",
+          "What if I miss a dose?",
+          "What side effects should I look for?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Gastrointestinal bleed and chronic inflammation of the mesentery of unknown etiology",
+        "questions": [
+          "What caused my insides to bleed?",
+          "What does 'unknown etiology' mean for me?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "diabetes type 2",
+        "questions": [
+          "What foods should I avoid with diabetes?",
+          "How often should I check my sugar?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "hypertension",
+        "questions": [
+          "What foods should I avoid with high blood pressure?",
+          "What is my target blood pressure?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "chronic obstructive pulmonary disease",
+        "questions": [
+          "What signs mean my breathing is getting worse?",
+          "What should I do if I cough up more mucus?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "clear liquid diet",
+        "questions": [
+          "How long should I stay on clear liquids?",
+          "What can I drink besides water?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_040",
+    "source_pdf": "test-data/mtsamples/mtsamples_040.pdf",
+    "generated_at": "2026-08-16T12:31:56",
+    "elapsed_seconds": 11.3
+  }
+}

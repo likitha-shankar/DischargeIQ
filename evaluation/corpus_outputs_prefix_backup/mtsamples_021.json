@@ -1,0 +1,197 @@
+{
+  "extraction": {
+    "patient_name": "Ms. ABC",
+    "patient_name_source": {
+      "page": 1,
+      "text": "Ms. ABC is a pleasant 66-year-old Caucasian female who first palpated a mass in the left"
+    },
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Leiomyosarcoma",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "1. Leiomyosarcoma."
+    },
+    "secondary_diagnoses": [
+      "History of pulmonary embolism",
+      "History of subdural hematoma",
+      "Pancytopenia",
+      "History of pneumonia"
+    ],
+    "procedures_performed": [
+      "Cycle six of CIVI-CAD (Cytoxan, Adriamycin, and DTIC) from 07/22/2008 to 07/29/2008.",
+      "CTA, chest PE study showing no evidence for pulmonary embolism.",
+      "Head CT showing no evidence of acute intracranial abnormalities.",
+      "Sinus CT, normal mini-CT of the paranasal sinuses.",
+      "Leiomyosarcoma, the patient was admitted to Hem/Onco B Service under attending Dr.\nXYZ for cycle six of continuous IV infusion Cytoxan, Adriamycin, and DTIC, which she\ntolerated well.",
+      "History of pulmonary embolism. Upon admission, the patient reported an approximate\ntwo-week history of dyspnea on exertion and some mild chest pain. She underwent a CTA,",
+      "which showed no evidence of pulmonary embolism and the patient was started on\nprophylactic doses of Lovenox at 40 mg a day. She had no further complaints throughout the\nhospitalization with any shortness of breath or chest pain.",
+      "History of subdural hematoma, also on admission the patient noted some mild intermittent\nheadaches that were fleeting in nature, several a day that would resolve on their own. Her\nheadaches were not responding to pain medication and so on 07/24/2008, we obtained a\nhead CT that showed no evidence of acute intracranial abnormalities. The patient also had a\nhistory of sinusitis and so a sinus CT scan was obtained, which was normal.",
+      "Pancytopenia. On admission, the patient's white blood count was 3.4, hemoglobin 11.3,\nplatelet count 82, and ANC of 2400. The patient's counts were followed throughout admission.\nShe did not require transfusion of red blood cells or platelets; however, on 07/26/2008 her\nANC did dip to 900 and she was placed on neutropenic diet. At discharge her ANC is back up\nto 1100 and she is taken off neutropenic diet. Her white blood cell count at discharge was 1.4\nand her hemoglobin was 11.2 with a platelet count of 140.",
+      "History of pneumonia. During admission, the patient did not exhibit any signs or symptoms\nof pneumonia."
+    ],
+    "medications": [
+      {
+        "name": "Lovenox",
+        "dose": "40 mg",
+        "frequency": "a day",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 2,
+          "text": "which showed no evidence of pulmonary embolism and the patient was started on\nprophylactic doses of Lovenox at 40 mg a day."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "2008-08-05",
+        "reason": "lab work",
+        "source": {
+          "page": 2,
+          "text": "The patient will have lab work at Dr. XYZ on 08/05/2008 and she will also return to the cancer\ncenter on 08/12/2008 at 10:20 a.m."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "2008-08-12",
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "The patient will have lab work at Dr. XYZ on 08/05/2008 and she will also return to the cancer\ncenter on 08/12/2008 at 10:20 a.m."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "Resume same activity."
+    ],
+    "dietary_restrictions": [
+      "Regular and less neutropenic."
+    ],
+    "red_flag_symptoms": [
+      "fevers greater than 100.5"
+    ],
+    "discharge_condition": "Stable",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "Home in stable condition."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Leiomyosarcoma is a type of cancer. It starts in muscle tissue. It can grow in many parts of the body.\n\nYou have a history of blood clots in your lungs. This is called a pulmonary embolism. You also had bleeding in your brain. This is called a subdural hematoma. You have a low number of blood cells. This is called pancytopenia. You also had an infection in your lungs. This is called pneumonia.",
+  "medication_rationale": "Lovenox 40 mg:\nThis medicine is a blood thinner. It helps stop blood clots from forming. This can be important when you have cancer. You might notice some bruising. This is common and usually not a problem. Call your doctor if you see any blood in your urine or stool.\n\nImportant: Do not stop taking this medicine without calling your doctor first.",
+  "recovery_trajectory": "**Week 1:**\n- You may feel tired after your treatment.\n- You might have some mild nausea or a headache.\n- Rest when you feel you need to.\n- You can eat your regular diet.\n- Watch for fevers higher than 100.5 degrees Fahrenheit.\n- Your goal this week is to rest and recover at home.\n- Call your doctor if you have a fever over 100.5.\n\n**Week 2:**\n- You may start to feel a little more energy this week.\n- Continue to rest when you are tired.\n- Eat your regular diet.\n- Your headache should continue to get better.\n- Watch for fevers over 100.5 degrees Fahrenheit.\n- Your goal this week is to do short walks around your home.\n- Call your doctor if your headaches get worse.\n\n**Week 3:**\n- You might feel able to do a few more light activities.\n- Resume your normal daily activities as tolerated.\n- Eat your regular diet.\n- You should not have shortness of breath or chest pain.\n- Watch for fevers over 100.5 degrees Fahrenheit.\n- Your goal this week is to increase your walking time slightly.\n- Call your doctor if you have new shortness of breath or chest pain.\n\n**Week 4:**\n- Your energy levels should continue to improve.\n- You can gradually return to your usual activities.\n- Keep eating your regular diet.\n- Your headaches should be gone or very mild.\n- Watch for fevers over 100.5 degrees Fahrenheit.\n- Your goal this week is to walk for about 15 minutes each day.\n- Call your doctor if you have a fever over 100.5.\n\n**When to expect improvement:**\n- You should feel better each week.\n- Healing takes time and patience.\n- Keep following up with your doctor.\n- Report any new or worsening symptoms to your doctor.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Trouble breathing: Your body needs oxygen now.\n- Chest pain: Your heart needs help now.\n- Uncontrolled bleeding: Bleeding needs to stop right away.\n- Signs of stroke: Face droops. Arm feels weak. Trouble speaking.\n- Sudden confusion: This can be a serious sign.\n- Loss of consciousness: You passed out and will not wake.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fevers greater than 100.5: You may have an infection.\n- Bleeding that will not stop: Bleeding needs urgent care.\n- Bad headache with stiff neck: This can be serious.\n- Vomiting blood or it looks like coffee grounds: This is an emergency.\n- Black, tarry stools: This needs urgent care now.\n- New or worsening leg swelling: This could be a blood clot.\n- Trouble breathing or shortness of breath: This needs check now.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Questions about your medicine: Your nurse can help you plan.\n- Feeling tired or weak: This can be part of your problem.\n- Not wanting to eat: This can happen with your illness.\n- Mild nausea: You feel a little sick to your stomach.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.32,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.42,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.05,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 3.76,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Missing discharge date."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What happens if I forget to take my Lovenox or miss a dose?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not explain missed dose instructions.",
+        "severity": "critical"
+      },
+      {
+        "question": "What do I do if I get a fever higher than 100.5?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not say what action to take for fever.",
+        "severity": "critical"
+      },
+      {
+        "question": "What is leiomyosarcoma and why did I have it?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not explain diagnosis in simple terms.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Who do I call to make my follow-up appointment on August 12th?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not say who to call for appointment.",
+        "severity": "moderate"
+      },
+      {
+        "question": "The paper says \"less neutropenic\" diet. What foods should I eat or not eat?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not explain specific diet foods to avoid.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Can I do my usual activities or do I need to be careful with anything?",
+        "answered_by_doc": false,
+        "gap_summary": "Document does not explain specific activity limits.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "This document is hard to understand. It is hard to know what to do. A cancer patient needs more help.",
+    "fk_grade": 6.32,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Lovenox 40 mg",
+        "questions": [
+          "What should I do if I miss a dose?",
+          "Are there any foods I cannot eat with this?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Lab work - 2008-08-05",
+        "questions": [
+          "What lab tests are being done?",
+          "Do I need to fast before this?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "2008-08-12",
+        "questions": [
+          "Who should I call to book this appointment?",
+          "What should I bring to this visit?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "fevers greater than 100.5",
+        "questions": [
+          "What symptoms mean I need to go to the ER?",
+          "When should I call the doctor's office?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_021",
+    "source_pdf": "test-data/mtsamples/mtsamples_021.pdf",
+    "generated_at": "2026-08-15T13:16:16",
+    "elapsed_seconds": 7.2
+  }
+}

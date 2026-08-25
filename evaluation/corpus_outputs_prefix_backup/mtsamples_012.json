@@ -1,0 +1,165 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Right tibial plateau fracture",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "ADMISSION DIAGNOSIS:\nRight tibial plateau fracture."
+    },
+    "secondary_diagnoses": [
+      "medial meniscus tear on the right side",
+      "hypothyroid",
+      "diabetes mellitus type 2",
+      "bronchitis",
+      "congestive heart failure"
+    ],
+    "procedures_performed": [
+      "Open reduction and internal fixation (ORIF) of right Schatzker III tibial plateau fracture with partial medial meniscectomy."
+    ],
+    "medications": [
+      {
+        "name": "Lasix",
+        "dose": "80 mg",
+        "frequency": "every morning",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "Resume home medications, but increase Lasix to 80 mg every morning,"
+        }
+      },
+      {
+        "name": "Lovenox",
+        "dose": "30 mg",
+        "frequency": "daily",
+        "duration": "x2 weeks",
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "Lovenox 30 mg subcu daily x2 weeks,"
+        }
+      },
+      {
+        "name": "Vicodin",
+        "dose": "5/500 mg",
+        "frequency": "one to two every four to six hours",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "Vicodin 5/500 mg one to two every four to six hours p.r.n. pain,"
+        }
+      },
+      {
+        "name": "Combivent nebulizer",
+        "dose": null,
+        "frequency": "every four hours while awake",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "Combivent nebulizer every four hours while awake for difficulty breathing,"
+        }
+      },
+      {
+        "name": "Zithromax",
+        "dose": "250 mg",
+        "frequency": "daily",
+        "duration": "one week",
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "Zithromax one week 250 mg daily,"
+        }
+      },
+      {
+        "name": "Guaifenesin Long-Acting",
+        "dose": "one",
+        "frequency": "twice daily twice daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "and guaifenesin long-acting one twice a day b.i.d."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. Y",
+        "specialty": null,
+        "date": "7 to 10 days",
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "Follow up with Dr. Y in 7 to 10 days in office."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "Nonweightbearing to the right lower extremity.",
+      "The patient is to continue CPM machine while in bed along with antiembolic stockings."
+    ],
+    "dietary_restrictions": [
+      "Regular."
+    ],
+    "red_flag_symptoms": [],
+    "discharge_condition": "Stable",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "Stable."
+    },
+    "extraction_warnings": [
+      "Document says continue home meds but no medication list provided"
+    ]
+  },
+  "diagnosis_explanation": "You have a broken bone in your lower leg. This is your right shin bone. It is near your knee joint. You also tore a piece of cartilage. This is on the inside of your right knee.\n\nYou have a thyroid problem. Your thyroid gland is in your neck. It helps your body use energy. You also have diabetes. This means your body has trouble using sugar for energy. Bronchitis means your airways are swollen. Congestive heart failure means your heart does not pump blood as well as it should.",
+  "medication_rationale": "Lasix 80 mg:\nThis medicine helps your body get rid of extra fluid.\nIt can help reduce swelling from your injury.\nYou may urinate more often. This is normal.\nCall your doctor if you feel very dizzy.\nAlso call if you get muscle cramps.\nCall right away if your heart beats very fast.\n\nLovenox 30 mg:\nThis medicine helps prevent blood clots.\nIt is given because you are not moving your leg much.\nYou may notice some bruising or bleeding at the injection spot.\nCall your doctor if you have severe headaches or nosebleeds.\nAlso call if you notice blood in your urine or stool.\n\nVicodin 5/500 mg:\nThis medicine helps control pain from your injury.\nIt is a pain reliever.\nYou may feel sleepy or dizzy.\nYou may also get a dry mouth or feel constipated.\nCall your doctor if you have trouble breathing or feel very confused.\n\nCombivent nebulizer:\nThis medicine helps you breathe more easily.\nIt relaxes the muscles in your airways.\nYou may feel your heart beat faster.\nYou might also feel shaky or get a headache.\nCall your doctor if your breathing gets worse.\n\nZithromax 250 mg:\nThis medicine helps fight any infections.\nYou were given this medicine to help prevent infection.\nYou may get an upset stomach or diarrhea.\nCall your doctor if you get a severe rash or hives.\nAlso call if you have watery or bloody stools.\n\nGuaifenesin Long-Acting:\nThis medicine helps thin mucus in your airways.\nIt can make it easier to cough up mucus.\nYou may get a headache or feel dizzy.\nCall your doctor if you get a rash.",
+  "recovery_trajectory": "**Week 1:**\n- You will likely feel tired and have some pain.\n- Keep your right leg still. Do not put any weight on it.\n- Use your CPM machine as directed when in bed.\n- Wear your anti-swelling stockings on your legs.\n- Eat your regular diet.\n- Call your doctor if you have sudden chest pain or trouble breathing.\n- Your goal this week is to rest and follow all instructions.\n\n**Week 2:**\n- Pain may start to lessen. You might still feel quite tired.\n- Keep your right leg nonweightbearing.\n- Continue using the CPM machine and wearing your stockings.\n- Eat your regular diet.\n- Call your doctor if you see new swelling or redness in your leg.\n- Your goal this week is to get comfortable with resting and moving in bed.\n\n**Week 3:**\n- You may start to feel a little more energy.\n- You still cannot put weight on your right leg.\n- Keep using the CPM machine and wearing your stockings.\n- Eat your regular diet.\n- Call your doctor if you have a fever over 101 degrees Fahrenheit.\n- Your goal this week is to manage your pain with rest and medicine.\n\n**Week 4:**\n- You might feel a bit more comfortable. Fatigue may decrease.\n- Continue to keep all weight off your right leg.\n- Keep wearing your anti-swelling stockings.\n- Eat your regular diet.\n- Call your doctor if you notice any clear fluid or pus from your incision.\n- Your goal this week is to do gentle leg exercises as shown by your doctor.\n\n**When to expect improvement:**\n- You will likely feel gradual improvement over many weeks.\n- Continue to follow all weightbearing and activity limits.\n- Keep up with wearing your anti-swelling stockings.\n- Healing takes time and patience.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- You cannot breathe: Your body needs oxygen right now.\n- Chest pain that will not stop: Your heart needs help now.\n- Face drooping or arm weakness: These are stroke signs. Minutes matter.\n- Uncontrolled bleeding that will not stop: Call 911 for help.\n- You lose consciousness or faint: Call 911 right away.\n- Seizure happens: Call 911 and stay with them.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever over 101 degrees F: You may have an infection.\n- Wound looks red and angry: Streaks mean infection is spreading.\n- Pain is severe and not helped: Get help for bad pain.\n- Leg swells badly with pain: This could be a blood clot.\n- Cannot keep any fluids down: You need help to stay hydrated.\n- Confusion or disorientation starts: This sign needs medical review.\n- You fall and get hurt: Get checked for a new injury.\n- Weight gain of 2+ lbs daily: Fluid may be building up.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild pain that is slowly better: This is normal healing.\n- Wound healing slower than expected: Watch for any new signs.\n- Mild swelling without pain: This can happen while you heal.\n- Nausea without vomiting: Try sipping small amounts of fluid.\n- Fatigue that is slowly better: Rest and take it easy.\n- Questions about your medicine: Your doctor can explain doses.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 2.94,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.5,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.33,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.53,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document says continue home meds but no medication list provided",
+    "No red-flag symptoms extracted.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [],
+    "overall_gap_score": 0,
+    "simulator_summary": "",
+    "fk_grade": 0.0,
+    "passes": false,
+    "caregiver_questions": []
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_012",
+    "source_pdf": "test-data/mtsamples/mtsamples_012.pdf",
+    "generated_at": "2026-08-16T12:23:16",
+    "elapsed_seconds": 8.3
+  }
+}

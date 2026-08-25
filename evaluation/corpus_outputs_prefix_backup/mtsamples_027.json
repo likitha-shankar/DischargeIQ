@@ -1,0 +1,138 @@
+{
+  "extraction": {
+    "patient_name": "baby boy Caucasian",
+    "patient_name_source": {
+      "page": 1,
+      "text": "This is a 14-month-old baby boy Caucasian who came in with presumptive diagnosis of"
+    },
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Kawasaki disease",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "ADMITTING DIAGNOSIS:\nKawasaki disease."
+    },
+    "secondary_diagnoses": [
+      "Kawasaki disease, resolving"
+    ],
+    "procedures_performed": [
+      "Echocardiogram was also done, which was negative."
+    ],
+    "medications": [
+      {
+        "name": "Aspirin high dose",
+        "dose": "340 mg",
+        "frequency": "q.6h. for 1 day",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "Aspirin high dose 340 mg q.6h. for 1 day and then aspirin low dose 40 mg q.d. for 14 days"
+        }
+      },
+      {
+        "name": "Aspirin Low Dose",
+        "dose": "40 mg",
+        "frequency": "once daily",
+        "duration": "for 14 days",
+        "status": "changed",
+        "source": {
+          "page": 1,
+          "text": "Aspirin high dose 340 mg q.6h. for 1 day and then aspirin low dose 40 mg q.d. for 14 days"
+        }
+      },
+      {
+        "name": "Prevacid",
+        "dose": "15 mg",
+        "frequency": "once daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "and then Prevacid also to prevent his GI from aspirin 15 mg p.o. once a day."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "2 to 3 days",
+        "reason": "follow by his primary doctor",
+        "source": {
+          "page": 1,
+          "text": "He will be followed by his primary doctor in 2 to 3 days."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": "Cardiology",
+        "date": "4 to 6 weeks",
+        "reason": "echo followup",
+        "source": {
+          "page": 1,
+          "text": "Cardiology for echo followup in 4 to 6 weeks"
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "Ad-lib."
+    ],
+    "dietary_restrictions": [
+      "PO ad-lib."
+    ],
+    "red_flag_symptoms": [
+      "rashes",
+      "fevers"
+    ],
+    "discharge_condition": "resolving",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "DISCHARGE DIAGNOSIS:\nKawasaki disease, resolving."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your child was diagnosed with Kawasaki disease. This is a condition that can cause swelling in some parts of the body. It can affect blood vessels. The swelling can make the blood vessels wider. This can lead to problems with blood flow. Your child's Kawasaki disease is now getting better.",
+  "medication_rationale": "Aspirin high dose 340 mg q.6h. for 1 day:\nThis medicine helps reduce fever and swelling. It is used for your child's Kawasaki disease. Your child may have some stomach upset. This is a common side effect. Call your doctor if your child has trouble breathing or a severe rash.\n\nAspirin Low Dose 40 mg once daily:\nThis medicine helps prevent blood clots. It is important for your child's heart health after Kawasaki disease. Your child may have some stomach upset. This is a common side effect. Call your doctor if your child has trouble breathing or a severe rash.\nImportant: Do not stop taking this medicine without calling your doctor first.\n\nPrevacid 15 mg once daily:\nThis medicine helps protect your child's stomach. It is used because your child is taking aspirin. Your child may have mild diarrhea or gas. These are common and not usually serious. Call your doctor if your child has severe stomach pain or vomiting.",
+  "recovery_trajectory": "**Week 1:**\n- Your child may feel tired but should be able to do normal activities at home.\n- Your child can eat and drink as much as they want.\n- Watch for new rashes on your child's skin.\n- Check your child's temperature for fever.\n- Call your doctor if your child develops a fever or a new rash.\n- Your child's goal is to rest and recover at home.\n\n**Week 2:**\n- Your child may start to feel more like themselves.\n- Continue to let your child guide their activity level.\n- Keep watching for rashes and fevers.\n- Encourage your child to drink fluids.\n- Call your doctor if your child has a fever or a new rash.\n- Your child's goal is to return to usual routines slowly.\n\n**Week 3:**\n- Your child should have more energy this week.\n- Let your child do activities as they feel up to it.\n- Keep an eye out for any new rashes.\n- Make sure your child is drinking enough.\n- Contact your doctor if a fever appears.\n- Your child's goal is to be active at home without getting too tired.\n\n**Week 4:**\n- Your child is likely feeling much better.\n- Your child can do most normal activities.\n- Watch for any skin rashes or fevers, though this is less common now.\n- Offer a variety of healthy foods and drinks.\n- Call your doctor if a fever or rash returns.\n- Your child's goal is to enjoy playing and feel well.\n\n**When to expect improvement:**\n- Your child's condition is resolving.\n- Most children feel much better within a few weeks.\n- Continue to watch for the red flag symptoms.\n- Follow up with your doctor as scheduled.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Rash that is spreading fast: Your child could have a serious reaction.\n- Fever that does not come down: Your child needs urgent care.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Rash with blisters or peeling: This needs to be seen by a doctor.\n- Fever above 101 degrees F: Your child may have an infection.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Rash that is mild and not spreading: Watch it closely.\n- Mild fever that is going away: Your child is getting better.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 4.65,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.97,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 3.91,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.08,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Missing discharge date."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "unknown",
+  "audience": "caregiver",
+  "patient_simulator": {
+    "missed_concepts": [],
+    "overall_gap_score": 0,
+    "simulator_summary": "",
+    "fk_grade": 0.0,
+    "passes": false,
+    "caregiver_questions": []
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_027",
+    "source_pdf": "test-data/mtsamples/mtsamples_027.pdf",
+    "generated_at": "2026-08-15T13:20:10",
+    "elapsed_seconds": 5.8
+  }
+}

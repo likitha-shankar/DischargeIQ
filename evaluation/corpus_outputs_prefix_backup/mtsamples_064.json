@@ -1,0 +1,287 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Symptomatic cholelithiasis",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "DISCHARGE DIAGNOSIS:\nSymptomatic cholelithiasis."
+    },
+    "secondary_diagnoses": [],
+    "procedures_performed": [
+      "The patient underwent a procedure."
+    ],
+    "medications": [
+      {
+        "name": "Ciprofloxacin",
+        "dose": null,
+        "frequency": "for 3 days",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "I will give her prescription for ciprofloxacin that she can take for 3 days presumptively"
+        }
+      },
+      {
+        "name": "Omeprazole",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "and I have discharged her home with omeprazole and Colace to take over-the-counter for constipation"
+        }
+      },
+      {
+        "name": "Colace",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "and I have discharged her home with omeprazole and Colace to take over-the-counter for constipation"
+        }
+      },
+      {
+        "name": "Percocet",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "and we will send her home with Percocet for pain."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": "We will follow up on both urinalysis and cultures.",
+        "source": {
+          "page": 2,
+          "text": "We will follow up on both urinalysis and cultures."
+        }
+      },
+      {
+        "provider": "Dr. X",
+        "specialty": null,
+        "date": "in 2 weeks",
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "She is instructed to follow up with Dr. X in 2 weeks."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "she may shower.",
+      "She needs to keep her wound clean and dry.",
+      "She is not to engage in any heavy lifting greater than 10 pounds x2 weeks.",
+      "No driving for 1 to 2 weeks.",
+      "She must be able to stop in an emergency and be off narcotic meds, no strenuous activity, but she needs to maintain mobility."
+    ],
+    "dietary_restrictions": [
+      "Clear liquid diet x48 hours and she can return to her Medifast"
+    ],
+    "red_flag_symptoms": [
+      "shortness of breath",
+      "temperature greater than 101.5",
+      "chest pain",
+      "intractable nausea",
+      "vomiting",
+      "abdominal pain",
+      "any redness, swelling or foul smelling drainage from her wounds."
+    ],
+    "discharge_condition": "stable",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "It was felt that the patient is stable for discharge."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your gallbladder has small stones in it. These stones can cause pain. This is called symptomatic cholelithiasis.",
+  "medication_rationale": "Ciprofloxacin:\nThis medicine fights certain types of bacteria. It was given to help with your infection. You might feel an upset stomach. This is common. Call your doctor if you get a rash or have trouble breathing.\n\nOmeprazole:\nThis medicine lowers the amount of acid in your stomach. It can help with pain or healing in your stomach. You might get a headache. This is not usually a problem. Call your doctor if you get severe stomach pain or black, tarry stools.\n\nColace:\nThis medicine softens your stools. It makes it easier to have a bowel movement. You may notice your bowel movements become more regular. This is normal. Call your doctor if you have stomach cramps or bloating that does not go away.\n\nPercocet:\nThis medicine helps relieve moderate to severe pain. You may feel sleepy or dizzy. This is common. Do not drive or use machines if you feel this way. Call your doctor if you have trouble breathing or are very constipated.",
+  "recovery_trajectory": "**Week 1:**\n- You may feel tired and sore after your procedure.\n- You can shower, but keep your wound clean and dry.\n- Do not lift anything heavier than 10 pounds.\n- You cannot drive for 1 to 2 weeks.\n- Eat only clear liquids for the first 48 hours.\n- You can return to your Medifast diet after 48 hours.\n- Call your doctor if you have shortness of breath or chest pain.\n- Your goal this week is to walk around your home each day.\n\n**Week 2:**\n- You should start to feel a little more energy this week.\n- Keep your wound clean and dry.\n- You can resume driving if you can stop in an emergency.\n- Do not lift anything heavier than 10 pounds.\n- Avoid any strenuous activity.\n- Your goal this week is to walk a bit longer each day.\n- Call your doctor if your temperature is over 101.5 degrees.\n- Call your doctor if you have severe nausea or vomiting.\n\n**Week 3:**\n- You may feel much less pain this week.\n- You can do light activities but no heavy lifting.\n- You can drive if you can stop in an emergency.\n- Continue to keep your wound clean and dry.\n- Your goal this week is to walk for 10 to 15 minutes daily.\n- Call your doctor if you have new or worsening abdominal pain.\n- Call your doctor if your wound looks red, swollen, or smells bad.\n\n**Week 4:**\n- You should have more energy and feel more comfortable.\n- You can increase your daily walking.\n- You can drive if you can stop in an emergency.\n- Avoid heavy lifting and strenuous activity.\n- Your goal this week is to walk outside for 20 minutes daily.\n- Call your doctor if you have any breathing troubles.\n\n**When to expect improvement:**\n- Most people feel better after 4 weeks.\n- Keep your wound clean and dry.\n- Continue to avoid heavy lifting and strenuous activity.\n- Listen to your body and rest when you need to.\n- You should see steady progress each week.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Shortness of breath: Your body needs oxygen now.\n- Chest pain: Your heart needs help now.\n- Abdominal pain: This could be a sign of trouble.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Temperature over 101.5: You may have an infection.\n- Intractable nausea: You cannot keep fluids down.\n- Vomiting: You cannot keep fluids down.\n- Wound redness or swelling: This means infection is spreading.\n- Foul wound drainage: This means infection is spreading.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- No symptoms in this tier for your diagnosis.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.28,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.51,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.26,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.76,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What happens if I miss a dose of Percocet - should I take it later?",
+        "answered_by_doc": false,
+        "gap_summary": "What to do if I miss a Percocet dose.",
+        "severity": "critical"
+      },
+      {
+        "question": "What are red flags for my abdominal pain getting worse?",
+        "answered_by_doc": false,
+        "gap_summary": "What symptoms mean abdominal pain is worse.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does symptomatic cholelithiasis mean and why did I need to come to the hospital for it?",
+        "answered_by_doc": false,
+        "gap_summary": "Diagnosis explained in simple words. Why admitted.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Nobody told me how long to take Ciprofloxacin for - the paper just says 'for 3 days'.",
+        "answered_by_doc": false,
+        "gap_summary": "When to start and stop the Cipro medicine.",
+        "severity": "moderate"
+      },
+      {
+        "question": "The paper says to see Dr. X in 2 weeks, but doesn't say how to make the appointment.",
+        "answered_by_doc": false,
+        "gap_summary": "How to book the follow-up doctor visit.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I need to keep my wound clean and dry, but what if it gets dirty?",
+        "answered_by_doc": false,
+        "gap_summary": "How to clean a wound.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I am supposed to be on a clear liquid diet for 48 hours. What counts as clear liquid?",
+        "answered_by_doc": false,
+        "gap_summary": "Examples of what foods are clear liquids.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "Patients confused by medical words will struggle most. Biggest gap is how to manage pain safely.",
+    "fk_grade": 4.43,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Ciprofloxacin",
+        "questions": [
+          "When should I start taking this?",
+          "What do I do if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Omeprazole",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Colace",
+        "questions": [
+          "What does this medicine do?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Percocet",
+        "questions": [
+          "How much should I take?",
+          "What are common side effects?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. X - in 2 weeks",
+        "questions": [
+          "How do I make this appointment?",
+          "What should I bring to this visit?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "shortness of breath",
+        "questions": [
+          "When should I worry about this symptom?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "temperature greater than 101.5",
+        "questions": [
+          "How should I take my temperature?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "chest pain",
+        "questions": [
+          "What kind of chest pain needs urgent care?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "intractable nausea",
+        "questions": [
+          "What if I cannot stop feeling sick?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "vomiting",
+        "questions": [
+          "How many times can I vomit before calling?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "abdominal pain",
+        "questions": [
+          "What signs mean my belly pain is serious?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "any redness, swelling or foul smelling drainage from her wounds",
+        "questions": [
+          "What color should my wound drainage be?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_064",
+    "source_pdf": "test-data/mtsamples/mtsamples_064.pdf",
+    "generated_at": "2026-08-16T12:46:55",
+    "elapsed_seconds": 7.1
+  }
+}

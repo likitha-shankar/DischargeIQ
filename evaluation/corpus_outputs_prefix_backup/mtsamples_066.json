@@ -1,0 +1,227 @@
+{
+  "extraction": {
+    "patient_name": "a pleasant 62-year-old male",
+    "patient_name_source": {
+      "page": 1,
+      "text": "a pleasant 62-year-old male with cerebral palsy"
+    },
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Bilateral lower extremity cellulitis secondary to bilateral tinea pedis.",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "1. Bilateral lower extremity cellulitis secondary to bilateral tinea pedis."
+    },
+    "secondary_diagnoses": [
+      "Prostatic hypertrophy with bladder outlet obstruction.",
+      "Cerebral palsy."
+    ],
+    "procedures_performed": [
+      "Bladder scan was done suggesting about 600 cc of residual urine.",
+      "A Foley catheter was inserted and was productive of approximately 500 cc of urine.",
+      "At the time of this dictation, the patient was ambulating minimally, however, not sufficiently to resume independent living."
+    ],
+    "medications": [
+      {
+        "name": "Valium",
+        "dose": "10-20 mg",
+        "frequency": "every night at bedtime",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "The patient would be discharged on his usual Valium 10-20 mg at bedtime for spasticity,"
+        }
+      },
+      {
+        "name": "Flomax",
+        "dose": "0.4 mg",
+        "frequency": "daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "Flomax 0.4 mg daily,"
+        }
+      },
+      {
+        "name": "Cefazolin",
+        "dose": "500 mg",
+        "frequency": "four times daily",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 1,
+          "text": "cefazolin 500 mg q.i.d."
+        }
+      },
+      {
+        "name": "Lotrimin cream",
+        "dose": null,
+        "frequency": "between toes twice daily",
+        "duration": "for an additional two weeks",
+        "status": "changed",
+        "source": {
+          "page": 1,
+          "text": "and Lotrimin cream between toes b.i.d. for an additional two weeks."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": "He will be followed in the office.",
+        "source": {
+          "page": 1,
+          "text": "He will be followed in the office."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": null,
+    "discharge_condition_source": null,
+    "extraction_warnings": [
+      "Document appears to be scanned - extraction accuracy may be reduced. Manual verification recommended."
+    ]
+  },
+  "diagnosis_explanation": "Your legs have a skin infection. This infection started in your feet. Your feet had a fungal infection called tinea pedis. This caused the skin infection in your legs.\n\nYou also have a prostate problem. This makes it hard for urine to leave your body. This can cause trouble with your bladder.\n\nCerebral palsy is a condition that affects how your body moves. It has been with you since birth.",
+  "medication_rationale": "Valium:\nThis medicine helps your muscles relax. It was given for spasticity. You may feel drowsy. This is normal. Call your doctor if you feel too tired or unsteady.\n\nFlomax:\nThis medicine helps you urinate more easily. It is often given to men with prostate issues. You may feel dizzy or lightheaded. This is common. Call your doctor if you feel faint or get a rash.\n\nCefazolin:\nThis medicine is an antibiotic. It fights the skin infection in your legs. You may get an upset stomach or diarrhea. This is normal. Call your doctor right away if you get hives or have trouble breathing.\n\nLotrimin cream:\nThis medicine is a cream for your feet. It helps kill the fungus causing your skin infection. You may feel mild skin irritation. This is normal. Call your doctor if the redness or itching gets worse.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired and sore in your legs.\n- Your legs may be swollen and warm to the touch.\n- Stay in bed or a chair most of the time.\n- You can walk short distances inside your home.\n- Do not stand for long periods.\n- Do not lift anything heavier than 5 pounds.\n- Call your doctor if you have a fever over 101 F.\n- Call your doctor if redness or swelling spreads quickly.\n\n**Week 2:**\n- You may start to feel a little more energy.\n- Swelling and warmth in your legs should begin to decrease.\n- Keep walking short distances inside your home daily.\n- Continue to avoid standing for long periods.\n- Do not lift anything heavier than 5 pounds.\n- Your goal is to walk to the mailbox and back.\n- Call your doctor if your pain gets much worse.\n- Call your doctor if you have new or worsening blisters on your feet.\n\n**Week 3:**\n- You might feel less tired than before.\n- Swelling and soreness should continue to get better.\n- You can walk a bit further inside your home.\n- Do not lift anything heavier than 5 pounds.\n- Keep sitting or lying down for most of the day.\n- Your goal is to walk for 10 minutes without stopping.\n- Call your doctor if the redness in your legs returns or spreads.\n- Call your doctor if you notice yellow or green drainage from your skin.\n\n**Week 4:**\n- You should have more energy most days.\n- Your legs should feel much more comfortable.\n- You can walk around your house more freely.\n- Do not lift anything heavier than 5 pounds.\n- Gradually increase your walking time by a few minutes each day.\n- Your goal is to walk for 15 minutes without stopping.\n- Call your doctor if your feet start to itch or burn again.\n- Call your doctor if you have trouble urinating or feel unable to empty your bladder.\n\n**When to expect improvement:**\n- Your leg swelling and soreness should slowly get better over the next few weeks.\n- Keep your legs elevated when sitting or lying down.\n- Continue to be gentle with your body and rest when needed.\n- Listen to your body and do not push yourself too hard.\n- Keep your follow-up appointments with your doctor.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Breathing trouble or chest pain: Seek help right now.\n- Signs of stroke like face droop or arm weakness: Call 911 now.\n- Uncontrolled bleeding: Apply pressure and call 911.\n- Loss of consciousness or unresponsiveness: Call 911 right away.\n- Severe allergic reaction: Trouble breathing or swelling means call 911.\n- Seizure: Call 911 if a seizure happens.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever over 101 degrees F: You may have an infection.\n- Red streaks spreading from wound: Go to the ER right now.\n- Wound looks infected: Pus or warmth mean go to ER.\n- Pain is severe and not helped by medicine: Go to ER now.\n- Cannot keep any fluids down: Go to ER within 12 hours.\n- Confusion or bad disorientation: Go to ER if it gets worse.\n- Sudden leg swelling with pain: Go to ER for blood clot check.\n- Sudden weight gain of 2+ pounds: Go to ER if heart problem risk.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild pain not getting worse: Call your doctor's office.\n- Redness not spreading or worsening: Call your doctor's office.\n- Mild swelling without pain: Call your doctor's office.\n- Questions about medicine doses: Call your doctor's office.\n- Healing seems slow but no infection: Call your doctor's office.\n- Feeling tired but it is improving: Call your doctor's office.\n- Trouble emptying your bladder: Call your doctor's office.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 3.29,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.46,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.16,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.94,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document appears to be scanned - extraction accuracy may be reduced. Manual verification recommended.",
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing discharge date."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "unknown",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "It says Cefazolin is changed but doesn't say how much I should take or for how long.",
+        "answered_by_doc": false,
+        "gap_summary": "Does not explain the new medication instructions.",
+        "severity": "critical"
+      },
+      {
+        "question": "What happens if I forget to take my Valium or my Flomax at night?",
+        "answered_by_doc": false,
+        "gap_summary": "Does not say what to do if a dose is missed.",
+        "severity": "critical"
+      },
+      {
+        "question": "My legs are red and swollen - what does that mean and why did I need to come to the hospital for it?",
+        "answered_by_doc": false,
+        "gap_summary": "Does not explain what the diagnosis means simply.",
+        "severity": "moderate"
+      },
+      {
+        "question": "The paper says I need to take Valium every night but I don't know what that is for.",
+        "answered_by_doc": false,
+        "gap_summary": "Does not explain why the medication was prescribed.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I have a new medicine called Flomax, but I don't know what it is for or if I should take it.",
+        "answered_by_doc": false,
+        "gap_summary": "Does not explain what the new medication does.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My paper says to put Lotrimin cream on my feet but it doesn't say where or how much.",
+        "answered_by_doc": false,
+        "gap_summary": "Does not explain specific application details.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says I need to see a doctor in the office but doesn't say when or how to make the appointment.",
+        "answered_by_doc": false,
+        "gap_summary": "Does not say when or how to book appointment.",
+        "severity": "moderate"
+      },
+      {
+        "question": "The paper says my legs are red and swollen but it doesn't say if I should stay off my feet.",
+        "answered_by_doc": false,
+        "gap_summary": "Does not give any activity restrictions.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "The patient has many gaps in understanding. biggest gap is medication changes and follow up.",
+    "fk_grade": 6.21,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Valium 10-20 mg",
+        "questions": [
+          "What side effects should I watch for?",
+          "What happens if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Flomax 0.4 mg",
+        "questions": [
+          "What is this medication for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Cefazolin 500 mg",
+        "questions": [
+          "How much should I take each time?",
+          "How many days do I need to take this?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lotrimin cream",
+        "questions": [
+          "How much cream should I use?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Follow-up in office",
+        "questions": [
+          "Who do I call to make this appointment?",
+          "What should I bring to the visit?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_066",
+    "source_pdf": "test-data/mtsamples/mtsamples_066.pdf",
+    "generated_at": "2026-08-16T12:48:05",
+    "elapsed_seconds": 5.3
+  }
+}

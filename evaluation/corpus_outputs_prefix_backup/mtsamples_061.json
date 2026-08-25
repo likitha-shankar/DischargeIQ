@@ -1,0 +1,200 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Mesothelioma",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "POSTOPERATIVE DIAGNOSIS:\nMesothelioma."
+    },
+    "secondary_diagnoses": [
+      "Right pleural mass"
+    ],
+    "procedures_performed": [
+      "1. Flexible bronchoscopy.",
+      "2. Mediastinoscopy.",
+      "3. Right thoracotomy.",
+      "4. Parietal pleural biopsy."
+    ],
+    "medications": [
+      {
+        "name": "Albuterol Nebulizer Treatments",
+        "dose": null,
+        "frequency": "four times daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "She was discharged with albuterol nebulizer\ntreatments, treatments were to be q.i.d."
+        }
+      },
+      {
+        "name": "Vicodin",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "She was discharged with a prescription for Vicodin for\npain control."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. X",
+        "specialty": null,
+        "date": "in one week",
+        "reason": "with a chest x-ray",
+        "source": {
+          "page": 1,
+          "text": "She is to follow up with Dr. X in the office in one week with a chest x-ray."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "not to lift, push or pull anything greater than 10 pounds.",
+      "not to drive until after she sees us in the office and is off her pain medications."
+    ],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "ambulatory",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "At the time of discharge, the patient was ambulatory."
+    },
+    "extraction_warnings": [
+      "Document uses abbreviated clinical shorthand - verify medication names and instructions against original document."
+    ]
+  },
+  "diagnosis_explanation": "Your body has a problem called mesothelioma. This is a type of cancer. It affects the lining around your lungs. You also have a mass in the right side of your chest lining.",
+  "medication_rationale": "Albuterol Nebulizer Treatments:\nThis medicine helps you breathe easier.\nIt opens up your airways in your lungs.\nYou may feel your heart beat faster.\nYou might also feel shaky. These feelings often pass.\nCall your doctor if you have chest pain.\nAlso call if your breathing gets worse.\n\nVicodin:\nThis medicine is for pain relief.\nIt helps to lessen your discomfort.\nYou may feel sleepy or dizzy.\nYou might also feel sick to your stomach.\nCall your doctor if you have trouble breathing.\nAlso call if you feel very confused.\nImportant: Do not stop taking this medicine without calling your doctor first.\nCall 911 right away if you have sudden face drooping, arm weakness, or trouble speaking.",
+  "recovery_trajectory": "**Week 1:**\n- You will likely feel tired and sore after your procedure.\n- Rest is important for healing.\n- You can move around your home slowly.\n- Do not lift, push, or pull anything heavier than 10 pounds.\n- Do not drive yourself anywhere.\n- You can eat normally.\n- Call your doctor if you have bad chest pain or trouble breathing.\n- Your goal is to walk a little more each day.\n\n**Week 2:**\n- You may start to feel a bit more energy.\n- Soreness will likely get better.\n- Continue to avoid lifting, pushing, or pulling over 10 pounds.\n- You still cannot drive until your doctor says it is okay.\n- Keep moving around your house gently.\n- Call your doctor if you have a fever over 101\u00b0F or chills.\n- Your goal is to walk a bit further each day.\n\n**Week 3:**\n- You should notice less pain and more comfort.\n- You can try doing light chores if you feel up to it.\n- Keep following the lifting, pushing, and pulling limits.\n- You can still not drive until cleared by your doctor.\n- Listen to your body and rest when needed.\n- Call your doctor if your surgical cut looks red or has fluid leaking.\n- Your goal is to walk for 10 minutes without stopping.\n\n**Week 4:**\n- You should feel stronger and have more energy.\n- You can likely do more everyday activities at home.\n- Continue to not lift, push, or pull over 10 pounds.\n- Ask your doctor about driving again.\n- You can walk for longer periods.\n- Call your doctor if you have new or worsening pain.\n- Your goal is to walk outside for short periods.\n\n**When to expect improvement:**\n- Recovery takes time and varies for each person.\n- Keep following the activity limits for now.\n- Your doctor will tell you when it is safe to drive.\n- Slowly increase your activity as you feel better.\n- Attend all follow-up appointments.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- You cannot catch your breath: Your body needs oxygen now.\n- Chest pain that will not stop: Your heart needs help now.\n- Face drooping or arm weakness: These are stroke signs. Minutes matter.\n- Uncontrolled bleeding: Pressure will not stop blood flow.\n- Loss of consciousness or fainting: You have become unresponsive.\n- Seizure: Your body is having a major convulsion.\n- Severe allergic reaction: Throat swelling or trouble breathing.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever above 101 degrees: You may have an infection.\n- Severe pain medicine cannot help: Your pain is too bad.\n- Wound looks infected: Red streaks or pus can spread.\n- Cannot keep fluids down 12 hours: You need fluids right now.\n- Confusion or new disorientation: Your thinking is getting worse.\n- Fall with an injury: You may have broken bones.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild pain that is slowly improving: Your pain is getting better.\n- Questions about your Vicodin: Your nurse can help you plan.\n- Questions about Albuterol: Your nurse can help you plan.\n- Mild redness not spreading: Your wound is healing slowly.\n- Mild swelling without pain: This can happen while you heal.\n- Fatigue that is improving: You are starting to feel better.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 4.08,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.5,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.28,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 5.15,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document uses abbreviated clinical shorthand - verify medication names and instructions against original document.",
+    "No red-flag symptoms extracted.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What is mesothelioma and why did it make me sick enough to be in the hospital?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain the diagnosis in simple words.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I don't understand why I need albuterol nebulizer treatments. What do they do for me?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain what the medication does.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What happens if I miss a dose of my albuterol nebulizer treatment?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not explain what to do if a dose is missed.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How long do I have to take Vicodin for my pain?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say how long to take the pain medicine.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Who do I call to schedule my appointment with Dr. X next week?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say how to book the follow-up appointment.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says I need a chest x-ray. Do I get that before or after I see Dr. X?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not say when to get the chest x-ray.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What specific pain symptoms mean I can start driving again?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not list specific signs to allow driving.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Are there any side effects I should watch out for with the Vicodin?",
+        "answered_by_doc": false,
+        "gap_summary": "The document does not list side effects for the pain medicine.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "This patient will struggle with the big words. The biggest gap is not knowing what mesothelioma means. She needs more information about her illness.",
+    "fk_grade": 5.78,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Albuterol Nebulizer Treatments",
+        "questions": [
+          "What does this medicine do for me?",
+          "What if I miss a treatment?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Vicodin",
+        "questions": [
+          "How long should I take this pain medicine?",
+          "What are the side effects?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. X - in one week",
+        "questions": [
+          "Who do I call to make this appointment?",
+          "When should I get the chest x-ray?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Mesothelioma",
+        "questions": [
+          "What is mesothelioma?",
+          "Why did it make me sick?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_061",
+    "source_pdf": "test-data/mtsamples/mtsamples_061.pdf",
+    "generated_at": "2026-08-16T12:45:02",
+    "elapsed_seconds": 5.5
+  }
+}

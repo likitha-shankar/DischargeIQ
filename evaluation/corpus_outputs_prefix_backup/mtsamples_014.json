@@ -1,0 +1,198 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": "2008-11-06",
+    "discharge_date_source": {
+      "page": 1,
+      "text": "He was discharged home on 11/6/2008."
+    },
+    "primary_diagnosis": "Contusion of the orbital surface of the frontal lobes bilaterally",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "Contusion of the orbital surface of the frontal lobes bilaterally."
+    },
+    "secondary_diagnoses": [
+      "Closed head injury",
+      "History of fall"
+    ],
+    "procedures_performed": [
+      "CT of the brain revealed contusion of the frontal lobe near the falx.",
+      "MRI of the brain without contrast revealed findings consistent with contusion of the orbital surface of the frontal lobes bilaterally near the interhemispheric fissure."
+    ],
+    "medications": [
+      {
+        "name": "Tylenol",
+        "dose": "650 mg",
+        "frequency": "q.6 h. as needed headache",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "Tylenol 650 mg 1 p.o. q.6 h. p.r.n. headache."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": "neurologist",
+        "date": "in about 1 week",
+        "reason": null,
+        "source": {
+          "page": 1,
+          "text": "The patient has been advised to follow up with me as well as the neurologist in about 1 week."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "in about 1 week",
+        "reason": "follow up with me",
+        "source": {
+          "page": 1,
+          "text": "The patient has been advised to follow up with me as well as the neurologist in about 1 week."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "As tolerated."
+    ],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "stable",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "The patient remained clinically stable and his headache resolved."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your brain has swelling on both sides. This happened in the front part of your head. It was caused by a fall.",
+  "medication_rationale": "Tylenol 650 mg:\nThis medicine helps relieve your headache pain. It can be taken every 6 hours if needed. You may notice less pain. This means the medicine is working. Call your doctor if your headache gets worse or does not get better.",
+  "recovery_trajectory": "**Week 1:**\n- You may feel confused or have trouble concentrating. This is normal.\n- Rest is important. Avoid any strenuous activity.\n- You may feel tired and need to sleep more than usual.\n- You can do light activities like reading or watching TV.\n- Do not do any activities that could lead to another head injury.\n- Your goal this week is to rest and take it easy.\n- Call your doctor if your confusion gets worse.\n\n**Week 2:**\n- Your thinking may start to feel a little clearer.\n- You can try to do short, light activities around the house.\n- Avoid anything that makes you feel very tired or confused.\n- You might notice some mood changes. This can be normal.\n- Your goal this week is to walk short distances inside your home.\n- Call your doctor if you have a severe headache that does not go away.\n\n**Week 3:**\n- You may feel more like yourself each day.\n- You can slowly increase your light activities.\n- Avoid any activity that causes dizziness or nausea.\n- Continue to avoid sports or activities with a risk of head injury.\n- Your goal this week is to walk for 10 minutes twice a day.\n- Call your doctor if you notice changes in your vision.\n\n**Week 4:**\n- You should be able to do more regular daily activities.\n- You can try light chores like folding laundry or washing dishes.\n- Avoid any activities that require quick movements or balance.\n- Your goal this week is to walk outside for 15 minutes.\n- Call your doctor if you have trouble sleeping for more than two nights.\n\n**When to expect improvement:**\n- You should notice gradual improvement over the next few weeks.\n- Continue to be patient with your recovery.\n- Slowly return to your normal activities as you feel able.\n- Avoid activities that could cause a second head injury.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Loss of consciousness or unresponsiveness: Your brain may be hurt.\n- Seizure or a staring spell: Your brain activity is abnormal.\n- Sudden confusion or sleepiness: Your brain is not working well.\n- Trouble speaking or weakness: These are stroke signs. Minutes matter.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Vomiting more than once: You may have too much head pressure.\n- Severe headache that worsens: Your head pressure may be rising.\n- Vision changes or double vision: Your brain may be swollen.\n- Neck stiffness or light pain: This can mean meningitis.\n- Ear or nose drainage: Fluid may leak from your brain.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild head pain getting better: You may need more pain relief.\n- Feeling tired or sleepy: This can happen after a head injury.\n- Mild confusion or memory issues: Your brain needs time to heal.\n- Trouble sleeping: Rest is important for healing your brain.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 0.14,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.5,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 5.55,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 5.29,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No red-flag symptoms extracted.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What should I look out for that would mean my head injury is getting worse?",
+        "answered_by_doc": false,
+        "gap_summary": "Warning signs for head injury worsening are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does contusion of the orbital surface of the frontal lobes mean in simple words?",
+        "answered_by_doc": false,
+        "gap_summary": "The diagnosis is too complex for me to understand.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How much Tylenol should I take for my headache and how often?",
+        "answered_by_doc": false,
+        "gap_summary": "Dosing instructions for Tylenol are not clear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I need to see the neurologist in about 1 week, but how do I make that appointment?",
+        "answered_by_doc": false,
+        "gap_summary": "It is unclear how to schedule the neurologist visit.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does \"as tolerated\" mean for my activity? Can I lift things?",
+        "answered_by_doc": false,
+        "gap_summary": "Activity restrictions are not specific enough.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What if I forget to take my Tylenol when my head hurts?",
+        "answered_by_doc": false,
+        "gap_summary": "Instructions for a missed dose of Tylenol are absent.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "I would be confused about my injury and care. The biggest gap is not knowing what to watch for.",
+    "fk_grade": 6.87,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Tylenol 650 mg",
+        "questions": [
+          "How many pills can I take at once?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "neurologist - in about 1 week",
+        "questions": [
+          "Who do I call to schedule this appointment?",
+          "What should I tell them when I call?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "follow up with me - in about 1 week",
+        "questions": [
+          "Who should I call to schedule this appointment?",
+          "What should I bring to this visit?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Contusion of the orbital surface of the frontal lobes bilaterally",
+        "questions": [
+          "What does this diagnosis mean for me?",
+          "What caused this injury?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Closed head injury",
+        "questions": [
+          "What are the signs my head injury is getting worse?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "As tolerated",
+        "questions": [
+          "What kind of activities should I avoid?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_014",
+    "source_pdf": "test-data/mtsamples/mtsamples_014.pdf",
+    "generated_at": "2026-08-15T13:11:24",
+    "elapsed_seconds": 5.9
+  }
+}

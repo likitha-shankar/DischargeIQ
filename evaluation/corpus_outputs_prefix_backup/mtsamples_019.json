@@ -1,0 +1,213 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": "2006-08-01",
+    "discharge_date_source": {
+      "page": 1,
+      "text": "She was discharged on the morning of the seventh postoperative day."
+    },
+    "primary_diagnosis": "Mullerian adenosarcoma",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "Mullerian adenosarcoma."
+    },
+    "secondary_diagnoses": [],
+    "procedures_performed": [
+      "July 25, 2006: Total abdominal hysterectomy, bilateral salpingo-oophorectomy."
+    ],
+    "medications": [
+      {
+        "name": "Percocet",
+        "dose": "5",
+        "frequency": "one q.3 h. as needed pain",
+        "duration": "#40",
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "Percocet 5, #40, one q.3 h. p.r.n. pain."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "in one week",
+        "reason": null,
+        "source": {
+          "page": 1,
+          "text": "The patient will follow up in my office in one week."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "remain at rest initially with progressive ambulation thereafter",
+      "avoid lifting, driving, stairs, or intercourse"
+    ],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [
+      "fevers",
+      "drainage",
+      "bleeding",
+      "pain"
+    ],
+    "discharge_condition": "Stable",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "Stable."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your Mullerian adenosarcoma is a type of cancer. It started in the tissues of your uterus. This cancer can grow and spread.",
+  "medication_rationale": "Percocet 5:\nThis medicine is a pain reliever. It will help manage pain after your surgery. You may feel sleepy or drowsy. You might also feel a bit constipated. Call your doctor if you have trouble breathing or feel more pain than before.\n\nImportant: Do not stop taking this medicine without calling your doctor first.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired and may have some pain. This is normal.\n- Rest is important right now.\n- Do not lift anything heavy.\n- Avoid driving, stairs, and sexual activity.\n- You will have some bleeding or drainage from your incision.\n- Call your doctor if you have a fever.\n- Call your doctor if you have too much bleeding or drainage.\n- Call your doctor if your pain gets worse.\n\n**Week 2:**\n- You may start to feel a little more energy.\n- Try to walk a short distance inside your home each day.\n- Continue to avoid lifting, driving, stairs, and sexual activity.\n- Watch for normal drainage and bleeding.\n- Your goal is to walk a little further each day.\n- Call your doctor if you develop a fever.\n- Call your doctor if pain is not controlled by medicine.\n\n**Week 3:**\n- You should feel more comfortable moving around.\n- You can slowly increase the distance you walk inside.\n- Still avoid lifting anything heavy.\n- Do not drive, use stairs, or have sex yet.\n- Your goal this week is to walk for 10 minutes without stopping.\n- Call your doctor if you have heavy bleeding or drainage.\n- Call your doctor if you have a fever.\n\n**Week 4:**\n- You may be able to do light activities around the house.\n- Continue to walk daily, but do not overdo it.\n- Keep avoiding lifting, driving, stairs, and sexual activity.\n- Your goal is to walk outside for short periods.\n- Call your doctor if you have increasing pain.\n- Call your doctor if you develop a fever.\n- Call your doctor if you notice new or heavy bleeding.\n\n**When to expect improvement:**\n- Your energy should slowly return over the next few weeks.\n- Continue to follow the activity restrictions.\n- Listen to your body and rest when needed.\n- Healing is a process, and progress is steady.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Bleeding that will not stop: You could lose too much blood.\n- Severe pain that will not stop: Your body needs help now.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever over 101 degrees: You may have an infection.\n- Drainage from wound site: Check for signs of infection.\n- Bad pain not helped by medicine: Your pain needs control.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild pain slowly getting better: This is normal healing.\n- Questions about your Percocet: Your nurse can help you plan.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 4.97,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 5.79,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.83,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 3.91,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "I don't know what Percocet is for or if I should take it every 3 hours.",
+        "answered_by_doc": false,
+        "gap_summary": "Medication purpose and full dosing is not clear.",
+        "severity": "critical"
+      },
+      {
+        "question": "What kind of fevers should I watch out for? How high does my temperature have to be?",
+        "answered_by_doc": false,
+        "gap_summary": "Red flag symptom details are not provided.",
+        "severity": "critical"
+      },
+      {
+        "question": "What if I run out of Percocet early?",
+        "answered_by_doc": false,
+        "gap_summary": "Refill instructions for pain medicine are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What is Mullerian adenosarcoma and why did it make me sick?",
+        "answered_by_doc": false,
+        "gap_summary": "Diagnosis meaning and cause is not explained simply.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My paper says I have to see a doctor in one week but doesn't say who to call.",
+        "answered_by_doc": false,
+        "gap_summary": "How to book the follow-up appointment is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I am supposed to rest but what does that mean for how much I can move around?",
+        "answered_by_doc": false,
+        "gap_summary": "Activity level for resting is not defined.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does \"progressive ambulation\" mean and when can I start doing it?",
+        "answered_by_doc": false,
+        "gap_summary": "Activity progression is not defined clearly.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "A patient might not understand their sickness. They risk taking pain medicine wrong. This is unsafe.",
+    "fk_grade": 7.1,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Percocet - dose 5 - one q.3 h. as needed pain",
+        "questions": [
+          "What is this medicine for?",
+          "How many can I take in a day?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "in one week",
+        "questions": [
+          "Who do I call to set up this visit?",
+          "What should I bring to the appointment?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "fevers",
+        "questions": [
+          "How high does my temperature need to be?",
+          "When should I worry about a fever?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "drainage",
+        "questions": [
+          "What kind of drainage is a problem?",
+          "Where should there be no drainage?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "bleeding",
+        "questions": [
+          "How much bleeding is too much?",
+          "What should I do if I bleed?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "pain",
+        "questions": [
+          "What level of pain needs a doctor?",
+          "What if the pain medicine doesn't work?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "remain at rest initially with progressive ambulation thereafter",
+        "questions": [
+          "How much can I walk each day?",
+          "When can I walk more?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "avoid lifting, driving, stairs, or intercourse",
+        "questions": [
+          "How long must I avoid these things?",
+          "What is the weight limit for lifting?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_019",
+    "source_pdf": "test-data/mtsamples/mtsamples_019.pdf",
+    "generated_at": "2026-08-15T13:14:52",
+    "elapsed_seconds": 5.3
+  }
+}

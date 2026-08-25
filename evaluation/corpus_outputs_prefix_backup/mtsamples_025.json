@@ -1,0 +1,230 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Neck pain with right upper extremity radiculopathy",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "1. Neck pain with right upper extremity radiculopathy."
+    },
+    "secondary_diagnoses": [
+      "Cervical spondylosis with herniated nucleus pulposus C4-C5, C5-C6, and C6-C7 with stenosis."
+    ],
+    "procedures_performed": [
+      "Anterior cervical discectomy with decompression C4-C5, C5-C6, and C6-C7.",
+      "Arthrodesis with anterior interbody fusion C4-C5, C5-C6, and C6-C7.",
+      "Spinal instrumentation C4 through C7.",
+      "Implant.",
+      "Allograft."
+    ],
+    "medications": [
+      {
+        "name": "Decadron",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 1,
+          "text": "The patient apparently is doing well with slight dysphagia, we treated her with Decadron and we will send her home with Medrol."
+        }
+      },
+      {
+        "name": "Medrol",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "The patient apparently is doing well with slight dysphagia, we treated her with Decadron and we will send her home with Medrol."
+        }
+      },
+      {
+        "name": "Darvocet",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "The patient will have continued pain medication coverage with Darvocet and Flexeril."
+        }
+      },
+      {
+        "name": "Flexeril",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "The patient will have continued pain medication coverage with Darvocet and Flexeril."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": null,
+        "source": {
+          "page": 1,
+          "text": "The patient will follow up with me as scheduled."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": null,
+    "discharge_condition_source": null,
+    "extraction_warnings": [
+      "Document uses abbreviated clinical shorthand - verify medication names and instructions against original document."
+    ]
+  },
+  "diagnosis_explanation": "Your neck has some pain. This pain also goes down your right arm. This is called radiculopathy.\n\nYou have a problem in your neck bones. It is called cervical spondylosis. This makes it hard for your spinal cord to move. There is also a soft cushion between your neck bones. It has slipped out a little. This is called a herniated nucleus pulposus. It presses on nerves in your neck. This causes your arm pain.\n\nThis has made the space in your neck bones smaller. This is called stenosis. It can cause pain and numbness.",
+  "medication_rationale": "Decadron - stopping:\nYour doctor wants you to stop taking this medicine. You were treated with this medicine for your neck pain. Do not take it until your doctor tells you it is safe to start again.\n\nMedrol:\nThis medicine is a steroid. It helps reduce swelling in your body. This swelling can cause pain and pressure. You may notice some mood changes. You might feel more awake or have trouble sleeping. This is often normal. Call your doctor if you have trouble breathing or feel very weak. Also call if you get a fever or chills.\n\nDarvocet:\nThis medicine is for pain. It will help ease your neck pain. You might feel sleepy or dizzy. This is common when you start. Call your doctor if you have trouble breathing. Also call if you feel very confused.\n\nFlexeril:\nThis medicine helps relax your muscles. It can ease muscle tightness. This tightness may be part of your neck pain. You may feel drowsy or dizzy. This medicine can make you feel sleepy. Call your doctor if you feel very tired. Also call if your heart beats very fast.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired and sore after surgery.\n- Pain in your neck and arm may be worse at first.\n- Wear your neck brace as instructed.\n- Do not lift anything heavier than 5 pounds.\n- You cannot drive a car this week.\n- Eat soft foods that are easy to chew.\n- Call your doctor if you have trouble swallowing.\n- Your goal this week is to walk for 5 minutes twice a day.\n\n**Week 2:**\n- Your neck and arm pain may start to get a little better.\n- You might feel more energy than last week.\n- Continue to wear your neck brace.\n- Keep lifting no more than 5 pounds.\n- You still cannot drive a car.\n- You can eat a wider range of soft foods.\n- Call your doctor if your pain gets much worse.\n- Your goal this week is to walk for 10 minutes twice a day.\n\n**Week 3:**\n- You may feel less pain and more comfort.\n- You can start to do light chores around the house.\n- Continue to wear your neck brace as directed.\n- Do not lift anything heavier than 10 pounds.\n- You may be able to drive short distances if cleared by your doctor.\n- You can eat most normal foods now.\n- Call your doctor if you notice any redness or swelling at your incision.\n- Your goal this week is to walk for 15 minutes twice a day.\n\n**Week 4:**\n- Your energy levels should continue to improve.\n- You can do more normal daily activities.\n- Ask your doctor about removing your neck brace.\n- Do not lift anything heavier than 15 pounds.\n- You can likely drive as usual if you feel ready.\n- You can return to your normal diet.\n- Call your doctor if you have new or worsening arm weakness.\n- Your goal this week is to walk outside for 20 minutes once a day.\n\n**When to expect improvement:**\n- You should feel steady progress each week.\n- Neck and arm pain will gradually decrease.\n- Keep following activity limits until your doctor says otherwise.\n- Healing takes time, so be patient with yourself.\n- Most people return to normal activities within 6 to 12 weeks.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Neck pain is sudden and severe: This could be a spinal bleed.\n- You cannot move your arms or legs: This is a spinal cord emergency.\n- You lose bladder or bowel control: This needs urgent medical care.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Your pain gets much worse: Medicine may not be enough now.\n- You have numbness or tingling: These signals may be blocked.\n- You feel new weakness in your arm: Your nerves may be squeezed.\n- Your arm or hand swells badly: This could block blood flow.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Neck pain slowly gets better: This is a normal healing sign.\n- You have mild arm pain: This can happen as you heal.\n- Numbness or tingling is mild: This may improve over time.\n- You have questions about your medicine: Your doctor can help you.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 1.96,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 3.23,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 3.68,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.0,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document uses abbreviated clinical shorthand - verify medication names and instructions against original document.",
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What happens if I miss a dose of Darvocet or Flexeril?",
+        "answered_by_doc": false,
+        "gap_summary": "Explain what to do if a dose is missed.",
+        "severity": "critical"
+      },
+      {
+        "question": "My paper says I have neck pain and something called \"radiculopathy\" - what does that mean for me?",
+        "answered_by_doc": false,
+        "gap_summary": "Explain what the diagnosis means in simple words.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What is Medrol supposed to do for my pain, and how long do I take it?",
+        "answered_by_doc": false,
+        "gap_summary": "Explain what this new medicine does.",
+        "severity": "moderate"
+      },
+      {
+        "question": "The paper says Decadron's status changed - what does that mean for me?",
+        "answered_by_doc": false,
+        "gap_summary": "Explain changes to this medicine.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My appointment details are not clear - who do I call to schedule it and when do I need to go?",
+        "answered_by_doc": false,
+        "gap_summary": "Give clear details on the next appointment.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Does the paper say if I can lift things or drive with this neck pain?",
+        "answered_by_doc": false,
+        "gap_summary": "List any things I should not do.",
+        "severity": "moderate"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "Anxious patients will struggle. The biggest gap is medication details and follow-up.",
+    "fk_grade": 4.74,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Decadron",
+        "questions": [
+          "What does the change mean for me?",
+          "When is my refill due?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Medrol",
+        "questions": [
+          "How do I take this medicine?",
+          "What are the side effects?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Darvocet",
+        "questions": [
+          "What if I miss a dose?",
+          "How long should I take this?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Flexeril",
+        "questions": [
+          "What if I miss a dose?",
+          "Can I drive while taking this?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Follow-up appointment",
+        "questions": [
+          "Who do I call to make this appointment?",
+          "What should I bring to the visit?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Neck pain with right upper extremity radiculopathy",
+        "questions": [
+          "What does this diagnosis mean in simple terms?",
+          "What caused this problem?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Cervical spondylosis with herniated nucleus pulposus C4-C5, C5-C6, and C6-C7 with stenosis",
+        "questions": [
+          "Can you explain this in simple words?",
+          "How serious is this condition?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_025",
+    "source_pdf": "test-data/mtsamples/mtsamples_025.pdf",
+    "generated_at": "2026-08-16T12:25:46",
+    "elapsed_seconds": 6.3
+  }
+}

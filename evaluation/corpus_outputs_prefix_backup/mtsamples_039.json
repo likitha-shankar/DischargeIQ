@@ -1,0 +1,262 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Morbid obesity, status post laparoscopic Roux-en-Y gastric bypass",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "1. Morbid obesity, status post laparoscopic Roux-en-Y gastric bypass."
+    },
+    "secondary_diagnoses": [
+      "Hypertension",
+      "Obstructive sleep apnea, on CPAP"
+    ],
+    "procedures_performed": [
+      "Laparoscopic Roux-en-Y gastric bypass.",
+      "early and frequent mobilization",
+      "SCDs",
+      "PCA was utilized for pain control",
+      "he utilized the CPAP",
+      "monitored",
+      "start bariatric clear liquids at 2 ounces per hour",
+      "advanceto four ounces per hour",
+      "drains removed"
+    ],
+    "medications": [
+      {
+        "name": "Omeprazole",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "Scripts left in the chart for omeprazole and Lortab."
+        }
+      },
+      {
+        "name": "Lortab",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "Scripts left in the chart for omeprazole and Lortab."
+        }
+      },
+      {
+        "name": "Heparin",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 1,
+          "text": "DVT prophylaxis was continued with subcu heparin"
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "in the next week",
+        "reason": "re-appointment in the office",
+        "source": {
+          "page": 1,
+          "text": "Include re-appointment in the office in the next week, call in the interim if any significant concerning complaints."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "in the next week",
+        "reason": "re-appoint in the office",
+        "source": {
+          "page": 1,
+          "text": "He will re-appoint in the office in the next week, certainly call in the interim if any significant concerning complaints."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "maintain activity at home, but no heavy lifting or straining."
+    ],
+    "dietary_restrictions": [
+      "maintain bariatric clear liquids at home, goal 64 ounces per day"
+    ],
+    "red_flag_symptoms": [
+      "any significant concerning complaints"
+    ],
+    "discharge_condition": "stable and improved",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "and is able to discharge in stable and improved condition today."
+    },
+    "extraction_warnings": [
+      "Document uses abbreviated clinical shorthand - verify medication names and instructions against original document."
+    ]
+  },
+  "diagnosis_explanation": "Your body has a lot of extra weight. This is called morbid obesity. You had surgery to help with this. It is called a gastric bypass. This surgery helps you eat less food. It also helps your body use food better.\n\nYou also have high blood pressure. This is called hypertension. It means the force of blood on your artery walls is too high. Your body also had trouble breathing when you slept. This is called sleep apnea. You use a machine called CPAP. It helps you breathe while you sleep.",
+  "medication_rationale": "Omeprazole:\nThis medicine helps protect your stomach. It reduces the amount of acid your stomach makes. You may notice less heartburn. You might get mild stomach upset. This is normal and should pass. Call your doctor if you get a bad rash or trouble breathing.\n\nLortab:\nThis medicine helps relieve pain. It is a strong pain reliever. You may feel sleepy or dizzy. It is important to be careful when moving. You may get constipated. Drink plenty of fluids. Call your doctor if you feel very sleepy or have trouble breathing.\n\nHeparin:\nThis medicine is a blood thinner. It helps prevent blood clots from forming. You may notice a small bump or bruise where the shot is given. This is normal. Call your doctor if you see any bleeding that will not stop. Also call if you have a bad headache or notice blood in your urine.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired and sore from the surgery.\n- You may need help with daily tasks.\n- Drink bariatric clear liquids. Aim for 64 ounces each day.\n- Do not lift anything heavy or strain yourself.\n- Your goal this week is to drink 2 ounces per hour.\n- Walk short distances inside your home.\n- Call your doctor for any significant concerning complaints.\n\n**Week 2:**\n- You should start to feel a little stronger.\n- You can drink more bariatric clear liquids. Aim for 64 ounces each day.\n- Advance to drinking 4 ounces per hour.\n- Continue to avoid heavy lifting or straining.\n- Your goal this week is to walk a little more.\n- Drains were removed, so watch the incision sites.\n- Call your doctor for any significant concerning complaints.\n\n**Week 3:**\n- You can increase your activity level slowly.\n- Listen to your body and rest when needed.\n- Keep drinking bariatric clear liquids. Aim for 64 ounces each day.\n- Continue to avoid heavy lifting or straining.\n- Your goal this week is to walk for 5 minutes.\n- Make sure incision sites are healing well.\n- Call your doctor for any significant concerning complaints.\n\n**Week 4:**\n- You should feel more energy this week.\n- You can do more light activities at home.\n- Continue to avoid heavy lifting or straining.\n- Keep up with drinking 64 ounces of bariatric clear liquids daily.\n- Your goal this week is to walk longer each day.\n- Continue to wear your SCDs as instructed.\n- Call your doctor for any significant concerning complaints.\n\n**When to expect improvement:**\n- Your recovery will take time. Be patient with yourself.\n- Continue to follow all activity and diet instructions.\n- Progress happens gradually.\n- You will feel better each week.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Any concerning complaints: Seek help right away from 911.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Significant concerning complaints: Your problem needs urgent care.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Any concerning complaints: Your doctor knows your full history.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 2.7,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 3.72,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.73,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 5.81,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document uses abbreviated clinical shorthand - verify medication names and instructions against original document.",
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "The paper says Lortab is new, but it doesn't say how much I can take or how often.",
+        "answered_by_doc": false,
+        "gap_summary": "Dosing instructions are missing for the new medicine.",
+        "severity": "critical"
+      },
+      {
+        "question": "What happens if I forget to take my Heparin dose?",
+        "answered_by_doc": false,
+        "gap_summary": "What to do for a missed dose is not stated.",
+        "severity": "critical"
+      },
+      {
+        "question": "What kind of complaints are considered \"significant concerning\" enough to call someone?",
+        "answered_by_doc": false,
+        "gap_summary": "Red-flag symptoms are not clearly described.",
+        "severity": "critical"
+      },
+      {
+        "question": "I don't know what Omeprazole is for or how to take it.",
+        "answered_by_doc": false,
+        "gap_summary": "What the medication is for is not explained.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says to re-appoint in the office next week, but who should I call to make the appointment?",
+        "answered_by_doc": false,
+        "gap_summary": "Contact person to book appointment is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does morbid obesity mean and why did I have surgery for it?",
+        "answered_by_doc": false,
+        "gap_summary": "Diagnosis is not explained in simple terms.",
+        "severity": "minor"
+      },
+      {
+        "question": "I need to drink 64 ounces of liquid. Can it be any liquid or just water?",
+        "answered_by_doc": false,
+        "gap_summary": "Allowed liquids are not specified for diet.",
+        "severity": "minor"
+      },
+      {
+        "question": "How much is \"heavy lifting\" for activity restriction? Can I go up stairs?",
+        "answered_by_doc": false,
+        "gap_summary": "Activity limits are not made concrete.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "This patient is anxious and needs clear instructions. The biggest gap is medication safety. A confused patient could be at risk.",
+    "fk_grade": 5.83,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Omeprazole",
+        "questions": [
+          "What is this medicine for?",
+          "How do I take it?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lortab",
+        "questions": [
+          "How much should I take?",
+          "How often can I take it?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Heparin",
+        "questions": [
+          "What if I miss a dose?",
+          "Are there any side effects I should watch for?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "re-appointment in the office",
+        "questions": [
+          "Who should I call to schedule this?",
+          "What time of day is best?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "re-appoint in the office",
+        "questions": [
+          "Who should I call to schedule this?",
+          "What should I bring with me?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "any significant concerning complaints",
+        "questions": [
+          "What symptoms should I call about?",
+          "Who do I call if I have symptoms?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "maintain bariatric clear liquids at home, goal 64 ounces per day",
+        "questions": [
+          "What kinds of clear liquids can I drink?",
+          "Is it okay to drink soda?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "no heavy lifting or straining",
+        "questions": [
+          "How much weight is too heavy to lift?",
+          "What does straining mean?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_039",
+    "source_pdf": "test-data/mtsamples/mtsamples_039.pdf",
+    "generated_at": "2026-08-16T12:31:15",
+    "elapsed_seconds": 6.5
+  }
+}

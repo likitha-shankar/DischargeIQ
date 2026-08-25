@@ -1,0 +1,236 @@
+{
+  "extraction": {
+    "patient_name": "male",
+    "patient_name_source": {
+      "page": 1,
+      "text": "The patient is a 10-year-old male who presented to the Hospital Emergency"
+    },
+    "discharge_date": "2008-07-27",
+    "discharge_date_source": {
+      "page": 2,
+      "text": "By the date of the discharge, the patient was on a full pediatric select diet"
+    },
+    "primary_diagnosis": "Trauma/ATV accident resulting in left open humerus fracture.",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "DISCHARGE DIAGNOSIS:\nTrauma/ATV accident resulting in left open humerus fracture."
+    },
+    "secondary_diagnoses": [],
+    "procedures_performed": [
+      "Irrigation and debridement of open type 3 subcondylar left distal humerus fracture (July 23, 2008).",
+      "Open reduction and internal fixation of the left supracondylar humerus fracture (July 23, 2008).",
+      "Negative pressure wound dressing (July 23, 2008).",
+      "Irrigation and debridement of left elbow fracture (July 26, 2008).",
+      "CT of the brain without contrast (July 24, 2008)."
+    ],
+    "medications": [],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. Y",
+        "specialty": "Orthopedics",
+        "date": "in one week",
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "He was asked to followup with return appointment in one week to see Dr. Y in Orthopedics."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "not to do any strenuous activities",
+      "move furniture",
+      "lift heavy objects",
+      "use his left upper extremity"
+    ],
+    "dietary_restrictions": [
+      "regular diet"
+    ],
+    "red_flag_symptoms": [
+      "fevers",
+      "pain",
+      "loss of sensation",
+      "loss of pulse",
+      "discoloration of his fingers",
+      "paleness to his hand"
+    ],
+    "discharge_condition": "deemed appropriate for discharge",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "and once cleared by Orthopedics, he was deemed appropriate for discharge."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your child had an injury. It was from an ATV accident. This caused a break in the bone of their upper arm. This bone is called the humerus. The break was an open fracture. This means the bone broke through the skin.",
+  "medication_rationale": "Your doctor did not give your child any new medicines to take at home. Ask at your next visit if your child needs to start any.",
+  "recovery_trajectory": "**Week 1:**\n- Your child may feel tired and sore. This is expected.\n- Keep his left arm very still. Do not let him use it.\n- He should not lift anything. This includes moving furniture.\n- Watch for fever. Call the doctor if his temperature is high.\n- Watch for pain. Call the doctor if pain gets worse.\n- Watch his fingers and hand for color changes.\n- Call the doctor if his hand looks pale.\n- Your child\u2019s goal is to rest and heal.\n\n**Week 2:**\n- Your child\u2019s energy may slowly start to return.\n- He still must not use his left arm for anything.\n- Do not let him lift any objects.\n- Do not let him move furniture.\n- Watch for loss of feeling in his fingers.\n- Watch for a weak pulse in his hand.\n- Call your doctor if you see these changes.\n- Your child\u2019s goal is to keep his left arm protected.\n\n**Week 3:**\n- Your child may start to feel a little better.\n- He still needs to avoid all strenuous activity.\n- Do not let him lift heavy things.\n- He must not use his left arm for tasks.\n- Watch for any discoloration of his fingers.\n- Watch his hand color. Call the doctor if it looks off.\n- Your child\u2019s goal is to follow all activity limits.\n\n**Week 4:**\n- Your child\u2019s pain should continue to get better.\n- He must avoid any strenuous activities.\n- Do not let him lift anything heavy.\n- He should still not use his left arm.\n- Watch for any paleness in his hand.\n- Watch his fingers for any color problems.\n- Call your doctor if you notice these signs.\n- Your child\u2019s goal is to heal without new problems.\n\n**When to expect improvement:**\n- Your child\u2019s healing will take time.\n- Follow all activity and lifting limits closely.\n- Watch for the red flag symptoms we discussed.\n- Progress may be slow but should be steady.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Loss of pulse: Blood flow is blocked. This is an emergency.\n- Discoloration of fingers: This means blood flow is very poor.\n- Paleness to hand: This shows poor blood flow to the arm.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fevers: Your child may have an infection.\n- Pain: Your child's pain is not controlled.\n- Loss of sensation: Your child feels no feeling.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- No symptoms in this tier for your child's diagnosis.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 1.47,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.0,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 2.79,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 3.53,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "No medications extracted."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "caregiver",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What do I do if I miss my pain medicine dose?",
+        "answered_by_doc": false,
+        "gap_summary": "The paper does not say what to do if I miss a dose.",
+        "severity": "critical"
+      },
+      {
+        "question": "What signs of fever are bad enough to worry about?",
+        "answered_by_doc": false,
+        "gap_summary": "The paper does not say what fever level I should watch for.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does it mean that I have an open fracture of my humerus?",
+        "answered_by_doc": false,
+        "gap_summary": "The paper does not explain my diagnosis in simple words.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How do I book my orthopedic appointment with Dr. Y?",
+        "answered_by_doc": false,
+        "gap_summary": "The paper does not say who to call to book the appointment.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How much rest do I really need for my arm?",
+        "answered_by_doc": false,
+        "gap_summary": "The paper does not give clear rules on using my arm.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What counts as 'strenuous activity' that I should avoid?",
+        "answered_by_doc": false,
+        "gap_summary": "The paper does not explain what is a strenuous activity.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What kind of foods should I eat or avoid with my injury?",
+        "answered_by_doc": false,
+        "gap_summary": "The paper does not give specific diet advice for my injury.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "This patient has gaps in understanding his injury. He might misuse his arm causing more harm.",
+    "fk_grade": 4.92,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Pain medicine",
+        "questions": [
+          "How often can I take this medicine?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. Y - Orthopedics",
+        "questions": [
+          "How do I make this appointment?",
+          "What should I bring to my visit?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "fevers",
+        "questions": [
+          "What temperature is a fever I should worry about?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "pain",
+        "questions": [
+          "When does pain mean I need to call for help?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "loss of sensation",
+        "questions": [
+          "How do I know if I have lost feeling?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "loss of pulse",
+        "questions": [
+          "How can I check for a pulse in my hand?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "discoloration of his fingers",
+        "questions": [
+          "What color change means I need help?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "paleness to his hand",
+        "questions": [
+          "How pale is too pale for my hand?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "strenuous activities",
+        "questions": [
+          "What activities are considered strenuous?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "move furniture",
+        "questions": [
+          "Can I move small pieces of furniture?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "lift heavy objects",
+        "questions": [
+          "What is considered a heavy object?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "use his left upper extremity",
+        "questions": [
+          "What basic arm movements are okay?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_059",
+    "source_pdf": "test-data/mtsamples/mtsamples_059.pdf",
+    "generated_at": "2026-08-16T12:43:48",
+    "elapsed_seconds": 5.5
+  }
+}

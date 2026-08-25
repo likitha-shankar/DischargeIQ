@@ -1,0 +1,285 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": "2009-09-01",
+    "discharge_date_source": {
+      "page": 2,
+      "text": "On the second postoperative day, the patient was discharged home in satisfactory condition."
+    },
+    "primary_diagnosis": "Intrauterine pregnancy at term with previous cesarean",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "ADMITTING DIAGNOSIS:\nIntrauterine pregnancy at term with previous cesarean."
+    },
+    "secondary_diagnoses": [
+      "Desired sterilization",
+      "Status post repeat low transverse cesarean and bilateral tubal ligation"
+    ],
+    "procedures_performed": [
+      "repeat low transverse cesarean and tubal ligation were performed under spinal anesthesia with delivery of a viable female infant weighing 7 pounds 10 ounces and Apgars of 9 and 9.",
+      "normal placenta, normal pelvic anatomy.",
+      "600 cc estimated blood loss."
+    ],
+    "medications": [
+      {
+        "name": "Vitamins",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "She is taking vitamins and iron."
+        }
+      },
+      {
+        "name": "Iron",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "She is taking vitamins and iron."
+        }
+      },
+      {
+        "name": "Motrin",
+        "dose": null,
+        "frequency": null,
+        "duration": "for pain",
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "Motrin and Percocet for pain."
+        }
+      },
+      {
+        "name": "Percocet",
+        "dose": null,
+        "frequency": null,
+        "duration": "for pain",
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "Motrin and Percocet for pain."
+        }
+      },
+      {
+        "name": "Paxil",
+        "dose": null,
+        "frequency": null,
+        "duration": "for postpartum depression",
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "Paxil for postpartum depression."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": "in two weeks",
+        "reason": "see me in two weeks or with signs of severe pain, heavy bleeding, fever, or other problems.",
+        "source": {
+          "page": 2,
+          "text": "to see me in two weeks or with signs of severe pain, heavy bleeding, fever, or other problems."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "no lifting, straining, or driving, to put nothing in the vagina"
+    ],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [
+      "severe pain",
+      "heavy bleeding",
+      "fever",
+      "other problems"
+    ],
+    "discharge_condition": "satisfactory",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "On the second postoperative day, the patient was discharged home in satisfactory condition."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "Your baby was ready to be born. You had a cesarean birth. This is a surgery to deliver your baby. You also had a surgery to prevent future pregnancies. This is called sterilization.",
+  "medication_rationale": "Vitamins:\nThis medicine gives you the nutrients your body needs.\nIt helps keep you and your baby healthy.\nYou should not notice any changes.\nCall your doctor if you feel sick to your stomach.\n\nIron:\nThis medicine helps your body make red blood cells.\nIt helps prevent anemia, which is low iron.\nYou may notice your stools are dark or black. This is normal.\nCall your doctor if you get bad stomach pain.\n\nMotrin:\nThis medicine helps with pain after your surgery.\nIt can also help lower a fever.\nYou may feel less pain. Your body may feel more comfortable.\nCall your doctor if you get a rash.\nAlso call if your stomach hurts a lot.\n\nPercocet:\nThis medicine helps manage pain after your surgery.\nYou may feel less pain. It helps you rest.\nYou might feel sleepy or dizzy. This is normal.\nCall your doctor if you feel very confused.\nAlso call if you have trouble breathing.\nCall 911 right away if you have sudden face drooping, arm weakness, or trouble speaking.\n\nPaxil:\nThis medicine helps with feelings of sadness or worry.\nIt can help improve your mood.\nYou might feel sleepy at first. This is often temporary.\nCall your doctor if you have thoughts of hurting yourself.\nCall your doctor if your mood gets worse.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel tired and sore after surgery. This is normal.\n- Keep pain under control with the medicine your doctor gave you.\n- Do not lift anything heavier than your baby.\n- Do not strain or push hard.\n- Do not drive a car.\n- Do not put anything inside your vagina.\n- Your goal is to rest and heal.\n- Call your doctor if you have severe pain.\n\n**Week 2:**\n- You may feel a little less tired this week.\n- Keep up with your pain medicine as needed.\n- You can walk around your home more.\n- Do not lift anything heavier than your baby.\n- Do not strain or push hard.\n- Do not drive a car.\n- Do not put anything inside your vagina.\n- Your goal is to walk a little further each day.\n\n**Week 3:**\n- You should start to feel more energy each day.\n- You can do light activities around the house.\n- Do not lift anything heavier than your baby.\n- Do not strain or push hard.\n- Do not drive a car.\n- Do not put anything inside your vagina.\n- Your goal is to walk for 10 minutes outside.\n- Call your doctor if you have heavy bleeding.\n\n**Week 4:**\n- Your pain should continue to get better.\n- You can do more daily tasks.\n- Do not lift anything heavier than your baby.\n- Do not strain or push hard.\n- Ask your doctor before driving.\n- Do not put anything inside your vagina.\n- Your goal is to walk for 15 minutes each day.\n- Call your doctor if you get a fever.\n\n**Week 5:**\n- You will likely feel much stronger now.\n- You can return to most light activities.\n- Do not lift anything heavier than your baby.\n- Do not strain or push hard.\n- You may drive if your doctor says it is okay.\n- Do not put anything inside your vagina.\n- Your goal is to walk for 20 minutes each day.\n- Call your doctor if you have other problems.\n\n**Week 6:**\n- Most discomfort should be gone by now.\n- You can do more household chores.\n- Discuss lifting and exercise with your doctor.\n- You may drive as needed.\n- Do not put anything inside your vagina until your doctor says it is safe.\n- Your goal is to return to your normal routine slowly.\n- Call your doctor if you have severe pain or heavy bleeding.\n\n**When to expect improvement:**\n- Healing takes time, be patient with yourself.\n- Follow all activity and lifting rules.\n- Call your doctor with any concerns.\n- You should feel much better in about 6 to 8 weeks.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Severe pain: This is not normal after surgery.\n- Heavy bleeding: Soak a pad in one hour.\n- Fever: Your temperature is over 100.4 F.\n- Other problems: You feel very sick now.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Pain not helped by medicine: Take Motrin or Percocet.\n- Bleeding that soaks a pad hourly: Use pads and count.\n- Fever above 101 F: You may have an infection.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild pain improving slowly: Motrin should help you heal.\n- Questions about your medicine: Your nurse can help you plan.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 5.94,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 3.59,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 3.4,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.48,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "What kind of \"other problems\" should I look out for?",
+        "answered_by_doc": false,
+        "gap_summary": "What counts as \"other problems\" is not clear.",
+        "severity": "critical"
+      },
+      {
+        "question": "What is Motrin for and how often should I take it?",
+        "answered_by_doc": false,
+        "gap_summary": "Motrin's use and dose are not explained.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What is Percocet for and what are its side effects?",
+        "answered_by_doc": false,
+        "gap_summary": "Percocet's use and side effects are not explained.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My Paxil status changed. What does that mean for me?",
+        "answered_by_doc": false,
+        "gap_summary": "The Paxil change is not explained.",
+        "severity": "moderate"
+      },
+      {
+        "question": "Who do I call to make my appointment in two weeks?",
+        "answered_by_doc": false,
+        "gap_summary": "It is not clear who to call for an appointment.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How long can I not put anything in my vagina?",
+        "answered_by_doc": false,
+        "gap_summary": "The duration for vaginal restrictions is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does \"intrauterine pregnancy at term\" mean in simple words?",
+        "answered_by_doc": false,
+        "gap_summary": "The diagnosis is not explained in simple words.",
+        "severity": "minor"
+      },
+      {
+        "question": "The paper says I have \"desired sterilization\" and had my tubes tied. What does that mean for me?",
+        "answered_by_doc": false,
+        "gap_summary": "The sterilization part is not explained.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "I am scared because I don't understand my condition. The instructions for my new pain medicine are missing.",
+    "fk_grade": 5.0,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Vitamins",
+        "questions": [
+          "Should I keep taking these?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Iron",
+        "questions": [
+          "How much should I take?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Motrin",
+        "questions": [
+          "How much Motrin should I take?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Percocet",
+        "questions": [
+          "How much Percocet should I take?",
+          "What do I do if I feel dizzy or sleepy?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Paxil",
+        "questions": [
+          "Did my Paxil dose change?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "in two weeks",
+        "questions": [
+          "Who should I call to book this appointment?",
+          "What do I need to bring?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "severe pain",
+        "questions": [
+          "How bad does the pain need to be before I call?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "heavy bleeding",
+        "questions": [
+          "How much bleeding is too much?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "fever",
+        "questions": [
+          "What temperature is considered a fever?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "other problems",
+        "questions": [
+          "Can you give me examples of other problems?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "no lifting, straining, or driving, to put nothing in the vagina",
+        "questions": [
+          "When can I start lifting again?",
+          "How long can I not drive?",
+          "How long can I not put anything in my vagina?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_035",
+    "source_pdf": "test-data/mtsamples/mtsamples_035.pdf",
+    "generated_at": "2026-08-16T12:28:46",
+    "elapsed_seconds": 6.4
+  }
+}

@@ -1,0 +1,349 @@
+{
+  "extraction": {
+    "patient_name": "female",
+    "patient_name_source": {
+      "page": 1,
+      "text": "A 48-year-old white married female presents in the emergency room after two days of"
+    },
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Urinary tract infection",
+    "primary_diagnosis_source": {
+      "page": 2,
+      "text": "1. Urinary tract infection."
+    },
+    "secondary_diagnoses": [
+      "Chest pain of unclear etiology, rule out myocardial infarction",
+      "Neck and back pain of unclear etiology with a negative spinal tap",
+      "Hypertension",
+      "Diabetes type II, not treated with insulin",
+      "Hyperlipidemia treated with TriCor but not statins",
+      "Arthritis",
+      "Chest pain, acute myocardial infarction ruled out",
+      "fever secondary to UTI",
+      "diabetes mellitus type 2 non-insulin treated",
+      "hyperlipidemia with elevated triglycerides and an LDL elevated to 81 with new normal being less than 70"
+    ],
+    "procedures_performed": [
+      "lumbar puncture",
+      "stress test completed on the day of discharge"
+    ],
+    "medications": [
+      {
+        "name": "Enteric-coated aspirin",
+        "dose": "81 mg",
+        "frequency": "one daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "1. Enteric-coated aspirin 81 mg one daily. This is new, as the patient was not taking aspirin at home."
+        }
+      },
+      {
+        "name": "TriCor",
+        "dose": "48 mg",
+        "frequency": "one daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "2. TriCor 48 mg one daily."
+        }
+      },
+      {
+        "name": "Zantac",
+        "dose": "40 mg",
+        "frequency": "one daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "3. Zantac 40 mg one daily."
+        }
+      },
+      {
+        "name": "Lisinopril",
+        "dose": "20 mg",
+        "frequency": "one daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "4. Lisinopril 20 mg one daily."
+        }
+      },
+      {
+        "name": "Mobic",
+        "dose": "75 mg",
+        "frequency": "one daily",
+        "duration": "for arthritis",
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "5. Mobic 75 mg one daily for arthritis."
+        }
+      },
+      {
+        "name": "Metformin",
+        "dose": "500 mg",
+        "frequency": "one daily",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 3,
+          "text": "6. Metformin 500 mg one daily."
+        }
+      },
+      {
+        "name": "Macrodantin",
+        "dose": null,
+        "frequency": "one two times a day",
+        "duration": "for several more days",
+        "status": "changed",
+        "source": {
+          "page": 3,
+          "text": "7. Macrodantin one two times a day for several more days."
+        }
+      },
+      {
+        "name": "Zocor",
+        "dose": "20 mg",
+        "frequency": "one daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "8. Zocor 20 mg one daily, which is a new addition."
+        }
+      },
+      {
+        "name": "Effexor XR",
+        "dose": "37.5 mg",
+        "frequency": "one daily",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 3,
+          "text": "9. Effexor XR 37.5 mg one daily."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "regular physician",
+        "specialty": null,
+        "date": "in 1 week",
+        "reason": null,
+        "source": {
+          "page": 3,
+          "text": "Recheck at Hospital with a regular physician there in 1 week."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "As tolerated",
+      "Continue water exercise five days a week"
+    ],
+    "dietary_restrictions": [
+      "ADA 1800-calorie diet"
+    ],
+    "red_flag_symptoms": [],
+    "discharge_condition": null,
+    "discharge_condition_source": null,
+    "extraction_warnings": [
+      "Document is unusually short for a discharge summary - may be incomplete or a partial document."
+    ]
+  },
+  "diagnosis_explanation": "You have a urinary tract infection. This means there is an infection in your bladder or kidneys. You may have had a fever because of this infection. Your doctor has prescribed medicine to treat the infection.",
+  "medication_rationale": "Enteric-coated aspirin 81 mg:\nThis medicine is new for you. It can help prevent blood clots.\nThis may lower your risk of heart problems.\nYou might get some stomach upset. This is usually mild.\nCall your doctor if you see blood in your urine or stool.\nAlso call if you have black or tarry stools.\n\nTriCor 48 mg:\nThis medicine helps lower your body's cholesterol.\nCholesterol is a type of fat in your blood.\nHigh cholesterol can lead to heart problems.\nYou may notice mild nausea or stomach pain.\nCall your doctor if you get muscle aches or weakness.\nAlso call if your skin or eyes look yellow.\n\nZantac 40 mg:\nThis medicine reduces the acid in your stomach.\nIt can help with heartburn or an upset stomach.\nYou might feel mild nausea or get headaches.\nCall your doctor if you have trouble breathing.\nAlso call if your heart beats very fast.\n\nLisinopril 20 mg:\nThis medicine helps your blood pressure get lower.\nLower blood pressure protects your heart and kidneys.\nYou might get a dry cough. This is common.\nCall your doctor if your face or lips swell.\nAlso call if you feel dizzy often.\n\nMobic 75 mg:\nThis medicine helps with arthritis pain.\nIt reduces swelling and eases joint stiffness.\nYou may notice stomach upset or feel tired.\nCall your doctor if you have severe stomach pain.\nAlso call if you see dark urine or blood.\nImportant: Do not stop taking this medicine without calling your doctor first.\n\nMetformin 500 mg:\nThis medicine helps control your blood sugar.\nIt is used if you have diabetes.\nYou might feel nausea or have diarrhea.\nCall your doctor if you have trouble breathing.\nAlso call if you feel very weak or tired.\n\nMacrodantin:\nThis medicine fights the germs causing your infection.\nIt helps clear up your urinary tract infection.\nYou may have an upset stomach or feel dizzy.\nCall your doctor if you get a rash or fever.\nAlso call if your urine turns brown.\n\nZocor 20 mg:\nThis medicine lowers the cholesterol in your blood.\nIt helps protect your heart from future problems.\nYou might get mild stomach upset or constipation.\nCall your doctor if you have muscle pain.\nAlso call if your skin or eyes look yellow.\n\nEffexor XR 37.5 mg:\nThis medicine can help improve your mood.\nIt is used for depression and anxiety.\nYou may feel sleepy or have mild nausea.\nCall your doctor if you have thoughts of harming yourself.\nAlso call if your heart beats very fast or skips.\nImportant: Do not stop taking this medicine without calling your doctor first.",
+  "recovery_trajectory": "**Week 1:**\n- You may feel tired or sore after your procedures. This is normal.\n- You can do light activities around your home.\n- Continue your water exercise five days a week.\n- Eat foods from the 1800-calorie ADA diet plan.\n- Drink plenty of water to help clear the infection.\n- Call your doctor if you have a fever over 101\u00b0F.\n- Call your doctor if you have new or worse pain.\n- Your goal this week is to walk for 10 minutes twice a day.\n\n**Week 2:**\n- Your energy levels should start to improve this week.\n- You can return to most normal home activities.\n- Keep up with water exercise five days a week.\n- Follow the 1800-calorie ADA diet plan.\n- Drink plenty of water each day.\n- Watch for signs of infection like burning when you pee.\n- Call your doctor if symptoms of infection return or worsen.\n- Your goal this week is to increase your walking time to 15 minutes.\n\n**Week 3:**\n- You should feel stronger and have more energy.\n- You can do more around the house.\n- Continue water exercise five days a week.\n- Stick to your 1800-calorie ADA diet.\n- Ensure you are drinking enough water daily.\n- You may feel mild discomfort from the lumbar puncture. This is okay.\n- Call your doctor if you have a headache that does not get better.\n- Your goal this week is to walk for 20 minutes each day.\n\n**Week 4:**\n- You should feel much closer to your normal self.\n- You can gradually increase your activity levels.\n- Keep up with water exercise five days a week.\n- Continue following the 1800-calorie ADA diet.\n- Stay well hydrated by drinking water.\n- You may resume normal daily activities.\n- Call your doctor if you have any concerns about your recovery.\n- Your goal this week is to walk for 30 minutes each day.\n\n**When to expect improvement:**\n- Most people feel much better within 4 weeks.\n- Continue drinking plenty of water.\n- Keep following your 1800-calorie ADA diet.\n- Listen to your body and do not overdo it.\n- Urinary tract infections can take time to fully clear.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Cannot breathe or gasping for air: Your body needs oxygen now.\n- Chest pain or pressure that will not stop: Your heart needs help now.\n- Uncontrolled bleeding that will not stop: Apply firm pressure right away.\n- Loss of consciousness or fainting: Call 911 or have someone call.\n- Seizure or losing control: Call 911 right away.\n- Signs of stroke: face drooping, arm weakness, trouble speaking.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever over 101 degrees F: You may have a bad infection.\n- Wound looks infected: red streaks, pus, or warm skin.\n- Pain is severe and not helped by medicine: Seek care for bad pain.\n- Cannot keep any fluids down: You may get too dry.\n- Confusion or disorientation that is new: Get checked for urgent problems.\n- Significant swelling in one leg: This could be a blood clot.\n- Sudden weight gain of 2+ pounds in one day: Fluid may be building up.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild pain that is slowly getting better: This is a good sign.\n- Questions about your medicine or dose: Your doctor can help guide you.\n- Mild redness at a wound site: This can happen while you heal.\n- Mild swelling without pain: This may go away on its own.\n- Feeling tired but it is improving: Rest can help your body heal.\n- Nausea without any vomiting: Try small sips of clear fluids.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 5.95,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.51,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.66,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.64,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document is unusually short for a discharge summary - may be incomplete or a partial document.",
+    "No red-flag symptoms extracted.",
+    "Missing discharge date."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "diabetes",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "If I miss a dose of my blood pressure medicine Lisinopril, what should I do?",
+        "answered_by_doc": false,
+        "gap_summary": "What to do for a missed blood pressure dose is missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does a urinary tract infection mean and why did it make me have chest pain and a fever?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of UTI and its symptoms is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How much water can I drink with this 1800 calorie diet?",
+        "answered_by_doc": false,
+        "gap_summary": "Fluid intake amount is not specified.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What side effects should I watch for with the new Mobic and Zocor pills?",
+        "answered_by_doc": false,
+        "gap_summary": "Side effects for new medications are not listed.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My regular doctor needs to see me in 1 week, but who do I call to make this appointment?",
+        "answered_by_doc": false,
+        "gap_summary": "How to book the follow-up appointment is unclear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What is this Zantac for and why do I have to take it every day?",
+        "answered_by_doc": false,
+        "gap_summary": "Reason for the new medication is unclear.",
+        "severity": "minor"
+      },
+      {
+        "question": "It says I have chest pain but it is ruled out, so why do I have neck and back pain?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation for neck and back pain is missing.",
+        "severity": "minor"
+      },
+      {
+        "question": "What does it mean to continue water exercise and how long should I do it?",
+        "answered_by_doc": false,
+        "gap_summary": "Specifics about continuing water exercise are missing.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "This patient needs more help. The biggest problem is not knowing what to do for missed medicine. Anyone would struggle with this.",
+    "fk_grade": 6.16,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Enteric-coated aspirin 81 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "TriCor 48 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Zantac 40 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Lisinopril 20 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Mobic 75 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Metformin 500 mg",
+        "questions": [
+          "What if I miss a dose?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Macrodantin",
+        "questions": [
+          "How often should I take this medicine?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Zocor 20 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What side effects should I watch for?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Effexor XR 37.5 mg",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "regular physician - in 1 week",
+        "questions": [
+          "Who do I call to schedule this?",
+          "What do I need to bring?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "ADA 1800-calorie diet",
+        "questions": [
+          "What foods can I eat on this diet?",
+          "How much water can I drink?"
+        ]
+      },
+      {
+        "item_type": "diet_activity",
+        "item_label": "Continue water exercise five days a week",
+        "questions": [
+          "How long should I do water exercise?",
+          "What kind of water exercise is best?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_047",
+    "source_pdf": "test-data/mtsamples/mtsamples_047.pdf",
+    "generated_at": "2026-08-16T12:36:17",
+    "elapsed_seconds": 9.7
+  }
+}

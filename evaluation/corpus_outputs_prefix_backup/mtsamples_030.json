@@ -1,0 +1,232 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": null,
+    "discharge_date_source": null,
+    "primary_diagnosis": "Status post poly exchange, right knee, total knee arthroplasty",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "Status post poly exchange, right knee, total knee arthroplasty."
+    },
+    "secondary_diagnoses": [
+      "Painful right knee status post total knee arthroplasty many years ago"
+    ],
+    "procedures_performed": [
+      "Poly exchange total knee, right."
+    ],
+    "medications": [
+      {
+        "name": "Coumadin",
+        "dose": "4 mg",
+        "frequency": "a day",
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "The patient will be discharged home on Coumadin 4 mg a day as the INR was 1.9 on discharge with twice weekly lab checks."
+        }
+      },
+      {
+        "name": "Vicodin",
+        "dose": "5/500 mg",
+        "frequency": "q.4-6h",
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "Vicodin 5/500 mg take one to two tablets p.o. q.4-6h."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. ABC",
+        "specialty": null,
+        "date": "in two weeks",
+        "reason": null,
+        "source": {
+          "page": 1,
+          "text": "The patient is to follow up with Dr. ABC in two weeks."
+        }
+      }
+    ],
+    "activity_restrictions": [
+      "weight bear as tolerated right lower extremity"
+    ],
+    "dietary_restrictions": [
+      "regular"
+    ],
+    "red_flag_symptoms": [
+      "increased redness",
+      "swelling",
+      "drainage",
+      "fever",
+      "any concerns regarding operation or site of incision"
+    ],
+    "discharge_condition": "Stable",
+    "discharge_condition_source": {
+      "page": 1,
+      "text": "Stable."
+    },
+    "extraction_warnings": []
+  },
+  "diagnosis_explanation": "You recently had surgery on your right knee. This surgery is called a total knee replacement. It is also called a total knee arthroplasty. Your knee was replaced because it was causing you pain.",
+  "medication_rationale": "Coumadin 4 mg a day:\nThis medicine is prescribed to prevent blood clots. It is important for your recovery after knee surgery. You may notice your skin turning a bit orange or yellow. This is a normal effect of the medicine. Call your doctor right away if you have severe pain, swelling, or a cut that will not stop bleeding.\n\nVicodin 5/500 mg q.4-6h:\nThis medicine is for pain after your knee surgery. It will help you feel more comfortable. You may feel sleepy or dizzy. This is common when you first take it. Call your doctor if you have trouble breathing or feel very confused.",
+  "recovery_trajectory": "**Week 1:**\n- You will likely feel tired and have some pain. This is normal.\n- You can put weight on your right leg as you are able.\n- Use crutches or a walker to help you move around.\n- Do not lift anything heavier than 5 pounds.\n- Call your doctor if you see more redness or swelling.\n- Call your doctor if you have drainage from your incision.\n- Call your doctor if you get a fever.\n- Your goal is to walk a little more each day inside your home.\n\n**Week 2:**\n- Your pain should start to get a bit better.\n- You can likely walk a bit further with less help.\n- Continue to put weight on your right leg as tolerated.\n- Call your doctor if you have any concerns about your knee.\n- Your goal is to walk for 10 minutes three times a day.\n- Avoid activities that strain your knee.\n\n**Week 3:**\n- You may feel more energy and less pain this week.\n- You can likely do more light activities around the house.\n- Continue to put weight on your right leg as tolerated.\n- Your goal is to walk for 15 minutes without stopping.\n- Call your doctor if redness or swelling gets worse.\n- Call your doctor if you have new drainage from your incision.\n\n**Week 4:**\n- Most days should feel easier than the week before.\n- You can likely walk longer distances with less pain.\n- Continue to put weight on your right leg as tolerated.\n- Your goal is to walk outside for short periods.\n- Call your doctor if you get a fever or feel unwell.\n- Call your doctor if you have any worries about your knee.\n\n**When to expect improvement:**\n- You should feel a steady improvement over the next few weeks.\n- Keep moving your knee gently to maintain flexibility.\n- Follow your doctor's instructions for physical therapy.\n- Progress will be gradual.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Increased redness with fever: You may have a bad infection.\n- Drainage from incision site: This is a sign of infection.\n- Wound looks infected: Red streaks mean bad infection spreading.\n- Pain around the incision: Your joint may be infected badly.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Increased redness without fever: The area may be infected.\n- Swelling around the incision: Fluid may be building up there.\n- Concerns about operation: Your knee may need urgent care.\n- Concerns about incision site: The wound may be opening up.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Mild redness on knee: This can happen while you heal.\n- Mild swelling of knee: This can happen while you heal.\n- Drainage that is clear: This is not a bad sign.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 5.08,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.53,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.23,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 5.19,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Missing discharge date.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "The paper says I take Vicodin every 4 to 6 hours. What if I miss a dose?",
+        "answered_by_doc": false,
+        "gap_summary": "Instructions for missed dose are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What should I do if the incision starts to drain?",
+        "answered_by_doc": false,
+        "gap_summary": "What to do for incision drainage is missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does Coumadin do and why am I taking it?",
+        "answered_by_doc": false,
+        "gap_summary": "Medication purpose and reason for prescription are missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How do I make the appointment with Dr. ABC? Do I call them?",
+        "answered_by_doc": false,
+        "gap_summary": "How to book follow-up appointment is unclear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says I can \"weight bear as tolerated\". What does that mean for walking or using stairs?",
+        "answered_by_doc": false,
+        "gap_summary": "Activity level after surgery is not clear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What kind of swelling or redness around my knee would be bad? How much is too much?",
+        "answered_by_doc": false,
+        "gap_summary": "Red flags for swelling and redness are vague.",
+        "severity": "moderate"
+      },
+      {
+        "question": "How will I know if I have a fever? Do I need to take my temperature?",
+        "answered_by_doc": false,
+        "gap_summary": "Patient does not know how to check for fever.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does 'status post poly exchange' mean for my knee? I don't know what happened.",
+        "answered_by_doc": false,
+        "gap_summary": "Diagnosis explained in plain words is missing.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "This patient has low literacy. They need simple explanations. The biggest gaps are about medication and warning signs.",
+    "fk_grade": 6.54,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Coumadin - dose 4 mg - frequency a day",
+        "questions": [
+          "What side effects should I watch for?",
+          "What do I do if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Vicodin - dose 5/500 mg - frequency q.4-6h",
+        "questions": [
+          "What are the side effects?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. ABC - in two weeks",
+        "questions": [
+          "Who do I call to schedule this?",
+          "What should I bring to my appointment?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "increased redness",
+        "questions": [
+          "How red is too red?",
+          "What should I do if I see it?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "swelling",
+        "questions": [
+          "How much swelling is a problem?",
+          "What should I do if I see it?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "drainage",
+        "questions": [
+          "What should I do if my incision drains?",
+          "What should I look for?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "fever",
+        "questions": [
+          "What temperature is considered a fever?",
+          "What should I do if I have one?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "any concerns regarding operation or site of incision",
+        "questions": [
+          "Who should I talk to if I am worried?",
+          "What are common concerns?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_030",
+    "source_pdf": "test-data/mtsamples/mtsamples_030.pdf",
+    "generated_at": "2026-08-15T13:31:38",
+    "elapsed_seconds": 6.6
+  }
+}

@@ -1,0 +1,219 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": "2008-08-01",
+    "discharge_date_source": {
+      "page": 2,
+      "text": "The patient's postoperative course was relatively uneventful. His diet and activity were gradually advanced without complication. On postoperative day #2, he was passing flatus and has had bowel movements. His Jackson-Pratt drain was discontinued on postoperative day #3 that being the day of discharge."
+    },
+    "primary_diagnosis": "Left renal cell carcinoma, left renal cyst",
+    "primary_diagnosis_source": {
+      "page": 1,
+      "text": "DISCHARGE DIAGNOSIS:\nLeft renal cell carcinoma, left renal cyst."
+    },
+    "secondary_diagnoses": [
+      "Chronic obstructive pulmonary disease.",
+      "Coronary artery disease."
+    ],
+    "procedures_performed": [
+      "Robotic-Assisted laparoscopic left renal cyst decortication and cystoscopy."
+    ],
+    "medications": [],
+    "follow_up_appointments": [
+      {
+        "provider": "Dr. XYZ",
+        "specialty": null,
+        "date": "2008-08-12",
+        "reason": "postoperative check",
+        "source": {
+          "page": 2,
+          "text": "The patient was instructed to follow up with Dr. XYZ on 8/12/2008 at 1:50 p.m. and was given prescription for pain medications as well as laxative."
+        }
+      },
+      {
+        "provider": "Dr. XYZ",
+        "specialty": null,
+        "date": "08/12/2008",
+        "reason": "postoperative check",
+        "source": {
+          "page": 2,
+          "text": "The patient will follow up with Dr. XYZ for a postoperative check on 08/12/2008 at 1:50 p.m. and he was made aware of this appointment."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [
+      "fever greater than 101.5",
+      "intractable pain",
+      "nausea",
+      "vomiting",
+      "any other concerns"
+    ],
+    "discharge_condition": "Good",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "DISCHARGE CONDITION:\nGood."
+    },
+    "extraction_warnings": [
+      "Document says continue home meds but no medication list provided"
+    ]
+  },
+  "diagnosis_explanation": "Your left kidney has a mass. It is called cancer. It is also called a cyst. Your lungs have a long-term problem. This problem makes it hard to breathe. Your heart has a problem too. It is called coronary artery disease. This means your heart's blood vessels are narrow.",
+  "medication_rationale": "Your doctor did not give you any new medicines to take at home. Ask at your next visit if you need to start any.",
+  "recovery_trajectory": "**Week 1:**\n- You will likely feel tired and sore after your surgery.\n- Keep activity light. Rest often.\n- Do not lift anything heavier than 10 pounds.\n- Drink plenty of fluids.\n- Take pain medicine as prescribed.\n- Your goal this week is to walk a little each day.\n- Call your doctor if you have a fever over 101.5.\n- Call your doctor if pain is too bad to manage.\n\n**Week 2:**\n- Your energy levels may start to slowly improve.\n- You can do more light tasks around the house.\n- Avoid lifting anything heavy.\n- Keep up with drinking fluids.\n- Your goal this week is to walk for 5-10 minutes, twice a day.\n- Call your doctor if you have nausea or vomiting.\n- Call your doctor if you have any other concerns.\n\n**Week 3:**\n- You should feel less soreness and more energy.\n- You can resume more normal daily activities.\n- Continue to avoid heavy lifting.\n- Drink fluids throughout the day.\n- Your goal this week is to increase walking time to 15 minutes.\n- Call your doctor if you have a fever over 101.5.\n- Call your doctor if pain is not getting better.\n\n**Week 4:**\n- You may feel much more like yourself this week.\n- You can likely do most light chores.\n- You can slowly return to normal activities.\n- Keep drinking plenty of fluids.\n- Your goal this week is to walk 20 minutes daily.\n- Call your doctor if you have nausea or vomiting.\n- Call your doctor if you have any other concerns.\n\n**When to expect improvement:**\n- Most people feel significantly better within 4 to 6 weeks.\n- Healing is a gradual process.\n- Continue to follow your doctor's instructions.\n- Listen to your body and rest when needed.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Chest pain: Your heart needs help now.\n- You cannot catch your breath: Your body needs oxygen now.\n- Face drooping or arm weakness: These are stroke signs. Minutes matter.\n- Uncontrolled bleeding: Apply pressure; it must stop.\n- Unresponsive or passed out: Get help right away.\n- Seizure: This needs urgent care.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Fever greater than 101.5: You may have an infection.\n- Intractable pain: Your pain is very bad.\n- Vomiting: You cannot keep fluids down.\n- Any other concerns: Do not ignore worries.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Nausea: You may feel sick to your stomach.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 2.21,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 3.84,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 4.49,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 4.28,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document says continue home meds but no medication list provided",
+    "Medications: document references home medications without a specific list in this PDF.",
+    "No activity or dietary restrictions extracted.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "surgical",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "I don't see any medications on my discharge papers. Do I need to take anything for my kidney cancer or COPD?",
+        "answered_by_doc": false,
+        "gap_summary": "Medication instructions are completely absent.",
+        "severity": "critical"
+      },
+      {
+        "question": "What does left renal cell carcinoma mean in simple words?",
+        "answered_by_doc": false,
+        "gap_summary": "Explanation of kidney cancer diagnosis is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "My paper says I have COPD and heart disease, but it doesn't say if I can do my usual activities. What can I do?",
+        "answered_by_doc": false,
+        "gap_summary": "Diet and activity restrictions are not specified.",
+        "severity": "moderate"
+      },
+      {
+        "question": "I have nausea and vomiting listed as reasons to call. How long do I need to have these symptoms before calling?",
+        "answered_by_doc": false,
+        "gap_summary": "When to seek care for symptoms is unclear.",
+        "severity": "moderate"
+      },
+      {
+        "question": "The paper lists a fever over 101.5, but what if I feel feverish but don't have a thermometer?",
+        "answered_by_doc": false,
+        "gap_summary": "What to do if symptoms are present but unmeasured is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "It says to see Dr. XYZ on August 12th for a check-up, but I don't know what that appointment is for.",
+        "answered_by_doc": false,
+        "gap_summary": "Purpose of postoperative check-up is not clear.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 6,
+    "simulator_summary": "People who cannot read well will struggle most. Biggest gap is missing medication details.",
+    "fk_grade": 8.49,
+    "passes": false,
+    "caregiver_questions": [
+      {
+        "item_type": "diagnosis",
+        "item_label": "Left renal cell carcinoma",
+        "questions": [
+          "What does this diagnosis mean for me?",
+          "What is a left renal cyst?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Chronic obstructive pulmonary disease",
+        "questions": [
+          "Do I need to avoid smoke or dust?",
+          "Should I use my inhaler more often?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Coronary artery disease",
+        "questions": [
+          "What foods should I not eat?",
+          "Should I limit my activity?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "Dr. XYZ - postoperative check",
+        "questions": [
+          "What should I bring to this visit?",
+          "How do I prepare for this check-up?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "fever greater than 101.5",
+        "questions": [
+          "How many degrees Fahrenheit is 101.5?",
+          "What should I do if I have a fever?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "intractable pain",
+        "questions": [
+          "What counts as intractable pain?",
+          "What should I do if the pain is bad?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "nausea",
+        "questions": [
+          "How sick do I need to feel before calling?",
+          "What if I just feel a little sick to my stomach?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "vomiting",
+        "questions": [
+          "How many times do I need to vomit?",
+          "What should I do if I am vomiting?"
+        ]
+      },
+      {
+        "item_type": "warning_sign",
+        "item_label": "any other concerns",
+        "questions": [
+          "What if I just feel generally unwell?",
+          "Who should I call if I am worried?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_053",
+    "source_pdf": "test-data/mtsamples/mtsamples_053.pdf",
+    "generated_at": "2026-08-16T12:40:09",
+    "elapsed_seconds": 6.6
+  }
+}

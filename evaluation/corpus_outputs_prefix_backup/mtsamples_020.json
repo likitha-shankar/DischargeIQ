@@ -1,0 +1,337 @@
+{
+  "extraction": {
+    "patient_name": null,
+    "patient_name_source": null,
+    "discharge_date": "2006-08-16",
+    "discharge_date_source": {
+      "page": 1,
+      "text": "was discharged on 08/16/2006."
+    },
+    "primary_diagnosis": "Stable ex-32-weeks preemie",
+    "primary_diagnosis_source": {
+      "page": 2,
+      "text": "DISCHARGE DIAGNOSIS:\nStable ex-32-weeks preemie."
+    },
+    "secondary_diagnoses": [
+      "Respiratory distress syndrome",
+      "intrauterine growth restriction",
+      "thrombocytopenia",
+      "hypoglycemia",
+      "retinal immaturity"
+    ],
+    "procedures_performed": [
+      "C-section secondary to the nonreassuring fetal status",
+      "OG tube was passed",
+      "head ultrasound done to rule out intracranial abnormalities and intracranial hemorrhage",
+      "The ultrasound was negative for intracranial hemorrhage",
+      "The patient had been on antibiotics during the stay at Madera",
+      "status post phototherapy at Madera",
+      "Exam on 07/17/2006 showed immature retina",
+      "The patient is to get followup exam after discharge",
+      "Calcium challenge has been done"
+    ],
+    "medications": [
+      {
+        "name": "Mylicon drops",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "Baby was also started on Mylicon drops and glycerin suppositories."
+        }
+      },
+      {
+        "name": "Glycerin Suppositories",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "Baby was also started on Mylicon drops and glycerin suppositories."
+        }
+      },
+      {
+        "name": "Reglan",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 1,
+          "text": "Baby was also given Reglan."
+        }
+      },
+      {
+        "name": "NeoSure",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "continued",
+        "source": {
+          "page": 1,
+          "text": "At the time of discharge, baby was tolerating p.o. feeds well of BM fortified with 22-cal NeoSure."
+        }
+      },
+      {
+        "name": "Diazoxide",
+        "dose": "5 mg/kg",
+        "frequency": "every 8 hours",
+        "duration": null,
+        "status": "changed",
+        "source": {
+          "page": 2,
+          "text": "Diazoxide was started 5 mg/kg per os every 8 hours"
+        }
+      },
+      {
+        "name": "Iron",
+        "dose": null,
+        "frequency": null,
+        "duration": null,
+        "status": "new",
+        "source": {
+          "page": 2,
+          "text": "The patient is status post phototherapy at Madera and was started on iron."
+        }
+      }
+    ],
+    "follow_up_appointments": [
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": "followup exam after discharge",
+        "source": {
+          "page": 2,
+          "text": "The patient is to get followup exam after discharge."
+        }
+      },
+      {
+        "provider": null,
+        "specialty": null,
+        "date": null,
+        "reason": null,
+        "source": {
+          "page": 2,
+          "text": "Followup appointment has been made at Kid's Care."
+        }
+      }
+    ],
+    "activity_restrictions": [],
+    "dietary_restrictions": [],
+    "red_flag_symptoms": [],
+    "discharge_condition": "Stable",
+    "discharge_condition_source": {
+      "page": 2,
+      "text": "DISCHARGE DIAGNOSIS:\nStable ex-32-weeks preemie."
+    },
+    "extraction_warnings": [
+      "Document is unusually short for a discharge summary - may be incomplete or a partial document.",
+      "Conflicting doses for Diazoxide: found 5mg, 6mg in document. Verify against original."
+    ]
+  },
+  "diagnosis_explanation": "Your baby was born early. They were born 8 weeks before their due date. This means they are a premature baby.\n\nYour baby had trouble breathing when they were born. This is called respiratory distress syndrome. Their lungs needed extra help to work well.\n\nYour baby was smaller than expected for their age in the womb. This is called intrauterine growth restriction.\n\nYour baby had a low number of platelets in their blood. Platelets help your blood to clot. This condition is called thrombocytopenia.\n\nYour baby had low blood sugar. This is called hypoglycemia. It means their body did not have enough energy.\n\nYour baby's eyes are still developing. This is called retinal immaturity. Their eyes will continue to grow after birth.",
+  "medication_rationale": "Mylicon drops:\nThis medicine is to help your baby's tummy. It can help relieve gas bubbles. Your baby may burp more or seem less fussy. This is a sign the medicine is working. Call your doctor if your baby has trouble breathing or seems to be in pain.\n\nGlycerin Suppositories:\nThis medicine helps your baby have a bowel movement. It is inserted into the bottom. It makes it easier to poop. Your baby may poop soon after this is used. Call your doctor if your baby has a fever or seems sick.\n\nReglan:\nThis medicine helps the muscles in the stomach work better. It helps food move from the stomach to the gut faster. This can help your baby feel more full. You may notice your baby eats less at each feeding. Call your doctor if your baby seems very sleepy or has jerky movements.\n\nNeoSure:\nThis is a special formula to help your baby grow. It has extra nutrients for premature babies. Your baby will get the nutrients needed to grow strong. This formula is helping your baby gain weight. Call your doctor if your baby has a rash or seems to be having trouble breathing.\n\nDiazoxide:\nThis medicine helps relax the blood vessels in your baby's body. This can help improve blood flow. Your baby's blood pressure may become lower. This is a sign the medicine is working. Call your doctor if your baby's breathing changes or if your baby seems very weak.\n\nIron:\nThis medicine helps your baby make red blood cells. Red blood cells carry oxygen through the body. Your baby may have darker stools. This is a normal sign the iron is working. Call your doctor if your baby has tummy pain or seems very tired.",
+  "recovery_trajectory": "**Week 1:**\n- You will feel sleepy and may need to be held often.\n- You can eat and drink by mouth.\n- Watch for fever over 100.4 degrees Fahrenheit.\n- Your goal is to drink well from a bottle or breast.\n- You had eye exams. You will get another one later.\n- You will get follow-up eye exams after discharge.\n- Call your doctor if you have trouble breathing.\n\n**Week 2:**\n- You may start to feed better this week.\n- You can move around gently.\n- Continue to watch for fever over 100.4 degrees Fahrenheit.\n- Your goal is to finish most of your bottle feedings.\n- Call your doctor if you seem very sleepy or hard to wake.\n\n**Week 3:**\n- You might seem more alert and active this week.\n- You can sit with help for short periods.\n- Watch for any new rashes or skin problems.\n- Your goal is to have steady weight gain each day.\n- Call your doctor if you have trouble keeping food down.\n\n**Week 4:**\n- You may start to smile and make more sounds.\n- You can enjoy tummy time for longer periods.\n- Watch for any changes in your eyes.\n- Your goal is to sleep for longer stretches at night.\n- Call your doctor if you seem to be having trouble breathing.\n\n**When to expect improvement:**\n- Your baby will grow stronger each week.\n- Keep up with regular feeding and sleeping times.\n- Follow up with your doctor as scheduled.\n- Premature babies grow at their own pace.",
+  "escalation_guide": "CALL 911 IMMEDIATELY\nThese symptoms are life-threatening. Do not drive yourself.\n- Breathing stops or slows: Your baby needs help breathing.\n- Pale or blue lips or skin: This means low oxygen.\n- Not waking up or very sleepy: Your baby may be sick.\n- Seizure or body shaking: This is a medical emergency.\n- Cannot keep any milk down: Your baby can get dehydrated.\n- Vomiting large amounts of green fluid: This can be serious.\n- Cold to touch or unable to keep warm: Baby's body is failing.\n- Rectal temperature over 100.4 F: This can be a serious infection.\n\nGO TO THE ER TODAY\nDo not wait until tomorrow. Go within a few hours.\n- Baby seems sick or listless: Your baby may need care.\n- Refusing to feed or taking much less: Baby needs fluids urgently.\n- Breathing fast or looks like work: Your baby may struggle to breathe.\n- Diaper rash that looks worse: This can become a bad infection.\n- Baby has trouble breathing after medicine: Call your doctor first.\n\nCALL YOUR DOCTOR\nCall during office hours. Do not go to the ER for these.\n- Questions about medicine or dose: Your nurse can help you.\n- Baby's stool is hard or baby is straining: Try glycerin suppository.\n- Mild gas pain that Mylicon does not help: Talk to your doctor.\n- Baby's skin looks slightly yellow: This can be normal jaundice.\n- Rash that is small and not spreading: Watch for signs of infection.",
+  "fk_scores": {
+    "agent2": {
+      "fk_grade": 4.91,
+      "passes": true
+    },
+    "agent3": {
+      "fk_grade": 4.82,
+      "passes": true
+    },
+    "agent4": {
+      "fk_grade": 3.13,
+      "passes": true
+    },
+    "agent5": {
+      "fk_grade": 5.22,
+      "passes": true
+    }
+  },
+  "extraction_warnings": [
+    "Document is unusually short for a discharge summary - may be incomplete or a partial document.",
+    "Conflicting doses for Diazoxide: found 5mg, 6mg in document. Verify against original.",
+    "No red-flag symptoms extracted.",
+    "No activity or dietary restrictions extracted.",
+    "Missing patient name."
+  ],
+  "pipeline_status": "complete_with_warnings",
+  "rejection_reason": null,
+  "document_type": "unknown",
+  "audience": "patient",
+  "patient_simulator": {
+    "missed_concepts": [
+      {
+        "question": "How much NeoSure formula should my baby drink each day?",
+        "answered_by_doc": false,
+        "gap_summary": "Feeding amount for NeoSure formula is not specified.",
+        "severity": "critical"
+      },
+      {
+        "question": "What are the signs of low blood sugar or breathing problems I should watch for?",
+        "answered_by_doc": false,
+        "gap_summary": "Warning signs for low sugar and breathing are not listed.",
+        "severity": "critical"
+      },
+      {
+        "question": "How do I give the Diazoxide and what if I miss a dose?",
+        "answered_by_doc": false,
+        "gap_summary": "Instructions for giving Diazoxide are missing.",
+        "severity": "critical"
+      },
+      {
+        "question": "Why am I taking Reglan and what happens if I miss a dose?",
+        "answered_by_doc": false,
+        "gap_summary": "The purpose and missed dose plan for Reglan is missing.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does my baby\u2019s \u201cretinal immaturity\u201d mean and is it serious?",
+        "answered_by_doc": false,
+        "gap_summary": "The eye condition needs clear explanation and risk level.",
+        "severity": "moderate"
+      },
+      {
+        "question": "When should I call the doctor about the follow-up exam after discharge?",
+        "answered_by_doc": false,
+        "gap_summary": "No contact number is given for follow-up appointment booking.",
+        "severity": "moderate"
+      },
+      {
+        "question": "What does \"stable ex-32-weeks preemie\" mean for me at home?",
+        "answered_by_doc": false,
+        "gap_summary": "The diagnosis needs plain language explanation for a parent.",
+        "severity": "minor"
+      },
+      {
+        "question": "What do Mylicon drops and Glycerin Suppositories do for my baby?",
+        "answered_by_doc": false,
+        "gap_summary": "The purpose of two new medications is not explained.",
+        "severity": "minor"
+      }
+    ],
+    "overall_gap_score": 7,
+    "simulator_summary": "Parents would struggle with this document. Biggest gap is medication instructions.",
+    "fk_grade": 7.67,
+    "passes": true,
+    "caregiver_questions": [
+      {
+        "item_type": "medication",
+        "item_label": "Mylicon drops",
+        "questions": [
+          "What does this medication do?",
+          "How do I give it?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Glycerin Suppositories",
+        "questions": [
+          "What is this for?",
+          "How do I use it?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Reglan",
+        "questions": [
+          "What is this medicine for?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "NeoSure",
+        "questions": [
+          "How much should I feed?",
+          "How often should I feed?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Diazoxide 5 mg/kg every 8 hours",
+        "questions": [
+          "How do I give this medicine?",
+          "What if I miss a dose?"
+        ]
+      },
+      {
+        "item_type": "medication",
+        "item_label": "Iron",
+        "questions": [
+          "What does this iron do?",
+          "How do I give it?"
+        ]
+      },
+      {
+        "item_type": "appointment",
+        "item_label": "followup exam after discharge",
+        "questions": [
+          "When is the appointment?",
+          "Who do I call to schedule it?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Stable ex-32-weeks preemie",
+        "questions": [
+          "What does this mean for my baby?",
+          "What are the risks?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Respiratory distress syndrome",
+        "questions": [
+          "What does this mean?",
+          "What should I watch for?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Intrauterine growth restriction",
+        "questions": [
+          "What does this mean?",
+          "What are the long-term effects?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Thrombocytopenia",
+        "questions": [
+          "What does this mean?",
+          "What are the signs?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Hypoglycemia",
+        "questions": [
+          "What are the signs of low blood sugar?",
+          "What should I do?"
+        ]
+      },
+      {
+        "item_type": "diagnosis",
+        "item_label": "Retinal immaturity",
+        "questions": [
+          "What does this mean?",
+          "Will my baby's vision get better?"
+        ]
+      }
+    ]
+  },
+  "_review_meta": {
+    "doc_name": "mtsamples_020",
+    "source_pdf": "test-data/mtsamples/mtsamples_020.pdf",
+    "generated_at": "2026-08-15T13:15:39",
+    "elapsed_seconds": 17.2
+  }
+}
