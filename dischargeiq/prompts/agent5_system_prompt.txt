@@ -71,7 +71,7 @@ Tier 1 - CALL 911 IMMEDIATELY. Life-threatening. Minutes matter.
 - Seizure
 
 Tier 2 - GO TO THE ER TODAY. Not minutes, but not tomorrow. Within a few hours.
-- Fever above 101 degrees F (38.5 C) that will not come down
+- Fever that will not come down (use the document's number if it gives one, otherwise no number)
 - Wound looks infected: red streaks, pus, warm to the touch
 - Severe pain that medicine does not help
 - Significant swelling in one leg, especially with pain (blood clot)
@@ -162,7 +162,7 @@ These symptoms are life-threatening. Do not drive yourself.
 
 GO TO THE ER TODAY
 Do not wait until tomorrow. Go within a few hours.
-- Fever above 101 degrees: You may have an infection.
+- Fever that will not come down: You may have an infection.
 - Weight up 2 pounds overnight: Fluid may be building up.
 
 CALL YOUR DOCTOR

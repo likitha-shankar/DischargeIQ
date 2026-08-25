@@ -47,13 +47,22 @@ BENIGN_NUMBERS = frozenset(
 # classified separately: the fix is a clinical decision about attribution rather
 # than a code bug.
 #
-# Kept to what agent5_system_prompt.txt ACTUALLY contains, verified 25 Aug 2026.
-# The set previously also held 100.4, 101.5 and 102, none of which appear in any
-# prompt - so genuinely invented thresholds were being excused as "the prompt
-# said so" and hidden from invented_findings. A classifier that quietly
-# downgrades real findings is worse than no classifier, because the count looks
-# clean for the wrong reason.
-_PROMPT_SUPPLIED_THRESHOLDS = frozenset({"101", "38.5"})
+# EMPTY as of 25 Aug 2026, and that is the intended end state: no prompt hands
+# the model a clinical threshold any more, so every ungrounded number in an
+# output is now genuinely invented and none of them get excused.
+#
+# History, because the emptying happened in two steps and both mattered:
+#   - The set once held 100.4, 101.5 and 102, which appear in NO prompt. Ten
+#     real findings were being filed as "the prompt said so".
+#   - It then held 101 and 38.5, which agent5_system_prompt.txt really did
+#     supply. Those were honest entries, but they masked the measurement: a
+#     corpus re-run showed Agent 5 still emitting "Fever above 101 degrees" for
+#     documents mentioning no fever at all, and the report called it clean.
+#     The prompt no longer supplies either number, so neither is excused.
+#
+# Re-populate this ONLY if a prompt starts supplying a threshold again, and
+# expect that to hide findings when it does.
+_PROMPT_SUPPLIED_THRESHOLDS: frozenset[str] = frozenset()
 
 # Sections checked, mapped to the agent that produces them.
 _NARRATIVE_FIELDS = {

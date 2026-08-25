@@ -13,6 +13,9 @@ this file is about keeping the signal honest enough to eventually promote from
 report-only to enforcement.
 """
 
+from pathlib import Path
+
+from dischargeiq.utils import grounding
 from dischargeiq.utils.grounding import verify_output
 
 _SOURCE = (
@@ -101,21 +104,40 @@ class TestNumberGrounding:
         assert report.findings[0].category == "invented"
         assert report.findings[0].agent == "agent4"
 
-    def test_prompt_threshold_is_classified_separately(self):
+    def test_no_threshold_is_excused_any_more(self):
         """
-        A prompt-supplied fever threshold is not the same defect as an
-        invented activity target, and must not be reported as one.
+        Nothing is excused, because no prompt supplies a threshold now.
 
-        It is still a finding: showing standard guidance as though the
-        patient's own paperwork said so is the attribution problem the review
-        flags for clinician decision. But the fix is a clinical call about
-        attribution, not a code bug, so it is kept out of invented_findings.
+        101 used to be filed as "prompt_threshold" and kept out of
+        invented_findings, which was honest - agent5_system_prompt.txt really
+        did supply it - and it hid the measurement. A 25 Aug corpus re-run
+        showed Agent 5 emitting "Fever above 101 degrees" for documents that
+        mention no fever at all, and the report called those outputs clean.
+        The prompts no longer hand the model any threshold, so an ungrounded
+        101 is now what it always was: invented.
         """
+        out = _output(escalation_guide="Call for a fever over 101 degrees.")
+        report = verify_output(out, _SOURCE)
+        assert [f.category for f in report.findings] == ["invented"]
+        assert len(report.invented_findings) == 1
+        assert report.is_clean is False
+
+    def test_classification_still_works_if_a_prompt_supplies_one(self, monkeypatch):
+        """
+        The prompt_threshold category is kept, not deleted.
+
+        If a clinician-signed template later authorises a specific default,
+        a prompt may legitimately supply it again, and that is a different
+        finding from a number the model invented: one is an attribution
+        question, the other is a bug. This proves the mechanism survives an
+        empty list so re-populating it does not need new code.
+        """
+        monkeypatch.setattr(grounding, "_PROMPT_SUPPLIED_THRESHOLDS",
+                            frozenset({"101"}))
         out = _output(escalation_guide="Call for a fever over 101 degrees.")
         report = verify_output(out, _SOURCE)
         assert [f.category for f in report.findings] == ["prompt_threshold"]
         assert report.invented_findings == []
-        assert report.is_clean is False
 
     def test_only_real_prompt_numbers_are_excused(self):
         """
@@ -131,6 +153,28 @@ class TestNumberGrounding:
         report = verify_output(out, _SOURCE)
         assert [f.category for f in report.findings] == ["invented"]
         assert len(report.invented_findings) == 1
+
+    def test_excuse_list_never_exceeds_what_prompts_supply(self):
+        """
+        Every excused number must actually appear in a prompt file.
+
+        Checked against the prompt files themselves rather than against the
+        constant, because the two drifting apart is precisely the failure that
+        happened: the list held 100.4, 101.5 and 102 while no prompt contained
+        them, and ten real findings were filed as "the prompt said so".
+
+        Empty is the correct state today and this test passes trivially. It
+        earns its place the day someone re-populates the list.
+        """
+        prompts = Path(__file__).resolve().parents[1] / "prompts"
+        corpus = " ".join(
+            path.read_text(encoding="utf-8") for path in prompts.glob("*.txt")
+        )
+        for value in grounding._PROMPT_SUPPLIED_THRESHOLDS:
+            assert value in corpus, (
+                f"{value!r} is excused as prompt-supplied but appears in no "
+                "prompt file, so it is hiding a real finding"
+            )
 
     def test_repeated_number_reported_once(self):
         """One ungrounded value is one finding, however often it is repeated."""
