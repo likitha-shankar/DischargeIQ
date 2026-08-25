@@ -7,8 +7,8 @@ Frank suggested the gamification direction, so the deck, in priority order:
      detail that he can react to specifics.
   3. Covers the on-device AI question and the asks.
 
-Clinical-validation questions are NOT in this deck - they go to Dr. Leibowitz
-(the clinician validator) via docs/LEIBOWITZ_CLINICAL_QUESTIONS.md.
+Clinical-validation questions are NOT in this deck - they go to Dr. Liebovitz
+(the clinician validator) via docs/LIEBOVITZ_CLINICAL_QUESTIONS.md.
 
 Design: dark teal on white, one idea per slide, no clip art.
 """

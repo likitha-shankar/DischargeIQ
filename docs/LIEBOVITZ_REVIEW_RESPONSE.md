@@ -238,18 +238,40 @@ verdict. We are not making the claim he warns against.
 The fix is cheap once tester data exists: correlate Agent 6 gap scores against
 actual human quiz failures. **Blocked on the same testers as 2.1.**
 
-### ◑ 3.7 Engineering hygiene
+### ◑ 3.7 Engineering hygiene - provenance DONE, pinning is a decision
 
 Mostly in place and worth claiming: Python dependencies locked
 (`requirements.lock.txt`), partial-failure logging structured and deliberately
 redesigned in August, and the **BAA path is live** (Vertex AI under BAA via
 ADC; no API key has existed since 16 Aug). Stronger than he assumes.
 
-**The real gap is pinned model versions.** `.env` deliberately leaves
-`LLM_MODEL` unset to inherit the provider default, so Google can change the
-model under us and our accuracy evidence silently expires. For a submission
-whose central claim is measured accuracy, that is a genuine hole and a small
-fix. Needs a documented re-evaluation trigger on version change.
+**The real gap was pinned model versions, and it was worse than it looked.**
+`.env` leaves `LLM_MODEL` unset to inherit the provider default, and
+`gemini-2.5-flash-lite` is a **floating alias** Google can repoint without
+notice. Worse, nothing recorded which model produced any evidence: verified
+25 Aug, `_review_meta` held document and timing but no provider or model, and
+the accuracy report never stated what it measured. The report going to Gate 3
+could not vouch for itself.
+
+**Fixed 25 Aug 2026.** `run_corpus_for_review.py` now stamps `llm_provider`
+and `llm_model` into every output, and the accuracy report opens with section
+0, "What produced these numbers". It also refuses to look clean when it
+cannot: pre-stamp outputs show as `unrecorded` with a warning, and a run
+spanning more than one configuration is called out as not a single
+measurement. **All 59 existing outputs are `unrecorded` and must be re-run
+before the report is cited as gate evidence.**
+
+The re-evaluation trigger he asked for is documented in
+`docs/MODEL_VERSIONING.md`: re-run on a provider change, a model or alias
+change, any agent prompt change, or an extraction-schema change. Prompt edits
+are in that list deliberately - the 47/55 grounding finding traces to a prompt
+requirement, not to the model.
+
+**Left as a decision, not made unilaterally:** pinning `LLM_MODEL` for
+evaluation runs while production stays on the provider default. That
+deliberately diverges evaluation from production, which contradicts the 16 Aug
+decision to keep `.env` matching Cloud Run - a decision taken because a
+Vertex-only model-name bug survived exactly that divergence.
 
 ### ⚑ 3.8 Keep the annotated corpus out of the repository - CONFLICT
 

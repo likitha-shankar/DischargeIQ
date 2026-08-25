@@ -37,6 +37,7 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import sys
 import time
 from pathlib import Path
@@ -174,6 +175,13 @@ async def generate_outputs(
             "source_pdf": str(pdf),
             "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "elapsed_seconds": round(time.monotonic() - started, 1),
+            # Which model produced this output. Without it the accuracy report
+            # cannot say what it measured, and a provider-side change to a
+            # floating alias like "gemini-2.5-flash-lite" silently invalidates
+            # every number in it while the file still looks current. Raised as
+            # item 3.7 of the Liebovitz review.
+            "llm_provider": os.environ.get("LLM_PROVIDER", "gemini"),
+            "llm_model": os.environ.get("LLM_MODEL", "") or "<provider default>",
         }
         out_path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
         generated += 1

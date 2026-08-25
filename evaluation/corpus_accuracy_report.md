@@ -8,6 +8,19 @@ transcriptions with identifiers removed). Neither the corpus nor these
 outputs is committed - both are rebuilt from scripts - so this report is
 the durable artefact of the run.
 
+## 0. What produced these numbers
+
+An accuracy figure means nothing without the model that produced it.
+Provider defaults are floating aliases, so the same setting can resolve
+to a different model over time and silently invalidate every number
+below while this file still looks current.
+
+| Provider | Model | Outputs |
+|---|---|---|
+| unrecorded | `unrecorded` | 59 |
+
+**`unrecorded` means the output predates provenance stamping (added 25 Aug 2026).** Those numbers cannot be tied to a model version. Re-run those documents before citing this report as gate evidence.
+
 ## 1. Readability
 
 Target: Flesch-Kincaid grade <= 6.0 on every patient-facing output.

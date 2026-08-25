@@ -301,6 +301,7 @@ def build(outputs_dir: Path) -> str:
     """Analyse every output and return the report as markdown."""
     files = sorted(outputs_dir.glob("mtsamples_*.json"))
     statuses: Counter = Counter()
+    provenance: Counter = Counter()
     grades: dict[str, list[float]] = defaultdict(list)
     fields: Counter = Counter()
     med_violations: list[tuple[str, list[str]]] = []
@@ -317,6 +318,12 @@ def build(outputs_dir: Path) -> str:
     for path in files:
         doc = json.load(open(path))
         statuses[doc.get("pipeline_status")] += 1
+        # Provenance: which model produced this output. Outputs written before
+        # 25 Aug 2026 predate the stamp, so absence is expected rather than an
+        # error, and is reported as "unrecorded" rather than guessed at.
+        meta = doc.get("_review_meta") or {}
+        provenance[(meta.get("llm_provider") or "unrecorded",
+                    meta.get("llm_model") or "unrecorded")] += 1
         for agent, value in (doc.get("fk_scores") or {}).items():
             grade = (value or {}).get("fk_grade")
             if isinstance(grade, (int, float)) and grade > 0:
@@ -364,6 +371,35 @@ def build(outputs_dir: Path) -> str:
         "transcriptions with identifiers removed). Neither the corpus nor these",
         "outputs is committed - both are rebuilt from scripts - so this report is",
         "the durable artefact of the run.",
+        "",
+        "## 0. What produced these numbers",
+        "",
+        "An accuracy figure means nothing without the model that produced it.",
+        "Provider defaults are floating aliases, so the same setting can resolve",
+        "to a different model over time and silently invalidate every number",
+        "below while this file still looks current.",
+        "",
+        "| Provider | Model | Outputs |",
+        "|---|---|---|",
+    ]
+    for (prov, model), count in provenance.most_common():
+        lines.append(f"| {prov} | `{model}` | {count} |")
+    if any(prov == "unrecorded" for prov, _ in provenance):
+        lines += [
+            "",
+            "**`unrecorded` means the output predates provenance stamping "
+            "(added 25 Aug 2026).** Those numbers cannot be tied to a model "
+            "version. Re-run those documents before citing this report as gate "
+            "evidence.",
+        ]
+    if len(provenance) > 1:
+        lines += [
+            "",
+            "**More than one configuration appears above.** Figures aggregated "
+            "across different models are not a single measurement. Split the "
+            "run or re-run the odd documents before quoting a headline number.",
+        ]
+    lines += [
         "",
         "## 1. Readability",
         "",
