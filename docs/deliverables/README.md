@@ -106,20 +106,44 @@ Practical notes:
   is the serious failure. This keeps the gate measuring extraction fidelity,
   which is what a median of ≥ 4.0 is supposed to certify.
 
-## Status at a glance (31 Jul 2026 - Week 4, mid Sprint 2)
+## Status at a glance (25 Aug 2026 - Week 8)
+
+Verified against the codebase on 25 Aug: every doc, script, tag and commit
+SHA cited in this folder resolves. Nothing below is claimed without a file
+or a commit behind it.
 
 | Item | Status |
 |---|---|
-| Sprint 1 / Checkpoint 1 | ✅ delivered |
-| Sprint 2 / Checkpoint 2 (18 Aug) | ◑ build side met; **tester recruiting not started - the gating item** |
-| Sprint 3 (15 Sep) | ◑ dashboard built early; accuracy run unblocked 14 Aug (two bugs fixed: the script pointed at a deleted directory, and Vertex rejected the model name) and a 20-document sample is generating |
-| Sprint 4 (6 Oct) | ◻ adversarial audit already passed; clinician review blocked on LOF reviewers |
+| Sprint 1 / Checkpoint 1 (21 Jul) | ✅ delivered |
+| Sprint 2 / Checkpoint 2 (18 Aug) | ⚠ **date passed, outcome not recorded.** Build side met; 2.6 tester recruiting still marked not started. Cure window from 18 Aug expires 25 Aug |
+| Sprint 3 (15 Sep) | ◑ dashboard built early; per-case audio ✅ done 16 Aug; accuracy run ◑ reported on 55 of 106 documents |
+| Sprint 4 (6 Oct) | ◻ adversarial audit passed; final summary report drafted; clinician review still blocked on LOF reviewers |
 
 Work has run ahead of the plan in places: the teach-back loop, the clinician
 dashboard, and the adversarial safety audit all landed before their sprints.
 The items that are behind are the ones depending on other people - testers
 and clinician reviewers - which is why they are worth raising early rather
 than late.
+
+### The three things that need a decision, not more building
+
+1. **Checkpoint 2's outcome is unrecorded.** See `checkpoint-2.md`.
+2. **The 98-100% accuracy bar needs a definition.** Readability and
+   medication fidelity clear it; numeric grounding does not yet. The choice
+   of what gets certified is a Checkpoint 4 exposure. See `sprint-3.md`.
+3. **The 3.4 corpus run is at 52% coverage and no longer advancing.** The
+   nightly cron never worked and was disabled 25 Aug; Vertex dynamic shared
+   quota means the throttling cannot be paced away or raised.
+
+## Source-of-truth file is not in this repository
+
+`docs/DischargeIQ_WorkPlan_v2.pdf` is cited throughout this folder as the
+accepted plan that task IDs, sprint boundaries and acceptance criteria come
+from. It is **gitignored** (`.gitignore:124`), has **never been committed**,
+and is **not on disk**. Task IDs here can be checked against each other but
+not against the plan they claim to derive from. If a gate review disputes a
+task's scope, there is no artefact in this repository to point at. Consider
+committing it, now that the repository is private.
 
 ## No-spend distribution path (decision, July 30 2026)
 

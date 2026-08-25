@@ -14,11 +14,11 @@ backup recording are delivered.
 | 4.1 | Adversarial safety audit on funded quota, with report | ✅ **PASSED 31 Jul 2026** - 6/6 cases, `a17fcfa`. Run on Anthropic (funded) because Vertex quota could not serve the suite. Found and fixed a real injection hole in Agent 1 first (`dc4f3ab`) |
 | 4.2 | Clinician sample verification, 1-2 LOF reviewers, 5-10 documents | ◻ portal built `a5f5f43`; rubric corrected 31 Jul to judge fidelity to source. **Blocked on LOF assigning reviewers - longest lead time in the plan** |
 | 4.3 | Fix pass: every flagged item traced to the commit that closed it | ◻ depends on 4.2 |
-| 4.4 | UI, UX, accessibility polish; re-verify media degradation after it | ◑ empty-section messages, density caps, and person profiles shipped; final polish pass remains |
+| 4.4 | UI, UX, accessibility polish; re-verify media degradation after it | ◑ empty-section messages, density caps, person profiles, plus the **v2 redesign and an accessibility pass** (contrast, 2.2x text scaling, screen-reader headings) `5983841`. Final polish pass remains |
 | 4.5 | Production builds with locked dependencies | ◑ Python locked (`requirements.lock.txt`); release APK builds. Store-signed builds are out of scope with no paid accounts |
 | 4.6 | Integration-readiness documentation and Vertex/BAA runbook | ✅ `docs/INTEGRATION_READINESS.md` |
-| 4.7 | Final summary report: accuracy, comprehension lift, telemetry, limitations | ◻ aggregates 4.2 and 3.4 results |
-| 4.8 | Tribune Tower demo package: rehearsed script, stable dataset, backup recording | ◻ |
+| 4.7 | Final summary report: accuracy, comprehension lift, telemetry, limitations | ◑ **draft written 16 Aug** `3661a04` - `docs/FINAL_SUMMARY_REPORT.md`. Still aggregates 4.2 (blocked) and the partial 3.4 run, so the figures are provisional |
+| 4.8 | Tribune Tower demo package: rehearsed script, stable dataset, backup recording | ◑ script `docs/DEMO_SCRIPT.md` and **backup-recording runbook** `f861677`. The recording itself is not made |
 
 ## Note on 4.1
 

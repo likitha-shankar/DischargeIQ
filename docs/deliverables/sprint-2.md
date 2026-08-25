@@ -1,4 +1,10 @@
-# Sprint 2 - Rewards, Testers, and the Media Decision (Weeks 3-6, closes Tue 18 Aug 2026) ◑ CURRENT
+# Sprint 2 - Rewards, Testers, and the Media Decision (Weeks 3-6, closed Tue 18 Aug 2026) ⚠ OUTCOME NOT RECORDED
+
+> **The checkpoint date has passed and nothing here records what happened.**
+> As of 25 Aug 2026 this file does not say whether Checkpoint 2 was reviewed,
+> accepted, missed, or cured. The gating item below (2.6, testers) is still
+> marked not started. Per `LOF_LABS_RULES.md` a missed gate carries a one-week
+> cure window, which from 18 Aug expires 25 Aug. **Record the outcome here.**
 
 Task IDs follow `docs/DischargeIQ_WorkPlan_v2.pdf`.
 

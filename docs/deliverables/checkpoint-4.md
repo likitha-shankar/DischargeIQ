@@ -13,10 +13,10 @@ artifact, not the construction of one.
 |---|---|
 | Adversarial audit passes on tested cases | ✅ 6/6 on 31 Jul, `a17fcfa` |
 | Clinician sample verification, every flag traced to a fix | ◻ **blocked on LOF assigning reviewers** |
-| Accuracy at the 98-100% bar on tested content | ◻ depends on the 3.4 run |
+| Accuracy at the 98-100% bar on tested content | ◑ **met on readability (99% of 220 outputs) and on medication fidelity (0 invented names). Not yet demonstrated on numeric grounding: 47/55 outputs carry a number absent from source.** Say which is being certified |
 | Production builds with locked dependencies | ◑ Python locked; store-signed builds out of scope |
 | Integration-readiness documentation | ✅ `docs/INTEGRATION_READINESS.md` |
-| Final summary report with limitations | ◻ |
-| Rehearsed demo and backup recording | ◻ |
+| Final summary report with limitations | ◑ draft `docs/FINAL_SUMMARY_REPORT.md` `3661a04`; figures provisional pending 4.2 and full 3.4 |
+| Rehearsed demo and backup recording | ◑ script and runbook written `f861677`; recording not made |
 
 Sprint file: [sprint-4.md](sprint-4.md) ◻

@@ -1,4 +1,9 @@
-# Checkpoint 2 - Week 6, Tue 18 Aug 2026 - $1,250 ◑
+# Checkpoint 2 - Week 6, Tue 18 Aug 2026 - $1,250 ⚠ OUTCOME NOT RECORDED
+
+> **Date passed 18 Aug 2026; this file has not been updated since.** Whether
+> the gate was reviewed, accepted, missed, or entered its cure window is not
+> written down anywhere in this repository. The one-week cure window from
+> 18 Aug expires 25 Aug 2026. This is the first thing to fill in.
 
 **Accepted when:** the Sprint 2 demo runs live, all seven steps. Up to 10
 testers are onboarded with sessions in the backend log. The NotebookLM
