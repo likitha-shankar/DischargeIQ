@@ -7,6 +7,14 @@
 /// graceful fade into the upload screen. Plays on every cold app launch
 /// (matching the web, which replays per Streamlit session); Skip is always
 /// available. Timers are cancelled on dispose and on Skip.
+///
+/// ACCESSIBILITY: when the OS requests reduced motion
+/// (MediaQuery.disableAnimations - iOS Settings > Accessibility > Motion, or
+/// Android "Remove animations") the entire intro is skipped and the app goes
+/// straight to upload. The intro carries no information, only branding, so
+/// suppressing it costs the user nothing. Added 25 Aug 2026; the August
+/// accessibility pass covered contrast, text scaling and screen-reader
+/// headings but missed motion.
 library;
 
 import 'dart:async';
@@ -54,9 +62,35 @@ class _IntroScreenState extends State<IntroScreen> {
   bool _fastExit = false; // skip pressed - shorten every exit animation
   bool _done = false;
 
+  /// True when the OS asks for reduced motion. The whole intro is suppressed.
+  bool _reducedMotion = false;
+
+  /// Guards one-time setup in didChangeDependencies, which can fire again.
+  bool _started = false;
+
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Setup lives here rather than initState because MediaQuery is not
+    // available during initState, and the accessibility flag has to be read
+    // before a single frame of animation plays.
+    if (_started) return;
+    _started = true;
+
+    // Reduce Motion (iOS Settings > Accessibility > Motion, Android
+    // "Remove animations") is exactly the setting a nine-second cinematic
+    // exists to be suppressed by. Users who turn it on often do so because
+    // motion causes nausea or vertigo, and this app's readers are unwell to
+    // begin with. Skip straight to the upload screen; there is nothing in the
+    // intro but branding, so nothing is lost by not showing it.
+    if (MediaQuery.of(context).disableAnimations) {
+      _reducedMotion = true;
+      // Deferred to after the frame: onDone swaps the widget tree, which
+      // cannot happen during build.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _finish());
+      return;
+    }
+
     // Caret blink: web is 720ms step-start.
     _caretTimer = Timer.periodic(const Duration(milliseconds: 360), (_) {
       if (mounted && _caretVisible) setState(() => _caretOn = !_caretOn);
@@ -145,6 +179,16 @@ class _IntroScreenState extends State<IntroScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Reduced motion: one still frame of the stage colour while the
+    // post-frame callback advances. Rendering the animated tree here, even
+    // for a single frame, would flash the very motion the setting suppresses.
+    if (_reducedMotion) {
+      return const AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: Scaffold(backgroundColor: _kStage, body: SizedBox.expand()),
+      );
+    }
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light, // dark stage → light status icons
       child: Scaffold(

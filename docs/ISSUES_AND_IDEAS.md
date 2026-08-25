@@ -44,3 +44,38 @@ Newest entries first within each section.
 | P-1 | Caregiver share view - export the plain-language summary for a family member. |
 | P-7 | On-device AI exploration (fall). Note on the "use Siri's Gemini" idea: the Apple-Google deal gives SIRI a custom Gemini on Apple's Private Cloud Compute - third-party apps get NO access to it. What apps DO get free is Apple's on-device Foundation Models framework (iOS 26, ~3B model). Realistic first step: move the grounded CHAT on-device via that framework; extraction/rewriting stays on the big-model pipeline. Device coverage rule: on-device AI needs recent chips (A17+/M-series) - the CLOUD pipeline stays the universal path, so old iPhones and phones without Siri/Apple Intelligence lose nothing; on-device is an upgrade, never a requirement. |
 | P-6 | Caregiver profiles (multi-patient support on one phone): per-profile documents, quiz history, and garden; extraction patient_name consistency check across scan pages. TheraCareAI's dependent-profile model is the reference. Requires a data-model rethink - not before the fall. |
+
+## Landing intro: two queued changes (25 Aug 2026)
+
+Raised by Likitha: "why is there a button called 'watch intro again'? who
+wants to watch the landing page?" Investigation found the button is the
+smallest of three problems.
+
+The intro is a **9.1 second branding animation** (`intro_screen.dart`): the
+HELPING eyebrow, five rising phrase lines, a "Discharge" typewriter, an "IQ"
+snap-in, then a fade. It teaches the user nothing. It is not a tutorial. The
+genuinely useful walkthrough is the separate "Guided tour", which sits
+directly above it in Settings and looks like its sibling.
+
+**Done 25 Aug:** the intro now honours OS reduced motion and skips entirely.
+See `test/intro_reduced_motion_test.dart`.
+
+**Queued, deliberately held until after the 26 Aug demo:**
+
+1. **Remove "Watch the intro again" from Settings**
+   (`settings_screen.dart:132`). Nobody replays a logo animation. It also
+   invites confusion with "Guided tour" one row up, which is the thing a
+   patient actually wants when they are lost.
+
+2. **Return the intro to once per install.** `main.dart` currently plays it on
+   every cold launch by product decision, and the comment records that
+   `SharedPreferences('intro_seen')` was deliberately removed to get that
+   behaviour. For a demo audience the cinematic opener is an asset. For a
+   patient who is unwell, tired or anxious and opening the app to check one
+   dose, it is nine seconds of friction in front of their own medical
+   information, every single time.
+
+The tension is real and worth stating rather than resolving silently: the
+demo audience and the patient want opposite things here. The proposal is to
+keep the cinematic for a first launch, which is what a demo shows anyway, and
+stop charging returning patients for it.
