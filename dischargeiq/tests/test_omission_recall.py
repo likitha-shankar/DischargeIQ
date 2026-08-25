@@ -1,8 +1,8 @@
 """
 Regression tests for the omission-recall checks in the corpus accuracy run.
 
-Covers `scripts/corpus_accuracy_report.py`, which answers the question raised
-as item 2.5 of the Dr. Liebovitz faculty review (25 Aug 2026): errors of
+Covers `dischargeiq/utils/omission.py`, used by the corpus accuracy report.
+Answers item 2.5 of the Dr. Liebovitz faculty review (22 Aug 2026): errors of
 omission are the dominant failure mode and are invisible to the patient,
 because a dropped medication or warning sign yields a clean, confident,
 incorrect document.
@@ -24,20 +24,9 @@ because it reads as correct to the patient and is wrong for their case.
 That is the case `test_substituted_threshold_is_caught` locks down.
 """
 
-import sys
-from pathlib import Path
-
 import pytest
 
-# The report generator is a script rather than a package module, so the
-# scripts directory has to be importable before the functions can be reached.
-_SCRIPTS = Path(__file__).resolve().parents[2] / "scripts"
-sys.path.insert(0, str(_SCRIPTS))
-
-from corpus_accuracy_report import (  # noqa: E402 - path set up above
-    omitted_medications,
-    omitted_red_flags,
-)
+from dischargeiq.utils.omission import omitted_medications, omitted_red_flags
 
 
 def _output(*, flags=None, guide="", meds=None, rationale=""):

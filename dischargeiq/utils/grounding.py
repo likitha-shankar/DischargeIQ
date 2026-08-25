@@ -34,10 +34,10 @@ import re
 from dataclasses import dataclass, field
 
 # Numbers that are ordinary language rather than clinical claims. "Week 1",
-# "call 911", "2 to 4 weeks" are not invented dosages. Kept deliberately in
-# sync with scripts/corpus_accuracy_report.py, which measures the same thing
-# offline over the whole corpus.
-_BENIGN_NUMBERS = frozenset(
+# "call 911", "2 to 4 weeks" are not invented dosages. Public because
+# scripts/corpus_accuracy_report.py imports it: this used to be a second copy
+# over there, and two copies of a clinical-significance list drift apart.
+BENIGN_NUMBERS = frozenset(
     {"911", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "12", "24"}
 )
 
@@ -203,7 +203,7 @@ def verify_output(output: dict, source_text: str) -> GroundingReport:
         report.checked_fields.append(field_name)
         seen: set[str] = set()
         for number in re.findall(r"\b\d+(?:\.\d+)?\b", text):
-            if number in _BENIGN_NUMBERS or number in seen:
+            if number in BENIGN_NUMBERS or number in seen:
                 continue
             seen.add(number)
             if number not in source:
