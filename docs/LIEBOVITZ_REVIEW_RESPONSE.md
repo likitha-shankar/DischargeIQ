@@ -231,9 +231,50 @@ Verified 25 Aug: grounding logic exists in `extraction_agent.py` and the chat
 service, with `test_extraction_grounding.py` and `test_chat_grounding.py`, but
 there is **no post-hoc verifier gating agents 2-5 output**.
 
-**Assessment: highest-value tractable technical item.** Deferred past the
-26 Aug demo because a hard-failure gate is not something to introduce hours
-before a live run.
+**Assessment: highest-value tractable technical item.**
+
+**Verifier built 25 Aug 2026, deliberately report-only.**
+`dischargeiq/utils/grounding.py` plus 12 tests. It is NOT wired in as a hard
+failure, and the reason is a measurement: across 59 corpus outputs a hard gate
+would block **50 of them, 85%**, or 64% counting only invented values. Wiring
+that in would have failed almost every document and taught everyone to route
+around the gate. `scripts/grounding_gate_readiness.py` makes that number
+repeatable and prints a verdict rather than a bare percentage.
+
+**The measurement found the cause, which was the useful part.** agent4
+accounted for 48 of 55 invented values, and the single value 15 appeared 26
+times. The Agent 4 prompt REQUIRED one specific goal per week while the
+grounding rule forbade unsupported content, so when a document set no goal the
+model had to break one of them. Worse, the prompt's own worked example read
+"Your goal this week is to walk for 15 minutes without stopping" - it was
+demonstrating the exact number it then produced.
+
+**Both prompts fixed 25 Aug.** Agent 4's goal is now conditional and must be
+built from a restriction the document states, with inventing a number for one
+forbidden outright; the example now shows a week with no goal at all, because
+an absent goal had to be shown as valid output. Agent 5 gained a NUMBER RULE
+after the run surfaced something worse than a grounding miss:
+
+    mtsamples_057, Tier 1:  "Fast heart rate: Call 911 if it is over 100."
+
+A resting heart rate over 100 is common and usually harmless, that number is in
+no source document, and it is in the CALL 911 tier. Two others: mtsamples_018
+invented "over 102.2 F (39 C)", and mtsamples_048 used both 101 and 103 in one
+guide. Document thresholds now always win verbatim; absent one, 101 F is the
+only permitted fever number; numbers on any other vital sign are forbidden
+unless the document states them.
+
+**Also corrected: a defect in our own verifier.** Its excuse list treated
+100.4, 101.5 and 102 as prompt-supplied when no prompt contains them, so ten
+genuinely invented thresholds were being hidden. Fixing it made the figures
+worse - invented 45 to 55, block rate excluding thresholds 56% to 64% - which
+is the correct direction for an honest instrument, and it exposed that agent4
+emits 100.4 eight times too.
+
+**Neither prompt fix is verified yet.** `evaluation/grounding_baseline.json`
+pins the pre-fix numbers so the next corpus run measures the change rather than
+asserting it. Regenerating outputs costs Vertex quota and was not spent the
+evening before a demo.
 
 ### ⚑ 3.3 Stratified corpus across at least four source formats
 
