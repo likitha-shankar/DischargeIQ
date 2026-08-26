@@ -58,8 +58,8 @@ His point: the three-tier guide is the highest-risk output because it gives
 triage advice with no clinician in the loop. Make the tiers template-filled
 from clinician-authored criteria, not generated.
 
-**Right, and currently unaddressed.** Verified 25 Aug: `escalation_agent.py`
-contains **no reference to any template**. The markdown files in
+**Right. It was entirely unaddressed when the review arrived:**
+`escalation_agent.py` contained **no reference to any template**. The markdown files in
 `dischargeiq/templates/` are diagnosis explainers and Agent 5 does not read
 them. Agent 5 output is fully generated text.
 
@@ -102,9 +102,14 @@ prompt carries no per-diagnosis tiers, and each says so in its reviewer notes.
 Three questions were deliberately left for him rather than answered in a
 prompt file, each tied to a real finding:
 
-- **The fever threshold.** The prompt says 101 F. The 25 Aug corpus run found
-  Agent 5 emitting 100, 102.2, 103 and 39 as thresholds present in no source
-  document. That number is doing real clinical work and is currently unowned.
+- **The fever threshold. This is now the most important question in the
+  document.** The prompt no longer supplies any number, because two attempts to
+  pick one both failed: first the model invented 100, 100.4, 102.2, 103 and 39
+  for documents stating none, then a rule permitting only 101 F would have told
+  a newborn's parent to wait for 101 when 100.4 is the correct neonatal
+  threshold. Agent 5 now says "a fever that will not come down" and supplies no
+  number at all. **That is safe but incomplete, and only a clinician can
+  complete it.** See the full episode in the reviewer notes of `universal.md`.
 - **Hip precaution angles.** Omitted deliberately: the same run found the
   system inventing "do not bend more than 90 degrees" for documents setting no
   limit, and protocols differ between surgeons.
@@ -271,10 +276,93 @@ worse - invented 45 to 55, block rate excluding thresholds 56% to 64% - which
 is the correct direction for an honest instrument, and it exposed that agent4
 emits 100.4 eight times too.
 
-**Neither prompt fix is verified yet.** `evaluation/grounding_baseline.json`
-pins the pre-fix numbers so the next corpus run measures the change rather than
-asserting it. Regenerating outputs costs Vertex quota and was not spent the
-evening before a demo.
+### VERIFIED 25 Aug 2026, and it took three attempts
+
+Outputs were regenerated and measured. **Same 10 documents, same measuring
+code, only the prompts differ:**
+
+| | Before | After |
+|---|---|---|
+| Documents carrying invented values | **8 of 10 (80%)** | **0 of 10 (0%)** |
+| agent4 | 8 | 0 |
+| agent5 | 4 | 0 |
+| agent2 | 1 | 0 |
+
+**Both directions of the rule are verified, not just the convenient one.** A
+fix that suppressed genuine thresholds along with invented ones would be worse
+than the original bug, so the two documents whose source text DOES state a
+threshold were regenerated separately:
+
+- `mtsamples_054` source says "fever greater than 100.5" -> guide says
+  "Fever greater than 100.5"
+- `mtsamples_064` source says "temperature greater than 101.5" -> guide says
+  "Temperature greater than 101.5"
+
+Both now reproduce the document's own wording more exactly than the old prompt,
+which rendered them as "over".
+
+**Nothing was hollowed out to reach zero.** Regenerated outputs keep three
+tiers and 10 to 30 bullets, and readability improved rather than degraded:
+`mtsamples_003` came back at FK 4.07 with 30 bullets; `mtsamples_001` gained a
+bullet and moved from FK 5.3 to 4.52.
+
+### Three attempts, because the same bug was in three places
+
+Worth telling him plainly, because the pattern is the finding:
+
+1. **Agent 4 goals.** The prompt required "one specific action or goal for
+   that week" while the grounding rule forbade unsupported content. Its own
+   worked example read "walk for 15 minutes without stopping" - and
+   `agent4:15` was the most common invented value in the corpus, 26
+   occurrences. The example was teaching the number it then produced.
+2. **Agent 5 tiers.** A rule was added saying "supply no threshold", but the
+   tier list still contained "Fever above 101 degrees F" and so did the output
+   example. The model followed the example. `mtsamples_013` and `_014` both
+   emitted 101 for documents mentioning no fever at all, AFTER the rule landed.
+3. **Agent 4 again.** Its third required topic is "what requires calling the
+   doctor", so it writes escalation-style bullets too. `mtsamples_003` produced
+   "Call your doctor if you have a fever over 100.4 F (38 C)" from a document
+   that said nothing of the kind.
+
+The general lesson, which applies beyond these three: **a rule that says "do
+not" and an example that shows "how" will lose to the example.** Every worked
+example in a prompt is training data.
+
+### One failure worth showing him, because it was mine
+
+The first Agent 5 attempt enumerated the forbidden numbers inline: "not 100,
+not 100.4, not 102.2, not 103". Regenerating produced, on a NEONATAL document
+mentioning no fever at all:
+
+    - Baby has a fever: Fever above 100.4 degrees F needs checking.
+
+Two things went wrong. The enumeration primed the very values it forbade. And
+the rule permitted only 101 F, which for an infant is clinically wrong -
+100.4 F is the correct neonatal threshold. **Had the model obeyed the
+instruction exactly, it would have told a newborn's parent to wait for 101.**
+The model's number was better than the rule it was given.
+
+That is the strongest argument in this whole document for item 2.2. A fever
+threshold is not a value a prompt author can pick, and this is what it looks
+like when one tries. See `templates/escalation/universal.md`, where he is asked
+to set the thresholds and say whether they vary by age.
+
+### Methodology note, recorded so the numbers can be trusted
+
+The saved pre-fix baseline can NOT be compared against post-fix figures,
+because the measuring instrument changed in between: the excuse list that
+suppressed `101` was emptied. Running that comparison shows agent5 going 6 to
+32 and reads as catastrophic regression when it is only reclassification of
+old-prompt outputs. Every figure above holds the instrument constant and varies
+only the prompt.
+
+A comparison across an instrument change is not a measurement. Outputs now
+stamp `prompt_versions` so before and after can be told apart from the file
+itself rather than by reading modification times.
+
+**Still outstanding:** a full-corpus regeneration is running. Until it
+finishes, corpus-wide gate figures mix old-prompt and new-prompt outputs and
+mean nothing. The 10-document paired result above is the verified claim.
 
 ### ⚑ 3.3 Stratified corpus across at least four source formats
 
@@ -403,5 +491,11 @@ on 15 Sep, which is the useful anchor.
 2. **He independently predicted our measured failure** (3.2 vs the 47/55
    grounding result). Lead the reply with that: it shows the evaluation is
    honest enough to surface our own problems.
-3. **The escalation template (2.2) is the item not to defer.** Unaddressed in
-   code, highest-risk patient-facing output by our own rules.
+3. **The escalation template (2.2) is the item not to defer, and we now have
+   evidence rather than agreement.** The mechanism is built and inert until
+   signed. What changed on 25 Aug is that we tried to pick a fever threshold
+   ourselves and got it wrong in both directions: first by letting the model
+   invent one, then by writing a rule that would have told a newborn's parent
+   to wait for 101 F. A threshold is not a value a prompt author can choose.
+   That question is now the first thing in
+   `templates/escalation/universal.md`.
