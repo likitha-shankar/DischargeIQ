@@ -56,6 +56,18 @@ GENERAL RULES:
   Myocardial Infarction, COPD -> Chronic Obstructive Pulmonary
   Disease, HFrEF -> Heart Failure with Reduced Ejection Fraction,
   T2DM -> Type 2 Diabetes Mellitus, HTN -> Hypertension.
+- secondary_diagnoses NEVER repeats primary_diagnosis. It is for OTHER
+  conditions the patient also has. Once a condition is the primary, it
+  cannot also be a secondary, in any wording - not the abbreviation, not
+  the expansion, not a shortened form.
+    Document: "admitted for acute decompensated heart failure with
+    reduced ejection fraction ... consistent with HFrEF"
+    RIGHT: primary_diagnosis "Heart Failure with Reduced Ejection
+           Fraction", secondary_diagnoses []
+    WRONG: the same condition listed in both, which makes a patient
+           read one problem as two.
+  A document that names only one condition yields an EMPTY
+  secondary_diagnoses list. Empty is a correct answer, not a gap to fill.
 
 SOURCE SPAN RULES:
 - For every medication, follow_up_appointment, primary_diagnosis,
@@ -545,6 +557,15 @@ one more time and confirm:
 4. primary_diagnosis - is it the first or principal diagnosis the
    discharging physician recorded, not a secondary or incidental finding?
    Have you expanded any abbreviations?
+4b. secondary_diagnoses - does it contain the primary diagnosis again,
+   in any wording? Remove it if so. Secondary means OTHER conditions the
+   patient also has. Restating the primary there makes a patient read
+   one problem as two, and it is a duplicate rather than a finding.
+   This includes near-restatements: if primary_diagnosis is "Heart
+   Failure with Reduced Ejection Fraction", then "heart failure",
+   "HFrEF" and "reduced ejection fraction" all belong to the primary and
+   none of them is a separate secondary diagnosis. When the document
+   lists no other conditions, return [].
 5. No field key is omitted. Scalar fields missing from the document
    are null; list fields are []. Never skip a key.
 

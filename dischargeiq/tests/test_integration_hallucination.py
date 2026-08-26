@@ -231,6 +231,57 @@ _MEDICAL_ABBREVIATIONS: dict[str, str] = {
     "osa":   "obstructive sleep apnea",
 }
 
+# Specialties have the same abbreviation problem as diagnoses, and it bit the
+# harness rather than the extractor. On 26 Aug 2026 the pneumonia_abbreviations
+# profile failed with BOTH an omission and a hallucination for one appointment:
+# the document says "F/U - Dr. Laura Chen, PCP", Agent 1 extracted specialty
+# "PCP" verbatim and cited page 2, and the ground truth said "Primary Care".
+# Those share no tokens, so the appointment matched nothing, counted as missing,
+# and its correct extraction counted as invented.
+#
+# The extractor was right and the fixture is named for testing abbreviations, so
+# the fix belongs here. Applied to BOTH sides at comparison time, exactly like
+# the diagnosis map above, so neither the extractor nor the fixture is forced
+# into one house style.
+_SPECIALTY_ABBREVIATIONS: dict[str, str] = {
+    "pcp":   "primary care",
+    "pmd":   "primary care",
+    "gp":    "primary care",
+    "cards": "cardiology",
+    "cardio": "cardiology",
+    "neuro": "neurology",
+    "gi":    "gastroenterology",
+    "ent":   "otolaryngology",
+    "ortho": "orthopedics",
+    "pt":    "physical therapy",
+    "ot":    "occupational therapy",
+    "id":    "infectious disease",
+    "heme":  "hematology",
+    "onc":   "oncology",
+    "endo":  "endocrinology",
+    "pulm":  "pulmonology",
+    "nephro": "nephrology",
+    "psych": "psychiatry",
+    "obgyn": "obstetrics gynecology",
+}
+
+
+def _expand_specialty(text: str) -> str:
+    """
+    Expand a specialty abbreviation so two spellings compare as equal.
+
+    "PCP" and "Primary Care" name the same clinic. Whole-word substitution
+    only, so "PT" inside "PTSD" survives untouched.
+
+    Args:
+        text: A specialty string from ground truth or extractor output.
+
+    Returns:
+        The lowercased string with known abbreviations expanded.
+    """
+    tokens = re.findall(r"[a-z0-9]+", (text or "").lower())
+    return " ".join(_SPECIALTY_ABBREVIATIONS.get(t, t) for t in tokens)
+
 
 def _expand_medical_abbreviations(text: str) -> str:
     """
@@ -593,7 +644,26 @@ def check_appointments(out: dict, gt: dict) -> list[Issue]:
         for i, got in enumerate(got_appts):
             if i in matched_out:
                 continue
-            if overlap_ratio(exp.get("specialty", ""), got.get("specialty", "")) >= 0.4:
+            # Expand both sides: "PCP" and "Primary Care" are the same clinic.
+            matched_specialty = overlap_ratio(
+                _expand_specialty(exp.get("specialty", "")),
+                _expand_specialty(got.get("specialty", "")),
+            ) >= 0.4
+            # Fall back to the provider name when the extractor recorded no
+            # specialty. A document that says "a primary care visit with Dr.
+            # Priya Shah" names the person and only implies the department, so
+            # specialty comes back null and specialty-only matching finds
+            # nothing - reporting the appointment as BOTH missing and invented
+            # when the provider matches exactly. The name is the stronger
+            # identifier anyway; two different appointments with the same named
+            # provider are rare, and the date check below still guards them.
+            matched_provider = bool(
+                not got.get("specialty")
+                and exp.get("provider")
+                and got.get("provider")
+                and overlap_ratio(exp["provider"], got["provider"]) >= 0.3
+            )
+            if matched_specialty or matched_provider:
                 hit = (i, got)
                 break
         if hit is None:
@@ -762,11 +832,27 @@ def audit_agent2_claims(
     try:
         client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
         response = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            # Was claude-sonnet-4-20250514, which reached end-of-life on
+            # 15 Jun 2026 and now returns 404. The audit failed silently for
+            # months: the except below logs and returns [], so "no findings"
+            # and "the judge never ran" looked identical, and the gate reported
+            # green while auditing nothing. Caught 26 Aug 2026.
+            model=os.environ.get("JUDGE_MODEL", "claude-sonnet-5"),
             max_tokens=500,
             system=_AUDIT_SYSTEM,
             messages=[{"role": "user", "content": user_message}],
         )
+    except anthropic.NotFoundError as exc:
+        # A missing model is a CONFIGURATION fault, not an outage, and it must
+        # never look like a clean audit. Returning [] here is what let a
+        # model that went end-of-life on 15 Jun 2026 keep "passing" this gate
+        # until 26 Aug. Rate limits and transient errors stay soft below,
+        # because those genuinely are outages and should not fail a safety run
+        # that is otherwise healthy.
+        raise AssertionError(
+            f"Agent 2 audit model is unavailable: {exc}. The judge did NOT run, "
+            "so this gate proves nothing. Set JUDGE_MODEL to a current model."
+        ) from exc
     except anthropic.APIError as exc:
         logger.error("Agent 2 audit Anthropic call failed: %s", exc)
         return []
