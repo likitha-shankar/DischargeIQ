@@ -27,6 +27,8 @@ Usage:
   python scripts/run_corpus_for_review.py               # all missing docs
   python scripts/run_corpus_for_review.py --limit 20    # a review sample
   python scripts/run_corpus_for_review.py --force       # regenerate all
+  python scripts/run_corpus_for_review.py --stale       # only out-of-date ones
+  python scripts/run_corpus_for_review.py --count-stale # 'todo total', no API
   python scripts/run_corpus_for_review.py --corpus test-data/synthetic
 
 Requires: LLM provider keys in .env (same as the API). DATABASE_URL optional -
@@ -87,11 +89,59 @@ def prompt_versions() -> dict[str, str]:
     return versions
 
 
+def is_stale(out_path: Path) -> bool:
+    """
+    Whether an output was produced by prompts that have since changed.
+
+    An output that exists is not necessarily current. On 25 Aug 2026 three
+    agent prompts changed and 54 outputs kept sitting on disk looking complete,
+    which would have let the catch-up job declare the corpus finished while
+    most of it described the old system.
+
+    Args:
+        out_path: Path to one output JSON.
+
+    Returns:
+        True when the file is unreadable, carries no prompt stamp, or its stamp
+        differs from the prompts on disk. Unreadable and unstamped both count as
+        stale on purpose: the safe assumption about an output we cannot vouch
+        for is that it needs regenerating.
+    """
+    try:
+        meta = json.loads(out_path.read_text()).get("_review_meta") or {}
+    except (OSError, ValueError):
+        return True
+    recorded = meta.get("prompt_versions")
+    if not recorded:
+        return True
+    return recorded != prompt_versions()
+
+
+def count_stale(corpus_dir: Path = _DEFAULT_CORPUS_DIR) -> tuple[int, int]:
+    """
+    How much of the corpus still needs regenerating.
+
+    Args:
+        corpus_dir: Directory of source PDFs.
+
+    Returns:
+        (missing_or_stale, total_documents).
+    """
+    pdfs = sorted(corpus_dir.glob("*.pdf"))
+    todo = sum(
+        1 for pdf in pdfs
+        if not (_OUTPUT_DIR / f"{pdf.stem}.json").exists()
+        or is_stale(_OUTPUT_DIR / f"{pdf.stem}.json")
+    )
+    return todo, len(pdfs)
+
+
 async def generate_outputs(
     limit: int | None,
     force: bool,
     corpus_dir: Path = _DEFAULT_CORPUS_DIR,
     delay_seconds: float = 0.0,
+    stale_only: bool = False,
 ) -> tuple[int, int, int]:
     """
     Run the pipeline over corpus PDFs and persist one JSON per document.
@@ -104,6 +154,9 @@ async def generate_outputs(
             per-minute quota that six sequential agent calls exhaust
             quickly, so pacing turns a run that dies at document three
             into one that finishes.
+        stale_only: When True, also regenerate outputs whose prompt stamp no
+            longer matches the prompts on disk. Unlike force, current outputs
+            are still skipped, so repeated runs converge instead of looping.
 
     Returns:
         (generated, skipped, failed) counts for the run summary.
@@ -127,7 +180,7 @@ async def generate_outputs(
         if limit is not None and generated >= limit:
             break
         out_path = _OUTPUT_DIR / f"{pdf.stem}.json"
-        if out_path.exists() and not force:
+        if out_path.exists() and not force and not (stale_only and is_stale(out_path)):
             skipped += 1
             continue
 
@@ -232,6 +285,17 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=None, help="Process at most N documents")
     parser.add_argument("--force", action="store_true", help="Regenerate existing outputs")
     parser.add_argument(
+        "--stale", action="store_true",
+        help="Regenerate only outputs whose prompt stamp differs from the "
+             "prompts on disk (and anything missing). Unlike --force this does "
+             "not redo work that is already current, so it is safe to run "
+             "repeatedly until count-stale reports zero.",
+    )
+    parser.add_argument(
+        "--count-stale", action="store_true",
+        help="Print 'todo total' and exit. Makes no API calls.",
+    )
+    parser.add_argument(
         "--delay",
         type=float,
         default=0.0,
@@ -245,8 +309,16 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    # Cheap query mode: the catch-up loop calls this between batches to decide
+    # whether to keep going, so it must never touch the API.
+    if args.count_stale:
+        todo, total = count_stale(args.corpus)
+        print(f"{todo} {total}")
+        return
+
     generated, skipped, failed = asyncio.run(
-        generate_outputs(args.limit, args.force, args.corpus, args.delay)
+        generate_outputs(args.limit, args.force, args.corpus, args.delay,
+                         stale_only=args.stale)
     )
     logger.info(
         "Done. generated=%d skipped(existing)=%d failed=%d -> %s",
