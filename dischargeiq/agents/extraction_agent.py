@@ -715,9 +715,122 @@ def _check_grounding(raw_text: str, result: "ExtractionOutput") -> list[str]:
     return warnings
 
 
+# Diagnosis abbreviations that name the SAME condition as their expansion.
+# Deliberately small: only forms seen restated in extraction output. A wrong
+# entry here silently deletes a real secondary diagnosis, so this list earns
+# additions from evidence, not from guessing.
+_DX_SYNONYMS: dict[str, str] = {
+    "hfref": "heart failure reduced ejection fraction",
+    "hfpef": "heart failure preserved ejection fraction",
+    "chf": "congestive heart failure",
+    "copd": "chronic obstructive pulmonary disease",
+    "nstemi": "non st elevation myocardial infarction",
+    "stemi": "st elevation myocardial infarction",
+    "t2dm": "type 2 diabetes mellitus",
+    "dm2": "type 2 diabetes mellitus",
+    "htn": "hypertension",
+    "ckd": "chronic kidney disease",
+    "aki": "acute kidney injury",
+    "cad": "coronary artery disease",
+    "afib": "atrial fibrillation",
+}
+
+# Words that carry no clinical distinction, so their presence must not make a
+# restatement look like a new condition.
+_DX_STOPWORDS = frozenset({
+    "with", "without", "and", "the", "of", "a", "an", "due", "to", "in",
+    "acute", "chronic", "decompensated", "exacerbation", "unspecified",
+    "secondary", "primary", "history", "stage",
+})
+
+
+def _dx_tokens(text: str) -> set[str]:
+    """
+    Clinically meaningful tokens of a diagnosis, abbreviations expanded.
+
+    Args:
+        text: A diagnosis string.
+
+    Returns:
+        Lowercase content tokens with stopwords removed.
+    """
+    words = re.findall(r"[a-z0-9]+", (text or "").lower())
+    expanded: list[str] = []
+    for word in words:
+        expanded.extend(_DX_SYNONYMS.get(word, word).split())
+    return {w for w in expanded if w not in _DX_STOPWORDS}
+
+
+def _drop_primary_from_secondaries(extraction: ExtractionOutput) -> None:
+    """
+    Remove secondary diagnoses that merely restate the primary.
+
+    Secondary means OTHER conditions the patient also has. Restating the
+    primary makes a patient read one problem as two, and it is a duplicate
+    rather than a finding.
+
+    The prompt has forbidden this since 26 Aug 2026 and the prompt alone did
+    not hold: two separate instructions - a completeness-checklist item, then
+    an explicit rule with a worked example placed beside the abbreviation
+    expansion that produces the duplicated string - both left
+    'Heart Failure with Reduced Ejection Fraction' in secondary_diagnoses on
+    the chf_narrative safety profile. An instruction the model may or may not
+    follow is not a guarantee; this is.
+
+    THE RULE, and why it is narrow: a secondary is dropped only when it adds
+    no clinically meaningful token the primary lacks.
+
+        primary "Heart Failure with Reduced Ejection Fraction"
+          "HFrEF"                  -> dropped, same condition
+          "heart failure"          -> dropped, adds nothing
+          "Reduced Ejection Fraction" -> dropped, part of the primary
+          "Hypertension"           -> KEPT, a different condition
+
+        primary "Hypertension"
+          "Pulmonary Hypertension" -> KEPT. It shares a token but adds
+                                      "pulmonary", and it is a genuinely
+                                      different disease. Anything that
+                                      removed it would be deleting a real
+                                      diagnosis, which is far worse than
+                                      leaving a duplicate.
+
+    Mutates in place, consistent with the other post-validation passes here.
+
+    Args:
+        extraction: The validated ExtractionOutput to clean.
+    """
+    primary = _dx_tokens(extraction.primary_diagnosis)
+    if not primary:
+        return
+
+    kept, dropped = [], []
+    for secondary in extraction.secondary_diagnoses or []:
+        tokens = _dx_tokens(secondary)
+        # No new information than the primary already carries -> a restatement.
+        if tokens and tokens <= primary:
+            dropped.append(secondary)
+        else:
+            kept.append(secondary)
+
+    if dropped:
+        # Logged, not silent: if this ever removes something it should not,
+        # the evidence has to be in the run that did it.
+        logger.info(
+            "Dropped %d secondary diagnos%s restating the primary %r: %s",
+            len(dropped), "is" if len(dropped) == 1 else "es",
+            extraction.primary_diagnosis, dropped,
+        )
+        extraction.secondary_diagnoses = kept
+
+
 def _parse_and_validate(raw_response: str) -> ExtractionOutput:
     """
     Parse the LLM's raw text response into a validated ExtractionOutput model.
+
+    Note:
+        Runs _drop_primary_from_secondaries() on the validated result. The
+        prompt already forbids restating the primary, and the prompt alone did
+        not hold - see that function's docstring.
 
     Attempts a clean parse first. If json.loads() fails, applies
     _remove_stray_tokens() to strip non-JSON lines injected by the LLM and
@@ -766,10 +879,13 @@ def _parse_and_validate(raw_response: str) -> ExtractionOutput:
             raise first_exc
 
     try:
-        return ExtractionOutput(**data)
+        extraction = ExtractionOutput(**data)
     except ValidationError as exc:
         logger.error("Pydantic validation failed: %s", exc)
         raise
+
+    _drop_primary_from_secondaries(extraction)
+    return extraction
 
 
 def _detect_low_text_density(page: object) -> bool:
