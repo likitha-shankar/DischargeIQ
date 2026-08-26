@@ -152,3 +152,6 @@ device-backups/
 **/android/key.properties
 *.jks
 *.keystore
+
+# Runtime lock held by scripts/corpus_catchup.sh while a run is active.
+.corpus_catchup.lock/

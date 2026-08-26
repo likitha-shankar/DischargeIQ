@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  scripts/launchd/com.dischargeiq.corpuscatchup.plist
+  Owner: Likitha Shankar
+
+  A launchd replacement for the corpus catch-up cron entry. NOT installed by
+  default - see scripts/launchd/README.md.
+
+  Why this exists: the repository lives under ~/Desktop, which macOS protects
+  with TCC. /usr/sbin/cron cannot read or write there unless it is granted Full
+  Disk Access explicitly, and when that grant is missing cron fails SILENTLY -
+  no log, no error, nothing to notice. That is exactly what happened between
+  16 and 25 Aug 2026: the schedule was installed, nine days passed, and one
+  log file existed, from the day it was set up.
+
+  launchd is the supported mechanism on macOS. A user agent runs as the logged
+  in user and inherits that user's TCC grants, so a protected path behaves the
+  same way it does in a terminal. It also writes its own stdout and stderr to
+  files, so a permission failure leaves evidence instead of silence.
+
+  DO NOT run this alongside the cron entry. Both would fire at 09:00 and
+  contend for the same dynamic shared quota. The script holds a lock so the
+  second one exits harmlessly, but that is a safety net, not a plan.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.dischargeiq.corpuscatchup</string>
+
+  <!-- Run through bash -lc so the login environment is present. The script
+       resolves its own repo path, but PATH still has to be sane for python3
+       and gcloud ADC discovery. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-lc</string>
+    <string>cd "$HOME/Desktop/hmm/masters/sem4/healthcare &amp; AI/DischargeIQ" &amp;&amp; ./scripts/corpus_catchup.sh</string>
+  </array>
+
+  <!-- 09:00 daily, matching the cron entry this replaces. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>9</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+
+  <!-- Deliberately false. RunAtLoad would fire a quota-consuming job every
+       time the agent is loaded or the user logs in, which is not what a daily
+       schedule means. -->
+  <key>RunAtLoad</key>
+  <false/>
+
+  <!-- launchd's own stdout/stderr, separate from the script's dated log in
+       logs/corpus_catchup/. These capture failures that happen BEFORE the
+       script starts writing its log - a wrong path, a missing interpreter, or
+       a TCC denial - which is the whole class of problem cron hid. -->
+  <key>StandardOutPath</key>
+  <string>/tmp/dischargeiq-catchup.out</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/dischargeiq-catchup.err</string>
+
+  <!-- Note on missed runs, which needs no key: launchd already runs a
+       StartCalendarInterval job that was missed while the machine was asleep
+       or off, once, at the next opportunity. That suits this job, because the
+       script is idempotent and exits without spending anything when the
+       corpus is current, so a late run is harmless. cron simply skips a
+       missed slot, which is one more reason this is the better mechanism for
+       a laptop that is not always awake at 09:00. -->
+
+  <!-- Keep it nice: this is background maintenance and must never compete
+       with anything the user is actually doing. -->
+  <key>Nice</key>
+  <integer>5</integer>
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>

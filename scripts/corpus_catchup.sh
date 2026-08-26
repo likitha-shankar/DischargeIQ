@@ -51,6 +51,31 @@ exec >> "$LOG" 2>&1
 echo "=============================================================="
 echo "corpus catch-up $(date '+%Y-%m-%d %H:%M:%S')"
 
+# Only one run at a time, whoever started it.
+#
+# Two concurrent runs is the worst possible way to use dynamic shared quota:
+# they contend with each other, both stall, and both conclude capacity is
+# unavailable. It stops being hypothetical the moment more than one thing can
+# start this - cron and a launchd agent both installed, or a scheduled run
+# landing while someone runs it by hand.
+#
+# mkdir is the lock because it is atomic on every filesystem that matters;
+# `flock` is not present on stock macOS.
+LOCK="$REPO/.corpus_catchup.lock"
+if ! mkdir "$LOCK" 2>/dev/null; then
+  OWNER="$(cat "$LOCK/pid" 2>/dev/null || echo '?')"
+  if [ "$OWNER" != "?" ] && kill -0 "$OWNER" 2>/dev/null; then
+    echo "another catch-up run is active (pid $OWNER) - exiting, nothing spent"
+    exit 0
+  fi
+  # The holder is gone: a previous run was killed or the machine slept. Take
+  # the lock over rather than leaving the job permanently wedged.
+  echo "stale lock from pid $OWNER - taking it over"
+  rm -rf "$LOCK" && mkdir "$LOCK" || { echo "could not claim lock"; exit 1; }
+fi
+echo $$ > "$LOCK/pid"
+trap 'rm -rf "$LOCK"' EXIT
+
 export LLM_PROVIDER=vertex
 export VERTEX_PROJECT=dischargeiq-502723
 export VERTEX_LOCATION=us-central1
