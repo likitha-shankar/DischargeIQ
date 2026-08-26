@@ -1,20 +1,20 @@
-/// Tests that the landing intro honours the OS reduced-motion setting.
-///
-/// The intro is a nine second branding animation carrying no information.
-/// Users who enable Reduce Motion (iOS Settings > Accessibility > Motion, or
-/// Android "Remove animations") often do so because motion causes nausea or
-/// vertigo, and this app's readers are unwell before they open it. Suppressing
-/// the intro for them costs nothing, because there is nothing in it to miss.
-///
-/// The August 2026 accessibility pass covered contrast, text scaling and
-/// screen-reader headings but missed motion entirely, which is why this test
-/// exists rather than relying on the fix staying put.
+// Tests that the landing intro honours the OS reduced-motion setting.
+//
+// The intro is a nine second branding animation carrying no information.
+// Users who enable Reduce Motion (iOS Settings > Accessibility > Motion, or
+// Android "Remove animations") often do so because motion causes nausea or
+// vertigo, and this app's readers are unwell before they open it. Suppressing
+// the intro for them costs nothing, because there is nothing in it to miss.
+//
+// The August 2026 accessibility pass covered contrast, text scaling and
+// screen-reader headings but missed motion entirely, which is why this test
+// exists rather than relying on the fix staying put.
 
 import 'package:dischargeiq_mobile/screens/intro_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Wrap the intro in a MediaQuery with an explicit disableAnimations value.
+// Wrap the intro in a MediaQuery with an explicit disableAnimations value.
 Widget _harness({required bool disableAnimations, required VoidCallback onDone}) {
   return MediaQuery(
     data: MediaQueryData(disableAnimations: disableAnimations),
