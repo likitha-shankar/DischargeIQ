@@ -41,7 +41,6 @@ class TestDropsRestatements:
         "HFrEF",                                          # abbreviation
         "heart failure",                                  # shortened
         "Reduced Ejection Fraction",                      # a fragment
-        "Acute Heart Failure",                            # stopword added
     ])
     def test_restatement_of_primary_is_dropped(self, secondary):
         assert _run("Heart Failure with Reduced Ejection Fraction", [secondary]) == []
@@ -90,6 +89,57 @@ class TestNeverDeletesARealDiagnosis:
     def test_unrelated_conditions_all_survive(self):
         secondaries = ["Hypertension", "GERD", "Osteoarthritis"]
         assert _run("Pneumonia", secondaries) == secondaries
+
+
+class TestAcuityIsNotFiller:
+    """
+    "Acute Heart Failure" under an HFrEF primary is KEPT, not dropped.
+
+    An earlier version of this test asserted the opposite, because "acute"
+    was in the stopword list. It is not filler, so the secondary now carries a
+    token the primary lacks and survives.
+
+    Keeping it is the deliberate choice. It may well be a restatement with an
+    acuity qualifier, but "may well be" is not good enough to delete a
+    diagnosis, and the asymmetry runs one way: a surviving duplicate is
+    untidy, a deleted diagnosis is hidden from everyone downstream.
+    """
+
+    def test_acuity_qualifier_survives(self):
+        assert _run("Heart Failure with Reduced Ejection Fraction",
+                    ["Acute Heart Failure"]) == ["Acute Heart Failure"]
+
+
+class TestWordsThatLookLikeFillerButAreNot:
+    """
+    Regression tests for a real bug in the first version of this fix.
+
+    _DX_STOPWORDS originally contained acute, chronic, primary, secondary,
+    history, stage, exacerbation and unspecified. Black-box testing on
+    26 Aug 2026 found that stripping those made genuinely distinct diagnoses
+    look identical, and the pass deleted them. Every case below was FAILING.
+
+    The lesson generalises: in a diagnosis, the word that looks like filler is
+    often the entire distinction.
+    """
+
+    @pytest.mark.parametrize("primary,secondary", [
+        ("Acute Heart Failure", "Chronic Heart Failure"),
+        ("Acute Pancreatitis", "Chronic Pancreatitis"),
+        ("Acute Kidney Injury", "Chronic Kidney Disease"),
+        # Essential vs caused-by-something-else. Different cause, different
+        # treatment, and "primary"/"secondary" is the whole difference.
+        ("Primary Hypertension", "Secondary Hypertension"),
+        # "History of" is the past. A current stroke is not a past one.
+        ("Stroke", "History of Stroke"),
+        # Severity staging drives management; stage 3 is not stage 5.
+        ("Chronic Kidney Disease Stage 3", "Chronic Kidney Disease Stage 5"),
+        # Opposite direction of the same physiology.
+        ("Heart Failure with Reduced Ejection Fraction",
+         "Heart Failure with Preserved Ejection Fraction"),
+    ])
+    def test_distinguishing_word_prevents_deletion(self, primary, secondary):
+        assert _run(primary, [secondary]) == [secondary]
 
 
 class TestEdgeCases:

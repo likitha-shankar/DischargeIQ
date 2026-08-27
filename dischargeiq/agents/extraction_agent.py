@@ -735,12 +735,30 @@ _DX_SYNONYMS: dict[str, str] = {
     "afib": "atrial fibrillation",
 }
 
-# Words that carry no clinical distinction, so their presence must not make a
-# restatement look like a new condition.
+# GRAMMATICAL filler only. Every word here must be clinically meaningless.
+#
+# This list started larger and was wrong. Black-box testing on 26 Aug 2026
+# found it deleting genuinely distinct diagnoses, because words that look like
+# filler are often the entire distinction:
+#
+#   "Acute Heart Failure"    + "Chronic Heart Failure"    -> deleted
+#   "Acute Pancreatitis"     + "Chronic Pancreatitis"     -> deleted
+#   "Primary Hypertension"   + "Secondary Hypertension"   -> deleted
+#   "History of Stroke"      + "Stroke"                   -> deleted
+#
+# acute/chronic is a different illness. primary/secondary hypertension are
+# different diagnoses with different causes and treatments. "history of" is the
+# past, not the present. None of those are filler.
+#
+# Removing them costs nothing on the target case, because only tokens in the
+# SECONDARY decide the outcome: extra words in the primary never block a match.
+# So a shorter list means strictly fewer deletions, which is the safe
+# direction - a surviving duplicate is untidy, a deleted diagnosis is hidden.
+#
+# Before adding a word here, ask whether two diagnoses differing ONLY by that
+# word are the same condition. If they are not, it does not belong.
 _DX_STOPWORDS = frozenset({
     "with", "without", "and", "the", "of", "a", "an", "due", "to", "in",
-    "acute", "chronic", "decompensated", "exacerbation", "unspecified",
-    "secondary", "primary", "history", "stage",
 })
 
 

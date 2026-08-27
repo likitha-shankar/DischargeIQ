@@ -153,6 +153,60 @@ def _build_user_message(
     return "\n".join(lines)
 
 
+# Explanation openings that carry no information. agent5_system_prompt.txt
+# already forbids these, and on 25 Aug 2026 the model emitted "This is a
+# medical emergency" six times in one guide anyway, pushing that document to
+# FK 7.83 against a 6.0 target. The prompt rule stays; this is the check that
+# makes it observable and recoverable.
+_EMPTY_OPENERS = re.compile(
+    r":\s*(this is|this can be|this means|you may feel|it is)\b",
+    re.IGNORECASE,
+)
+
+
+def _degenerate_explanations(text: str) -> str | None:
+    """
+    Detect a guide whose bullet explanations have stopped saying anything.
+
+    Two shapes, both seen in real output:
+
+      REPETITION - the same explanation pasted after several symptoms
+        ("- Sudden confusion: This is a medical emergency." x6). The guide
+        looks full and tells the patient nothing about why any symptom
+        matters, which is the entire job of the explanation half.
+      EMPTY OPENERS - explanations starting "This is", "This means",
+        "You may feel". The prompt forbids these by name because they spend
+        words without naming a cause or a risk.
+
+    Args:
+        text: The full three-tier guide.
+
+    Returns:
+        A short reason string when the output is degenerate, else None. The
+        reason is fed back to the model verbatim on retry, so it names the
+        specific failure rather than asking generically for "better" output.
+    """
+    explanations = [
+        part.split(":", 1)[1].strip().lower()
+        for part in text.splitlines()
+        if part.strip().startswith("-") and ":" in part
+    ]
+    explanations = [e for e in explanations if e]
+    if len(explanations) >= 3:
+        most_common = max(set(explanations), key=explanations.count)
+        repeats = explanations.count(most_common)
+        # Three identical explanations is not a coincidence; it is a model
+        # that has stopped reading the symptom it is explaining.
+        if repeats >= 3:
+            return (
+                f'the explanation "{most_common}" is repeated {repeats} times'
+            )
+    empty = len(_EMPTY_OPENERS.findall(text))
+    if empty >= 3:
+        return f"{empty} explanations begin with an empty phrase like 'This is'"
+    return None
+
+
 def run_escalation_agent(
     extraction: ExtractionOutput,
     document_id: str = "unknown",
@@ -217,28 +271,29 @@ def run_escalation_agent(
     provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     client, model = get_native_agent_client(provider)
 
-    if provider != "anthropic":
-        try:
-            escalation_text = call_chat_with_fallback(
-                client=client,
-                model_name=model,
-                system_prompt=system_prompt,
-                user_message=user_message,
-                max_tokens=_MAX_TOKENS,
-                provider=provider,
-                agent_name="Agent 5",
-                document_id=document_id,
-            )
-        except Exception as e:
-            logger.error("Agent 5 %s call failed for '%s': %s", provider, document_id, e)
-            raise
-    else:
+    def _generate(message: str) -> str:
+        """One generation attempt. Extracted so the retry reuses both paths."""
+        if provider != "anthropic":
+            try:
+                return call_chat_with_fallback(
+                    client=client,
+                    model_name=model,
+                    system_prompt=system_prompt,
+                    user_message=message,
+                    max_tokens=_MAX_TOKENS,
+                    provider=provider,
+                    agent_name="Agent 5",
+                    document_id=document_id,
+                )
+            except Exception as e:
+                logger.error("Agent 5 %s call failed for '%s': %s", provider, document_id, e)
+                raise
         try:
             response = client.messages.create(
                 model=model,
                 max_tokens=_MAX_TOKENS,
                 system=system_prompt,
-                messages=[{"role": "user", "content": user_message}],
+                messages=[{"role": "user", "content": message}],
                 # Claude 5 thinks by default and max_tokens covers thinking
                 # plus the answer, which truncates bounded output. See
                 # anthropic_extra_body in utils/llm_client.
@@ -249,7 +304,58 @@ def run_escalation_agent(
             raise
         # Empty-content and max_tokens truncation both fail loudly here -
         # see read_anthropic_completion.
-        escalation_text = read_anthropic_completion(response, "Agent 5", document_id)
+        return read_anthropic_completion(response, "Agent 5", document_id)
+
+    escalation_text = _generate(user_message)
+
+    # One retry when the explanations have stopped saying anything. The prompt
+    # already forbids empty openers, and on 25 Aug 2026 the model emitted
+    # "This is a medical emergency" six times anyway, taking that document to
+    # FK 7.83 against a 6.0 target. Agent 2 has had a retry for its own failure
+    # mode since July; Agent 5 had none and simply logged "FK FAIL - revise the
+    # prompt", which ships the bad guide.
+    #
+    # The retry names the specific defect rather than asking for better output,
+    # and repeats the symptom-preservation rule, because the cheapest way to
+    # satisfy "vary the explanations" would be to drop symptoms.
+    degenerate = _degenerate_explanations(escalation_text)
+    if degenerate:
+        logger.warning(
+            "Agent 5 retry '%s': %s - regenerating", document_id, degenerate,
+        )
+        retry_message = (
+            user_message
+            + f"\n\nYour previous guide was rejected because {degenerate}. "
+            + "Every explanation after the colon must say something specific "
+            + "about THAT symptom: name the cause or the risk. Never reuse the "
+            + "same explanation twice, and never start one with 'This is', "
+            + "'This means' or 'You may feel'. Keep every symptom you listed "
+            + "before - fix the explanations, do not shorten the list."
+        )
+        retry_text = _generate(retry_message)
+        # Never blindly prefer the retry: the same guard Agent 2 uses. The
+        # retry is only accepted if it is no longer degenerate, still carries
+        # the emergency tier, and did not lose symptoms. A shorter guide that
+        # reads more easily is not an improvement in a safety-critical output.
+        retry_bullets = sum(1 for line in retry_text.splitlines()
+                            if line.strip().startswith("-"))
+        first_bullets = sum(1 for line in escalation_text.splitlines()
+                            if line.strip().startswith("-"))
+        if (not _degenerate_explanations(retry_text)
+                and "CALL 911" in retry_text.upper()
+                and retry_bullets >= first_bullets):
+            logger.info(
+                "Agent 5 retry '%s' accepted: %d bullets kept",
+                document_id, retry_bullets,
+            )
+            escalation_text = retry_text
+        else:
+            logger.warning(
+                "Agent 5 retry '%s' REJECTED (degenerate=%s, bullets %d->%d) - "
+                "keeping the first attempt",
+                document_id, bool(_degenerate_explanations(retry_text)),
+                first_bullets, retry_bullets,
+            )
 
     # Structural safety gate: the three tier headers are the contract with
     # both UIs AND the patient's mental model. A guide missing the 911 tier
