@@ -178,6 +178,13 @@ improved.
 
 ## 9. Recording the backup (task 4.8)
 
+> **Not the same thing as the external demo video.** LOF asked on 26 Aug for a
+> concise, outward-facing video emphasising gamification VALUE and no backend
+> mechanics. That has its own script: **`docs/DEMO_VIDEO_SCRIPT.md`**. Both
+> should exist. This one is the safety net and must stay complete and honest;
+> that one is under three minutes and must be understood in one viewing.
+
+
 The backup recording exists for one job: if the venue network, the phone or
 the backend fails at Tribune Tower, this plays instead. It does not need to be
 polished. It needs to be COMPLETE and HONEST - a recording that skips the

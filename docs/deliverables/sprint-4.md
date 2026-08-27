@@ -18,7 +18,7 @@ backup recording are delivered.
 | 4.5 | Production builds with locked dependencies | ◑ Python locked (`requirements.lock.txt`); release APK builds. Store-signed builds are out of scope with no paid accounts |
 | 4.6 | Integration-readiness documentation and Vertex/BAA runbook | ✅ `docs/INTEGRATION_READINESS.md` |
 | 4.7 | Final summary report: accuracy, comprehension lift, telemetry, limitations | ◑ **draft written 16 Aug** `3661a04` - `docs/FINAL_SUMMARY_REPORT.md`. Still aggregates 4.2 (blocked) and the partial 3.4 run, so the figures are provisional |
-| 4.8 | Tribune Tower demo package: rehearsed script, stable dataset, backup recording | ◑ script `docs/DEMO_SCRIPT.md` and **backup-recording runbook** `f861677`. The recording itself is not made |
+| 4.8 | Tribune Tower demo package: rehearsed script, stable dataset, backup recording | ◑ live script `docs/DEMO_SCRIPT.md`, offline fallback `docs/demo_fallback.html`, backup-recording runbook `f861677`, and **external demo-video script `docs/DEMO_VIDEO_SCRIPT.md`** (LOF action item, 26 Aug). **Neither recording is made yet** |
 
 ## Note on 4.1
 
