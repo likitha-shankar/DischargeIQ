@@ -121,6 +121,13 @@ the criteria and fill in the sign-off, then re-run
 `scripts/escalation_template_status.py`. It currently reports 0 of 6 signed and
 states plainly that none of them govern output.
 
+**The ask is bounded: one 90-minute session, once.** Six files, roughly 40
+criteria, two fields to fill in. Not per patient - signing the CRITERIA
+transfers authority to every future document matching that diagnosis, which is
+what keeps this from scaling with volume. Full proposal, including a second
+option that ships without waiting for a signature:
+`docs/PHYSICIAN_OVERSIGHT_OPTIONS.md`.
+
 ### ☐ 2.3 One-page FDA CDS analysis against Cures Act 520(o)(1)(E) ⚑
 
 His point: the exemption narrows for patient-facing, time-critical, directive
