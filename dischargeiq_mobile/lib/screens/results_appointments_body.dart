@@ -2,13 +2,66 @@
 // Same library: private classes and library imports are shared.
 part of 'results_screen.dart';
 
-class _AppointmentsBody extends StatelessWidget {
+class _AppointmentsBody extends StatefulWidget {
   const _AppointmentsBody({required this.extraction, this.simulator});
 
   final dynamic extraction;
 
   /// Agent 6 output - its unanswered questions become the visit-prep list.
   final dynamic simulator;
+
+  @override
+  State<_AppointmentsBody> createState() => _AppointmentsBodyState();
+}
+
+class _AppointmentsBodyState extends State<_AppointmentsBody> {
+  /// Appointment keys the patient has ticked off, for the active document.
+  /// Empty until the async load returns; the tab renders fine meanwhile.
+  Set<String> _done = const {};
+
+  dynamic get extraction => widget.extraction;
+  dynamic get simulator => widget.simulator;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDone();
+  }
+
+  Future<void> _loadDone() async {
+    final docId = context.read<DischargeProvider>().activeDocId;
+    if (docId == null) return;
+    final done = await AppointmentStatusStore.load(docId);
+    if (mounted) setState(() => _done = done);
+  }
+
+  /// Toggle one appointment between done and not done.
+  ///
+  /// Reversible on purpose: a patient who taps the wrong row must be able to
+  /// put it back, and an irreversible tick makes people avoid the control.
+  /// An unsaved run has no document id and simply does not persist.
+  Future<void> _toggleDone(Map appointment, bool done) async {
+    final key = appointmentKey(appointment);
+    if (key.isEmpty) return;
+    final updated = {..._done};
+    if (done) {
+      updated.add(key);
+    } else {
+      updated.remove(key);
+    }
+    // Optimistic: the tick responds immediately and the write follows. A
+    // failed write loses a cosmetic mark, never a tap the patient can see.
+    setState(() => _done = updated);
+    final docId = context.mounted
+        ? context.read<DischargeProvider>().activeDocId
+        : null;
+    if (docId == null) return;
+    if (done) {
+      await AppointmentStatusStore.markDone(docId, appointment);
+    } else {
+      await AppointmentStatusStore.markNotDone(docId, appointment);
+    }
+  }
 
   /// Visit-prep (competitor-gap B4): the questions the AI Review found the
   /// document does NOT answer are exactly what the patient should ask at
@@ -99,10 +152,15 @@ class _AppointmentsBody extends StatelessWidget {
         }
         final a = list[i - 1];
         if (a is! Map) return const SizedBox.shrink();
+        final key = appointmentKey(a);
         return _AppointmentCard(
           appointment: a,
           dark: dark,
+          isPast: isAppointmentPast(a),
+          isDone: key.isNotEmpty && _done.contains(key),
+          canMark: key.isNotEmpty,
           onAddToCalendar: () => _addToCalendar(context, a),
+          onToggleDone: (v) => _toggleDone(a, v),
         );
       },
     );
@@ -119,12 +177,28 @@ class _AppointmentCard extends StatelessWidget {
   const _AppointmentCard({
     required this.appointment,
     required this.dark,
+    required this.isPast,
+    required this.isDone,
+    required this.canMark,
     required this.onAddToCalendar,
+    required this.onToggleDone,
   });
 
   final Map appointment;
   final bool dark;
+
+  /// The date has elapsed. Unparseable and missing dates are never past.
+  final bool isPast;
+
+  /// The patient has ticked this one off.
+  final bool isDone;
+
+  /// False when the appointment has nothing identifying to key on, in which
+  /// case no tick is offered rather than sharing one key across blanks.
+  final bool canMark;
+
   final VoidCallback onAddToCalendar;
+  final ValueChanged<bool> onToggleDone;
 
   static const _monthNames = [
     'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
@@ -243,15 +317,38 @@ class _AppointmentCard extends StatelessWidget {
               ),
             ],
             SourceQuote(source: appointment['source']),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: onAddToCalendar,
-                icon: const Icon(Icons.calendar_month_outlined, size: 18),
-                label: const Text('Add to calendar'),
-                // 48dp touch target, same rule as the audio play button.
-                style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-              ),
+            // Actions. A past appointment led with "Add to calendar", which is
+            // the one action that no longer makes sense for it - raised at the
+            // LOF review on 26 Aug 2026. Past visits now lead with the tick,
+            // and calendar stays available underneath because a date can be
+            // wrong, rescheduled, or worth logging after the fact.
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (canMark && (isPast || isDone))
+                  TextButton.icon(
+                    onPressed: () => onToggleDone(!isDone),
+                    icon: Icon(
+                      isDone
+                          ? Icons.check_circle
+                          : Icons.check_circle_outline,
+                      size: 18,
+                      color: isDone ? kMedChanged : null,
+                    ),
+                    label: Text(isDone ? 'Done' : 'Mark as done'),
+                    // 48dp touch target, same rule as the audio play button.
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      foregroundColor: isDone ? kMedChanged : null,
+                    ),
+                  ),
+                TextButton.icon(
+                  onPressed: onAddToCalendar,
+                  icon: const Icon(Icons.calendar_month_outlined, size: 18),
+                  label: Text(isPast ? 'Add anyway' : 'Add to calendar'),
+                  style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                ),
+              ],
             ),
           ],
         ),
