@@ -30,6 +30,7 @@ import 'package:dischargeiq_mobile/services/api_service.dart';
 import 'package:dischargeiq_mobile/screens/puzzle_screen.dart';
 import 'package:dischargeiq_mobile/services/game_store.dart';
 import 'package:dischargeiq_mobile/services/learning_goals.dart';
+import 'package:dischargeiq_mobile/widgets/quiz_review.dart';
 import 'package:dischargeiq_mobile/widgets/game_widgets.dart';
 import 'package:dischargeiq_mobile/widgets/quiz_widgets.dart';
 import 'package:dischargeiq_mobile/services/share_summary.dart';
@@ -810,6 +811,11 @@ class _QuizBodyState extends State<QuizBody> {
           XpLevelBar(stats: _stats!),
           const SizedBox(height: 18),
         ],
+        // Per-question review (LOF action item, 26 Aug 2026). The score and
+        // the badges say HOW MUCH was understood; this says WHICH thing was
+        // not, which is the only part that teaches anything.
+        QuizReviewList(items: buildReviewItems(_questions, _postAnswers)),
+        const SizedBox(height: 22),
         Text('How you did by topic',
             style: Theme.of(context)
                 .textTheme
