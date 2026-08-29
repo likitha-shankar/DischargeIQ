@@ -2,6 +2,7 @@ import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/services/case_audio_player.dart';
 import 'package:dischargeiq_mobile/providers/theme_provider.dart';
 import 'package:dischargeiq_mobile/screens/intro_screen.dart';
+import 'package:dischargeiq_mobile/services/backend_licenses.dart';
 import 'package:dischargeiq_mobile/screens/results_screen.dart';
 import 'package:dischargeiq_mobile/screens/upload_screen.dart';
 import 'package:dischargeiq_mobile/theme.dart';
@@ -10,6 +11,9 @@ import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Backend dependencies are invisible to Flutter's automatic licence
+  // collector, so they are registered here before any licence page can open.
+  registerBackendLicenses();
   final themeProvider = ThemeProvider();
   await themeProvider.loadSaved();
 

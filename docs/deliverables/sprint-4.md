@@ -16,7 +16,7 @@ backup recording are delivered.
 | 4.3 | Fix pass: every flagged item traced to the commit that closed it | ◻ depends on 4.2 |
 | 4.4 | UI, UX, accessibility polish; re-verify media degradation after it | ◑ empty-section messages, density caps, person profiles, plus the **v2 redesign and an accessibility pass** (contrast, 2.2x text scaling, screen-reader headings) `5983841`. Final polish pass remains |
 | 4.5 | Production builds with locked dependencies | ◑ Python locked (`requirements.lock.txt`); release APK builds. Store-signed builds are out of scope with no paid accounts |
-| 4.6 | Integration-readiness documentation and Vertex/BAA runbook | ✅ `docs/INTEGRATION_READINESS.md` |
+| 4.6 | Integration-readiness documentation and Vertex/BAA runbook | ✅ `docs/INTEGRATION_READINESS.md`. **In-app open-source attribution added 28 Aug** (LOF action item 36:04): Settings > Open source licences, Flutter's collector for Dart packages plus `services/backend_licenses.dart` for the Python backend it cannot see. Versions guarded against `requirements.lock.txt` by `test_license_attribution.py`. Full licence TEXTS still to bundle before any store release |
 | 4.7 | Final summary report: accuracy, comprehension lift, telemetry, limitations | ◑ **draft written 16 Aug** `3661a04` - `docs/FINAL_SUMMARY_REPORT.md`. Still aggregates 4.2 (blocked) and the partial 3.4 run, so the figures are provisional |
 | 4.8 | Tribune Tower demo package: rehearsed script, stable dataset, backup recording | ◑ live script `docs/DEMO_SCRIPT.md`, offline fallback `docs/demo_fallback.html`, backup-recording runbook `f861677`, and **external demo-video script `docs/DEMO_VIDEO_SCRIPT.md`** (LOF action item, 26 Aug). **Neither recording is made yet** |
 

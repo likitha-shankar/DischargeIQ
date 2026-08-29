@@ -142,6 +142,25 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           ListTile(
+            leading: const Icon(Icons.balance_outlined, color: kTeal),
+            title: const Text('Open source licences'),
+            subtitle: const Text('The software this app is built on'),
+            trailing: const Icon(Icons.chevron_right),
+            // Flutter's built-in page, which collects Dart and Flutter package
+            // licences automatically. registerBackendLicenses() adds the
+            // Python backend, which the collector cannot see and which does
+            // the actual analysis - a page listing only the mobile half would
+            // look complete while omitting most of the product.
+            onTap: () => showLicensePage(
+              context: context,
+              applicationName: 'DischargeIQ',
+              applicationVersion: '1.0.0',
+              applicationLegalese:
+                  '\u00a9 2026 Likitha Shankar. Released under the Apache '
+                  'License 2.0.\n\nPatient education only. Not medical advice.',
+            ),
+          ),
+          ListTile(
             leading: const Icon(Icons.info_outline, color: kTeal),
             title: const Text('How it works'),
             subtitle: const Text('About the AI agents and what they do'),
