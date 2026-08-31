@@ -57,8 +57,30 @@ async def health(request: Request):
     else:
         db_detail = "not configured"
 
-    return {
-        "status": "ok",
+    # A configured database that is not working is DEGRADED, not ok.
+    #
+    # This endpoint used to return "ok" in that case, with the problem visible
+    # only in database.detail. Between 12 and 25 Aug 2026 production ran for
+    # days with no pool: quiz scores were not persisted, discharge history was
+    # not written, comprehension_delta came back None and the clinician
+    # dashboard had no data - while /health said ok and the guardrail suite
+    # passed 9/9. Nothing is monitoring a nested detail string; things monitor
+    # status. Saying ok when persistence is dead is how three weeks passed
+    # without anyone noticing.
+    #
+    # Still HTTP 200: the service genuinely can analyse documents without a
+    # database, so this must not take an instance out of rotation. The word is
+    # for whoever reads it, not for the load balancer.
+    # Only claim degraded when the app actually tried and failed. A bare
+    # TestClient never runs the lifespan, so app.state.db_pool is absent rather
+    # than None, and reporting that as degraded would make every API test fail
+    # for a condition that does not exist outside the harness.
+    lifespan_ran = hasattr(request.app.state, "db_pool")
+    db_broken = bool(database_url) and lifespan_ran and db_reachable is not True
+    status = "degraded" if db_broken else "ok"
+
+    payload = {
+        "status": status,
         "llm_provider": provider,
         "anthropic_api_key_configured": anthropic_set,
         "database": {
@@ -67,3 +89,12 @@ async def health(request: Request):
             "detail": db_detail,
         },
     }
+    if db_broken:
+        # Name the consequence, not just the fault. "pool not initialised"
+        # tells an operator nothing about what the patient loses.
+        payload["degraded_reason"] = (
+            "Database unavailable: quiz scores, comprehension deltas and "
+            "discharge history are not being saved. Analysis still works."
+        )
+        logger.warning("Health check reporting degraded: %s", db_detail)
+    return payload

@@ -1,7 +1,7 @@
 # Corpus accuracy run (task 3.4)
 
-Generated 2026-08-25 by `scripts/corpus_accuracy_report.py`
-over 59 pipeline outputs in `evaluation/corpus_outputs/`.
+Generated 2026-08-31 by `scripts/corpus_accuracy_report.py`
+over 106 pipeline outputs in `evaluation/corpus_outputs/`.
 
 The corpus is 106 real de-identified discharge summaries (MTSamples
 transcriptions with identifiers removed). Neither the corpus nor these
@@ -17,9 +17,7 @@ below while this file still looks current.
 
 | Provider | Model | Outputs |
 |---|---|---|
-| unrecorded | `unrecorded` | 59 |
-
-**`unrecorded` means the output predates provenance stamping (added 25 Aug 2026).** Those numbers cannot be tied to a model version. Re-run those documents before citing this report as gate evidence.
+| vertex | `<provider default>` | 106 |
 
 ## 1. Readability
 
@@ -27,28 +25,28 @@ Target: Flesch-Kincaid grade <= 6.0 on every patient-facing output.
 
 | Agent | Section | Mean | Max | At or under target |
 |---|---|---|---|---|
-| agent2 | What happened | 3.73 | 6.29 | 57/59 |
-| agent3 | Medications | 4.11 | 6.33 | 58/59 |
-| agent4 | Recovery | 4.31 | 5.58 | 59/59 |
-| agent5 | Warning signs | 4.51 | 5.89 | 59/59 |
+| agent2 | What happened | 3.26 | 6.40 | 104/106 |
+| agent3 | Medications | 4.04 | 6.40 | 105/106 |
+| agent4 | Recovery | 4.47 | 8.76 | 102/106 |
+| agent5 | Warning signs | 4.54 | 6.33 | 104/106 |
 
-**99% of 236 outputs meet the sixth-grade target**, mean grade 4.17.
+**98% of 424 outputs meet the sixth-grade target**, mean grade 4.08.
 
 ## 2. Grounding (output against source)
 
-Checked 59 of 59 outputs against their source document.
+Checked 106 of 106 outputs against their source document.
 
 - **Medication names not present in the source: 0**. Agent 1 is contractually forbidden from inventing a field value, so any hit here is a contract violation.
-- **Outputs containing a number absent from the source: 50**. Week numbers and 911 are excluded, so this measures dosages, weights and thresholds.
+- **Outputs containing a number absent from the source: 25**. Week numbers and 911 are excluded, so this measures dosages, weights and thresholds.
 
 These are not random fabrications. They fall into two classes,
 and only one of them is a defect in this system:
 
-**Clinical thresholds the prompts supply** (49 occurrences): fever limits such as "over 101 F" and "100.4 F". These come from the agent prompts, not from the patient's document. They are standard clinical guidance, but they are shown to the patient as if their own paperwork said so.
+**Clinical thresholds the prompts supply** (22 occurrences): fever limits such as "over 101 F" and "100.4 F". These come from the agent prompts, not from the patient's document. They are standard clinical guidance, but they are shown to the patient as if their own paperwork said so.
 
-**Activity targets the model invents** (39 occurrences): "walk for 15 minutes each day", "do not bend your new knee more than 90 degrees". The agent 4 prompt REQUIRES one specific goal per week, so when the source document sets none, the model supplies a number. The requirement causes the invention.
+**Activity targets the model invents** (3 occurrences): "walk for 15 minutes each day", "do not bend your new knee more than 90 degrees". The agent 4 prompt REQUIRES one specific goal per week, so when the source document sets none, the model supplies a number. The requirement causes the invention.
 
-**Everything else**: 6 occurrences.
+**Everything else**: 8 occurrences.
 
 ### The question for clinician review
 
@@ -75,14 +73,26 @@ total omission rates.**
 
 | Content | Extracted | Reached the patient | Recall |
 |---|---|---|---|
-| Medications (agent 3) | 307 | 307 | 100.0% |
-| Warning signs (agent 5) | 53 | 53 | 100.0% |
+| Medications (agent 3) | 532 | 529 | 99.4% |
+| Warning signs (agent 5) | 95 | 89 | 93.7% |
 
 Warning signs are counted separately because Agent 5 is the
 safety-critical output: a red flag the document listed and the guide
 dropped is the highest-consequence omission in the system.
 
-No omissions detected on this run.
+Dropped medications:
+
+- `mtsamples_005`: Medications
+- `mtsamples_056`: Other Current Home Medications
+- `mtsamples_081`: Pre-Admission Medications
+
+Dropped warning signs:
+
+- `mtsamples_034`: hemoptysis
+- `mtsamples_035`: other problems
+- `mtsamples_056`: increasing shortness of breath
+- `mtsamples_062`: increased temperature greater than 101.5; increased pain that is not relieved by current pain regimen
+- `mtsamples_075`: redness, drainage, or warmth around his incision site
 
 ## 4. What the source documents actually contain
 
@@ -91,18 +101,18 @@ paperwork rather than a failure of this system.
 
 | Field | Documents containing it |
 |---|---|
-| follow-up appointments | 55/59 (93%) |
-| medications | 51/59 (86%) |
-| discharge date | 24/59 (41%) |
-| activity or diet | 21/59 (36%) |
-| red flag symptoms | 16/59 (27%) |
+| medications | 94/106 (89%) |
+| follow-up appointments | 93/106 (88%) |
+| activity or diet | 41/106 (39%) |
+| discharge date | 30/106 (28%) |
+| red flag symptoms | 28/106 (26%) |
 
 ## 5. Pipeline status
 
 | Status | Count |
 |---|---|
-| `complete_with_warnings` | 58 |
-| `complete` | 1 |
+| `complete_with_warnings` | 104 |
+| `complete` | 2 |
 
 `complete_with_warnings` is the expected majority on real paperwork:
 it means every agent ran and the source was missing sections.

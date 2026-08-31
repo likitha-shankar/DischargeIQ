@@ -19,6 +19,7 @@ Called by: dischargeiq.pipeline.orchestrator (_save_history_with_retries), disch
 #   GET /history/{session_id} -> get_history_for_session()
 # and add a "Past summaries" tab to streamlit_app.py.
 
+import asyncio
 import json
 import logging
 
@@ -29,26 +30,67 @@ from dischargeiq.models.extraction import ExtractionOutput
 logger = logging.getLogger(__name__)
 
 
-async def get_db_pool(database_url: str) -> asyncpg.Pool:
+# Neon suspends an idle database on the free tier and takes several seconds to
+# wake. Cloud Run also scales to zero, so a cold container regularly races a
+# sleeping database and loses. Retrying turns that race into a delay.
+_POOL_ATTEMPTS = 4
+_POOL_BASE_DELAY_SECONDS = 1.5
+
+
+async def get_db_pool(
+    database_url: str,
+    attempts: int = _POOL_ATTEMPTS,
+    base_delay: float = _POOL_BASE_DELAY_SECONDS,
+) -> asyncpg.Pool:
     """
-    Create and return an asyncpg connection pool.
+    Create and return an asyncpg connection pool, retrying a cold database.
 
     Args:
-        database_url: Neon PostgreSQL connection string from DATABASE_URL env var.
+        database_url: Neon PostgreSQL connection string from DATABASE_URL.
+        attempts: Total tries before giving up.
+        base_delay: Seconds before the first retry; doubles each time.
 
     Returns:
-        asyncpg.Pool: A connection pool with 1–5 connections.
+        asyncpg.Pool: A connection pool with 1-5 connections.
 
     Raises:
-        asyncpg.PostgresError: If the database is unreachable or credentials are wrong.
+        Exception: The last failure, when every attempt is exhausted.
+
+    Note:
+        Catches Exception rather than asyncpg.PostgresError on purpose. The
+        failure seen in production on 12, 19 and 25 Aug 2026 was
+        "Authentication timed out", which is a timeout and NOT a PostgresError,
+        so the previous narrower except never ran and the error escaped to a
+        caller that swallowed it. Losing the database is silent by design here
+        (analysis must still work), which is exactly why the retry has to
+        happen at this level.
     """
-    try:
-        pool = await asyncpg.create_pool(database_url, min_size=1, max_size=5)
-        logger.info("Database connection pool created successfully.")
-        return pool
-    except asyncpg.PostgresError as db_error:
-        logger.error("Failed to create database pool: %s", db_error)
-        raise
+    last_error: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            pool = await asyncpg.create_pool(database_url, min_size=1, max_size=5)
+            if attempt > 1:
+                logger.info(
+                    "Database connection pool created on attempt %d.", attempt
+                )
+            else:
+                logger.info("Database connection pool created successfully.")
+            return pool
+        except Exception as db_error:  # noqa: BLE001 - see the note above
+            last_error = db_error
+            if attempt == attempts:
+                break
+            delay = base_delay * (2 ** (attempt - 1))
+            logger.warning(
+                "DB pool attempt %d/%d failed (%s); retrying in %.1fs",
+                attempt, attempts, db_error, delay,
+            )
+            await asyncio.sleep(delay)
+
+    logger.error(
+        "Failed to create database pool after %d attempts: %s", attempts, last_error
+    )
+    raise last_error if last_error else RuntimeError("pool creation failed")
 
 
 async def save_discharge_history(
