@@ -53,6 +53,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from dischargeiq.pipeline.orchestrator import run_pipeline
+from dischargeiq.utils.strata import stratum_of_file
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -268,6 +269,10 @@ async def generate_outputs(
             # whole corpus had been regenerated. Prompts change far more often
             # than models here, and they change output just as much.
             "prompt_versions": prompt_versions(),
+            # Which SOURCE FORMAT this document is. Accuracy reported as one
+            # blended number hides whether extraction is failing on faxes
+            # while looking fine overall (Liebovitz review item 3.3).
+            "stratum": stratum_of_file(pdf).value,
         }
         out_path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
         generated += 1

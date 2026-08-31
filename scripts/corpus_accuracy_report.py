@@ -133,6 +133,8 @@ def build(outputs_dir: Path) -> str:
     files = sorted(outputs_dir.glob("mtsamples_*.json"))
     statuses: Counter = Counter()
     provenance: Counter = Counter()
+    strata: Counter = Counter()
+    strata_grades: dict[str, list[float]] = defaultdict(list)
     grades: dict[str, list[float]] = defaultdict(list)
     fields: Counter = Counter()
     med_violations: list[tuple[str, list[str]]] = []
@@ -155,6 +157,12 @@ def build(outputs_dir: Path) -> str:
         meta = doc.get("_review_meta") or {}
         provenance[(meta.get("llm_provider") or "unrecorded",
                     meta.get("llm_model") or "unrecorded")] += 1
+        stratum = meta.get("stratum") or "unrecorded"
+        strata[stratum] += 1
+        for _agent, _value in (doc.get("fk_scores") or {}).items():
+            _g = (_value or {}).get("fk_grade")
+            if isinstance(_g, (int, float)) and _g > 0:
+                strata_grades[stratum].append(_g)
         for agent, value in (doc.get("fk_scores") or {}).items():
             grade = (value or {}).get("fk_grade")
             if isinstance(grade, (int, float)) and grade > 0:
@@ -363,6 +371,38 @@ def build(outputs_dir: Path) -> str:
             lines.append(f"- `{stem}`: {'; '.join(flags)}")
     if not meds_dropped and not flags_dropped:
         lines += ["", "No omissions detected on this run."]
+
+    # Per-stratum readability. Liebovitz review item 3.3 and the LOF review
+    # both asked for accuracy reported by SOURCE FORMAT, because a single
+    # blended figure cannot show that faxes fail while dictated documents pass.
+    lines += ["", "## 3b. By source format (stratum)", ""]
+    if set(strata) <= {"unrecorded"}:
+        lines += [
+            "Not available: no output carries a stratum label. Outputs written "
+            "before 31 Aug 2026 predate stratification - regenerate to populate "
+            "this table.",
+            "",
+            "**The corpus is currently one stratum.** All 106 MTSamples "
+            "documents are dictated transcriptions, so every accuracy figure in "
+            "this report generalises to dictated documents only. A degraded "
+            "fax stratum exists in `test-data/fax/` "
+            "(`scripts/build_fax_stratum.py`) and is not yet analysed.",
+        ]
+    else:
+        lines += ["| Stratum | Outputs | Readability mean | At or under target |",
+                  "|---|---|---|---|"]
+        for name, count in strata.most_common():
+            grades = strata_grades.get(name, [])
+            if grades:
+                ok = sum(1 for g in grades if g <= _FK_TARGET)
+                lines.append(f"| {name} | {count} | {statistics.mean(grades):.2f} "
+                             f"| {ok}/{len(grades)} |")
+            else:
+                lines.append(f"| {name} | {count} | - | - |")
+        lines += ["",
+                  "A single blended accuracy number cannot show one format "
+                  "failing while another passes. That is the whole reason this "
+                  "table exists."]
 
     lines += ["", "## 4. What the source documents actually contain", "",
               "The reason an absent section is treated as a property of the",

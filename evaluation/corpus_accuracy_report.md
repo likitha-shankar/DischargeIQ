@@ -94,6 +94,12 @@ Dropped warning signs:
 - `mtsamples_062`: increased temperature greater than 101.5; increased pain that is not relieved by current pain regimen
 - `mtsamples_075`: redness, drainage, or warmth around his incision site
 
+## 3b. By source format (stratum)
+
+Not available: no output carries a stratum label. Outputs written before 31 Aug 2026 predate stratification - regenerate to populate this table.
+
+**The corpus is currently one stratum.** All 106 MTSamples documents are dictated transcriptions, so every accuracy figure in this report generalises to dictated documents only. A degraded fax stratum exists in `test-data/fax/` (`scripts/build_fax_stratum.py`) and is not yet analysed.
+
 ## 4. What the source documents actually contain
 
 The reason an absent section is treated as a property of the

@@ -109,6 +109,10 @@ node_modules/
 # repository is ever made public, or transferred under data-governance
 # conditions, history has to be purged as a separate deliberate step.
 test-data/mtsamples/
+# Derived from the corpus above by scripts/build_fax_stratum.py, so it follows
+# the same rule: regenerable, never committed. It is also degraded clinical
+# text, which has no more business in git than the originals.
+test-data/fax/
 evaluation/corpus_outputs/
 
 # The three generated demo fixtures at the top of test-data/ stay tracked on
