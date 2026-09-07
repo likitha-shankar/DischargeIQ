@@ -21,8 +21,10 @@ import 'package:dischargeiq_mobile/screens/quiz_screen.dart';
 import 'package:dischargeiq_mobile/screens/scan_screen.dart';
 import 'package:dischargeiq_mobile/screens/settings_screen.dart';
 import 'package:dischargeiq_mobile/widgets/ai_disclaimer_dialog.dart';
+import 'package:dischargeiq_mobile/services/recovery_notes.dart';
 import 'package:dischargeiq_mobile/widgets/audio_explainer.dart';
 import 'package:dischargeiq_mobile/widgets/chat_sheet.dart';
+import 'package:dischargeiq_mobile/widgets/recovery_edit_sheet.dart';
 import 'package:dischargeiq_mobile/widgets/guided_tour.dart';
 import 'package:dischargeiq_mobile/widgets/learning_goal_sheet.dart';
 import 'package:dischargeiq_mobile/widgets/run_state_screens.dart';
@@ -443,6 +445,11 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
                     explanation: '${r['diagnosis_explanation'] ?? ''}',
                     extraction: r['extraction'],
                     documentType: '${r['document_type'] ?? ''}',
+                    // The whole result drives the per-case audio explainer:
+                    // it narrates THIS document, so it needs the payload the
+                    // client already holds rather than a re-fetch.
+                    result: r,
+                    sessionId: '${r['pdf_session_id'] ?? ''}',
                     // The closing card hands the patient the next question
                     // rather than leaving them to find the tab strip.
                     onNext: () => _tabController.animateTo(1),
