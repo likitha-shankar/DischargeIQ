@@ -32,3 +32,16 @@ ios/
 # hold REAL analysed discharge documents and PDFs. They are gitignored for
 # that reason, and they must not ride along in a Cloud Build upload either.
 device-backups/
+
+# The de-identified evaluation corpus and the degraded fax stratum built from
+# it. Dockerfile does `COPY . .`, so without these lines 106 real (if
+# de-identified) clinical transcriptions get uploaded to Cloud Build and baked
+# into the running image. Nothing at runtime reads them - they are test and
+# evaluation inputs, referenced only by tests, comments and one instruction
+# string in the clinician dashboard.
+#
+# Same reasoning as device-backups/ above: clinical text does not travel
+# further than it has to. The corpus is gitignored for this reason and this
+# file simply had not caught up.
+test-data/mtsamples/
+test-data/fax/
