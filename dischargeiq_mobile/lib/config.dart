@@ -87,3 +87,52 @@ const Color kTier2 = Color(0xFFD97706);
 const Color kTier2Bg = Color(0xFFFEF3C7);
 const Color kTier3 = Color(0xFF16A34A);
 const Color kTier3Bg = Color(0xFFF0FDF4);
+
+// ── Dark-theme semantic colours ───────────────────────────────────────────────
+// The colours above were chosen against a white background and are used
+// unchanged in dark mode, where they fail WCAG badly. Measured against the dark
+// card (#0F4A36) on 6 Sep 2026:
+//
+//     kTier1            2.12:1   <- the CALL 911 colour
+//     kMedDiscontinued  1.45:1
+//     kMedNew           1.57:1
+//     kMedContinued     1.65:1
+//     kMedChanged       2.75:1
+//     kTier3            3.10:1
+//     kTier2            3.21:1
+//
+// AA needs 4.5:1 for body text and 3.0:1 for large text, so most of these fail
+// even the lenient bar. kTier1 is the worst place for it: a patient reading the
+// escalation guide in dark mode gets the emergency tier in the least legible
+// colour on the screen.
+//
+// Each value below is the MOST SATURATED colour at the original hue that
+// reaches 4.5:1. Saturation is preserved deliberately - the naive fix is to
+// lighten until it passes, which turns the 911 red into a pastel pink and
+// throws away the urgency the colour is carrying. Emotional weight and
+// legibility are both requirements here, not a trade.
+//
+// kMedDiscontinuedDark is pulled toward a muted rose rather than sharing
+// kTier1Dark's vivid red: at the same hue and saturation the two were
+// indistinguishable, and "stopped taking this" must not read as "call 911".
+//
+// Enforced by dischargeiq/tests/test_palette_contrast.py, which recomputes
+// every ratio from these hex values.
+const Color kTier1Dark = Color(0xFFFF8A8A);
+const Color kTier2Dark = Color(0xFFFF900F);
+const Color kTier3Dark = Color(0xFF00C749);
+const Color kMedNewDark = Color(0xFF61B1FF);
+const Color kMedChangedDark = Color(0xFFFFB259);
+const Color kMedContinuedDark = Color(0xFF5BC700);
+const Color kMedDiscontinuedDark = Color(0xFFD9A0A0);
+
+/// Semantic colour for the current theme. Use these instead of the raw
+/// constants anywhere a colour sits on a themed surface.
+Color tier1Colour(bool dark) => dark ? kTier1Dark : kTier1;
+Color tier2Colour(bool dark) => dark ? kTier2Dark : kTier2;
+Color tier3Colour(bool dark) => dark ? kTier3Dark : kTier3;
+Color medNewColour(bool dark) => dark ? kMedNewDark : kMedNew;
+Color medChangedColour(bool dark) => dark ? kMedChangedDark : kMedChanged;
+Color medContinuedColour(bool dark) => dark ? kMedContinuedDark : kMedContinued;
+Color medDiscontinuedColour(bool dark) =>
+    dark ? kMedDiscontinuedDark : kMedDiscontinued;

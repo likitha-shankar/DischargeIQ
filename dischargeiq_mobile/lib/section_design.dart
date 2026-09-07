@@ -33,8 +33,45 @@ const Color sdTealGlow = kTealGlow;
 // Darkened one step for AA.
 const Color sdDanger = Color(0xFFB91C1C);
 const Color sdSafe = Color(0xFF15803D);
+// Documented in this file's header since the redesign but never actually
+// defined, so `changed` had nothing to resolve to. #8F5A10 is the value the
+// header specified: kMedChanged darkened to 5.77:1 on white.
+const Color sdChanged = Color(0xFF8F5A10);
 const Color sdTextMute = Color(0xFF5B6E68);
 const Color sdTextSub = Color(0xFF55627A);
+
+// ── Dark-theme semantic colours ──────────────────────────────────────────────
+// The five colours above are DARKENED versions of the config.dart originals,
+// chosen to pass AA against white. That made light mode better and dark mode
+// worse, and nothing checked. Measured against sdCardDark (#0F4A36) on
+// 6 Sep 2026:
+//
+//     sdDanger    1.58:1     sdSafe      2.04:1     sdChanged   1.77:1
+//     sdTextMute  1.89:1     sdTextSub   1.66:1
+//
+// The two TEXT colours turned out to be already handled: SectionPalette has
+// carried dark variants for textMute and textSub since the redesign. Only the
+// three SEMANTIC colours were unprotected.
+//
+// AA wants 4.5:1, and the lenient large-text bar is 3.0:1. Every one of these
+// is below both. results_warnings_body.dart uses these tokens fifteen times,
+// so in dark mode the Warning Signs tab - the escalation guide - was rendering
+// its danger colour at 1.58:1, which is very close to invisible.
+//
+// The three semantic colours reuse the tokens already validated in config.dart
+// rather than inventing parallel values: one red means one thing everywhere,
+// and a second set would drift. The two text colours are neutral light greens
+// chosen to stay muted; the naive hue-preserving fix pushed sdTextMute to a
+// vivid green, which passes contrast and stops looking like secondary text.
+//
+// Enforced by dischargeiq/tests/test_palette_contrast.py.
+const Color sdDangerDark = kTier1Dark;
+const Color sdSafeDark = kTier3Dark;
+const Color sdChangedDark = kMedChangedDark;
+// NOTE: no sdTextMuteDark / sdTextSubDark. The SectionPalette accessors below
+// already carry dark variants for both, as translucent whites over the dark
+// card, and they pass. Adding a second pair would have been duplicate tokens
+// solving a solved problem - caught by the analyzer, not by reading.
 
 // Surfaces.
 const Color sdInk = Color(0xFF0A2A1F);
@@ -68,6 +105,9 @@ class SectionColors {
 
   final bool dark;
 
+  Color get danger => dark ? sdDangerDark : sdDanger;
+  Color get safe => dark ? sdSafeDark : sdSafe;
+  Color get changed => dark ? sdChangedDark : sdChanged;
   Color get card => dark ? sdCardDark : sdCard;
   Color get line => dark ? sdLineDark : sdLine;
   Color get lineSoft => dark ? sdLineDark : sdLineSoft;
