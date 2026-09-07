@@ -28,7 +28,19 @@ class AudioExplainerCard extends StatefulWidget {
     required this.documentType,
     this.sessionId = '',
     this.pipelinePayload = const {},
+    this.caseAudioFetcher,
+    this.probeMedia,
   });
+
+  /// Override for the per-case generation call. Production leaves this null
+  /// and the card uses [ApiService.caseAudio]; tests supply a stub so the tap
+  /// path can be driven without a network or a device.
+  final Future<Uint8List?> Function(String sessionId, Map<String, dynamic> payload)?
+      caseAudioFetcher;
+
+  /// Override for the HEAD probe that decides whether a per-condition file
+  /// exists. Same purpose as [caseAudioFetcher].
+  final Future<bool> Function(String url)? probeMedia;
 
   /// Router classification from PipelineResponse.document_type.
   final String documentType;
@@ -81,15 +93,18 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
   Future<void> _probe() async {
     // "unknown" documents have no matching explainer by definition.
     if (widget.documentType.isEmpty || widget.documentType == 'unknown') return;
-    Future<bool> exists(String url) async {
-      try {
-        final resp = await http.head(Uri.parse(url)).timeout(const Duration(seconds: 6));
-        return resp.statusCode == 200;
-      } catch (_) {
-        // Unreachable server degrades exactly like 404: no player, text only.
-        return false;
-      }
-    }
+    final probe = widget.probeMedia ??
+        (String url) async {
+          try {
+            final resp =
+                await http.head(Uri.parse(url)).timeout(const Duration(seconds: 6));
+            return resp.statusCode == 200;
+          } catch (_) {
+            // Unreachable server degrades exactly like 404: no player, text only.
+            return false;
+          }
+        };
+    Future<bool> exists(String url) => probe(url);
 
     final audio = await exists(_audioUrl);
     final video = await exists(_videoUrl);
@@ -126,10 +141,10 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
     }
     if (_caseLoading) return;
     setState(() => _caseLoading = true);
-    final bytes = await ApiService().caseAudio(
-      sessionId: widget.sessionId,
-      pipelinePayload: widget.pipelinePayload,
-    );
+    final fetch = widget.caseAudioFetcher ??
+        (String sid, Map<String, dynamic> payload) =>
+            ApiService().caseAudio(sessionId: sid, pipelinePayload: payload);
+    final bytes = await fetch(widget.sessionId, widget.pipelinePayload);
     if (!mounted) return;
     setState(() {
       _caseLoading = false;
@@ -212,6 +227,10 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
             Row(
               children: [
                 IconButton.filled(
+                  // Named so tests can drive the per-case control specifically:
+                  // both rows show a play triangle, and finding by icon would
+                  // be ambiguous exactly where precision matters.
+                  key: const Key('caseAudioPlay'),
                   style: IconButton.styleFrom(backgroundColor: kTeal),
                   iconSize: 28,
                   // Disabled while generating, so a second tap cannot fire a

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dischargeiq_mobile/config.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart' show MediaType;
 
@@ -119,15 +120,38 @@ class ApiService {
           )
           // Two model calls run server-side; 60s matches /chat's ceiling.
           .timeout(const Duration(seconds: 60));
-      if (response.statusCode != 200) return null;
+      if (response.statusCode != 200) {
+        // Silent to the patient, visible to whoever is debugging. Returning
+        // null with no trace at all made a field failure impossible to tell
+        // apart from "the button did nothing", which is what a release build
+        // on a real phone looks like from the outside.
+        debugPrint('caseAudio: HTTP ${response.statusCode} '
+            '(${_caseAudioMeaning(response.statusCode)})');
+        return null;
+      }
       // A zero-byte 200 would hand the player an empty track that reports a
       // zero duration and sits at "0:00" forever, which reads as a hang.
-      return response.bodyBytes.isEmpty ? null : response.bodyBytes;
-    } catch (_) {
+      if (response.bodyBytes.isEmpty) {
+        debugPrint('caseAudio: HTTP 200 but empty body');
+        return null;
+      }
+      return response.bodyBytes;
+    } catch (error) {
       // Offline, timeout, malformed response - all degrade to text.
+      debugPrint('caseAudio: $error');
       return null;
     }
   }
+
+  /// Plain-English gloss for the statuses this endpoint documents, so a log
+  /// line is actionable without opening the route source.
+  static String _caseAudioMeaning(int status) => switch (status) {
+        401 => 'API key missing or wrong in this build',
+        404 => 'CASE_AUDIO_ENABLED is off server-side',
+        422 => 'payload had nothing to narrate',
+        502 => 'script or TTS generation failed - quota or network',
+        _ => 'unexpected',
+      };
 
   /// POST /chat/stream - grounded chat with live token streaming (SSE).
   ///

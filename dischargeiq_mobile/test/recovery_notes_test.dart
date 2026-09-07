@@ -9,6 +9,8 @@
 /// Written against the public surface only - construct, store, read back -
 /// so a rewrite of the storage format cannot quietly pass these.
 
+library;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
