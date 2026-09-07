@@ -64,7 +64,10 @@ class _WarningsBody extends StatelessWidget {
 
     return SectionScroll(
       children: [
-        const SectionEyebrow('Warning signs', color: sdDanger),
+        // On the page background, not a tinted card, so this needs the dark
+        // variant: sdDanger scores 1.58:1 against the dark surface and this
+        // is the tab's own heading.
+        SectionEyebrow('Warning signs', color: dark ? sdDangerDark : sdDanger),
         const SizedBox(height: 8),
         if (hasTiers) ...[
           const SectionHeadline('Three levels. Start at the top.', size: 22),
@@ -158,7 +161,10 @@ class _EscalationDisclaimer extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(Icons.info_outline,
-              size: 17, color: dark ? const Color(0xFFFFB4B4) : sdDanger),
+              // Was a hand-written 0xFFFFB4B4 here - the same problem spotted
+              // once and fixed in one place. Uses the shared token now so the
+              // contrast test covers it.
+              size: 17, color: dark ? sdDangerDark : sdDanger),
           const SizedBox(width: 9),
           Expanded(
             child: Text(

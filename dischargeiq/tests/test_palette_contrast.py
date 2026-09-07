@@ -182,6 +182,47 @@ class TestSectionDesignTokens:
         assert "sdChanged" in self._section_palette()
 
 
+class TestForegroundColoursAreNotUsedAsBackgrounds:
+    """
+    The dark variants are FOREGROUND colours. Swapping them in blindly is a
+    real hazard, not a hypothetical one.
+
+    sdDanger is used two ways in the warning-signs tab: as the CALL 911 header
+    fill and button background with white text on it, and as text and icon
+    colour. White on sdDanger (#B91C1C) is 6.47:1 and fine. White on
+    sdDangerDark (#FF8A8A) is 2.27:1 and unreadable, so a blanket
+    find-and-replace would have made the emergency banner worse than the bug
+    it was fixing.
+    """
+
+    def test_white_stays_readable_on_the_light_danger_fill(self):
+        assert contrast("FFFFFF", "B91C1C") >= _AA_BODY
+
+    def test_white_would_fail_on_the_dark_variant(self):
+        """Documents WHY backgrounds keep the original colour."""
+        assert contrast("FFFFFF", "FF8A8A") < _AA_LARGE
+
+    def test_no_background_property_uses_a_dark_token(self):
+        """
+        Guards the mistake directly. A dark foreground token appearing in a
+        backgroundColor is the failure this class exists to prevent.
+        """
+        lib = _CONFIG.parent
+        offenders = []
+        for path in lib.rglob("*.dart"):
+            for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                if "Dark" not in line:
+                    continue
+                if any(key in line for key in ("backgroundColor:", "fillColor:")):
+                    if any(t in line for t in ("sdDangerDark", "kTier1Dark",
+                                               "sdSafeDark", "kTier3Dark")):
+                        offenders.append(f"{path.name}:{number}")
+        assert not offenders, (
+            f"foreground dark tokens used as a background fill: {offenders}. "
+            "White text on those is unreadable."
+        )
+
+
 class TestTheMathItself:
     """Guard the ratio function, since every other test trusts it."""
 
