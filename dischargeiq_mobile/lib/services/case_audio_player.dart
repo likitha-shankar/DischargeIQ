@@ -87,6 +87,38 @@ class CaseAudioPlayer extends ChangeNotifier {
     await _player.play(UrlSource(url));
   }
 
+  /// Start in-memory audio, or resume it when it is already loaded.
+  ///
+  /// The per-case explainer comes back as WAV bytes from a POST, not from a
+  /// fetchable URL, so it cannot go through [play]. [key] is a synthetic
+  /// identifier (`case:<session>`) that lets [isCurrent] and the pinned bar
+  /// treat it exactly like any other track.
+  ///
+  /// Callers must cache the bytes themselves: generating this audio costs two
+  /// model calls, so re-posting on every press of play is not acceptable.
+  Future<void> playBytes(String key, Uint8List bytes, {String label = ''}) async {
+    if (_url == key) {
+      await _player.resume();
+      return;
+    }
+    _url = key;
+    _label = label;
+    _position = Duration.zero;
+    _duration = Duration.zero;
+    notifyListeners();
+    await _player.play(BytesSource(bytes));
+  }
+
+  /// Pause/resume for an in-memory track, mirroring [toggle].
+  Future<void> toggleBytes(String key, Uint8List bytes,
+      {String label = ''}) async {
+    if (_url == key && _playing) {
+      await pause();
+    } else {
+      await playBytes(key, bytes, label: label);
+    }
+  }
+
   Future<void> pause() async => _player.pause();
 
   /// Jump to a position, clamped inside the track.

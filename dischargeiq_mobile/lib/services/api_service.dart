@@ -88,6 +88,47 @@ class ApiService {
     return decoded;
   }
 
+  /// POST /media/case - the patient's OWN audio explainer, from their document.
+  ///
+  /// Distinct from `GET /media/{document_type}`, which serves one recorded
+  /// file per condition: every heart-failure patient hears the same words
+  /// there. This narrates THIS discharge summary - their drugs, their doses,
+  /// their follow-ups.
+  ///
+  /// Expensive: a script LLM call plus TTS, several seconds per request. The
+  /// server keeps nothing, so the caller MUST cache the returned bytes and
+  /// must not re-post on a second press of play.
+  ///
+  /// Returns null - never throws - when the feature is off (404), the payload
+  /// has nothing to narrate (422), or generation failed (502). Every one of
+  /// those means the same thing to the patient: no player, read the text. An
+  /// exception here would take down the tab over an optional extra.
+  Future<Uint8List?> caseAudio({
+    required String sessionId,
+    required Map<String, dynamic> pipelinePayload,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_base/media/case'),
+            headers: {'Content-Type': 'application/json', ..._authHeaders},
+            body: jsonEncode({
+              'session_id': sessionId,
+              'pipeline_payload': pipelinePayload,
+            }),
+          )
+          // Two model calls run server-side; 60s matches /chat's ceiling.
+          .timeout(const Duration(seconds: 60));
+      if (response.statusCode != 200) return null;
+      // A zero-byte 200 would hand the player an empty track that reports a
+      // zero duration and sits at "0:00" forever, which reads as a hang.
+      return response.bodyBytes.isEmpty ? null : response.bodyBytes;
+    } catch (_) {
+      // Offline, timeout, malformed response - all degrade to text.
+      return null;
+    }
+  }
+
   /// POST /chat/stream - grounded chat with live token streaming (SSE).
   ///
   /// Emits one map per server event: `{'delta': String}` fragments while the

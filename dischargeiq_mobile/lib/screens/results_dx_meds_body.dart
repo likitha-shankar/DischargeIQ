@@ -15,6 +15,8 @@ class _DiagnosisBody extends StatelessWidget {
     required this.explanation,
     required this.extraction,
     this.documentType = '',
+    this.result = const {},
+    this.sessionId = '',
     required this.onNext,
   });
 
@@ -23,6 +25,13 @@ class _DiagnosisBody extends StatelessWidget {
 
   /// Router classification - drives the per-diagnosis audio explainer.
   final String documentType;
+
+  /// The full pipeline result, sent to `/media/case` to narrate THIS
+  /// document. Empty in tests that render the section on its own.
+  final Map<String, dynamic> result;
+
+  /// Backend session id, reused from `pdf_session_id` like the quiz does.
+  final String sessionId;
 
   /// Moves to the Medications tab. The closing card is the one place this
   /// section points forward, so the patient is handed the next question
@@ -50,13 +59,19 @@ class _DiagnosisBody extends StatelessWidget {
           SectionHeadline(sentences.lead, size: 25),
           const SizedBox(height: 14),
         ],
-        // Audio explainer for the five supported diagnoses. Unchanged from
-        // the original layout - it is the accessibility path for anyone who
-        // cannot comfortably read the summary.
-        if (documentType.isNotEmpty && documentType != 'unknown') ...[
-          AudioExplainerCard(documentType: documentType),
-          const SizedBox(height: 4),
-        ],
+        // Audio explainer - the accessibility path for anyone who cannot
+        // comfortably read the summary.
+        //
+        // No longer gated on documentType: the per-case explainer narrates
+        // the patient's own document, so it works for an "unknown"
+        // classification too. The card hides itself when neither the per-case
+        // nor the per-condition source is available.
+        AudioExplainerCard(
+          documentType: documentType,
+          sessionId: sessionId,
+          pipelinePayload: result,
+        ),
+        const SizedBox(height: 4),
         if (primaryDx.isNotEmpty || secList.isNotEmpty) ...[
           SectionCard(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

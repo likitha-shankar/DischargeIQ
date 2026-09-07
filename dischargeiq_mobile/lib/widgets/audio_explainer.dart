@@ -11,8 +11,11 @@
 /// caption pointing back at the patient-specific written summary.
 library;
 
+import 'dart:typed_data';
+
 import 'package:provider/provider.dart';
 
+import 'package:dischargeiq_mobile/services/api_service.dart';
 import 'package:dischargeiq_mobile/services/case_audio_player.dart';
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:flutter/material.dart';
@@ -20,10 +23,21 @@ import 'package:http/http.dart' as http;
 import 'package:video_player/video_player.dart';
 
 class AudioExplainerCard extends StatefulWidget {
-  const AudioExplainerCard({super.key, required this.documentType});
+  const AudioExplainerCard({
+    super.key,
+    required this.documentType,
+    this.sessionId = '',
+    this.pipelinePayload = const {},
+  });
 
   /// Router classification from PipelineResponse.document_type.
   final String documentType;
+
+  /// Backend session id for the per-case explainer. Empty disables it.
+  final String sessionId;
+
+  /// The pipeline result to narrate. Empty disables the per-case explainer.
+  final Map<String, dynamic> pipelinePayload;
 
   @override
   State<AudioExplainerCard> createState() => _AudioExplainerCardState();
@@ -36,6 +50,24 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
   bool _audioAvailable = false;
   bool _videoAvailable = false;
   bool _showVideo = false;
+
+  /// Generated per-case WAV, held for the life of the screen.
+  ///
+  /// This is the cache the server relies on: /media/case costs a script LLM
+  /// call plus TTS, and the endpoint's contract is that a second press of
+  /// play must NOT re-post. Holding the bytes here is what honours that.
+  Uint8List? _caseBytes;
+  bool _caseLoading = false;
+
+  /// Set once a generation attempt has failed, so the button stops offering
+  /// something that will not arrive. Feature-off (404) lands here too.
+  bool _caseFailed = false;
+
+  bool get _caseAvailable =>
+      widget.sessionId.isNotEmpty && widget.pipelinePayload.isNotEmpty;
+
+  /// Synthetic track id for the shared player - the per-case audio has no URL.
+  String get _caseKey => 'case:${widget.sessionId}';
 
   String get _audioUrl => '${ApiConfig.baseUrl}/media/${widget.documentType}';
   String get _videoUrl => '$_audioUrl/video';
@@ -78,6 +110,36 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
         );
   }
 
+  /// Play the patient's OWN summary, generating it on the first press.
+  ///
+  /// Generation is several seconds of script LLM plus TTS, so the button
+  /// shows a spinner rather than appearing dead. A failure is not surfaced as
+  /// an error dialog: this is an optional extra on top of text that is
+  /// already on screen, so it degrades to a quiet unavailable state.
+  Future<void> _toggleCaseAudio() async {
+    _video?.pause();
+    final player = context.read<CaseAudioPlayer>();
+    final cached = _caseBytes;
+    if (cached != null) {
+      await player.toggleBytes(_caseKey, cached, label: 'Your summary');
+      return;
+    }
+    if (_caseLoading) return;
+    setState(() => _caseLoading = true);
+    final bytes = await ApiService().caseAudio(
+      sessionId: widget.sessionId,
+      pipelinePayload: widget.pipelinePayload,
+    );
+    if (!mounted) return;
+    setState(() {
+      _caseLoading = false;
+      _caseBytes = bytes;
+      _caseFailed = bytes == null;
+    });
+    if (bytes == null) return;
+    await player.playBytes(_caseKey, bytes, label: 'Your summary');
+  }
+
   /// Minutes and seconds, e.g. "1:07".
   String _clock(Duration d) =>
       '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
@@ -114,13 +176,23 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_audioAvailable && !_videoAvailable) return const SizedBox.shrink();
+    // Rule 6.5: with no media of any kind, the card renders nothing rather
+    // than an empty box promising audio that does not exist.
+    final offerCase = _caseAvailable && !_caseFailed;
+    if (!_audioAvailable && !_videoAvailable && !offerCase) {
+      return const SizedBox.shrink();
+    }
     final audio = context.watch<CaseAudioPlayer>();
     final isThisTrack = audio.isCurrent(_audioUrl);
+    final isCaseTrack = audio.isCurrent(_caseKey);
     final playing = isThisTrack && audio.isPlaying;
-    final progress = isThisTrack ? audio.progress : 0.0;
-    final position = isThisTrack ? audio.position : Duration.zero;
-    final duration = isThisTrack ? audio.duration : Duration.zero;
+    final casePlaying = isCaseTrack && audio.isPlaying;
+    // The scrubber follows whichever of the two tracks is loaded, so it does
+    // not sit frozen at 0:00 while the per-case explainer is playing.
+    final onAir = isThisTrack || isCaseTrack;
+    final progress = onAir ? audio.progress : 0.0;
+    final position = onAir ? audio.position : Duration.zero;
+    final duration = onAir ? audio.duration : Duration.zero;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
@@ -132,7 +204,65 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // The patient's OWN summary comes first. The per-condition podcast
+          // below it is the same recording for everyone with this diagnosis;
+          // this one names their drugs and their follow-ups, so it is the
+          // one worth reaching for.
+          if (offerCase) ...[
+            Row(
+              children: [
+                IconButton.filled(
+                  style: IconButton.styleFrom(backgroundColor: kTeal),
+                  iconSize: 28,
+                  // Disabled while generating, so a second tap cannot fire a
+                  // second (billable) generation of the same audio.
+                  onPressed: _caseLoading ? null : _toggleCaseAudio,
+                  icon: _caseLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2.4, color: Colors.white),
+                        )
+                      : Icon(
+                          casePlaying
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
+                          color: Colors.white),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Listen to YOUR summary',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: kTextPrimaryLight),
+                      ),
+                      Text(
+                        _caseLoading
+                            ? 'Making your audio - about 10 seconds'
+                            : 'Your document, read aloud',
+                        style: const TextStyle(
+                            fontSize: 12, color: kTextSecondaryLight),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (_audioAvailable || _videoAvailable) ...[
+              const SizedBox(height: 10),
+              const Divider(height: 1, color: kTealMid),
+              const SizedBox(height: 10),
+            ],
+          ],
+          // Skipped entirely when only the per-case explainer exists, so the
+          // card does not draw an empty control row with a caption under it.
+          if (_audioAvailable || _videoAvailable)
+            Row(
             children: [
               // Big tap targets on purpose - older patients, rule of thumb 48dp.
               if (_audioAvailable) ...[
@@ -190,7 +320,7 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
               ),
             ],
           ),
-          if (_audioAvailable && duration > Duration.zero) ...[
+          if (onAir && duration > Duration.zero) ...[
             const SizedBox(height: 8),
             // Draggable, not just an indicator. The skip buttons above are
             // the primary control - a thin slider is hard for older hands -
@@ -238,12 +368,16 @@ class _AudioExplainerCardState extends State<AudioExplainerCard> {
             ),
           ],
           const SizedBox(height: 6),
-          const Text(
-            'General guide for your condition - the summary below is specific '
-            'to YOUR discharge document.',
-            style: TextStyle(
-                fontSize: 12, color: kTextPrimaryLight, height: 1.3),
-          ),
+          // Only meaningful when a per-condition recording is on offer. With
+          // just the per-case explainer there is no "general guide" to
+          // distinguish it from, and the sentence would contradict itself.
+          if (_audioAvailable || _videoAvailable)
+            const Text(
+              'General guide for your condition - the summary below is '
+              'specific to YOUR discharge document.',
+              style: TextStyle(
+                  fontSize: 12, color: kTextPrimaryLight, height: 1.3),
+            ),
         ],
       ),
     );
