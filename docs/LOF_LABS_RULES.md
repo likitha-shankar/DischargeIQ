@@ -79,7 +79,13 @@ Last synced from the guide: 2026-07-07.
 ## Standing action items (keep current)
 
 - [ ] Move authoritative repo to the LOF-controlled org (waiting on access).
-- [ ] Confirm repo privacy before any push (synthetic data rule).
+- [x] Repo set PRIVATE 6 Sep 2026, after `evaluation/corpus_outputs_prefix_backup/`
+      (61 outputs with verbatim clinical source quotes) was found tracked in a
+      public repo. Untracked and gitignored the same day.
+- [ ] Confirm repo privacy before any push (synthetic data rule). Check
+      `gh repo view --json visibility` AND `git ls-files | grep -E
+      'corpus_outputs|mtsamples|test-data/fax'` - the corpus directory alone
+      is not a valid check, since it has never been committed.
 - [x] Apache-2.0 LICENSE at root.
 - [x] `DEPENDENCIES.md` manifest.
 - [x] Solo-project: all prior collaborator names removed.

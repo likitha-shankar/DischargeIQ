@@ -114,6 +114,13 @@ test-data/mtsamples/
 # text, which has no more business in git than the originals.
 test-data/fax/
 evaluation/corpus_outputs/
+# Same data as corpus_outputs/ under an older name. This one WAS committed -
+# 61 files carrying verbatim source quotes in their _source provenance fields
+# ("The patient is a 67-year-old female, was referred to...") - and sat in a
+# public repo until 6 Sep 2026 because the ignore rule above named only the
+# current directory. Rebuilt by scripts/corpus_accuracy_report.py like the
+# rest; nothing reads it that cannot regenerate it.
+evaluation/corpus_outputs_prefix_backup/
 
 # The three generated demo fixtures at the top of test-data/ stay tracked on
 # purpose: the beta kit ships them, scripts/verify_live_service.py drives

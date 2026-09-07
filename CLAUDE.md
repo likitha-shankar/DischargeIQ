@@ -24,9 +24,22 @@ wins over any older text here). Compact version:
   `DEPENDENCIES.md` manifest (done), no GPL/AGPL/network-copyleft deps, and no
   clinical OR synthetic/eval data in a PUBLIC repo without written approval.
 - **Repo:** authoritative repo must be the LOF-controlled org (pending access).
-  Until then it lives at `github.com/likitha-shankar/DischargeIQ`. Confirm repo
-  privacy before pushing - the de-identified test corpus is committed, and
-  the program rule above allows clinical/eval data only in a PRIVATE repo.
+  Until then it lives at `github.com/likitha-shankar/DischargeIQ`, **PRIVATE
+  since 6 Sep 2026**. Confirm privacy before every push: the program rule
+  above allows clinical/eval data only in a PRIVATE repo.
+  **Do not verify this by checking `test-data/mtsamples/`.** The corpus itself
+  has never been committed (it is gitignored and rebuilt from scripts), so
+  that directory looks clean whatever the real state is. This file claimed the
+  opposite until 6 Sep 2026 and the wrong check passed for weeks while
+  `evaluation/corpus_outputs_prefix_backup/` - 61 pipeline outputs carrying
+  verbatim source quotes in their `_source` fields - sat in a public repo.
+  The reliable check is for DERIVED clinical text, which is what actually gets
+  committed by accident:
+
+  ```bash
+  gh repo view --json visibility          # must be PRIVATE
+  git ls-files | grep -E 'corpus_outputs|mtsamples|test-data/fax'   # expect none
+  ```
 - No unsupported clinical claims; assist/summarize/educate/triage only (already
   the HITL framing + hard rules below).
 
