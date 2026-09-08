@@ -19,6 +19,11 @@ class _AppointmentsBodyState extends State<_AppointmentsBody> {
   /// Empty until the async load returns; the tab renders fine meanwhile.
   Set<String> _done = const {};
 
+  /// Corrections, indexed by the ORIGINAL appointment key. Both this and
+  /// [_done] are keyed off the document's values, so an edited date cannot
+  /// detach either one - see appointment_edits.dart.
+  Map<String, AppointmentEdit> _edits = const {};
+
   dynamic get extraction => widget.extraction;
   dynamic get simulator => widget.simulator;
 
@@ -32,7 +37,45 @@ class _AppointmentsBodyState extends State<_AppointmentsBody> {
     final docId = context.read<DischargeProvider>().activeDocId;
     if (docId == null) return;
     final done = await AppointmentStatusStore.load(docId);
-    if (mounted) setState(() => _done = done);
+    final edits = await AppointmentEditsStore.load(docId);
+    if (mounted) {
+      setState(() {
+        _done = done;
+        _edits = edits;
+      });
+    }
+  }
+
+  /// Correct one appointment. [original] is the document's version - the
+  /// sheet shows those values as the reference, and the store keys the edit
+  /// by them.
+  Future<void> _editAppointment(Map original) async {
+    final docId = context.read<DischargeProvider>().activeDocId;
+    if (docId == null) return;
+    final key = appointmentKey(original);
+    final changes = await showModalBottomSheet<Map<String, String>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => AppointmentEditSheet(
+        appointment: original,
+        existing: _edits[key],
+      ),
+    );
+    if (changes == null || changes.isEmpty) return;
+    final updated = await AppointmentEditsStore.save(
+      docId: docId,
+      original: original,
+      changes: changes,
+    );
+    if (mounted) setState(() => _edits = updated);
+  }
+
+  /// Put the document's own details back.
+  Future<void> _revertAppointment(String originalKey) async {
+    final docId = context.read<DischargeProvider>().activeDocId;
+    if (docId == null) return;
+    final updated = await AppointmentEditsStore.remove(docId, originalKey);
+    if (mounted) setState(() => _edits = updated);
   }
 
   /// Toggle one appointment between done and not done.
@@ -152,15 +195,25 @@ class _AppointmentsBodyState extends State<_AppointmentsBody> {
         }
         final a = list[i - 1];
         if (a is! Map) return const SizedBox.shrink();
+        // Key and tick come from the DOCUMENT's values; the card shows the
+        // merged version. Keying off the merged map would move the key the
+        // moment a date was corrected.
         final key = appointmentKey(a);
+        final edit = _edits[key];
+        final shown = applyAppointmentEdit(a, edit);
         return _AppointmentCard(
-          appointment: a,
+          appointment: shown,
           dark: dark,
-          isPast: isAppointmentPast(a),
+          // Past-ness follows the CORRECTED date - a visit moved to next week
+          // is not history just because the document's date has passed.
+          isPast: isAppointmentPast(shown),
           isDone: key.isNotEmpty && _done.contains(key),
           canMark: key.isNotEmpty,
-          onAddToCalendar: () => _addToCalendar(context, a),
+          edit: edit,
+          onAddToCalendar: () => _addToCalendar(context, shown),
           onToggleDone: (v) => _toggleDone(a, v),
+          onEdit: key.isEmpty ? null : () => _editAppointment(a),
+          onRevert: edit == null ? null : () => _revertAppointment(key),
         );
       },
     );
@@ -182,6 +235,9 @@ class _AppointmentCard extends StatelessWidget {
     required this.canMark,
     required this.onAddToCalendar,
     required this.onToggleDone,
+    this.edit,
+    this.onEdit,
+    this.onRevert,
   });
 
   final Map appointment;
@@ -199,6 +255,23 @@ class _AppointmentCard extends StatelessWidget {
 
   final VoidCallback onAddToCalendar;
   final ValueChanged<bool> onToggleDone;
+
+  /// The patient's correction, or null when the document's values stand.
+  final AppointmentEdit? edit;
+
+  /// Null when the appointment has nothing to key on, matching [canMark]:
+  /// an edit that cannot be stored should not be offered.
+  final VoidCallback? onEdit;
+  final VoidCallback? onRevert;
+
+  /// Field name as the patient sees it in the edit sheet.
+  static String _fieldLabel(String field) => switch (field) {
+        'date' => 'When',
+        'provider' => 'Who',
+        'specialty' => 'Department',
+        'reason' => 'What for',
+        _ => field,
+      };
 
   static const _monthNames = [
     'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
@@ -348,8 +421,67 @@ class _AppointmentCard extends StatelessWidget {
                   label: Text(isPast ? 'Add anyway' : 'Add to calendar'),
                   style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
                 ),
+                if (onEdit != null)
+                  TextButton.icon(
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    // "Update" rather than "Edit": the patient is recording
+                    // what the clinic told them, not correcting a typo.
+                    label: const Text('Update'),
+                    style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                  ),
               ],
             ),
+            // Provenance. A changed appointment must never look like what the
+            // hospital wrote - same rule as the recovery timeline.
+            if (edit != null) ...[
+              const SizedBox(height: 2),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: sdWarnTint,
+                  borderRadius: BorderRadius.circular(kRadiusField),
+                  border: Border.all(color: sdWarnLine),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      edit!.summary,
+                      style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: sdWarnInk),
+                    ),
+                    const SizedBox(height: 3),
+                    for (final field in edit!.changes.keys)
+                      Text(
+                        '${_fieldLabel(field)}: '
+                        '${(edit!.originals[field] ?? '').isEmpty ? 'not in your document' : edit!.originals[field]}'
+                        ' → ${edit!.changes[field]}',
+                        style: const TextStyle(
+                            fontSize: 11.5, height: 1.35, color: sdWarnInk),
+                      ),
+                    if (onRevert != null)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: onRevert,
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size(48, 40),
+                            padding: EdgeInsets.zero,
+                            foregroundColor: sdWarnInk,
+                          ),
+                          child: const Text('Undo',
+                              style: TextStyle(
+                                  fontSize: 11.5, fontWeight: FontWeight.w700)),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
