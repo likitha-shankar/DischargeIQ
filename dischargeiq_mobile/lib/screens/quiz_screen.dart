@@ -38,7 +38,7 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 
-enum _Phase { intro, loading, pre, learn, post, results, error }
+enum _Phase { intro, loading, pre, preResults, learn, post, results, error }
 
 class QuizBody extends StatefulWidget {
   const QuizBody({super.key, required this.result, required this.sessionId});
@@ -219,7 +219,17 @@ class _QuizBodyState extends State<QuizBody> {
         _reviewDomains = {};
         _learnIndex = 0;
         _current = 0;
-        _phase = _Phase.learn;
+        // Results FIRST, learning cards second. Finishing a round and being
+        // handed teaching material without being told how you did reads as
+        // the quiz having no ending - you answered five questions and the app
+        // changed the subject. The sheet answers "how did I do" and offers
+        // the cards per question from there.
+        //
+        // This does not contaminate the pre/post measurement: the baseline
+        // round is silent DURING the questions, which is what protects it.
+        // Teaching between rounds is the point of the design - the learn
+        // phase always did exactly that.
+        _phase = _Phase.preResults;
       } else {
         _postResult = scored;
         _phase = _Phase.results;
@@ -390,6 +400,7 @@ class _QuizBodyState extends State<QuizBody> {
       _Phase.loading => const Center(child: CircularProgressIndicator(color: kTealMid)),
       _Phase.error => _errorView(),
       _Phase.pre || _Phase.post => _quiz(),
+      _Phase.preResults => _preResultsView(),
       _Phase.learn => _learn(),
       _Phase.results => _results(),
     };
@@ -786,6 +797,102 @@ class _QuizBodyState extends State<QuizBody> {
     );
   }
 
+  /// Open the learning card covering one question's topic.
+  ///
+  /// Cards are per DOMAIN, and a question carries its domain, so "the card for
+  /// this question" is the card for its topic. When that topic has no card -
+  /// a document with nothing to say about it - the learn phase opens at the
+  /// start rather than at nothing, which is better than a dead button.
+  void _learnForQuestion(QuizQuestion question) {
+    final cards = _learnCards;
+    final index = cards.indexWhere((c) => c.$1 == question.domain);
+    setState(() {
+      _learnIndex = index >= 0 ? index : 0;
+      _phase = _Phase.learn;
+    });
+  }
+
+  /// Results for the baseline round: how you did, question by question, with
+  /// the correct answer and a way into the learning card for each one.
+  Widget _preResultsView() {
+    final pre = _preResult;
+    if (pre == null) return const SizedBox.shrink();
+    final items = buildReviewItems(_questions, _preAnswers);
+    final missed = items.where((i) => !i.isCorrect).length;
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            children: [
+              const SizedBox(height: 8),
+              Center(child: ScoreRing(percent: pre.percent)),
+              const SizedBox(height: 14),
+              Text(
+                missed == 0
+                    ? 'You got everything right.'
+                    : missed == 1
+                        ? 'One to look at again.'
+                        : '$missed to look at again.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  'Tap a question to see what you picked and what the right '
+                  'answer was.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.35,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? kTextSecondaryDark
+                        : kTextSecondaryLight,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              QuizReviewList(
+                items: items,
+                showHeading: false,
+                onLearn: (item) => _learnForQuestion(item.question),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+        // Both ways forward are offered. Someone who scored well should not
+        // have to page through every card to reach the second round, and
+        // someone who did not should not have to hunt for the cards.
+        Padding(
+          padding: const EdgeInsets.only(top: 4, bottom: 8),
+          child: Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => setState(() {
+                    _learnIndex = 0;
+                    _phase = _Phase.learn;
+                  }),
+                  child: const Text('Read the learning cards'),
+                ),
+              ),
+              TextButton(
+                onPressed: _startPost,
+                child: const Text('Skip ahead - quiz me again'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _results() {
     final pre = _preResult;
     final post = _postResult;
@@ -814,7 +921,12 @@ class _QuizBodyState extends State<QuizBody> {
         // Per-question review (LOF action item, 26 Aug 2026). The score and
         // the badges say HOW MUCH was understood; this says WHICH thing was
         // not, which is the only part that teaches anything.
-        QuizReviewList(items: buildReviewItems(_questions, _postAnswers)),
+        QuizReviewList(
+          items: buildReviewItems(_questions, _postAnswers),
+          // Also offered here: a question still missed after the second round
+          // is exactly the one whose card is worth re-reading.
+          onLearn: (item) => _learnForQuestion(item.question),
+        ),
         const SizedBox(height: 22),
         Text('How you did by topic',
             style: Theme.of(context)

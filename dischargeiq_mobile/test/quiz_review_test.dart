@@ -14,6 +14,7 @@
 
 import 'package:dischargeiq_mobile/models/quiz.dart';
 import 'package:dischargeiq_mobile/widgets/quiz_review.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 QuizQuestion _q(String text, {int correct = 0, String explanation = 'because'}) =>
@@ -85,5 +86,82 @@ void main() {
       expect([for (final i in items) i.question.question],
           ['First', 'Second', 'Third']);
     });
+  });
+
+  group('the results sheet', _sheetTests);
+}
+
+/// Widget-level behaviour of the results sheet itself.
+///
+/// The sheet is what a patient sees the moment a round ends, so these cover
+/// the two things that were wrong before: the round ended by changing the
+/// subject to learning cards without ever saying how they did, and the sheet
+/// showed "You chose" only on wrong answers - which reads as if the right
+/// ones were never recorded.
+void _sheetTests() {
+  QuizQuestion q(String text, {int correct = 0}) => QuizQuestion(
+        question: text,
+        options: const ['Option A', 'Option B', 'Option C'],
+        correctIndex: correct,
+        domain: 'medications',
+        explanation: 'Because of the reason.',
+      );
+
+  Future<void> pump(WidgetTester t, List<QuizReviewItem> items,
+          {void Function(QuizReviewItem)? onLearn}) =>
+      t.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: QuizReviewList(items: items, onLearn: onLearn),
+          ),
+        ),
+      ));
+
+  testWidgets('a right answer still shows what the patient chose',
+      (t) async {
+    await pump(t, buildReviewItems([q('Which pill is for your heart?')], [0]));
+    // Correct rows start collapsed, so open it first.
+    await t.tap(find.textContaining('Which pill'));
+    await t.pumpAndSettle();
+    expect(find.textContaining('You chose: Option A'), findsOneWidget);
+    expect(find.textContaining('Correct answer: Option A'), findsOneWidget);
+  });
+
+  testWidgets('a wrong answer shows both the choice and the right answer',
+      (t) async {
+    await pump(t, buildReviewItems([q('Which pill is for your heart?')], [2]));
+    // Missed rows are expanded already - that is the point of the sheet.
+    expect(find.textContaining('You chose: Option C'), findsOneWidget);
+    expect(find.textContaining('Correct answer: Option A'), findsOneWidget);
+  });
+
+  testWidgets('questions are numbered so they can be referred to', (t) async {
+    await pump(
+        t, buildReviewItems([q('First one'), q('Second one')], [0, 1]));
+    expect(find.textContaining('1. First one'), findsOneWidget);
+    expect(find.textContaining('2. Second one'), findsOneWidget);
+  });
+
+  testWidgets('the learning card button appears and reports its question',
+      (t) async {
+    QuizReviewItem? tapped;
+    await pump(t, buildReviewItems([q('Which pill?')], [2]),
+        onLearn: (item) => tapped = item);
+    await t.tap(find.text('Read the learning card'));
+    await t.pumpAndSettle();
+    expect(tapped, isNotNull);
+    expect(tapped!.question.domain, 'medications');
+  });
+
+  testWidgets('no learning-card hook means no button', (t) async {
+    await pump(t, buildReviewItems([q('Which pill?')], [2]));
+    expect(find.text('Read the learning card'), findsNothing);
+  });
+
+  testWidgets('a skipped question says so rather than claiming a choice',
+      (t) async {
+    await pump(t, buildReviewItems([q('Which pill?')], [null]));
+    expect(find.textContaining('You skipped this one'), findsOneWidget);
+    expect(find.textContaining('You chose:'), findsNothing);
   });
 }

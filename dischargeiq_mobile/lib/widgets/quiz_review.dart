@@ -67,9 +67,23 @@ List<QuizReviewItem> buildReviewItems(
 /// reach the one thing they got wrong, and a patient who scored badly should
 /// not have to tap six times to find out why.
 class QuizReviewList extends StatelessWidget {
-  const QuizReviewList({super.key, required this.items});
+  const QuizReviewList({
+    super.key,
+    required this.items,
+    this.onLearn,
+    this.showHeading = true,
+  });
 
   final List<QuizReviewItem> items;
+
+  /// Open the learning card for one question's topic. Null hides the button,
+  /// which is what the post-round results want - by then the patient has
+  /// already been through the cards.
+  final void Function(QuizReviewItem item)? onLearn;
+
+  /// The results sheet supplies its own heading, so it turns this off rather
+  /// than printing two.
+  final bool showHeading;
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +94,7 @@ class QuizReviewList extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (showHeading) ...[
         Text(
           'Question by question',
           style: Theme.of(context)
@@ -101,8 +116,14 @@ class QuizReviewList extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
+        ],
         for (var i = 0; i < items.length; i++)
-          _ReviewTile(index: i, item: items[i], dark: dark),
+          _ReviewTile(
+            index: i,
+            item: items[i],
+            dark: dark,
+            onLearn: onLearn == null ? null : () => onLearn!(items[i]),
+          ),
       ],
     );
   }
@@ -113,11 +134,15 @@ class _ReviewTile extends StatelessWidget {
     required this.index,
     required this.item,
     required this.dark,
+    this.onLearn,
   });
 
   final int index;
   final QuizReviewItem item;
   final bool dark;
+
+  /// Opens this question's learning card. Null hides the button.
+  final VoidCallback? onLearn;
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +172,9 @@ class _ReviewTile extends StatelessWidget {
             color: accent,
           ),
           title: Text(
-            q.question,
+            // Numbered so the sheet can be talked about - "question 3" needs
+            // a 3 on the screen.
+            '${index + 1}. ${q.question}',
             style: TextStyle(
               fontSize: 14,
               height: 1.35,
@@ -160,9 +187,13 @@ class _ReviewTile extends StatelessWidget {
             style: TextStyle(fontSize: 12.5, color: accent),
           ),
           children: [
+            // What the patient picked is shown ALWAYS, not only when wrong.
+            // On a right answer it confirms which option was theirs, and a
+            // sheet that shows your choice on some rows and not others reads
+            // as if the missing ones were not recorded.
             if (!item.wasAnswered)
               _line(context, 'You skipped this one.', italic: true)
-            else if (!correct)
+            else
               _line(
                 context,
                 'You chose: ${_optionAt(q, item.chosenIndex)}',
@@ -192,6 +223,24 @@ class _ReviewTile extends StatelessWidget {
                     fontSize: 13,
                     height: 1.4,
                     color: dark ? kTextPrimaryDark : kTextPrimaryLight,
+                  ),
+                ),
+              ),
+            ],
+            if (onLearn != null) ...[
+              const SizedBox(height: 6),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: onLearn,
+                  icon: const Icon(Icons.menu_book_outlined, size: 17),
+                  // Reads as the second, optional step: the answer is already
+                  // above, this is the fuller explanation behind it.
+                  label: const Text('Read the learning card'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: accent,
+                    minimumSize: const Size(48, 44),
+                    padding: EdgeInsets.zero,
                   ),
                 ),
               ),
