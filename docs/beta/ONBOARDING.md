@@ -87,12 +87,20 @@ report; we count active installs and completed quiz loops.
 ## For the team - building the beta APK
 
 ```bash
-cd dischargeiq_mobile
-flutter build apk --release          # → build/app/outputs/flutter-apk/app-release.apk
+bash scripts/build_beta_kit.sh       # builds the APK and assembles the kit
 ```
 
-Release builds default to the hosted Cloud Run backend (`lib/config.dart`);
-no `--dart-define` needed for testers. For a laptop-local backend demo use
+Use the script rather than a bare `flutter build apk --release`. Release
+builds point at the hosted Cloud Run backend (`lib/config.dart`), and that
+backend has required a bearer key since 15 Aug 2026 - an APK built without
+`--dart-define=API_KEY` returns **401 on every analysis**, so the app looks
+broken to the tester while the backend is perfectly healthy. The script
+compiles the key in from `.env` and refuses to build without it.
+
+(This page said "no `--dart-define` needed for testers" until 8 Sep 2026. It
+was written on 14 August, the day before the key gate landed.)
+
+For a laptop-local backend demo use
 `flutter run --dart-define=API_BASE=http://<laptop-lan-ip>:8000`.
 
 Monitor during beta: Cloud Run logs (error rates), the clinician dashboard

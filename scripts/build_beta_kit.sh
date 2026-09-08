@@ -37,6 +37,32 @@ cd "$(dirname "$0")/.."
 KIT="dist/beta_kit"
 SAMPLES=(heart_failure_01 copd_01 hip_replacement_01)
 
+# ── build the APK here, with the key compiled in ────────────────────────────
+#
+# This used to say "build it first" and point at a bare `flutter build apk
+# --release`. That command produces an APK that 401s on EVERY analysis: the
+# hosted backend has required a bearer key since 15 Aug 2026, and the beta
+# docs telling testers no --dart-define was needed were written on 14 Aug, one
+# day before. A tester following them gets an app that looks completely broken
+# while the backend is perfectly healthy - the same failure deploy_ios.sh
+# already guards against for iOS.
+#
+# So the kit builds its own APK and refuses to assemble without the key,
+# rather than silently packaging whatever stale artifact is on disk.
+API_KEY=$(grep -E '^DISCHARGEIQ_API_KEY=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d "\"' \r")
+if [[ -z "${API_KEY:-}" ]]; then
+  echo "DISCHARGEIQ_API_KEY not found in .env." >&2
+  echo "Without it every analysis in the shipped APK returns 401 and the app" >&2
+  echo "looks broken to the tester. Add the key, then re-run." >&2
+  exit 1
+fi
+
+if [[ "${SKIP_APK_BUILD:-}" != "1" ]]; then
+  echo "==> Building the release APK (key compiled in)"
+  (cd dischargeiq_mobile && flutter build apk --release \
+     --dart-define=API_KEY="$API_KEY")
+fi
+
 # Prefer the arm64 split APK when it exists (smaller), else the universal one.
 # The universal build is the safer default to hand a stranger: it runs on every
 # ABI, so a reviewer with an older or x86 device is not silently blocked.
