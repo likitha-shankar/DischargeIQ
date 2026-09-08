@@ -1,8 +1,8 @@
 """
 The escalation guide's incompleteness notice, and what triggers it.
 
-Why this exists: on the paired fax stratum (12 documents,
-`evaluation/fax_stratum_report.md`) warning signs retain 77.8% under
+Why this exists: on the paired fax stratum (25 documents,
+`evaluation/fax_stratum_report.md`) warning signs retain 85.5% under
 degradation against 93.7% on clean documents. One document lost all five,
 among them hemoptysis - a sign no universal tier list covers. Agent 5 still
 emits its generic tiers, so the patient is not left with nothing; what they

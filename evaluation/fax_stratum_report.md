@@ -34,25 +34,25 @@ evidence supports, so the three cases are now separated:
 - **Reworded** - the field kept its count; one phrasing replaced
   another.
 
-## Summary over 12 paired documents
+## Summary over 25 paired documents
 
 | Field | Clean | Absent | Relocated | Reworded | True retention |
 |---|---|---|---|---|---|
-| `red_flag_symptoms` ⚠ | 36 | **8** | 0 | 10 | **77.8%** |
-| `medications` ⚠ | 47 | **1** | 1 | 2 | **97.9%** |
-| `follow_up_appointments` | 12 | **1** | 1 | 0 | **91.7%** |
-| `activity_restrictions` | 12 | **4** | 4 | 3 | **66.7%** |
-| `dietary_restrictions` | 6 | **0** | 0 | 1 | **100.0%** |
-| `procedures_performed` | 21 | **6** | 4 | 6 | **71.4%** |
-| `secondary_diagnoses` | 33 | **5** | 6 | 0 | **84.8%** |
+| `red_flag_symptoms` ⚠ | 83 | **12** | 0 | 15 | **85.5%** |
+| `medications` ⚠ | 78 | **4** | 1 | 3 | **94.9%** |
+| `follow_up_appointments` | 24 | **1** | 1 | 2 | **95.8%** |
+| `activity_restrictions` | 35 | **8** | 9 | 12 | **77.1%** |
+| `dietary_restrictions` | 15 | **0** | 1 | 4 | **100.0%** |
+| `procedures_performed` | 61 | **17** | 5 | 26 | **72.1%** |
+| `secondary_diagnoses` | 59 | **5** | 12 | 4 | **91.5%** |
 
-**Across every field: 25 of 167 extracted values are absent after degradation.**
+**Across every field: 47 of 355 extracted values are absent after degradation.**
 
-Values present after degradation but absent from the clean run: **53**. These are more likely OCR noise read as content, or the other side of a rewording, than real recovery.
+Values present after degradation but absent from the clean run: **126**. These are more likely OCR noise read as content, or the other side of a rewording, than real recovery.
 
 ## The safety-critical finding
 
-**Warning signs retain 77.8% under degradation - 8 of 36 absent.** On clean
+**Warning signs retain 85.5% under degradation - 12 of 83 absent.** On clean
 dictated documents the comparable figure is 93.7%. This is the
 field where loss is most expensive, and it is the field that
 degrades most.
@@ -87,6 +87,26 @@ So the honest statement is not "warning signs are lost" and not
 "the safety net holds". It is: **under degradation the patient
 keeps generic emergency advice and loses the specific warnings
 written for them.**
+
+### Medications, which have no generic safety net
+
+**4 of 78 medications are absent after degradation (94.9% retention).**
+
+This is worse than the warning-sign case despite the better
+percentage, because there is no equivalent of Agent 5's
+universal tiers. A warning sign that drops still leaves the
+patient a generic list telling them to call 911 for chest
+pain. A medication that drops leaves nothing at all - the
+drug simply is not on their list.
+
+Absent across the stratum: iron, pain medication, thymoglobulin, vitamins.
+
+Supplements are the common case and the low-consequence one.
+**`thymoglobulin` is not** - it is an immunosuppressant, and a
+transplant patient who does not know they are on it is a
+materially different situation from one missing a vitamin.
+A retention percentage cannot make that distinction, which is
+why the absent values are named individually here.
 
 ## Per document
 
@@ -149,6 +169,61 @@ written for them.**
 - **ABSENT from `follow_up_appointments`** (1 → 0):
   - community mental health
 
+### `mtsamples_010`
+
+- Status: `complete` → `complete_with_warnings`
+- Primary diagnosis: unchanged
+- Patient-facing sections written: 4/4 → 4/4
+- Reworded in `medications`: duragesic patch
+- Relocated out of `activity_restrictions` (found elsewhere in the extraction): activity per dr. x
+- **No extracted content absent**
+
+### `mtsamples_011`
+
+- Status: `complete_with_warnings` → `complete_with_warnings`
+- Primary diagnosis: CHANGED
+  - clean: Fever
+  - fax:   Bilateral otitis media
+- Patient-facing sections written: 4/4 → 4/4
+- **ABSENT from `procedures_performed`** (13 → 5):
+  - at the time of exam, he had 100% oxygen saturations on room air with temperature of 99.3 degrees f. with clear lungs.
+  - gave d5 and quarter of normal saline at 45 ml per hour, which was just slightly above maintenance rate to help with hydration.
+  - he continued to spike fevers but last fever was around 13:45 on the previous day.
+  - he did well the following evening with no further oxygen requirement.
+  - he was doing clear liquids well and so i saline locked to help to accommodate improve the mobility with the patient.
+  - he was given additional dose of rocephin when it was felt that it would be appropriate for him to be discharged that morning.
+  - he was given ceftriaxone 500 mg iv once daily to treat otitis media and possible sepsis, and i will add tylenol and ibuprofen as needed for fevers.
+  - his lungs remained clear, but because of the need for o2, we instituted albuterol aerosols every 6 hours to help maintain good lung function.
+  - overnight, he did have his oxygen saturations drop and went into oxygen overnight.
+  - the nurses were instructed to attempt to wean o2 if possible and advance the diet.
+- Relocated out of `procedures_performed` (found elsewhere in the extraction): pulse oximetry checks were ordered every shift and as needed with o2
+- Relocated out of `secondary_diagnoses` (found elsewhere in the extraction): bilateral otitis media, otitis media, possible sepsis
+
+### `mtsamples_019`
+
+- Status: `complete_with_warnings` → `complete_with_warnings`
+- Primary diagnosis: unchanged
+- Patient-facing sections written: 4/4 → 4/4
+- Relocated out of `activity_restrictions` (found elsewhere in the extraction): driving, stairs
+- Reworded in `activity_restrictions`: intercourse, remain at rest initially with progressive ambulation thereafter
+- Reworded in `procedures_performed`: july 25, 2006: total abdominal hysterectomy, bilateral salpingo-oophorectomy.
+- **No extracted content absent**
+
+### `mtsamples_030`
+
+- Status: `complete_with_warnings` → `complete_with_warnings`
+- Primary diagnosis: CHANGED
+  - clean: Status post poly exchange, right knee, total knee arthroplasty
+  - fax:   Painful right knee status post total knee arthroplasty many years ago
+- Patient-facing sections written: 4/4 → 4/4
+- Reworded in `red_flag_symptoms`: drainage, fever
+- Reworded in `follow_up_appointments`: dr. abc
+- Reworded in `activity_restrictions`: weight bear as tolerated right lower extremity
+- Relocated out of `dietary_restrictions` (found elsewhere in the extraction): regular
+- Reworded in `procedures_performed`: poly exchange total knee, right.
+- Relocated out of `secondary_diagnoses` (found elsewhere in the extraction): painful right knee status post total knee arthroplasty many years ago
+- **No extracted content absent**
+
 ### `mtsamples_034`
 
 - Status: `complete_with_warnings` → `complete_with_warnings`
@@ -162,6 +237,24 @@ written for them.**
   - shortness of breath
 - Relocated out of `procedures_performed` (found elsewhere in the extraction): occupational therapy
 - Reworded in `procedures_performed`: right total hip replacement performed on 08/27/2007
+
+### `mtsamples_035`
+
+- Status: `complete_with_warnings` → `complete_with_warnings`
+- Primary diagnosis: CHANGED
+  - clean: Intrauterine pregnancy at term with previous cesarean
+  - fax:   Intrauterine pregnancy at term w ith revious ces arean.
+- Patient-facing sections written: 4/4 → 4/4
+- **ABSENT from `medications`** (5 → 3):
+  - iron
+  - vitamins
+- **ABSENT from `activity_restrictions`** (4 → 2):
+  - no driving
+  - no lifting
+- Relocated out of `activity_restrictions` (found elsewhere in the extraction): put nothing in the vagina, straining
+- Reworded in `procedures_performed`: normal placenta, normal pelvic anatomy., repeat low transverse cesarean and tubal ligation were performed under spinal anesthesia with delivery of a viable female infant weighing 7 pounds 10 ounces and apgars of 9 and 9.
+- Relocated out of `secondary_diagnoses` (found elsewhere in the extraction): desired sterilization
+- Reworded in `secondary_diagnoses`: status post repeat low transverse cesarean and bilateral tubal ligation
 
 ### `mtsamples_048`
 
@@ -179,6 +272,40 @@ written for them.**
   - coronary artery bypass graft x5 in 1995 and cadaveric renal transplant in 1996.
 - **ABSENT from `secondary_diagnoses`** (4 → 3):
   - coronary artery disease
+
+### `mtsamples_053`
+
+- Status: `complete_with_warnings` → `complete_with_warnings`
+- Primary diagnosis: unchanged
+- Patient-facing sections written: 4/4 → 4/4
+- **ABSENT from `red_flag_symptoms`** (4 → 0):
+  - fever greater than 101.5
+  - intractable pain
+  - nausea
+  - vomiting
+- Reworded in `procedures_performed`: robotic-assisted laparoscopic left renal cyst decortication and cystoscopy.
+
+### `mtsamples_056`
+
+- Status: `complete_with_warnings` → `complete_with_warnings`
+- Primary diagnosis: unchanged
+- Patient-facing sections written: 4/4 → 4/4
+- Reworded in `procedures_performed`: chest x-ray on admission, no acute finding, no interval change., ct angiography, negative for pulmonary arterial embolism., nuclear myocardial perfusion scan, abnormal. reversible defect suggestive of ischemia,
+ejection fraction of 55%.
+- Reworded in `secondary_diagnoses`: anemia, hemoglobin and hematocrit stable, coronary artery disease, abnormal nuclear scan, discussed with cardiology dr. x, who
+recommended to discharge the patient and follow up in the clinic, hypokalemia, replaced
+- **No extracted content absent**
+
+### `mtsamples_059`
+
+- Status: `complete_with_warnings` → `complete_with_warnings`
+- Primary diagnosis: unchanged
+- Patient-facing sections written: 4/4 → 4/4
+- Reworded in `red_flag_symptoms`: discoloration of his fingers, loss of sensation
+- Reworded in `activity_restrictions`: not to do any strenuous activities, move furniture, lift heavy objects, or use his left upper extremity
+- Reworded in `dietary_restrictions`: regular diet
+- Reworded in `procedures_performed`: ct of the brain without contrast (july 24, 2008)., irrigation and debridement of left elbow fracture (july 26, 2008)., irrigation and debridement of open type 3 subcondylar left distal humerus fracture (july 23, 2008)., negative pressure wound dressing (july 23, 2008)., open reduction and internal fixation of the left supracondylar humerus fracture (july 23, 2008).
+- **No extracted content absent**
 
 ### `mtsamples_060`
 
@@ -221,6 +348,19 @@ written for them.**
 - Relocated out of `activity_restrictions` (found elsewhere in the extraction): no strenuous activity
 - Reworded in `procedures_performed`: underwent a procedure
 
+### `mtsamples_068`
+
+- Status: `complete_with_warnings` → `complete_with_warnings`
+- Primary diagnosis: unchanged
+- Patient-facing sections written: 4/4 → 4/4
+- Reworded in `follow_up_appointments`: primary care
+- Reworded in `activity_restrictions`: not immerse in water for two weeks, not lift greater than 10 pounds for seven days
+- Reworded in `dietary_restrictions`: low-fat, low-salt, low-cholesterol, and heart healthy diabetic diet
+- Reworded in `procedures_performed`: on mm/dd/yyyy, cardiac mri adenosine stress., on mm/dd/yyyy, left heart catheterization, coronary angiogram, left ventriculogram,
+coronary angioplasty with four multi-link vision bare metal stents, two placed to the lad in
+two placed to the rca.
+- **No extracted content absent**
+
 ### `mtsamples_075`
 
 - Status: `complete_with_warnings` → `complete_with_warnings`
@@ -231,5 +371,51 @@ written for them.**
 - Reworded in `procedures_performed`: 2. exploratory laparotomy, right hemicolectomy, cholecystectomy, splenectomy,
 omen­tectomy, iphc with mitomycin-c., on mm/dd/yyyy, ,1. cystoscopy, bilaterally retrograde pyelograms, insertion of bilateral
 externalized ureteral stents.
+- **No extracted content absent**
+
+### `mtsamples_083`
+
+- Status: `complete_with_warnings` → `complete_with_warnings`
+- Primary diagnosis: unchanged
+- Patient-facing sections written: 4/4 → 4/4
+- Reworded in `dietary_restrictions`: usual diet
+- Reworded in `procedures_performed`: an x-ray was done, pertussis culture done, pertussis pcr swab done, rapid influenza swab done
+- **No extracted content absent**
+
+### `mtsamples_084`
+
+- Status: `complete_with_warnings` → `complete_with_warnings`
+- Primary diagnosis: CHANGED
+  - clean: Hiatal hernia, gastroesophageal reflux disease reflux
+  - fax:   Hiatal hernia
+- Patient-facing sections written: 4/4 → 4/4
+- **ABSENT from `medications`** (1 → 0):
+  - pain medication
+- **ABSENT from `activity_restrictions`** (2 → 1):
+  - avoid any heavy lifting
+  - not going to be able to play football in the near future
+
+### `mtsamples_101`
+
+- Status: `complete_with_warnings` → `complete_with_warnings`
+- Primary diagnosis: CHANGED
+  - clean: Bronchiolitis, respiratory syncytial virus positive
+  - fax:   Bronchiolitis, respiratory syncytial virus positive; improved and stable
+- Patient-facing sections written: 4/4 → 4/4
+- **ABSENT from `procedures_performed`** (2 → 1):
+  - bulb suctioning the nose with saline
+- Reworded in `activity_restrictions`: no one should smoke near the patient., she is to avoid all other exposures to smoke such as from fireplaces and barbecues.
+- Relocated out of `secondary_diagnoses` (found elsewhere in the extraction): innocent heart murmur
+
+### `mtsamples_102`
+
+- Status: `complete_with_warnings` → `complete_with_warnings`
+- Primary diagnosis: CHANGED
+  - clean: BRCA-2 mutation
+  - fax:   BRCA-2 mutaion
+- Patient-facing sections written: 4/4 → 4/4
+- Reworded in `red_flag_symptoms`: drainage
+- Reworded in `activity_restrictions`: avoid lifting, driving or intercourse
+- Reworded in `procedures_performed`: total abdominal hysterectomy/bilateral salpingo-oophorectomy with resection of ovarian fossa peritoneum en bloc on july 25, 2006.
 - **No extracted content absent**
 

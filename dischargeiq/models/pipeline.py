@@ -101,8 +101,8 @@ class PipelineResponse(BaseModel):
     # True when the warning signs shown to the patient cannot be trusted to be
     # complete, because the source document was degraded.
     #
-    # Measured, not assumed. On the paired fax stratum (12 documents,
-    # evaluation/fax_stratum_report.md) warning signs retain 77.8% under
+    # Measured, not assumed. On the paired fax stratum (25 documents,
+    # evaluation/fax_stratum_report.md) warning signs retain 85.5% under
     # degradation against 93.7% clean, and one document lost all five - among
     # them hemoptysis, which no universal tier list would have replaced.
     # Agent 5 still emits its generic tiers, so the patient is not left with

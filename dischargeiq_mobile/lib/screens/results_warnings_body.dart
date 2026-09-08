@@ -34,7 +34,7 @@ class _WarningsBody extends StatelessWidget {
   /// from it cannot be trusted to be complete.
   ///
   /// Measured, not assumed: on the paired fax stratum, warning signs retain
-  /// 77.8% under degradation against 93.7% clean, and one document lost all
+  /// 85.5% under degradation against 93.7% clean, and one document lost all
   /// five - including hemoptysis, which the generic tiers do not cover.
   final bool sourceDegraded;
 

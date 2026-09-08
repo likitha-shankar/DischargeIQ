@@ -294,6 +294,34 @@ def build_report(rows: list[dict]) -> str:
         add("written for them.**")
         add("")
 
+        meds = totals["medications"]
+        if meds["absent"]:
+            add("### Medications, which have no generic safety net")
+            add("")
+            add(f"**{meds['absent']} of {meds['clean']} medications are absent "
+                f"after degradation ({(meds['clean'] - meds['absent']) / meds['clean'] * 100:.1f}% "
+                f"retention).**")
+            add("")
+            add("This is worse than the warning-sign case despite the better")
+            add("percentage, because there is no equivalent of Agent 5's")
+            add("universal tiers. A warning sign that drops still leaves the")
+            add("patient a generic list telling them to call 911 for chest")
+            add("pain. A medication that drops leaves nothing at all - the")
+            add("drug simply is not on their list.")
+            add("")
+            names = []
+            for row in rows:
+                names.extend(row["fields"]["medications"]["absent"])
+            add(f"Absent across the stratum: {', '.join(sorted(names))}.")
+            add("")
+            add("Supplements are the common case and the low-consequence one.")
+            add("**`thymoglobulin` is not** - it is an immunosuppressant, and a")
+            add("transplant patient who does not know they are on it is a")
+            add("materially different situation from one missing a vitamin.")
+            add("A retention percentage cannot make that distinction, which is")
+            add("why the absent values are named individually here.")
+            add("")
+
     # The sample's own hole, stated where it cannot be skimmed past. A
     # retention table that looks reassuring while the highest-consequence
     # field was never exercised is worse than no table.

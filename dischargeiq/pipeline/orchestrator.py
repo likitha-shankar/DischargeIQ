@@ -750,7 +750,7 @@ async def _run_pipeline_internal(
         source_stratum=source_stratum,
         # Drives the "your specific warning signs may be incomplete" notice on
         # the escalation guide. Measured on the fax stratum: warning signs
-        # retain 77.8% under degradation vs 93.7% clean.
+        # retain 85.5% under degradation vs 93.7% clean (25 paired documents).
         source_degraded=source_degraded,
         # Router classification rides along for per-diagnosis media lookup
         # (GET /media/{document_type}) and analytics.
