@@ -31,14 +31,69 @@ set -euo pipefail
 DEVICE_UDID="${1:-00008120-001A3D281A78C01E}"
 APP_DIR="dischargeiq_mobile"
 APP="$APP_DIR/build/ios/iphoneos/Runner.app"
+# Must match backup_ios_data.sh. Empty here would make the install check
+# report "absent" for every state, which is the direction that loses data.
+BUNDLE_ID="com.likithashankar.dischargeiq"
 
 cd "$(dirname "$0")/.."
 
 # Back up BEFORE touching the device. Even an in-place upgrade can go wrong,
 # and the container is the only copy of the document library, the PDFs, the
 # profiles, and all gamification progress - none of it exists server-side.
-echo "==> Backing up on-device data"
-./scripts/backup_ios_data.sh backup "$DEVICE_UDID"
+# Is the app actually on the phone? Three states, and they must not be
+# confused - the backup guard treats "cannot read the container" as a reason
+# to abort, which is right when the device is silent and wrong when the app
+# is simply gone. On 8 Sep 2026 the app was uninstalled, the guard aborted a
+# legitimate reinstall, and the fix was to run the build and install steps by
+# hand. Working around a data-safety guard is not a thing to do twice.
+#
+# Echoes: installed | absent | unreachable
+#
+# Distinguished by CONTENT, not exit code alone:
+#   installed   - rc 0 and the bundle id appears
+#   absent      - rc 0 and it does not (devicectl prints an empty app list)
+#   unreachable - rc non-zero, or the device could not be located
+_app_state() {
+  local out rc attempt
+  # Retried: the wireless link drops, and a single failed probe must not be
+  # read as "the device is gone" when the next one would have answered.
+  for ((attempt = 1; attempt <= 3; attempt++)); do
+    rc=0
+    out=$(xcrun devicectl device info apps \
+      --device "$DEVICE_UDID" --bundle-id "$BUNDLE_ID" 2>&1) || rc=$?
+    if [[ "$rc" -eq 0 ]]; then
+      if [[ "$out" == *"$BUNDLE_ID"* ]]; then echo "installed"; else echo "absent"; fi
+      return 0
+    fi
+    sleep 3
+  done
+  echo "unreachable"
+}
+
+echo "==> Checking whether the app is installed"
+APP_STATE=$(_app_state)
+case "$APP_STATE" in
+  installed)
+    echo "    installed - backing up before touching it"
+    ./scripts/backup_ios_data.sh backup "$DEVICE_UDID"
+    ;;
+  absent)
+    # Nothing on the device to lose, so there is nothing to back up. This is
+    # the clean-reinstall path and it is allowed to proceed.
+    echo "    NOT installed - clean reinstall, nothing to back up"
+    echo "    Restore previous data afterwards with:"
+    echo "      ./scripts/backup_ios_data.sh restore device-backups/<newest>"
+    ;;
+  *)
+    # The device did not answer. Installing now could land on live data with
+    # no copy of it, which is exactly how the container was lost on 4 Aug.
+    echo "Cannot reach the device after 3 attempts." >&2
+    echo "This is NOT the same as the app being absent - the phone did not" >&2
+    echo "answer, so it cannot be established whether there is data at risk." >&2
+    echo "Reconnect and retry rather than installing blind." >&2
+    exit 1
+    ;;
+esac
 
 # A release build talks to Cloud Run, which requires the bearer key - without
 # it every analysis comes back 401 and the app looks broken while the backend
