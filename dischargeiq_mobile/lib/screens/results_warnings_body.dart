@@ -23,11 +23,20 @@ class _WarningsBody extends StatelessWidget {
     required this.escalationText,
     required this.extraction,
     required this.simulator,
+    this.sourceDegraded = false,
   });
 
   final String escalationText;
   final dynamic extraction;
   final dynamic simulator;
+
+  /// The uploaded document carried OCR damage, so the warning signs extracted
+  /// from it cannot be trusted to be complete.
+  ///
+  /// Measured, not assumed: on the paired fax stratum, warning signs retain
+  /// 77.8% under degradation against 93.7% clean, and one document lost all
+  /// five - including hemoptysis, which the generic tiers do not cover.
+  final bool sourceDegraded;
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +87,13 @@ class _WarningsBody extends StatelessWidget {
         // wrong answer is dangerous, so it is not a footnote.
         const _EscalationDisclaimer(),
         const SizedBox(height: 12),
+        // Above the tiers, not below them: a patient who reads the list and
+        // stops has still been told. Below, it would be a footnote on the one
+        // tab where acting on an incomplete answer is dangerous.
+        if (sourceDegraded) ...[
+          const _DegradedSourceNotice(),
+          const SizedBox(height: 12),
+        ],
         if (hasTiers) ...[
           if (tier1.isNotEmpty) ...[
             _Tier1Card(items: tier1),
@@ -144,6 +160,59 @@ class _WarningsBody extends StatelessWidget {
 
 /// "Written by AI, confirm with your care team." Kept prominent and tinted
 /// like the tier it warns about, rather than greyed out at the bottom.
+/// Shown when the uploaded document was degraded enough that the warning
+/// signs extracted from it may be incomplete.
+///
+/// The wording is FIXED, not generated. Agent 5 is the safety-critical output
+/// and its copy is reviewed by a human; a notice about the reliability of that
+/// output must be held to the same standard, so no model writes this text.
+///
+/// It says three things in this order, and each earns its place:
+///
+///   1. The document was hard to read - the cause, in the patient's terms.
+///   2. Warnings written FOR THEM may be missing - the specific loss. The
+///      generic tiers survive degradation because they do not come from
+///      extraction; what is lost is the personal half.
+///   3. The list below is still safe to follow - without this a patient may
+///      distrust the whole guide, which is worse than the gap. The universal
+///      tiers remain valid.
+///
+/// Then the action: ask the care team. Reading level FK 2.4.
+class _DegradedSourceNotice extends StatelessWidget {
+  const _DegradedSourceNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: sdWarnTint,
+        borderRadius: BorderRadius.circular(kRadiusField),
+        border: Border.all(color: sdWarnLine),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.document_scanner_outlined,
+              size: 19, color: sdWarnInk),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'This copy of your paperwork was hard to read. Some warning '
+              'signs written just for you may be missing here. The list '
+              'below is still safe to follow. Ask your care team what else '
+              'to watch for.',
+              style: TextStyle(
+                  fontSize: 13, height: 1.45, color: sdWarnInk),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EscalationDisclaimer extends StatelessWidget {
   const _EscalationDisclaimer();
 

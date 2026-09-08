@@ -232,3 +232,70 @@ def stratum_of_file(path) -> Stratum:
     except Exception:  # noqa: BLE001 - a corrupt PDF is UNKNOWN, not a crash
         return Stratum.UNKNOWN
     return classify_stratum(text)
+
+
+#: Words that are mostly letters but carry a digit are the fingerprint of OCR
+#: character substitution - "fai1ure", "o1d", "1SCHARGE". Real clinical prose
+#: almost never produces them; measured max on the 106-document corpus is 7.8
+#: per 1000 tokens, against a minimum of 12.9 on the degraded stratum.
+#:
+#: 10.0 sits in that gap with margin on both sides. At this threshold the
+#: separation is complete: 12/12 degraded documents flagged, 0/106 clean.
+OCR_SUBSTITUTION_THRESHOLD = 10.0
+
+#: Dose tokens like "40mg", "2wk", "5ml" are letters-plus-digits by
+#: construction and appear constantly in clean discharge summaries. Counting
+#: them would put every medication list above the threshold.
+_DOSE_TOKEN = re.compile(r"^[0-9]+[a-z]{1,3}$")
+_WORD_TOKEN = re.compile(r"[A-Za-z0-9]{3,}")
+_HAS_LETTER = re.compile(r"[A-Za-z]")
+_HAS_DIGIT = re.compile(r"[0-9]")
+
+
+def ocr_substitution_rate(text: str) -> float:
+    """
+    Letter/digit-confused words per 1000 tokens - the OCR damage fingerprint.
+
+    Exists because [classify_stratum] cannot see this damage. Its artefact
+    patterns look for broken layout, but character substitution (l->1, O->0,
+    rn->m) produces plausible-looking WORDS, so a degraded fax scores 0.00
+    noise there and files as DICTATED. That gap is why an earlier version of
+    the escalation-guide incompleteness notice would never have fired.
+
+    Args:
+        text: Raw extracted document text.
+
+    Returns:
+        Matches per 1000 word-like tokens. 0.0 for empty or tokenless input.
+    """
+    if not text:
+        return 0.0
+    tokens = _WORD_TOKEN.findall(text)
+    if not tokens:
+        return 0.0
+    damaged = [
+        token for token in tokens
+        if _HAS_LETTER.search(token)
+        and _HAS_DIGIT.search(token)
+        and not _DOSE_TOKEN.fullmatch(token.lower())
+    ]
+    return 1000.0 * len(damaged) / len(tokens)
+
+
+def looks_ocr_damaged(text: str) -> bool:
+    """
+    Whether the source text carries enough OCR damage to distrust extraction.
+
+    Drives `PipelineResponse.source_degraded`, and through it the notice on
+    the escalation guide telling a patient their specific warning signs may be
+    incomplete. Deterministic on purpose: the alternative signals are warnings
+    the extraction model writes about itself, which vary run to run.
+
+    Args:
+        text: Raw extracted document text.
+
+    Returns:
+        True when the substitution rate clears
+        [OCR_SUBSTITUTION_THRESHOLD].
+    """
+    return ocr_substitution_rate(text) >= OCR_SUBSTITUTION_THRESHOLD

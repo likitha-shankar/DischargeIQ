@@ -47,6 +47,7 @@ from dischargeiq.utils.extraction_scope import (
     scope_for_agent4,
     scope_for_agent5,
 )
+from dischargeiq.utils.strata import Stratum, classify_stratum, looks_ocr_damaged
 from dischargeiq.utils.warnings import assess_extraction_completeness
 
 logger = logging.getLogger(__name__)
@@ -212,6 +213,41 @@ def _extract_safety_context(raw_text: str) -> str:
     except Exception as exc:  # pragma: no cover - defensive
         logger.warning("safety context scan failed: %s", exc)
         return ""
+
+
+#: Agent 1 warnings that mean THE DOCUMENT WAS HARD TO READ, as opposed to
+#: "the document did not say". Matched on stable fragments rather than whole
+#: sentences so a prompt reword does not silently disable the notice.
+#:
+#: Deliberately excludes "abbreviated clinical shorthand", which detects
+#: ABBREVIATION STYLE rather than damage - real clinical notes are written
+#: that way, and it fired on 18 of 109 clean documents. Also excludes
+#: "'X' was not found in the document text". That fires
+#: per field and can also mean the model paraphrased a value on a perfectly
+#: clean document, so keying the notice to it would produce false alarms - the
+#: failure this feature must avoid, because a warning shown on clean paperwork
+#: teaches patients to dismiss it.
+_QUALITY_WARNING_MARKERS = (
+    "appears to be scanned",
+    "scan or ocr artifacts",
+)
+
+
+def _has_quality_warning(warnings: list[str]) -> bool:
+    """
+    True when any extraction warning says the SOURCE was hard to read.
+
+    Args:
+        warnings: Extraction warnings collected for this run.
+
+    Returns:
+        Whether the escalation guide should carry its incompleteness notice.
+    """
+    for warning in warnings or []:
+        lowered = str(warning).lower()
+        if any(marker in lowered for marker in _QUALITY_WARNING_MARKERS):
+            return True
+    return False
 
 
 async def run_pipeline(
@@ -665,6 +701,43 @@ async def _run_pipeline_internal(
             elapsed,
         )
 
+    # Source quality, for the escalation-guide incompleteness notice.
+    #
+    # The primary signal is DETERMINISTIC: the rate of letter/digit-confused
+    # words ("fai1ure", "o1d"), which is the fingerprint of OCR character
+    # substitution. Measured on the corpus it separates completely - clean
+    # documents top out at 7.8 per 1000 tokens, degraded ones start at 12.9,
+    # and the threshold of 10 flags 12/12 degraded with 0/106 false alarms.
+    #
+    # It is NOT classify_stratum. That looks for broken layout, and character
+    # substitution produces plausible-looking words, so a degraded fax scores
+    # 0.00 there and files as DICTATED. An earlier version of this notice keyed
+    # on it and would never have fired on a real upload.
+    #
+    # Agent 1's scan warnings are OR'd in as a second net, for damage that is
+    # visible to a reader but not to this counter. Its "abbreviated clinical
+    # shorthand" warning is deliberately NOT used: real clinical notes are
+    # written in shorthand, so it fired on 18 of 109 clean documents - a 1-in-6
+    # false-alarm rate on a notice whose whole value is being believed.
+    source_stratum = None
+    source_degraded = False
+    try:
+        if pdf_text:
+            source_stratum = classify_stratum(pdf_text).value
+            source_degraded = (
+                looks_ocr_damaged(pdf_text)
+                or source_stratum == Stratum.SCANNED.value
+                or _has_quality_warning(extraction_warnings)
+            )
+    except Exception as exc:  # advisory only, never fatal
+        logger.warning("Source-quality assessment failed: %s", exc)
+
+    if source_degraded:
+        logger.info(
+            "Source reads as degraded (stratum=%s) - the escalation guide "
+            "will carry the incompleteness notice", source_stratum,
+        )
+
     response = PipelineResponse(
         extraction=extraction,
         diagnosis_explanation=diagnosis_explanation,
@@ -674,6 +747,11 @@ async def _run_pipeline_internal(
         fk_scores=fk_scores,
         extraction_warnings=extraction_warnings,
         pipeline_status=pipeline_status,
+        source_stratum=source_stratum,
+        # Drives the "your specific warning signs may be incomplete" notice on
+        # the escalation guide. Measured on the fax stratum: warning signs
+        # retain 77.8% under degradation vs 93.7% clean.
+        source_degraded=source_degraded,
         # Router classification rides along for per-diagnosis media lookup
         # (GET /media/{document_type}) and analytics.
         document_type=router_result.get("document_type", "unknown"),

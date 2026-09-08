@@ -478,6 +478,9 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
                     escalationText: '${r['escalation_guide'] ?? ''}',
                     extraction: r['extraction'],
                     simulator: r['patient_simulator'],
+                    // Backend flag, absent on older stored documents - which
+                    // default to no notice rather than a false alarm.
+                    sourceDegraded: r['source_degraded'] == true,
                   ),
                 ),
                 _RecoveryBody(

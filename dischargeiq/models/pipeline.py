@@ -93,4 +93,21 @@ class PipelineResponse(BaseModel):
     # Defaults to the patient voice so older stored responses and any caller
     # that omits the field keep the pre-existing behaviour.
     audience: Literal["patient", "caregiver"] = "patient"
+    # Source-format stratum of the uploaded document, from utils/strata.py.
+    # "scanned" means the text carries OCR damage, and the escalation guide is
+    # then shown with an incompleteness notice - see source_degraded.
+    # None on legacy responses and whenever classification was not attempted.
+    source_stratum: Optional[str] = None
+    # True when the warning signs shown to the patient cannot be trusted to be
+    # complete, because the source document was degraded.
+    #
+    # Measured, not assumed. On the paired fax stratum (12 documents,
+    # evaluation/fax_stratum_report.md) warning signs retain 77.8% under
+    # degradation against 93.7% clean, and one document lost all five - among
+    # them hemoptysis, which no universal tier list would have replaced.
+    # Agent 5 still emits its generic tiers, so the patient is not left with
+    # nothing; what they lose is the warnings written specifically for them.
+    # This flag is what lets a UI say so instead of presenting a thinned list
+    # as if it were the whole one.
+    source_degraded: bool = False
     patient_simulator: Optional[PatientSimulatorOutput] = None
