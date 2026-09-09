@@ -33,6 +33,12 @@ class _RecoveryBodyState extends State<_RecoveryBody> {
   /// Patient notes and instruction overrides for this document.
   RecoveryEdits _edits = RecoveryEdits.empty;
 
+  /// Which date the timeline is measured from, and where it came from.
+  /// Unknown until the async load returns, and unknown for the 67% of real
+  /// documents that carry no discharge date at all.
+  EffectiveDischargeDate _discharge =
+      const EffectiveDischargeDate(source: DischargeDateSource.unknown);
+
   /// Phase the rail is showing. Null until the first build works out where
   /// today falls, so the patient lands on their own week rather than week 1.
   int? _selected;
@@ -49,12 +55,47 @@ class _RecoveryBodyState extends State<_RecoveryBody> {
     final w = await HealthLog.weights(docId);
     final ch = await HealthLog.overnightChange(docId);
     final edits = await RecoveryNotesStore.load(docId);
+    final ext = widget.extraction is Map ? widget.extraction as Map : {};
+    final discharge = await DischargeDateStore.resolve(
+      docId: docId,
+      documentValue: '${ext['discharge_date'] ?? ''}',
+    );
     if (!mounted) return;
     setState(() {
       _weights = w;
       _change = ch;
       _edits = edits;
+      _discharge = discharge;
     });
+  }
+
+  /// Ask the patient when they left hospital.
+  ///
+  /// Bounded to the past year and never the future: recovery is measured
+  /// forward from discharge, so a date that has not happened yet produces a
+  /// negative elapsed time the timeline discards.
+  Future<void> _setDischargeDate() async {
+    final docId = _docId;
+    if (docId == null) return;
+    final today = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _discharge.date ?? today,
+      firstDate: DateTime(today.year - 1),
+      lastDate: today,
+      helpText: 'When did you leave hospital?',
+    );
+    if (picked == null) return;
+    await DischargeDateStore.save(docId, picked);
+    await _load();
+  }
+
+  /// Put the document's own date back.
+  Future<void> _clearDischargeDate() async {
+    final docId = _docId;
+    if (docId == null) return;
+    await DischargeDateStore.clear(docId);
+    await _load();
   }
 
   /// Active document id, or null for a run that was never saved.
@@ -143,9 +184,13 @@ class _RecoveryBodyState extends State<_RecoveryBody> {
     // the date is missing or unparseable - a real state, not a zero: the
     // original rendered the map without a "you are here" marker rather than
     // guessing, and so does this.
-    final here = phases.isEmpty
+    // Anchored on the RESOLVED date - the patient's correction when they
+    // have given one, the document's otherwise. Never the upload date: a
+    // summary uploaded two weeks late should place the patient in week
+    // three, not restart their recovery.
+    final here = phases.isEmpty || !_discharge.isKnown
         ? null
-        : currentPhaseIndex(phases, '${ext['discharge_date'] ?? ''}');
+        : currentPhaseIndex(phases, _discharge.isoText);
     final shown = phases.isEmpty
         ? 0
         : (_selected ?? here ?? 0).clamp(0, phases.length - 1);
@@ -167,6 +212,17 @@ class _RecoveryBodyState extends State<_RecoveryBody> {
           size: 22,
         ),
         const SizedBox(height: 14),
+        // Above the rail, because without a date the rail cannot place the
+        // patient at all - and that is the case for two thirds of real
+        // documents, not an edge case.
+        if (phases.isNotEmpty) ...[
+          _DischargeDateCard(
+            discharge: _discharge,
+            onSet: _setDischargeDate,
+            onClear: _clearDischargeDate,
+          ),
+          const SizedBox(height: 12),
+        ],
         _WeightCard(weights: _weights, change: _change, onLog: _logWeight),
         const SizedBox(height: 12),
         if (phases.isNotEmpty) ...[
@@ -359,6 +415,128 @@ class _RecoveryBodyState extends State<_RecoveryBody> {
         ),
       );
     }
+  }
+}
+
+/// Asks for, or reports, the date the recovery timeline is measured from.
+///
+/// Three states, and the first is the common one: measured on the corpus,
+/// **only 35 of 106 documents (33%) carry a discharge date**. Without one the
+/// rail draws the shape of a recovery with the patient nowhere in it - no
+/// "you are here", no week position, and the looking-ahead banner can never
+/// fire. Asking for it is the difference between the feature working for a
+/// third of patients and working for all of them.
+class _DischargeDateCard extends StatelessWidget {
+  const _DischargeDateCard({
+    required this.discharge,
+    required this.onSet,
+    required this.onClear,
+  });
+
+  final EffectiveDischargeDate discharge;
+  final VoidCallback onSet;
+  final VoidCallback onClear;
+
+  static const _months = [
+    '', 'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+
+  String _pretty(DateTime d) => '${_months[d.month]} ${d.day}, ${d.year}';
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SectionColors.of(context);
+
+    if (!discharge.isKnown) {
+      // The prompt. Framed as the app not knowing rather than the document
+      // being deficient - a patient did not write their own paperwork and
+      // should not read a gap in it as their failure.
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: sdWarnTint,
+          borderRadius: BorderRadius.circular(kRadiusField),
+          border: Border.all(color: sdWarnLine),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'When did you leave hospital?',
+              style: TextStyle(
+                  fontSize: 14.5, fontWeight: FontWeight.w700, color: sdWarnInk),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Your paperwork did not give a date. Tell us, and we can show '
+              'you which week of your recovery you are in.',
+              style: TextStyle(fontSize: 13, height: 1.4, color: sdWarnInk),
+            ),
+            const SizedBox(height: 6),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton.icon(
+                onPressed: onSet,
+                icon: const Icon(Icons.event_outlined, size: 18),
+                label: const Text('Set the date'),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final byPatient = discharge.source == DischargeDateSource.patient;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: byPatient ? sdWarnTint : c.accentTint,
+        borderRadius: BorderRadius.circular(kRadiusField),
+        border: Border.all(color: byPatient ? sdWarnLine : Colors.transparent),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.event_available_outlined,
+              size: 17, color: byPatient ? sdWarnInk : c.accent),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'You left hospital on ${_pretty(discharge.date!)}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.35,
+                    fontWeight: FontWeight.w600,
+                    color: byPatient ? sdWarnInk : c.text,
+                  ),
+                ),
+                if (byPatient)
+                  Text(
+                    discharge.correctsTheDocument
+                        ? 'You changed this. Your document said '
+                            '${discharge.documentValue}'
+                        : 'You told us this',
+                    style: const TextStyle(fontSize: 11.5, color: sdWarnInk),
+                  ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: byPatient ? onClear : onSet,
+            style: TextButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              foregroundColor: byPatient ? sdWarnInk : c.accent,
+            ),
+            child: Text(byPatient ? 'Undo' : 'Change'),
+          ),
+        ],
+      ),
+    );
   }
 }
 
