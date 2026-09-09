@@ -188,3 +188,55 @@ class TestTheGuardsDoNotFightEachOther:
         assert result.text.endswith(".")
         assert "  " not in result.text
         assert " ." not in result.text
+
+
+class TestNamelessMedicationDoesNotLoseTheDocument:
+    """
+    Found by the 106-document corpus run on 9 Sep 2026: mtsamples_081 was the
+    single failure, because Agent 1 returned a medication with a null name.
+
+    `Medication.name` is a required str, so Pydantic raised and the WHOLE
+    extraction was discarded - every diagnosis, appointment and warning sign
+    lost because one drug entry came back nameless. A document that is 95%
+    readable became a total failure.
+    """
+
+    def test_a_nameless_entry_is_dropped_not_fatal(self):
+        from dischargeiq.agents.extraction_agent import _drop_nameless_medications
+
+        data = {"medications": [{"name": None, "dose": "40 mg"},
+                                {"name": "Furosemide", "dose": "40 mg"}]}
+        assert _drop_nameless_medications(data) == 1
+        assert [m["name"] for m in data["medications"]] == ["Furosemide"]
+
+    def test_a_whitespace_name_counts_as_nameless(self):
+        from dischargeiq.agents.extraction_agent import _drop_nameless_medications
+
+        data = {"medications": [{"name": "   "}, {"name": "Aspirin"}]}
+        assert _drop_nameless_medications(data) == 1
+
+    def test_a_dose_with_no_drug_is_not_kept(self):
+        """
+        Same rule the FHIR adapter already applies: a dose with no drug
+        attached reads as an instruction and names nothing, which is worse
+        than no entry at all.
+        """
+        from dischargeiq.agents.extraction_agent import _drop_nameless_medications
+
+        data = {"medications": [{"name": None, "dose": "40 mg",
+                                 "frequency": "twice daily"}]}
+        _drop_nameless_medications(data)
+        assert data["medications"] == []
+
+    def test_a_good_list_is_untouched(self):
+        from dischargeiq.agents.extraction_agent import _drop_nameless_medications
+
+        data = {"medications": [{"name": "Aspirin"}, {"name": "Warfarin"}]}
+        assert _drop_nameless_medications(data) == 0
+        assert len(data["medications"]) == 2
+
+    @pytest.mark.parametrize("meds", [None, [], "not a list", 42])
+    def test_a_malformed_medications_field_does_not_crash(self, meds):
+        from dischargeiq.agents.extraction_agent import _drop_nameless_medications
+
+        assert _drop_nameless_medications({"medications": meds}) == 0

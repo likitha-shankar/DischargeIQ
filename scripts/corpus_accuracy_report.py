@@ -130,7 +130,17 @@ def ungrounded_numbers(output: dict, source: str) -> dict[str, list[str]]:
 
 def build(outputs_dir: Path) -> str:
     """Analyse every output and return the report as markdown."""
-    files = sorted(outputs_dir.glob("mtsamples_*.json"))
+    # The degraded fax stratum lives in the same directory and must NOT be
+    # averaged in here. On 9 Sep 2026 this glob picked up 25 of them and the
+    # report claimed "106 real de-identified discharge summaries" in its own
+    # header while measuring 131 outputs - blending clean and deliberately
+    # damaged documents into one readability figure that describes neither.
+    # The degraded stratum is reported separately, and correctly, by
+    # scripts/fax_stratum_report.py.
+    files = sorted(
+        f for f in outputs_dir.glob("mtsamples_*.json")
+        if not f.stem.endswith("_fax")
+    )
     statuses: Counter = Counter()
     provenance: Counter = Counter()
     strata: Counter = Counter()

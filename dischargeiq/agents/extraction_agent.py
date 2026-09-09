@@ -779,6 +779,43 @@ def _dx_tokens(text: str) -> set[str]:
     return {w for w in expanded if w not in _DX_STOPWORDS}
 
 
+
+def _drop_nameless_medications(data: dict) -> int:
+    """
+    Remove medication entries the model returned without a name.
+
+    `Medication.name` is a required `str`, so a null name raises a
+    ValidationError and loses the WHOLE document - every diagnosis,
+    appointment and warning sign discarded because one drug entry came back
+    nameless. That happened to mtsamples_081 on 9 Sep 2026 and failed the
+    only document in a 106-document corpus run.
+
+    Dropping the entry is the same rule the FHIR adapter already applies and
+    tests: a dose with no drug attached is worse than no entry at all,
+    because it reads as an instruction and names nothing. Losing one
+    medication is a known, logged omission; losing the document is a silent
+    total failure.
+
+    Args:
+        data: Parsed model JSON, mutated in place.
+
+    Returns:
+        int: How many entries were dropped, for the caller to log and to
+        surface as an extraction warning.
+    """
+    meds = data.get("medications")
+    if not isinstance(meds, list):
+        return 0
+    kept = [
+        m for m in meds
+        if not isinstance(m, dict) or str(m.get("name") or "").strip()
+    ]
+    dropped = len(meds) - len(kept)
+    if dropped:
+        data["medications"] = kept
+    return dropped
+
+
 def _drop_primary_from_secondaries(extraction: ExtractionOutput) -> None:
     """
     Remove secondary diagnoses that merely restate the primary.
@@ -895,6 +932,24 @@ def _parse_and_validate(raw_response: str) -> ExtractionOutput:
                 first_exc,
             )
             raise first_exc
+
+    # A nameless medication would otherwise fail validation and take the
+    # entire document with it. Dropped and warned about instead.
+    dropped_meds = _drop_nameless_medications(data)
+    if dropped_meds:
+        logger.warning(
+            "Dropped %d medication entry/entries with no name", dropped_meds)
+        warnings = data.setdefault("extraction_warnings", [])
+        if isinstance(warnings, list):
+            warnings.append(
+                f"{dropped_meds} medication entry could not be read from this "
+                "document and was left out - please check your discharge "
+                "papers for anything missing."
+                if dropped_meds == 1 else
+                f"{dropped_meds} medication entries could not be read from "
+                "this document and were left out - please check your "
+                "discharge papers for anything missing."
+            )
 
     try:
         extraction = ExtractionOutput(**data)
