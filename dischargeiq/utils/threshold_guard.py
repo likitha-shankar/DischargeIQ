@@ -159,7 +159,13 @@ def strip_ungrounded_thresholds(text: str, source_text: str) -> GuardResult:
         the whole guide would hide it. Empty source returns the text
         unchanged.
     """
-    if not text or not source_text:
+    # strip() matters: a whitespace-only source is truthy, so a bare falsy
+    # check let it through with an empty grounded set and rewrote EVERY
+    # threshold in the document. Found by the adversarial pass, 9 Sep 2026. A
+    # PDF that extracts to whitespace is a failed extraction, and silently
+    # rewriting the whole escalation guide would hide that behind vaguer
+    # language rather than surfacing it.
+    if not text or not (source_text or "").strip():
         return GuardResult(text=text)
 
     grounded = _source_numbers(source_text)
