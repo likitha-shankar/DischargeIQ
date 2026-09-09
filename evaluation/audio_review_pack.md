@@ -220,11 +220,58 @@ router label "surgical" (matches _ALLOWED_TYPES in api/routes/media.py).
 
 Served by `POST /media/case`. Unlike Part 1 this is different for every patient, so the review is of the SHAPE the generator produces, not of one fixed file.
 
-_Not generated. Re-run with `--generate` to make one live (costs a single script LLM call, no TTS)._
+Generated from `mtsamples_034` (primary diagnosis: Status post right total hip replacement).
+
+```
+Sam: Hello! We're here to go over your discharge plan.
+Alex: It's great you're heading home soon. You had a right total hip replacement.
+Sam: We'll help you understand your medicines and what to expect.
+Alex: Let's talk about your medicines first. You have several new ones.
+Sam: You'll take Protonix to help with your stomach. This is with your other pills.
+Alex: Arixtra is a shot to help prevent blood clots. Feosol gives you iron.
+Sam: You will also continue Paxil, MOBIC, and Klonopin. Celebrex is for pain and swelling.
+Alex: Coumadin helps prevent blood clots too. Colace helps with bowel movements.
+Sam: You also have Fiorinal and Oxycodone for pain. They can make you sleepy.
+Alex: Use the short-acting Oxycodone only when you need it for pain.
+Sam: Remember to take your medicines exactly as prescribed.
+Alex: Your doctor will check your Coumadin levels. Do not stop it without calling them.
+Sam: Watch for signs of bleeding. This means bleeding that won't stop.
+Alex: Call your doctor if you have black, tarry stools. Also watch for a rash or shortness of breath.
+Sam: Call your doctor if you have chest pain or trouble breathing.
+Alex: If you feel very confused, call your doctor. Trouble breathing is also a reason to call.
+Sam: Call 911 right away if you have sudden face drooping or arm weakness.
+Alex: Sudden trouble speaking means you should call 911.
+Sam: We are here to help you through your recovery. You will get better.
+```
 
 ---
 
 ## Pre-review findings (machine, 9 Sep 2026)
+
+### Part 1 - the five per-condition explainers
+
+Checks 1-5 run by reading the five source documents. Two findings, and the first is a safety one.
+
+**1. The heart-failure audio contradicts the patient's own paperwork, and tells them to do something less urgent.**
+
+| Source | Threshold | Action |
+|---|---|---|
+| The audio (and `templates/heart_failure.md`) | gain over **2 lb** in a day | "call your doctor" |
+| The demo patient's own document | gain over **3 lb** in a day | **ER today** |
+
+A heart-failure patient using this app hears one threshold and one action from the audio, and reads a different threshold and a MORE URGENT action in their escalation guide. Both numbers are clinically defensible in isolation - 2 lb is a common teaching threshold, 3 lb is what this document said - but a patient given both has been given contradictory instructions by the same product.
+
+This is exactly the defect Dr Liebovitz raised: a general clinical threshold presented to a patient as if it applied to them. The post-generation threshold guard strips these from AGENT text, and the per-condition audio bypasses it completely - the audio is generic by construction, so there is no source document to check it against. **Only a clinician should decide which number a patient hears.**
+
+**2. None of the five explainers contains a warning-signs section.**
+
+No "when to call 911", no "go to the ER", no escalation guidance of any kind, in any of the five. They cover what the condition is and what to do at home, and stop there.
+
+Defensible as a design choice - the escalation guide is its own tab. Worth a second look anyway, because **audio is the accessibility path for patients who struggle to read**, which is the same group least likely to get the warning signs from a written tab. The one exception is the heart-failure file, which does carry the weight rule in finding 1 - so the only explainer that gives escalation advice is the one giving advice that conflicts.
+
+**Verified correct across all five:** no instruction to stop or change a medication (each file forbids it in its own narration notes); pronunciation hints present for every hard drug name; clinical text traceable to the reviewed templates.
+
+### Part 2 - the per-case explainer
 
 Checks 1-5 run against `mtsamples_034`. These do NOT substitute for the human sign-off below - they are what a reader found first, so the reviewer starts from findings rather than a blank page.
 
