@@ -36,12 +36,22 @@ NEVER invent a number for a goal. Not a distance, not a duration, not a step
 count, not an angle, not a weight. If the document does not give the number,
 you do not have one.
 
+NOTE TO ANYONE EDITING THIS FILE: none of the examples below contains a
+numeral, and that is deliberate. They used to. Measured across 106 real
+documents, every number written here was copied into patient-facing output
+whether it was labelled BAD or GOOD - the GOOD example's weight leaked into
+twelve outputs whose source document never mentioned it, more than either BAD
+example did. A numeral in a prompt is a token the model can reach for, and
+the label above it does not travel with it. Describe the shape of the value;
+never instantiate one.
+
   BAD  (document said nothing about walking times):
-    - Your goal this week is to walk for 15 minutes each day.
+    - Your goal this week is to walk for a set number of minutes each day.
   BAD  (document set no bending limit):
-    - Your goal this week is to not bend your hip past 90 degrees.
-  GOOD (document said "no lifting over 10 pounds"):
-    - Your goal this week is to keep from lifting over 10 pounds.
+    - Your goal this week is to not bend your hip past a set angle.
+  GOOD (document said not to lift over a stated weight):
+    - Your goal this week is to keep from lifting over THAT WEIGHT, copied
+      from the document exactly as it is written there.
   GOOD (document gave no basis for any goal):
     ...no goal bullet at all. Write about feel, activity, and symptoms instead.
 
@@ -59,10 +69,17 @@ If the document gives a number, use it exactly as written. If it does not,
 DO NOT SUPPLY ONE. That covers temperature, heart rate, blood pressure,
 oxygen, breathing rate, blood sugar, weight and every other measurement.
 
-  BAD  (no source document said this):
-    - Call your doctor if you have a fever over 100.4 F (38 C).
+  BAD  (invents a threshold the document never gave):
+    - Call your doctor if your fever goes above a set temperature.
   GOOD:
     - Call your doctor if you have a fever that will not come down.
+
+This BAD example deliberately contains NO NUMERAL. It used to name one, and
+that number was then the single most-copied invented value in the corpus:
+twelve outputs repeated it and nine more emitted a value one tenth away from
+it, which is the fingerprint of copying rather than reasoning. A worked
+example is training data whatever the label above it says. Never write a
+number here, not even to forbid it.
 
 A safe threshold depends on the patient's age and condition, which you do not
 reliably know. A number you pick is a guess, and the patient reads it as their

@@ -48,6 +48,7 @@ from dischargeiq.utils.extraction_scope import (
     scope_for_agent5,
 )
 from dischargeiq.utils.strata import Stratum, classify_stratum, looks_ocr_damaged
+from dischargeiq.utils.threshold_guard import strip_ungrounded_thresholds
 from dischargeiq.utils.warnings import assess_extraction_completeness
 
 logger = logging.getLogger(__name__)
@@ -646,6 +647,35 @@ async def _run_pipeline_internal(
         medication_rationale = med_r["text"] if med_r else ""
         recovery_trajectory = rec_r["text"] if rec_r else ""
         escalation_guide = esc_r["text"] if esc_r else ""
+
+    # Post-generation threshold guard (Liebovitz, review item on numeric
+    # grounding). Agents 4 and 5 still emit clinical thresholds the patient's
+    # document never gave - "a fever over 100.4 F" - after four prompt
+    # attempts to stop them. Removing numerals from the prompts measurably
+    # reduced the values COPIED from them, and did nothing to 100.4, which is
+    # the standard clinical threshold and appears in Agent 5's output despite
+    # never appearing in Agent 5's prompt. No wording removes a fact the model
+    # already knows, so this runs after generation where behaviour is
+    # verifiable.
+    #
+    # A threshold the DOCUMENT gives is left exactly as written: that number
+    # is the patient's own doctor and outranks anything we would substitute.
+    # Measured on 212 corpus sections: 26 rewritten, 0 grounded thresholds
+    # touched, 0 changes to any 911 instruction.
+    if pdf_text:
+        for _label, _text in (("agent4", recovery_trajectory),
+                              ("agent5", escalation_guide)):
+            _guarded = strip_ungrounded_thresholds(_text, pdf_text)
+            if _guarded.changed:
+                logger.info(
+                    "%s: removed %d ungrounded threshold(s) %s from %s",
+                    _label, len(_guarded.rewrites),
+                    [r.value for r in _guarded.rewrites], pdf_path,
+                )
+                if _label == "agent4":
+                    recovery_trajectory = _guarded.text
+                else:
+                    escalation_guide = _guarded.text
 
     # Agent 6 (AI patient simulator) now runs inside the parallel gather
     # above - see the "Quality check" entry. patient_simulator_result was
