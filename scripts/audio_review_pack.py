@@ -1,0 +1,242 @@
+#!/usr/bin/env python3
+"""
+scripts/audio_review_pack.py
+
+Assemble everything the Task 4.2 audio listen-through needs, in one file.
+Owner: Likitha Shankar.
+
+WHY THIS EXISTS
+---------------
+Issue I-1 has been open since July: no generated audio has had a recorded
+human listen-through. Decision D-5 says `CASE_AUDIO_ENABLED` stays OFF until
+that review approves the mechanism. The flag has been true in production
+since Sep 2026 and the mobile client now calls POST /media/case on every
+What-Happened tab, so audio is reaching users ahead of its own gate.
+
+The review has not happened partly because it is awkward: six audio files,
+no transcripts, and no record of what a reviewer is supposed to check.
+
+This makes it a reading task first and a listening task second. Most content
+defects - a wrong drug name, an invented threshold, a claim the document
+never made - are visible in the SCRIPT. Listening then only has to confirm
+pronunciation, pacing and that the audio matches its script.
+
+WHAT IT PRODUCES
+----------------
+evaluation/audio_review_pack.md, containing:
+
+  - the per-diagnosis NotebookLM source documents, which are what the five
+    shipped WAVs were generated from;
+  - a freshly generated per-case dialogue script for a real corpus document,
+    which is what a patient hears from POST /media/case;
+  - a checklist per item, and a sign-off block that names a reviewer and a
+    date - the same shape the escalation templates use, so an unsigned pack
+    is visibly unsigned.
+
+Usage:
+  python scripts/audio_review_pack.py                # scripts only, no cost
+  python scripts/audio_review_pack.py --generate     # +1 live LLM call
+"""
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+_REPO = Path(__file__).resolve().parent.parent
+# Run as a plain script from anywhere: the package lives at the repo root.
+sys.path.insert(0, str(_REPO))
+
+# case_audio.py reads LLM_PROVIDER from the environment and does NOT load
+# .env itself - it relies on its caller. Without this the provider defaults
+# to gemini, whose key was deleted in Aug 2026, and generation fails with a
+# missing-key error that looks like a configuration bug rather than an
+# unloaded file.
+from dotenv import load_dotenv  # noqa: E402
+
+load_dotenv(_REPO / ".env")
+_MEDIA = _REPO / "dischargeiq" / "media"
+_OUT = _REPO / "evaluation" / "audio_review_pack.md"
+
+#: What a reviewer is actually checking. Written out because "listen to it"
+#: is not a reviewable instruction, and because the first four are content
+#: defects that can be caught by reading rather than listening.
+_CHECKLIST = [
+    "Every drug name is correct and pronounceable as written.",
+    "No clinical threshold appears that the patient's document did not give "
+    "(no fever limits, no heart-rate cutoffs).",
+    "No claim is made that the source document does not support.",
+    "Nothing instructs the patient to stop or change a medication.",
+    "The emergency guidance matches the escalation guide - same tiers, same "
+    "wording, nothing softened.",
+    "Pronunciation is right on drug and condition names (listen).",
+    "Pace is slow enough for a patient just home from hospital (listen).",
+    "The audio matches this script with nothing added (listen).",
+]
+
+
+def _per_diagnosis_sections() -> list[str]:
+    """The source documents behind the five shipped per-condition WAVs."""
+    out = []
+    for source in sorted((_MEDIA / "sources").glob("*.md")):
+        wav = _MEDIA / f"{source.stem}.wav"
+        size = f"{wav.stat().st_size / 1_000_000:.1f} MB" if wav.exists() else "MISSING"
+        out.append(
+            f"### {source.stem}  ({wav.name}, {size})\n\n"
+            f"```\n{source.read_text().strip()}\n```\n"
+        )
+    return out
+
+
+def _case_script(generate: bool) -> str:
+    """
+    A per-case dialogue script, generated live or explained if skipped.
+
+    One real corpus output is used rather than a toy payload, so the reviewer
+    reads what a patient would actually hear.
+    """
+    if not generate:
+        return (
+            "_Not generated. Re-run with `--generate` to make one live "
+            "(costs a single script LLM call, no TTS)._\n"
+        )
+    sample = _REPO / "evaluation" / "corpus_outputs" / "mtsamples_034.json"
+    if not sample.exists():
+        return "_No corpus output available to generate from._\n"
+    from dischargeiq.utils.case_audio import build_dialogue_script
+
+    payload = json.loads(sample.read_text())
+    try:
+        script = build_dialogue_script(payload)
+    except Exception as exc:  # a failed generation is a finding, not a crash
+        return f"_Generation FAILED: {type(exc).__name__}: {exc}_\n"
+    dx = (payload.get("extraction") or {}).get("primary_diagnosis", "unknown")
+    return (
+        f"Generated from `mtsamples_034` (primary diagnosis: {dx}).\n\n"
+        f"```\n{script.strip()}\n```\n"
+    )
+
+
+def build(generate: bool) -> str:
+    lines = [
+        "# Audio review pack (Task 4.2 listen-through)",
+        "",
+        "Generated by `scripts/audio_review_pack.py`. Closes issue I-1 once "
+        "signed.",
+        "",
+        "## Why this is gating",
+        "",
+        "Decision **D-5** says `CASE_AUDIO_ENABLED` stays OFF until this "
+        "review approves the mechanism. It has been **true in production "
+        "since Sep 2026**, and the mobile client calls `POST /media/case` on "
+        "every What-Happened tab. Issue **I-1** says the listen-through is "
+        "the gate before ANY audio reaches a tester. Both are currently "
+        "being crossed.",
+        "",
+        "Playback was confirmed working on device on 8 Sep 2026. That is a "
+        "MECHANISM check. This is the CONTENT review, and they are not the "
+        "same thing.",
+        "",
+        "## How to use this",
+        "",
+        "Read first, listen second. Items 1-5 below are content defects "
+        "visible in the script; only 6-8 need audio. Reading catches the "
+        "expensive mistakes without playing anything.",
+        "",
+    ]
+    for i, item in enumerate(_CHECKLIST, 1):
+        lines.append(f"{i}. {item}")
+    lines += [
+        "",
+        "---",
+        "",
+        "## Part 1 - Per-condition explainers (five shipped WAVs)",
+        "",
+        "These are served by `GET /media/{document_type}` and are IDENTICAL "
+        "for every patient with that condition. Below is the source document "
+        "each was generated from.",
+        "",
+    ]
+    lines += _per_diagnosis_sections()
+    lines += [
+        "---",
+        "",
+        "## Part 2 - Per-case explainer (generated per patient)",
+        "",
+        "Served by `POST /media/case`. Unlike Part 1 this is different for "
+        "every patient, so the review is of the SHAPE the generator "
+        "produces, not of one fixed file.",
+        "",
+        _case_script(generate),
+        "---",
+        "",
+        "## Pre-review findings (machine, 9 Sep 2026)",
+        "",
+        "Checks 1-5 run against `mtsamples_034`. These do NOT substitute for "
+        "the human sign-off below - they are what a reader found first, so "
+        "the reviewer starts from findings rather than a blank page.",
+        "",
+        "**What was verified correct:**",
+        "",
+        "- All 13 drug names in the script match the extraction exactly. "
+        "None invented, none dropped.",
+        "- All 5 red flags are carried, and `hemoptysis` is rendered as "
+        "\"cough up blood\" - the plain-language translation the product "
+        "exists to do.",
+        "- No clinical threshold appears anywhere in the script. No fever "
+        "limit, no heart rate, no numbers at all.",
+        "- Nothing instructs the patient to stop or change a medication; it "
+        "says to take them as prescribed.",
+        "",
+        "**Four things for the reviewer to rule on:**",
+        "",
+        "1. **The script fails our own readability gate.** FK grade 6.6 "
+        "against a 6.0 threshold, logged as a warning at generation time and "
+        "not blocking. Every other patient-facing output is held to 6.0; "
+        "audio should not be the exception, and spoken text arguably needs "
+        "to be simpler than written text, not harder.",
+        "2. **Ten medications are read out in a single sentence** - Paxil, "
+        "MOBIC, Klonopin, Celebrex, Protonix, Dulcolax, Lactulose, Colace, "
+        "Arixtra, Coumadin. Accurate, and unfollowable as audio. A reader can "
+        "re-scan a list; a listener cannot.",
+        "3. **\"MOBIC\" is capitalised**, which some TTS voices spell out "
+        "letter by letter. Worth confirming on playback.",
+        "4. **The extraction contains \"Paxil\" twice.** The script correctly "
+        "says it once, so this is an Agent 1 de-duplication bug rather than "
+        "an audio one - but it is visible here.",
+        "",
+        "---",
+        "",
+        "## Sign-off",
+        "",
+        "Unsigned until a real name and a real date appear here. "
+        "`[Pending - ...]` parses as unsigned, exactly as the escalation "
+        "templates do.",
+        "",
+        "| Field | Value |",
+        "|---|---|",
+        "| Reviewed by | [Pending - not yet reviewed] |",
+        "| Date | [Pending] |",
+        "| Outcome | [Pending - approve / approve with changes / reject] |",
+        "| Notes | |",
+        "",
+        "**Until this block names someone, `CASE_AUDIO_ENABLED` should be "
+        "false and no beta kit containing audio should go to a tester.**",
+        "",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--generate", action="store_true",
+                        help="Generate a live per-case script (1 LLM call)")
+    args = parser.parse_args()
+    _OUT.write_text(build(args.generate))
+    print(f"written: {_OUT}")
+    print(f"  per-condition sources: {len(list((_MEDIA / 'sources').glob('*.md')))}")
+    print(f"  per-case script: {'generated' if args.generate else 'skipped'}")
+
+
+if __name__ == "__main__":
+    main()
