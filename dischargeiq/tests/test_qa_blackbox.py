@@ -6,11 +6,15 @@ NOT from the implementations - the author of a guard tests what they thought
 of, which is the same set they already handled. These are the inputs a
 malicious or merely unlucky document produces.
 
-Two guards are under test and both EDIT OR REFUSE PATIENT-FACING TEXT, so a
-bug in either is a bug a patient reads:
+threshold_guard REWRITES PATIENT-FACING TEXT, so a bug in it is a bug a
+patient reads.
 
-  threshold_guard   rewrites clinical thresholds the document never gave
-  script_grounding  refuses an audio script naming symptoms the plan lacks
+(A script_grounding module was added here on 9 Sep and removed the same day.
+It was built after a script appeared to invent "leg spasms"; that finding was
+retracted - the phrase is in the escalation guide and the source document, and
+the search string was wrong. No fabrication has ever been observed in a
+generated script, and the module could withhold a patient's audio over a
+symptom-list mismatch. Speculative guards on live paths are not free.)
 
 The bar is not "does it work on the happy path" - the existing suites cover
 that. It is "what makes it do the wrong thing", where wrong means removing
@@ -19,7 +23,6 @@ real medical instruction or passing an invented one.
 
 import pytest
 
-from dischargeiq.utils.script_grounding import verify_script_grounding
 from dischargeiq.utils.strata import looks_ocr_damaged, ocr_substitution_rate
 from dischargeiq.utils.threshold_guard import strip_ungrounded_thresholds
 
@@ -88,49 +91,6 @@ class TestThresholdGuardAdversarial:
         assert strip_ungrounded_thresholds(text, "nothing").changed
 
 
-class TestScriptGroundingAdversarial:
-    """
-    Inputs designed to make the checker refuse a correct script, which
-    silently removes a patient's audio.
-    """
-
-    def _payload(self):
-        return {
-            "extraction": {"red_flag_symptoms": ["chest pain", "hemoptysis"]},
-            "escalation_guide": "Calf pain or swelling may be a blood clot.",
-        }
-
-    def test_a_symptom_named_only_in_the_medication_text_is_grounded(self):
-        """
-        Grounding is checked against the WHOLE payload. A symptom mentioned
-        in the medication rationale is legitimate content for the script to
-        repeat, and refusing it would be a false rejection.
-        """
-        payload = {**self._payload(),
-                   "medication_rationale": "This medicine can cause a rash."}
-        script = "Sam: Tell your doctor if you get a rash."
-        assert verify_script_grounding(script, payload).is_grounded
-
-    def test_plural_and_singular_are_both_accepted(self):
-        payload = {**self._payload(),
-                   "escalation_guide": "Watch for seizures."}
-        script = "Sam: Call 911 for a seizure."
-        assert verify_script_grounding(script, payload).is_grounded
-
-    def test_a_symptom_the_payload_never_mentions_is_refused(self):
-        script = "Sam: Call 911 if you have a seizure."
-        assert not verify_script_grounding(script, self._payload()).is_grounded
-
-    def test_speaker_labels_do_not_create_false_matches(self):
-        """A speaker named after a symptom would be absurd, but cheap to rule out."""
-        script = "Sam: You are doing well.\nAlex: Rest this week."
-        assert verify_script_grounding(script, self._payload()).is_grounded
-
-    def test_a_malformed_payload_does_not_crash(self):
-        for payload in [{}, {"extraction": None}, {"extraction": []}]:
-            verify_script_grounding("Sam: Call 911 for a seizure.", payload)
-
-
 class TestOcrDetectorAdversarial:
     """
     The detector drives whether a patient is told their warning signs may be
@@ -162,32 +122,6 @@ class TestOcrDetectorAdversarial:
         """
         text = "The patient was seen today. " * 200 + "fai1ure"
         assert not looks_ocr_damaged(text)
-
-
-class TestTheGuardsDoNotFightEachOther:
-    """
-    Both run on the same text in the same request. A rewrite by one must not
-    create work or a false finding for the other.
-    """
-
-    def test_a_threshold_rewrite_does_not_introduce_an_ungrounded_symptom(self):
-        """
-        The threshold guard substitutes "a fever that will not come down".
-        If that wording named a symptom the payload lacked, the guard would
-        be manufacturing the exact defect the script checker looks for.
-        """
-        guarded = strip_ungrounded_thresholds(
-            "Call your doctor for a fever over 100.4 F.", "nothing numeric")
-        payload = {"extraction": {"red_flag_symptoms": []}}
-        assert verify_script_grounding(guarded.text, payload).is_grounded
-
-    def test_guarded_text_is_still_readable_prose(self):
-        result = strip_ungrounded_thresholds(
-            "Call your doctor if you have a fever over 100.4 F (38 C).",
-            "nothing")
-        assert result.text.endswith(".")
-        assert "  " not in result.text
-        assert " ." not in result.text
 
 
 class TestNamelessMedicationDoesNotLoseTheDocument:

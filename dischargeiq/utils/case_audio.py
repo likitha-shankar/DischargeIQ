@@ -33,7 +33,6 @@ from dischargeiq.utils.llm_client import (
     load_agent_prompt,
 )
 from dischargeiq.utils.scorer import fk_check
-from dischargeiq.utils.script_grounding import verify_script_grounding
 
 logger = logging.getLogger(__name__)
 
@@ -114,34 +113,6 @@ def build_dialogue_script(pipeline_payload: dict) -> str:
         return text
 
     script = _generate()
-
-    # Grounding check, then ONE retry. The prompt already forbids adding a
-    # symptom the care plan does not contain, and on 9 Sep 2026 the model
-    # added "leg spasms" anyway - a phrase absent from the source document and
-    # from every agent output. Same pattern as the invented fever thresholds,
-    # where four prompt rewrites failed and only a post-generation check
-    # worked.
-    #
-    # A failed script is REFUSED rather than edited. There is no safe generic
-    # sentence to swap into free-form dialogue, and audio is optional by
-    # contract - a client treats an error here exactly like "no media", so the
-    # patient loses a convenience. Shipping an invented symptom costs more.
-    report = verify_script_grounding(script, pipeline_payload)
-    if not report.is_grounded:
-        logger.warning(
-            "TTS script named ungrounded symptoms %s - regenerating once",
-            report.ungrounded_symptoms,
-        )
-        retry = _generate()
-        retry_report = verify_script_grounding(retry, pipeline_payload)
-        if retry_report.is_grounded:
-            script = retry
-        else:
-            # Both attempts invented something. Refusing is the safe end.
-            raise ValueError(
-                "TTS script names symptoms absent from the care plan after a "
-                f"retry: {retry_report.ungrounded_symptoms}"
-            )
 
     fk = fk_check(script)
     if not fk["passes"]:
