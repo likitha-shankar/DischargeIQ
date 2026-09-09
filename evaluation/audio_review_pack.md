@@ -98,7 +98,7 @@ pronunciation hints keep terms correct.
 - Eat regular meals and do not skip them.
 ```
 
-### heart_failure  (heart_failure.wav, 3.5 MB)
+### heart_failure  (heart_failure.wav, 1.9 MB)
 
 ```
 # NotebookLM source - Heart Failure explainer
@@ -201,7 +201,7 @@ pacing; the three precautions must be read slowly and separately.
 - Full healing takes three to six months.
 ```
 
-### surgical  (surgical.wav, 4.5 MB)
+### surgical  (surgical.wav, 1.9 MB)
 
 ```
 # NotebookLM source - Surgical / Laparoscopic explainer
@@ -259,19 +259,18 @@ Generated from `mtsamples_034` (primary diagnosis: Status post right total hip r
 
 ```
 Sam: Hi there. We're here to go over your discharge plan.
-Alex: You had a right total hip replacement. We want to make sure you recover well at home.
-Sam: You have several new medications. Protonix helps protect your stomach. Feosol gives you iron for your blood count.
-Alex: Arixtra helps prevent blood clots. Dulcolax and lactulose help with bowel movements.
-Sam: Your other medicines continue. These include Paxil, MOBIC, and Klonopin.
-Alex: Celebrex and Coumadin are also continued. Oxycodone is for pain. Colace continues too.
-Sam: Keep your hip from bending past 90 degrees. Do not cross your legs.
-Alex: And do not twist your body. Also, do not lift anything heavy.
-Sam: Call 911 if you have trouble breathing or chest pain.
-Alex: Call 911 for sudden weakness or if you pass out.
-Sam: Go to the ER for calf pain or swelling. Also go for a fever that won't go down.
-Alex: Call your doctor for mild pain or redness at your cut.
-Sam: We know this is a lot to remember. Your full plan is written down for you.
-Alex: Take care, and we hope you feel better soon.
+Alex: We want to help you feel confident about your recovery at home.
+Sam: You recently had a right total hip replacement. This was to help with your arthritis.
+Alex: We'll discuss your medicines and what to watch for.
+Sam: You have several new medications and some you will continue.
+Alex: Protonix helps your stomach. Feosol gives you iron for your blood.
+Sam: Arixtra and Coumadin help prevent blood clots. Please take them as prescribed.
+Alex: Oxycodone is for pain. Use it only when you need it for extra relief.
+Sam: It is very important to call your doctor if you have sudden face drooping. Arm weakness or trouble speaking also need immediate medical help.
+Alex: Also call your doctor right away if you bleed too much. This means bleeding that won't stop.
+Sam: If you have calf pain or swelling, go to the ER today. This could be a blood clot.
+Alex: Call 911 if you have difficulty breathing or chest pain.
+Sam: We're here to support you. You've got this.
 ```
 
 ---
