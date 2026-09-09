@@ -223,19 +223,22 @@ Served by `POST /media/case`. Unlike Part 1 this is different for every patient,
 Generated from `mtsamples_034` (primary diagnosis: Status post right total hip replacement).
 
 ```
-Sam: Hi there. We're going to go over your discharge plan to help you get ready to go home.
-
-Alex: You recently had a right total hip replacement. We'll walk through the medicines and care instructions that will help you heal.
-
-Sam: You have a number of new medications to help you manage your pain and prevent blood clots. You'll be taking Feosol for anemia, Oxycodone for pain, and Arixtra and Coumadin to help prevent clots.
-
-Alex: You'll also continue taking your Paxil, MOBIC, Klonopin, Celebrex, Protonix, Dulcolax suppository, Lactulose, and Colace as prescribed. Please follow the instructions for each.
-
-Sam: It's very important to call your doctor if you have any questions about your medications, or if you feel down or anxious.
-
-Alex: You need to call 911 immediately if you have chest pain, pain from your neck to your arm, trouble breathing, shortness of breath, or if you cough up blood.
-
-Sam: Also go to the ER right away if you have significant calf pain or leg muscle spasms. We want you to heal well and feel better soon.
+Sam: Hi there. We're here to go over your discharge plan.
+Alex: It covers your hip surgery and how to recover. You had a right total hip replacement.
+Sam: We'll also talk about your medications. Some are new, and some you were taking at home.
+Alex: Feosol is a new medicine. It gives you iron to help with low red blood cells.
+Sam: Oxycodone SR and IR are new pain medicines. They are strong pain relievers.
+Alex: You will also continue taking Paxil and Klonopin. These help with mood and anxiety.
+Sam: Celebrex and Protonix are for pain and stomach protection. You will also take Colace for constipation.
+Alex: Dulcolax and Lactulose are for when you need help with a bowel movement.
+Sam: Arixtra and Coumadin help prevent blood clots. Call your doctor if you have nosebleeds.
+Alex: Also call if you see blood in your urine or stool. Do not stop these medicines suddenly.
+Sam: We need to discuss some serious warning signs. Call 911 if you have chest pain.
+Alex: Call 911 if you have pain from your neck to your arm. Also call 911 for trouble breathing.
+Sam: Or if you have shortness of breath. Call your doctor if you cough up blood.
+Alex: Calf pain or leg muscle spasms could mean a blood clot. Call your doctor if these happen.
+Sam: We're here to support your recovery. You will also have physical and occupational therapy.
+Alex: We are here if you have any questions. We wish you the best as you heal.
 ```
 
 ---
@@ -251,12 +254,20 @@ Checks 1-5 run against `mtsamples_034`. These do NOT substitute for the human si
 - No clinical threshold appears anywhere in the script. No fever limit, no heart rate, no numbers at all.
 - Nothing instructs the patient to stop or change a medication; it says to take them as prescribed.
 
-**Four things for the reviewer to rule on:**
+**Fixed 9 Sep 2026, and measured:**
 
-1. **The script fails our own readability gate.** FK grade 6.6 against a 6.0 threshold, logged as a warning at generation time and not blocking. Every other patient-facing output is held to 6.0; audio should not be the exception, and spoken text arguably needs to be simpler than written text, not harder.
-2. **Ten medications are read out in a single sentence** - Paxil, MOBIC, Klonopin, Celebrex, Protonix, Dulcolax, Lactulose, Colace, Arixtra, Coumadin. Accurate, and unfollowable as audio. A reader can re-scan a list; a listener cannot.
-3. **"MOBIC" is capitalised**, which some TTS voices spell out letter by letter. Worth confirming on playback.
-4. **The extraction contains "Paxil" twice.** The script correctly says it once, so this is an Agent 1 de-duplication bug rather than an audio one - but it is visible here.
+- **Readability.** The script was FK 6.6 against our 6.0 gate. The prompt asked for "short sentences" with no cap, while agents 4 and 5 carry "maximum 12 words per sentence" and measure around grade 4. Adding the same cap took it to **FK 2.87**, 0 sentences over 12 words, 184 words.
+- **The ten-medication sentence** is gone; medicines are now grouped across sentences by what they are for.
+
+**A regression the first attempt caused, worth recording:** the word cap alone took the script to 5.1 and silently dropped THREE of five warning signs - including hemoptysis - while inventing one. Readability was bought with content, which is exactly the trade Liebovitz item 2.5 says must never be made. A completeness rule now sits ABOVE the word cap in the prompt, and all five warning signs are carried.
+
+**Still open for the reviewer:**
+
+1. **The script invents "leg spasms".** It appears nowhere in the source document or anywhere in the pipeline output. The prompt already forbids adding a warning sign the plan does not contain, and the model added one anyway - the same pattern as the fever thresholds, where four prompt attempts failed and a deterministic guard was needed. TTS output has no such guard yet.
+2. **"Do not bend your hip past 90 degrees"** is in the script and in the pipeline output, and is NOT in the source document - `activity_restrictions` is empty. That phrasing is verbatim from agent 4's own BAD example. The agent 4 prompt was de-numeralled on 9 Sep; this corpus output predates that fix and should be regenerated before it is used as evidence.
+3. **More than three items still appear in one sentence** ("Paxil, MOBIC, Klonopin, Celebrex, and Protonix"). The cap is in the prompt and is not being honoured.
+4. **"MOBIC" is capitalised**, which some TTS voices spell out letter by letter. Confirm on playback.
+5. **The extraction contains "Paxil" twice.** The script says it once, so this is an Agent 1 de-duplication bug rather than an audio one - but it surfaces here.
 
 ---
 
