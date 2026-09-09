@@ -208,12 +208,16 @@ def build(generate: bool) -> str:
         "",
         "**Still open for the reviewer:**",
         "",
-        "1. **The script invents \"leg spasms\".** It appears nowhere in the "
-        "source document or anywhere in the pipeline output. The prompt "
-        "already forbids adding a warning sign the plan does not contain, and "
-        "the model added one anyway - the same pattern as the fever "
-        "thresholds, where four prompt attempts failed and a deterministic "
-        "guard was needed. TTS output has no such guard yet.",
+        "1. ~~The script invents \"leg spasms\".~~ **RETRACTED 9 Sep 2026 - "
+        "this was a false alarm and the script was correct.** The phrase is "
+        "\"leg muscle spasms\" and it appears both in the escalation guide "
+        "and in the source document. The check searched for the two-word "
+        "\"leg spasm\", which does not substring-match, and read a failed "
+        "match as an invention. A grounding check on TTS output was built "
+        "anyway (`utils/script_grounding.py`) because the risk is real and "
+        "was unguarded - agent text has the threshold guard and the "
+        "extraction contract, the script had nothing - but no fabrication "
+        "has actually been observed in a script.",
         "2. **\"Do not bend your hip past 90 degrees\"** is in the script and "
         "in the pipeline output, and is NOT in the source document - "
         "`activity_restrictions` is empty. That phrasing is verbatim from "

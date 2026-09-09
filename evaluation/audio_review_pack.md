@@ -220,26 +220,7 @@ router label "surgical" (matches _ALLOWED_TYPES in api/routes/media.py).
 
 Served by `POST /media/case`. Unlike Part 1 this is different for every patient, so the review is of the SHAPE the generator produces, not of one fixed file.
 
-Generated from `mtsamples_034` (primary diagnosis: Status post right total hip replacement).
-
-```
-Sam: Hi there. We're here to go over your discharge plan.
-Alex: It covers your hip surgery and how to recover. You had a right total hip replacement.
-Sam: We'll also talk about your medications. Some are new, and some you were taking at home.
-Alex: Feosol is a new medicine. It gives you iron to help with low red blood cells.
-Sam: Oxycodone SR and IR are new pain medicines. They are strong pain relievers.
-Alex: You will also continue taking Paxil and Klonopin. These help with mood and anxiety.
-Sam: Celebrex and Protonix are for pain and stomach protection. You will also take Colace for constipation.
-Alex: Dulcolax and Lactulose are for when you need help with a bowel movement.
-Sam: Arixtra and Coumadin help prevent blood clots. Call your doctor if you have nosebleeds.
-Alex: Also call if you see blood in your urine or stool. Do not stop these medicines suddenly.
-Sam: We need to discuss some serious warning signs. Call 911 if you have chest pain.
-Alex: Call 911 if you have pain from your neck to your arm. Also call 911 for trouble breathing.
-Sam: Or if you have shortness of breath. Call your doctor if you cough up blood.
-Alex: Calf pain or leg muscle spasms could mean a blood clot. Call your doctor if these happen.
-Sam: We're here to support your recovery. You will also have physical and occupational therapy.
-Alex: We are here if you have any questions. We wish you the best as you heal.
-```
+_Not generated. Re-run with `--generate` to make one live (costs a single script LLM call, no TTS)._
 
 ---
 
@@ -263,7 +244,7 @@ Checks 1-5 run against `mtsamples_034`. These do NOT substitute for the human si
 
 **Still open for the reviewer:**
 
-1. **The script invents "leg spasms".** It appears nowhere in the source document or anywhere in the pipeline output. The prompt already forbids adding a warning sign the plan does not contain, and the model added one anyway - the same pattern as the fever thresholds, where four prompt attempts failed and a deterministic guard was needed. TTS output has no such guard yet.
+1. ~~The script invents "leg spasms".~~ **RETRACTED 9 Sep 2026 - this was a false alarm and the script was correct.** The phrase is "leg muscle spasms" and it appears both in the escalation guide and in the source document. The check searched for the two-word "leg spasm", which does not substring-match, and read a failed match as an invention. A grounding check on TTS output was built anyway (`utils/script_grounding.py`) because the risk is real and was unguarded - agent text has the threshold guard and the extraction contract, the script had nothing - but no fabrication has actually been observed in a script.
 2. **"Do not bend your hip past 90 degrees"** is in the script and in the pipeline output, and is NOT in the source document - `activity_restrictions` is empty. That phrasing is verbatim from agent 4's own BAD example. The agent 4 prompt was de-numeralled on 9 Sep; this corpus output predates that fix and should be regenerated before it is used as evidence.
 3. **More than three items still appear in one sentence** ("Paxil, MOBIC, Klonopin, Celebrex, and Protonix"). The cap is in the prompt and is not being honoured.
 4. **"MOBIC" is capitalised**, which some TTS voices spell out letter by letter. Confirm on playback.

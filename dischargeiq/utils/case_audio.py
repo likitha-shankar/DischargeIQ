@@ -33,6 +33,7 @@ from dischargeiq.utils.llm_client import (
     load_agent_prompt,
 )
 from dischargeiq.utils.scorer import fk_check
+from dischargeiq.utils.script_grounding import verify_script_grounding
 
 logger = logging.getLogger(__name__)
 
@@ -95,23 +96,58 @@ def build_dialogue_script(pipeline_payload: dict) -> str:
 
     system_prompt = load_agent_prompt("tts_script_prompt.txt")
     client, model = get_llm_client()
-    script = call_chat_with_fallback(
-        client=client,
-        model_name=model,
-        system_prompt=system_prompt,
-        user_message=json.dumps(sections, default=str),
-        max_tokens=800,
-        provider=os.environ.get("LLM_PROVIDER", "gemini"),
-        agent_name="tts_script",
-        document_id=str(extraction.get("primary_diagnosis", "case")),
-    ).strip()
-    if not script or "Sam:" not in script:
-        raise ValueError("model returned an unusable script (no speaker lines)")
+
+    def _generate() -> str:
+        """One script attempt. Raises when the model returns nothing usable."""
+        text = call_chat_with_fallback(
+            client=client,
+            model_name=model,
+            system_prompt=system_prompt,
+            user_message=json.dumps(sections, default=str),
+            max_tokens=800,
+            provider=os.environ.get("LLM_PROVIDER", "gemini"),
+            agent_name="tts_script",
+            document_id=str(extraction.get("primary_diagnosis", "case")),
+        ).strip()
+        if not text or "Sam:" not in text:
+            raise ValueError("model returned an unusable script (no speaker lines)")
+        return text
+
+    script = _generate()
+
+    # Grounding check, then ONE retry. The prompt already forbids adding a
+    # symptom the care plan does not contain, and on 9 Sep 2026 the model
+    # added "leg spasms" anyway - a phrase absent from the source document and
+    # from every agent output. Same pattern as the invented fever thresholds,
+    # where four prompt rewrites failed and only a post-generation check
+    # worked.
+    #
+    # A failed script is REFUSED rather than edited. There is no safe generic
+    # sentence to swap into free-form dialogue, and audio is optional by
+    # contract - a client treats an error here exactly like "no media", so the
+    # patient loses a convenience. Shipping an invented symptom costs more.
+    report = verify_script_grounding(script, pipeline_payload)
+    if not report.is_grounded:
+        logger.warning(
+            "TTS script named ungrounded symptoms %s - regenerating once",
+            report.ungrounded_symptoms,
+        )
+        retry = _generate()
+        retry_report = verify_script_grounding(retry, pipeline_payload)
+        if retry_report.is_grounded:
+            script = retry
+        else:
+            # Both attempts invented something. Refusing is the safe end.
+            raise ValueError(
+                "TTS script names symptoms absent from the care plan after a "
+                f"retry: {retry_report.ungrounded_symptoms}"
+            )
 
     fk = fk_check(script)
     if not fk["passes"]:
-        # Advisory, not fatal: dialogue punctuation skews FK; the human
-        # listen-through is the shipping gate.
+        # Advisory, not fatal: dialogue punctuation skews FK, and the human
+        # listen-through is the shipping gate. The prompt carries a 12-word
+        # sentence cap which took a measured script from grade 6.6 to 2.9.
         logger.warning("TTS script FK grade %.1f exceeds threshold", fk["fk_grade"])
     return script
 
