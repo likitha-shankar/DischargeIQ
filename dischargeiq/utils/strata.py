@@ -236,17 +236,42 @@ def stratum_of_file(path) -> Stratum:
 
 #: Words that are mostly letters but carry a digit are the fingerprint of OCR
 #: character substitution - "fai1ure", "o1d", "1SCHARGE". Real clinical prose
-#: almost never produces them; measured max on the 106-document corpus is 7.8
-#: per 1000 tokens, against a minimum of 12.9 on the degraded stratum.
+#: rarely produces them.
 #:
-#: 10.0 sits in that gap with margin on both sides. At this threshold the
-#: separation is complete: 12/12 degraded documents flagged, 0/106 clean.
-OCR_SUBSTITUTION_THRESHOLD = 10.0
+#: Calibrated on 25 degraded documents against 109 clean ones (106 corpus plus
+#: the 3 demo PDFs), AFTER excluding clinical terms that legitimately carry
+#: digits. That exclusion matters more than the threshold: it dropped the
+#: noisiest clean document from 7.8 to 5.1 and the demo PDFs to 0.0, because
+#: those documents were being penalised for saying "FEV1" and "SpO2".
+#:
+#:   threshold 6  -> 25/25 degraded, 0 false alarms   <- chosen
+#:   threshold 8  -> 24/25 degraded, 0 false alarms
+#:   threshold 10 -> 23/25 degraded, 0 false alarms
+#:
+#: The populations separate completely: noisiest clean 5.1, cleanest degraded
+#: 6.8. Six sits between them. The margin is not large, so re-run the
+#: calibration (scripts/dry_run.py exercises the live end of it) rather than
+#: nudging this constant if a document is ever misfiled.
+OCR_SUBSTITUTION_THRESHOLD = 6.0
 
 #: Dose tokens like "40mg", "2wk", "5ml" are letters-plus-digits by
 #: construction and appear constantly in clean discharge summaries. Counting
 #: them would put every medication list above the threshold.
 _DOSE_TOKEN = re.compile(r"^[0-9]+[a-z]{1,3}$")
+
+#: Clinical terms that legitimately mix letters and digits. Without these, a
+#: respiratory or endocrine document is penalised for its own vocabulary: a
+#: dense passage of "FEV1 ... SpO2 ..." scores over 300 per 1000 tokens on the
+#: raw count. Real documents dilute it - copd_01 measures 5.2 - but "the
+#: document was not about lungs" is not a safety property to depend on.
+_CLINICAL_TOKENS = frozenset({
+    "fev1", "fev25", "fvc", "spo2", "sao2", "pao2", "paco2", "o2", "co2",
+    "hba1c", "a1c", "hgba1c", "b12", "t3", "t4", "tsh", "d3", "k1",
+    "covid19", "sars2", "h1n1", "hib", "hpv16", "hpv18",
+    "s1", "s2", "s3", "s4", "l1", "l2", "l3", "l4", "l5",
+    "c1", "c2", "c3", "c4", "c5", "c6", "c7", "t1", "t2", "t12",
+    "gcs15", "spf30", "po2", "pco2", "fio2", "peep5", "bipap", "cpap",
+})
 _WORD_TOKEN = re.compile(r"[A-Za-z0-9]{3,}")
 _HAS_LETTER = re.compile(r"[A-Za-z]")
 _HAS_DIGIT = re.compile(r"[0-9]")
@@ -278,6 +303,7 @@ def ocr_substitution_rate(text: str) -> float:
         if _HAS_LETTER.search(token)
         and _HAS_DIGIT.search(token)
         and not _DOSE_TOKEN.fullmatch(token.lower())
+        and token.lower() not in _CLINICAL_TOKENS
     ]
     return 1000.0 * len(damaged) / len(tokens)
 

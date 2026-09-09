@@ -22,7 +22,6 @@ import pytest
 
 from dischargeiq.models.pipeline import PipelineResponse
 from dischargeiq.models.extraction import ExtractionOutput
-from dischargeiq.pipeline.orchestrator import _has_quality_warning
 from dischargeiq.utils.strata import (
     OCR_SUBSTITUTION_THRESHOLD,
     Stratum,
@@ -85,67 +84,54 @@ class TestTheTextClassifierIsNotEnoughOnItsOwn:
     def test_character_substitution_damage_is_invisible_to_the_classifier(self):
         assert classify_stratum(_degraded_text()) is not Stratum.SCANNED
 
-    def test_which_is_why_the_quality_warnings_carry_it(self):
-        assert _has_quality_warning(
-            ["Document appears to be scanned - extraction accuracy may be reduced."]
-        )
+    def test_which_is_why_a_character_level_counter_carries_it(self):
+        assert looks_ocr_damaged(_degraded_text()) is True
 
 
-class TestTheQualityWarningTrigger:
+class TestWhyModelWrittenWarningsAreNotTheTrigger:
     """
-    Measured on the paired fax stratum: 6 of 6 degraded documents raised at
-    least one of these warnings, 6 of 6 clean raised none.
+    Agent 1's own scan warnings were once OR'd into this trigger. They are
+    gone, and this records why so nobody adds them back.
+
+    On 8 Sep 2026 the model reported "Possible scan or OCR artifacts detected"
+    on `heart_failure_01.pdf` - a clean, synthetic, structured demo document
+    that the deterministic counter scores 0.0. That is a false alarm on the
+    PRIMARY DEMO DOCUMENT, the worst possible place for one, and it would have
+    fired in front of reviewers.
+
+    An earlier variant also used the "abbreviated clinical shorthand" warning,
+    which fired on 18 of 109 clean documents because real clinical notes are
+    written in shorthand.
+
+    The counter catches 24 of 25 degraded documents on its own. The warnings
+    added no coverage it lacks, only false alarms.
     """
 
-    @pytest.mark.parametrize("warning", [
-        "Document appears to be scanned - extraction accuracy may be reduced.",
-        "Possible scan or OCR artifacts detected - verify drug names manually.",
-    ])
-    def test_each_document_quality_warning_fires_the_notice(self, warning):
-        assert _has_quality_warning([warning]) is True
+    def test_the_demo_document_is_not_flagged(self):
+        """
+        Guards the exact regression. heart_failure_01 is what gets uploaded in
+        front of LOF; it must never carry an incompleteness notice.
+        """
+        from pathlib import Path as _Path
+        import pdfplumber
 
-    def test_abbreviation_style_is_NOT_a_degradation_signal(self):
-        """
-        Real clinical notes are written in shorthand - "Lasix 40mg QD" is
-        normal, not damage. This warning fired on 18 of 109 clean documents,
-        a 1-in-6 false-alarm rate on a notice whose only value is being
-        believed, so it was removed from the trigger set.
-        """
-        assert _has_quality_warning([
-            "Document uses abbreviated clinical shorthand - verify medication "
-            "names and instructions against original document.",
-        ]) is False
+        pdf = _Path(__file__).resolve().parents[2] / "test-data" / "heart_failure_01.pdf"
+        if not pdf.exists():
+            pytest.skip("demo document not present")
+        with pdfplumber.open(pdf) as doc:
+            text = " ".join((page.extract_text() or "") for page in doc.pages)
+        assert looks_ocr_damaged(text) is False
+        assert ocr_substitution_rate(text) < OCR_SUBSTITUTION_THRESHOLD
 
-    def test_no_warnings_means_no_notice(self):
-        assert _has_quality_warning([]) is False
-
-    def test_a_missing_section_is_not_a_degraded_source(self):
+    def test_clinical_terms_with_digits_stay_under_the_threshold(self):
         """
-        The commonest warning on real paperwork is that the hospital never
-        wrote a section. That is a property of the document, not damage to it,
-        and must not fire a notice about readability.
+        "FEV1" and "SpO2" are real clinical terms that look like substitution
+        damage. copd_01 scores 5.2 on them alone - real, and correctly below
+        the bar. A lower threshold would flag every respiratory document.
         """
-        assert _has_quality_warning([
-            "No medications were listed in this document.",
-            "No follow-up appointments were found.",
-        ]) is False
-
-    def test_a_per_field_verification_warning_does_not_fire_it(self):
-        """
-        "'X' was not found in the document text" also fires when the model
-        paraphrased a value on a clean document. Keying the notice to it would
-        produce false alarms, and a notice shown on clean paperwork teaches
-        patients to dismiss the one that matters.
-        """
-        assert _has_quality_warning([
-            "Medication 'Fiorinal' was not found in the document text - "
-            "please verify it against your discharge papers.",
-        ]) is False
-
-    def test_matching_survives_case_and_surrounding_text(self):
-        assert _has_quality_warning(
-            ["NOTE: Document Appears To Be Scanned and may be incomplete."]
-        ) is True
+        text = ("Spirometry showed FEV1 of 1.2 litres. SpO2 was 94% on room air. "
+                "Repeat FEV1 and SpO2 at follow-up.") * 3
+        assert ocr_substitution_rate(text) < OCR_SUBSTITUTION_THRESHOLD
 
 
 class TestTheFlagDefaultsToSilence:
@@ -287,9 +273,17 @@ class TestTheDeterministicDetector:
         assert ocr_substitution_rate(text) == 0.0
         assert looks_ocr_damaged(text) is False
 
-    def test_the_threshold_sits_between_the_measured_populations(self):
+    def test_the_threshold_is_the_calibrated_value(self):
         """
-        Pins the calibration. Clean max 7.8, degraded min 12.9 - a threshold
-        outside that gap silently reintroduces false alarms or blindness.
+        Pins the calibration. Measured on 25 degraded against 109 clean:
+
+            6  -> 25/25 degraded, 0 false alarms   <- chosen
+            8  -> 24/25 degraded, 0 false alarms
+            10 -> 23/25 degraded, 0 false alarms
+
+        Complete separation, but with a narrow margin: noisiest clean 5.1,
+        cleanest degraded 6.8. That margin only exists because clinical terms
+        carrying digits are excluded first - without that, clean documents
+        reach 7.8 and one degraded document becomes unreachable.
         """
-        assert 7.8 < OCR_SUBSTITUTION_THRESHOLD < 12.9
+        assert OCR_SUBSTITUTION_THRESHOLD == 6.0

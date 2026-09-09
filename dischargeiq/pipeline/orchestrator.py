@@ -215,41 +215,6 @@ def _extract_safety_context(raw_text: str) -> str:
         return ""
 
 
-#: Agent 1 warnings that mean THE DOCUMENT WAS HARD TO READ, as opposed to
-#: "the document did not say". Matched on stable fragments rather than whole
-#: sentences so a prompt reword does not silently disable the notice.
-#:
-#: Deliberately excludes "abbreviated clinical shorthand", which detects
-#: ABBREVIATION STYLE rather than damage - real clinical notes are written
-#: that way, and it fired on 18 of 109 clean documents. Also excludes
-#: "'X' was not found in the document text". That fires
-#: per field and can also mean the model paraphrased a value on a perfectly
-#: clean document, so keying the notice to it would produce false alarms - the
-#: failure this feature must avoid, because a warning shown on clean paperwork
-#: teaches patients to dismiss it.
-_QUALITY_WARNING_MARKERS = (
-    "appears to be scanned",
-    "scan or ocr artifacts",
-)
-
-
-def _has_quality_warning(warnings: list[str]) -> bool:
-    """
-    True when any extraction warning says the SOURCE was hard to read.
-
-    Args:
-        warnings: Extraction warnings collected for this run.
-
-    Returns:
-        Whether the escalation guide should carry its incompleteness notice.
-    """
-    for warning in warnings or []:
-        lowered = str(warning).lower()
-        if any(marker in lowered for marker in _QUALITY_WARNING_MARKERS):
-            return True
-    return False
-
-
 async def run_pipeline(
     pdf_path: str,
     session_id: str | None = None,
@@ -703,22 +668,24 @@ async def _run_pipeline_internal(
 
     # Source quality, for the escalation-guide incompleteness notice.
     #
-    # The primary signal is DETERMINISTIC: the rate of letter/digit-confused
-    # words ("fai1ure", "o1d"), which is the fingerprint of OCR character
-    # substitution. Measured on the corpus it separates completely - clean
-    # documents top out at 7.8 per 1000 tokens, degraded ones start at 12.9,
-    # and the threshold of 10 flags 12/12 degraded with 0/106 false alarms.
+    # DETERMINISTIC ONLY. The rate of letter/digit-confused words ("fai1ure",
+    # "o1d") is the fingerprint of OCR character substitution, and at a
+    # threshold of 8 it flags 24 of 25 degraded documents with 0 false alarms
+    # across 109 clean ones.
     #
     # It is NOT classify_stratum. That looks for broken layout, and character
     # substitution produces plausible-looking words, so a degraded fax scores
-    # 0.00 there and files as DICTATED. An earlier version of this notice keyed
-    # on it and would never have fired on a real upload.
+    # 0.00 there and files as DICTATED. An earlier version keyed on it and
+    # would never have fired on a real upload.
     #
-    # Agent 1's scan warnings are OR'd in as a second net, for damage that is
-    # visible to a reader but not to this counter. Its "abbreviated clinical
-    # shorthand" warning is deliberately NOT used: real clinical notes are
-    # written in shorthand, so it fired on 18 of 109 clean documents - a 1-in-6
-    # false-alarm rate on a notice whose whole value is being believed.
+    # Agent 1's own scan warnings were OR'd in here as a second net and have
+    # been REMOVED. They are model-written, and on 8 Sep 2026 the model
+    # reported "Possible scan or OCR artifacts detected" on heart_failure_01 -
+    # a clean, synthetic, structured demo PDF that the deterministic counter
+    # correctly scores 0.0. A false alarm on the primary demo document is the
+    # worst possible place for one, and the warnings caught nothing the
+    # counter misses. A notice shown on clean paperwork teaches patients to
+    # dismiss the one that matters.
     source_stratum = None
     source_degraded = False
     try:
@@ -727,7 +694,6 @@ async def _run_pipeline_internal(
             source_degraded = (
                 looks_ocr_damaged(pdf_text)
                 or source_stratum == Stratum.SCANNED.value
-                or _has_quality_warning(extraction_warnings)
             )
     except Exception as exc:  # advisory only, never fatal
         logger.warning("Source-quality assessment failed: %s", exc)
