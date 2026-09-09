@@ -114,6 +114,12 @@ fi
 
 # ── 4. The offline page, which is the actual insurance ──────────────────────
 echo
+echo "3b. Per-condition audio vs its source"
+python3 scripts/check_media_drift.py | sed 's/^/   /'
+echo "   (DRIFTED or UNKNOWN means that condition's podcast says something the"
+echo "    source no longer does - do not play it. The per-case audio is fine.)"
+
+echo
 echo "4. Offline fallback"
 if [[ -f docs/demo_fallback.html ]]; then
   size=$(( $(wc -c < docs/demo_fallback.html) / 1024 ))

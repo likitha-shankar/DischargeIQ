@@ -134,7 +134,32 @@ clinician-reviewed template templates/heart_failure.md - do NOT add facts here.
 
 ## The one habit that matters most
 - Weigh yourself every morning, before you eat.
-- If you gain more than two pounds in one day, call your doctor right away.
+- Write the number down every day.
+- Your own discharge papers tell you how much weight gain to call about.
+- The app shows that number on your Warning Signs page. Follow that one.
+- If you gain weight quickly and you are not sure, call your doctor.
+
+<!--
+NO NUMBER HERE, DELIBERATELY. This file said "more than two pounds in one
+day, call your doctor". That is the ACC/AHA 2022 threshold and it is correct
+as general guidance - templates/heart_failure.md cites it and keeps it.
+
+But this audio is GENERIC. Every heart-failure patient hears the same file,
+and it plays inside an app that is simultaneously showing them the threshold
+from their OWN discharge summary. On the demo document that is 3 lb, and the
+action is GO TO THE ER TODAY rather than "call your doctor". So a patient
+heard a lower number attached to a less urgent action, and read a higher
+number attached to a more urgent one, from one product.
+
+That is Dr Liebovitz's central point arriving through the audio path: a
+general clinical threshold presented as if it applied to this patient. The
+post-generation threshold guard strips these from agent text, and cannot
+reach here, because generic audio has no source document to check against.
+
+The fix is not to change the number - picking 3 lb would be adopting one
+patient's threshold as everyone's, which is worse. It is to stop this file
+competing with the patient's own paperwork and point at it instead.
+-->
 ```
 
 ### hip_replacement  (hip_replacement.wav, 3.9 MB)
@@ -205,7 +230,17 @@ router label "surgical" (matches _ALLOWED_TYPES in api/routes/media.py).
 - This comes from the gas used in the surgery. It will go away on its own.
 
 ## What to do at home
-- Do not lift more than ten pounds for two to four weeks.
+- Your discharge papers say how much you can safely lift, and for how long.
+- The app shows that on your Recovery page. Follow that one.
+- If your papers do not say, ask your surgeon before you lift anything heavy.
+
+<!--
+Was "do not lift more than ten pounds for two to four weeks" - the ACC/ACS
+figure, correct as general guidance and kept in templates/surgical_case.md.
+Removed here for the same reason as the heart-failure weight rule: a generic
+explainer must not hand a patient a number that competes with the one in
+their own summary. A lifting limit differs between surgeons and procedures.
+-->
 - Do not drive while you take pain pills.
 - Start walking the day you get home. Do a little more each day.
 
@@ -223,25 +258,20 @@ Served by `POST /media/case`. Unlike Part 1 this is different for every patient,
 Generated from `mtsamples_034` (primary diagnosis: Status post right total hip replacement).
 
 ```
-Sam: Hello! We're here to go over your discharge plan.
-Alex: It's great you're heading home soon. You had a right total hip replacement.
-Sam: We'll help you understand your medicines and what to expect.
-Alex: Let's talk about your medicines first. You have several new ones.
-Sam: You'll take Protonix to help with your stomach. This is with your other pills.
-Alex: Arixtra is a shot to help prevent blood clots. Feosol gives you iron.
-Sam: You will also continue Paxil, MOBIC, and Klonopin. Celebrex is for pain and swelling.
-Alex: Coumadin helps prevent blood clots too. Colace helps with bowel movements.
-Sam: You also have Fiorinal and Oxycodone for pain. They can make you sleepy.
-Alex: Use the short-acting Oxycodone only when you need it for pain.
-Sam: Remember to take your medicines exactly as prescribed.
-Alex: Your doctor will check your Coumadin levels. Do not stop it without calling them.
-Sam: Watch for signs of bleeding. This means bleeding that won't stop.
-Alex: Call your doctor if you have black, tarry stools. Also watch for a rash or shortness of breath.
-Sam: Call your doctor if you have chest pain or trouble breathing.
-Alex: If you feel very confused, call your doctor. Trouble breathing is also a reason to call.
-Sam: Call 911 right away if you have sudden face drooping or arm weakness.
-Alex: Sudden trouble speaking means you should call 911.
-Sam: We are here to help you through your recovery. You will get better.
+Sam: Hi there. We're here to go over your discharge plan.
+Alex: You had a right total hip replacement. We want to make sure you recover well at home.
+Sam: You have several new medications. Protonix helps protect your stomach. Feosol gives you iron for your blood count.
+Alex: Arixtra helps prevent blood clots. Dulcolax and lactulose help with bowel movements.
+Sam: Your other medicines continue. These include Paxil, MOBIC, and Klonopin.
+Alex: Celebrex and Coumadin are also continued. Oxycodone is for pain. Colace continues too.
+Sam: Keep your hip from bending past 90 degrees. Do not cross your legs.
+Alex: And do not twist your body. Also, do not lift anything heavy.
+Sam: Call 911 if you have trouble breathing or chest pain.
+Alex: Call 911 for sudden weakness or if you pass out.
+Sam: Go to the ER for calf pain or swelling. Also go for a fever that won't go down.
+Alex: Call your doctor for mild pain or redness at your cut.
+Sam: We know this is a lot to remember. Your full plan is written down for you.
+Alex: Take care, and we hope you feel better soon.
 ```
 
 ---

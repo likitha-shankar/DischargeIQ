@@ -24,7 +24,17 @@ router label "surgical" (matches _ALLOWED_TYPES in api/routes/media.py).
 - This comes from the gas used in the surgery. It will go away on its own.
 
 ## What to do at home
-- Do not lift more than ten pounds for two to four weeks.
+- Your discharge papers say how much you can safely lift, and for how long.
+- The app shows that on your Recovery page. Follow that one.
+- If your papers do not say, ask your surgeon before you lift anything heavy.
+
+<!--
+Was "do not lift more than ten pounds for two to four weeks" - the ACC/ACS
+figure, correct as general guidance and kept in templates/surgical_case.md.
+Removed here for the same reason as the heart-failure weight rule: a generic
+explainer must not hand a patient a number that competes with the one in
+their own summary. A lifting limit differs between surgeons and procedures.
+-->
 - Do not drive while you take pain pills.
 - Start walking the day you get home. Do a little more each day.
 
