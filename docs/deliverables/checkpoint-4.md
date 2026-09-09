@@ -13,10 +13,10 @@ artifact, not the construction of one.
 |---|---|
 | Adversarial audit passes on tested cases | ✅ 6/6 on 31 Jul, `a17fcfa` |
 | Clinician sample verification, every flag traced to a fix | ◻ **blocked on LOF assigning reviewers** |
-| Accuracy at the 98-100% bar on tested content | ◑ **met on readability (99% of 220 outputs) and on medication fidelity (0 invented names). Not yet demonstrated on numeric grounding: 47/55 outputs carry a number absent from source.** Say which is being certified |
+| Accuracy at the 98-100% bar on tested content | ◑ **met on readability (98% of 424 outputs, mean grade 4.08) and on medication fidelity (0 invented names across 106).** Numeric grounding was 25/106 outputs carrying a number absent from source; a deterministic post-generation guard now strips ungrounded clinical thresholds (`d4f64e5`, 26 of 212 sections rewritten, 0 grounded thresholds touched). Re-measure after the next corpus run before certifying. Say which bar is being certified |
 | Production builds with locked dependencies | ◑ Python locked; store-signed builds out of scope |
 | Integration-readiness documentation | ✅ `docs/INTEGRATION_READINESS.md` |
 | Final summary report with limitations | ◑ draft `docs/FINAL_SUMMARY_REPORT.md` `3661a04`; figures provisional pending 4.2 and full 3.4 |
-| Rehearsed demo and backup recording | ◑ script and runbook written `f861677`; recording not made |
+| Rehearsed demo and backup recording | ◑ script and runbook written `f861677`; recording not made. Four failure paths are now demonstrable - rejected document, missing media, degraded database, degraded source - and `scripts/dry_run.py` exercises 37 live checks in one command |
 
 Sprint file: [sprint-4.md](sprint-4.md) ◻

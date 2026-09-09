@@ -39,9 +39,10 @@ His point: FK and SMOG penalise unavoidable medical nouns and reward short
 sentences that stay opaque. Report the formula score, then prove comprehension.
 
 **He is right, and this is the most important item in the review.** Our entire
-quality gate is FK <= 6.0. The 16 Aug corpus run reports mean grade 4.19 with
-99% of 220 outputs passing, which proves sentences are short and proves
-nothing about understanding.
+quality gate is FK <= 6.0. The completed corpus run reports mean grade 4.08
+with 98% of 424 outputs passing, which proves sentences are short and proves
+nothing about understanding. (Figures refreshed 9 Sep from the 31 Aug
+106-document run; the 16 Aug run over 55 documents said 4.19 and 99% of 220.)
 
 We are closer than he assumes: the teach-back loop is **already built and
 live** (`/quiz/generate`, `/quiz/score`, `quiz_scores` table,
@@ -229,15 +230,29 @@ should string- or entity-match the extraction record, failing hard otherwise.
 That also makes the citation chips trustworthy.
 
 **He predicted, from the architecture alone, the exact failure our own run
-measured.** `evaluation/corpus_accuracy_report.md` (16 Aug): **47 of 55
-outputs contain a number absent from the source document.**
+measured.** On the completed 106-document run (31 Aug): **25 of 106 outputs
+contain a number absent from the source document.** The 16 Aug figure he was
+answered with was 47 of 55, from the partial run.
 
-We are ahead of him on diagnosis and behind on remedy. The report already
-classifies the hits: 46 prompt-supplied clinical thresholds ("over 101 F"),
-38 model-invented activity targets, and the Agent 4 prompt *requires* one
-weekly goal, so the requirement manufactures the invention when the source
-sets none. Medication names absent from source: **0**, so the Agent 1 contract
-holds.
+Medication names absent from source: **0** across all 106, so the Agent 1
+contract holds.
+
+**Updated 9 Sep 2026 - the classification in the report is not quite right.**
+It attributed the invented activity targets to the Agent 4 prompt requiring a
+weekly goal. Measuring the actual text found something blunter: the model was
+copying the prompt's own worked examples VERBATIM. "bend your hip past 90"
+appears word for word in output, and the GOOD example leaked hardest - its
+"10 pounds" reached 16 outputs, 12 of which had no such number in the source.
+Every numeral in a prompt is copyable regardless of the GOOD/BAD label above
+it.
+
+Acted on (`d4f64e5`): Agent 4's examples now contain no numerals at all,
+which cut that leakage from 5 of 10 sampled documents to 3. But fever
+thresholds did NOT move - 100.4 F is the standard clinical threshold and
+appears in Agent 5's output despite never appearing in Agent 5's prompt.
+Four prompt attempts have now failed on it. A deterministic post-generation
+guard now strips ungrounded thresholds: 26 of 212 corpus sections rewritten,
+0 grounded thresholds touched, 0 changes to any 911 instruction.
 
 Verified 25 Aug: grounding logic exists in `extraction_agent.py` and the chat
 service, with `test_extraction_grounding.py` and `test_chat_grounding.py`, but
@@ -371,30 +386,73 @@ itself rather than by reading modification times.
 finishes, corpus-wide gate figures mix old-prompt and new-prompt outputs and
 mean nothing. The 10-document paired result above is the verified claim.
 
-### ⚑ 3.3 Stratified corpus across at least four source formats
+### ✅ 3.3 Stratified corpus - DONE 8 Sep 2026, and it found a real defect
 
-**Right in principle; we should push back on scope.** Our 106 MTSamples
-documents are all one stratum: dictated transcriptions. So our accuracy claim
-generalises less than it appears to, and he is correct to say so.
+He was right, and the pushback below is superseded. Recorded rather than
+deleted, because the reason it looked impossible is worth keeping.
 
-The constraint he cannot see: we are at 55 of 106 processed, throttled by
-Vertex **dynamic shared quota**, which has no per-project limit and therefore
-**cannot be raised by request**. Four strata multiplies a problem we cannot
-currently solve.
+**What was argued at the time:** the 106 MTSamples documents are one stratum
+(dictated transcriptions), we were at 55 of 106 processed, throttled by
+Vertex **dynamic shared quota** which has no per-project limit and therefore
+cannot be raised by request. Four strata multiplied a problem we could not
+solve.
 
-**Proposal: add one contrasting stratum** (a clean Epic-style after-visit
-export) and report per-stratum honestly across two, rather than promise four
-and deliver a partial run of each.
+**What actually happened:** the corpus run completed at 106 of 106 on 31 Aug,
+and a second stratum was built by simulating OCR damage on documents we
+already had (`scripts/build_fax_stratum.py`), which costs no extra source
+material. **25 paired documents** now measure the same document clean and
+degraded: `evaluation/fax_stratum_report.md`.
 
-### ◻ 3.4 Prefer FHIR; treat PDF as fallback ⚑
+**The finding, which is the point of his request:**
 
-Architecturally correct, out of scope for the remaining weeks. This rebuilds
-the ingestion premise, and the program plan says October delivers a finished
-artefact rather than the construction of a new one.
+| Field | Clean | Absent after degradation | Retention |
+|---|---|---|---|
+| Warning signs | 83 | 12 | **85.5%** |
+| Medications | 78 | 4 | **94.9%** |
+| Procedures | 61 | 17 | 72.1% |
 
-**Proposal:** acknowledge it as the right production direction, record it in
-`INTEGRATION_READINESS.md` as the named next step, and do not attempt it this
-cycle. That answer is more credible than a half-built FHIR path.
+Warning signs degrade most and cost most. `mtsamples_034` lost all five,
+among them **hemoptysis**. Agent 5 still emitted a complete three-tier guide,
+because its universal criteria do not come from extraction - so the patient
+keeps generic emergency advice and loses the warnings written specifically
+for them. That distinction is not visible without stratifying, which is
+exactly what he asked for.
+
+**Acted on:** `PipelineResponse.source_degraded` now drives a notice on the
+escalation guide telling the patient their specific warning signs may be
+incomplete (`2d66b80`).
+
+**Honest limit:** the stratum SIMULATES scanner damage on already-clean text.
+Real faxes add skew, speckle, dropped lines and merged columns. Every figure
+is a LOWER bound and must never be described as a measurement of real
+scanned documents. Still one contrasting stratum, not four.
+
+### ✅ 3.4 Prefer FHIR - DONE 6 Sep 2026, and the finding beats the feature
+
+The scope pushback below is superseded. `dischargeiq/utils/fhir_adapter.py`
+maps a FHIR R4 bundle straight to `ExtractionOutput` - MedicationRequest,
+Condition, Encounter, Appointment, Procedure - with 19 tests.
+
+**What was argued at the time:** architecturally correct, out of scope,
+rebuilds the ingestion premise, and October delivers a finished artefact
+rather than the construction of a new one.
+
+**Why it was worth doing anyway:** the adapter took a day, and building it
+answered a question no amount of discussion would have. A FHIR bundle removes
+extraction error for dose, date and provider **entirely** - it does not
+shrink, it disappears, because those arrive as typed values.
+
+**But no discrete FHIR resource carries red flags, activity limits, or
+dietary restrictions.** They live in narrative discharge instructions. So the
+safety-critical agent gains NOTHING from FHIR, and PDF cannot be demoted to a
+legacy path - it stays the only route to the content that matters most.
+
+The adapter reports what it cannot supply (`FhirCoverage.needs_narrative`)
+rather than returning a confident empty list, and refuses a bundle with no
+primary diagnosis rather than emitting a record that explains nothing.
+
+That is a stronger answer to "prefer FHIR" than either agreeing or declining
+would have been.
 
 ### ⚑ 3.5 Gold standard of 50-100 clinician-annotated documents
 
@@ -445,8 +503,10 @@ before the report is cited as gate evidence.**
 The re-evaluation trigger he asked for is documented in
 `docs/MODEL_VERSIONING.md`: re-run on a provider change, a model or alias
 change, any agent prompt change, or an extraction-schema change. Prompt edits
-are in that list deliberately - the 47/55 grounding finding traces to a prompt
-requirement, not to the model.
+are in that list deliberately - the numeric-grounding finding traces to a
+prompt requirement, not to the model, and the follow-up measurement went
+further: the model was copying the prompt's own worked examples verbatim,
+including the GOOD one.
 
 **Left as a decision, not made unilaterally:** pinning `LLM_MODEL` for
 evaluation runs while production stays on the provider default. That
@@ -482,7 +542,7 @@ on 15 Sep, which is the useful anchor.
 
 | Week | His deliverable | Our position |
 |---|---|---|
-| 7 | Stratified 50-doc corpus, annotation schema, license audit | License audit ✅ clean. Stratification contested, see 3.3 |
+| 7 | Stratified 50-doc corpus, annotation schema, license audit | License audit ✅ clean. Stratification ✅ DONE - 25 paired documents, see 3.3. Annotation schema still needs a clinician (3.5) |
 | 8 | Clinician-annotate 25 docs; precision/recall per stratum | ⚑ blocked on clinician availability, same bottleneck as 4.2. Most likely item to slip |
 | 9 | Grounding verifier with hard failure; freeze physician-signed escalation template; convert Output 4 to template-filled | **Highest-value week in his plan.** Items 3.2 and 2.2 together |
 | 10 (Gate 3) | All five outputs + grounded chat end to end **including failure paths**; evidence package | Well positioned: `rejected` status, `complete_with_warnings`, and media fallback tests already cover much of the failure-path demand |
@@ -495,9 +555,11 @@ on 15 Sep, which is the useful anchor.
 1. **His top clinical ask and our stalled Checkpoint 2 are the same blocker.**
    Testers gate 2.1, 3.6, task 3.5 prompt tuning, and Checkpoint 2 acceptance.
    One missing cohort wearing four hats.
-2. **He independently predicted our measured failure** (3.2 vs the 47/55
-   grounding result). Lead the reply with that: it shows the evaluation is
-   honest enough to surface our own problems.
+2. **He independently predicted our measured failure** (3.2 vs the
+   numeric-grounding result - 25 of 106 outputs on the completed run). Lead
+   the reply with that: it shows the evaluation is honest enough to surface
+   our own problems, and the fix that followed is a deterministic guard
+   rather than a fifth prompt attempt.
 3. **The escalation template (2.2) is the item not to defer, and we now have
    evidence rather than agreement.** The mechanism is built and inert until
    signed. What changed on 25 Aug is that we tried to pick a fever threshold

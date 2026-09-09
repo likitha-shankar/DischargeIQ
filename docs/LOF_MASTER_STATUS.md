@@ -162,7 +162,7 @@ reviewers for Checkpoint 4, neither of which is ours to schedule.
 - **4.1** Media workflow: endpoints, players, per-diagnosis strategy done - **5 NotebookLM audio files not yet generated** (manual, ~1hr)
 - **4.2** Media quality pass: NotebookLM **source docs built** (`media/sources/`, phonetic hints + bulleting) - actual audio generation + listen-through remains
 - **5.2** Clinician scoring - portal ready; **awaits the two LOF-assigned reviewers**
-- **5.3** Adversarial safety audit - suite built + runnable (`evaluation/adversarial_audit.py`); **last live run was vacuous (LLM quota exhausted) - needs a valid run under paid quota / Vertex**
+- **5.3** Adversarial safety audit - ✅ **PASSED 31 Jul 2026 on funded Anthropic quota**, 6/6 cases (`a17fcfa`). `evaluation/adversarial_audit.json` records `vacuous: false` and a real `pipeline_status` per case, so the injections reached a live model. A genuine injection hole in Agent 1 was found and fixed first (`dc4f3ab`). The earlier vacuous run is superseded
 - **5.4** Fix pass for <4.0 docs - depends on 5.2 scores
 - **6.1** UI/UX polish - degradation paths shipped; final polish pass remains
 - **4.7** Final summary report - aggregates the clinician review (4.2) and accuracy run (3.4)

@@ -47,8 +47,11 @@ the following changes:
 2. `LLM_MODEL` changes, or the provider announces a change to what an alias
    resolves to.
 3. Any agent system prompt in `dischargeiq/prompts/` changes. A prompt edit
-   changes outputs as surely as a model swap; the 47/55 numeric-grounding
-   finding traces to a prompt requirement, not to the model.
+   changes outputs as surely as a model swap. The numeric-grounding finding
+   traces to the prompts, not the model - and more sharply than first
+   recorded: measured on 9 Sep 2026, agent 4 was copying the numerals out of
+   its own worked examples, the GOOD one leaking hardest (its weight reached
+   12 outputs whose source never mentioned it).
 4. The extraction schema in `dischargeiq/models/extraction.py` changes, since
    it is the contract every downstream agent reads.
 

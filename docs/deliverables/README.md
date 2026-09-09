@@ -116,7 +116,7 @@ or a commit behind it.
 |---|---|
 | Sprint 1 / Checkpoint 1 (21 Jul) | ✅ delivered |
 | Sprint 2 / Checkpoint 2 (18 Aug) | ⚠ **date passed, outcome not recorded.** Build side met; 2.6 tester recruiting still marked not started. Cure window from 18 Aug expires 25 Aug |
-| Sprint 3 (15 Sep) | ◑ dashboard built early; per-case audio ✅ done 16 Aug; accuracy run ◑ reported on 55 of 106 documents |
+| Sprint 3 (15 Sep) | ◑ dashboard built early; per-case audio ✅ done 16 Aug and wired into the app 6 Sep; accuracy run ✅ **complete on 106 of 106** (31 Aug), plus a 25-document degraded stratum (8 Sep). Only 3.5 remains, blocked on testers |
 | Sprint 4 (6 Oct) | ◻ adversarial audit passed; final summary report drafted; clinician review still blocked on LOF reviewers |
 
 Work has run ahead of the plan in places: the teach-back loop, the clinician
