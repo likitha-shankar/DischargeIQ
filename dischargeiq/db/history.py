@@ -93,6 +93,54 @@ async def get_db_pool(
     raise last_error if last_error else RuntimeError("pool creation failed")
 
 
+
+#: Extraction fields that must never reach the database.
+#:
+#: `patient_name` is a direct identifier - one of the eighteen under HIPAA -
+#: and every `*_source` span carries VERBATIM text lifted out of the document,
+#: which can contain anything the hospital wrote there: names, dates of birth,
+#: record numbers, addresses.
+#:
+#: CLAUDE.md has always said "never store full PDF text or free-text agent
+#: outputs in the database; only structured fields, hashes, and metadata". The
+#: insert wrote `extraction.model_dump()` whole, which satisfies "structured
+#: fields" on a literal reading and defeats the intent: 272 verbatim source
+#: spans across the 106-document corpus, plus a name column.
+#:
+#: This is invisible on the current corpus - MTSamples is de-identified, so
+#: `patient_name` extracts as "female" or "The patient". On real paperwork it
+#: is a real name, and the store becomes a HIPAA record with no retention
+#: policy and no deletion path.
+_NEVER_PERSIST = frozenset({"patient_name"})
+
+
+def redact_for_storage(extraction: ExtractionOutput) -> dict:
+    """
+    Strip direct identifiers and verbatim source text before persisting.
+
+    Args:
+        extraction: Validated Agent 1 output.
+
+    Returns:
+        dict: The extraction with `patient_name` and every `*_source` span
+        removed. Clinical structure - diagnoses, medications, appointments,
+        restrictions, warning signs - is kept, because that is what the
+        history screen and the clinician dashboard exist to show.
+
+    Note:
+        Provenance spans are dropped from STORAGE only. They still travel in
+        the live API response, where the app draws citation chips from them,
+        and they are still what makes an extracted value traceable. They are
+        simply not worth keeping at rest.
+    """
+    payload = extraction.model_dump()
+    return {
+        key: value
+        for key, value in payload.items()
+        if key not in _NEVER_PERSIST and not key.endswith("_source")
+    }
+
+
 async def save_discharge_history(
     pool: asyncpg.Pool,
     session_id: str,
@@ -133,7 +181,7 @@ async def save_discharge_history(
                 extraction.primary_diagnosis,
                 extraction.discharge_date,
                 pipeline_status,
-                json.dumps(extraction.model_dump()),
+                json.dumps(redact_for_storage(extraction)),
                 json.dumps(fk_scores),
             )
         logger.info("Saved discharge history row %d for session %s", row_id, session_id)
