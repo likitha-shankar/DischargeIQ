@@ -225,3 +225,82 @@ async def get_history_for_session(
     except asyncpg.PostgresError as db_error:
         logger.error("Failed to fetch history for session %s: %s", session_id, db_error)
         raise
+
+
+async def purge_history_older_than(pool, days: int) -> int:
+    """
+    Delete discharge_history rows older than `days`.
+
+    Args:
+        pool: Active asyncpg connection pool.
+        days: Age in days beyond which a row is deleted. Must be positive.
+
+    Returns:
+        int: Number of rows deleted.
+
+    Raises:
+        ValueError: If `days` is not positive - a zero or negative retention
+            would delete the entire table, which is never what a scheduled
+            job means to do and is an easy typo to make in a cron line.
+        asyncpg.PostgresError: If the delete fails.
+
+    Why this exists, and why it is not scheduled here:
+        Rows persisted indefinitely. There was no purge, no TTL and no way to
+        honour a deletion request - raised in the launch review of 9 Sep 2026
+        alongside the identifier redaction in `redact_for_storage`.
+
+        HOW LONG a clinical record should live is a policy question with
+        regulatory weight, not an engineering default, so this function takes
+        the number and does not choose it. Nothing calls it automatically.
+        Wire it to a scheduled job once someone with the authority to decide
+        has picked the number.
+
+        Even unscheduled it is worth having: it is the difference between
+        "we cannot delete that" and "we can, tell us when".
+    """
+    if days <= 0:
+        raise ValueError(
+            f"retention must be a positive number of days, got {days}. "
+            "A zero or negative value would delete every row."
+        )
+    async with pool.acquire() as conn:
+        result = await conn.execute(
+            "DELETE FROM discharge_history "
+            "WHERE created_at < NOW() - ($1 || ' days')::interval",
+            str(days),
+        )
+    deleted = int(result.split()[-1]) if result else 0
+    logger.info("Purged %d discharge_history row(s) older than %d days",
+                deleted, days)
+    return deleted
+
+
+async def delete_history_for_session(pool, session_id: str) -> int:
+    """
+    Delete every stored row for one session - a subject deletion request.
+
+    Args:
+        pool: Active asyncpg connection pool.
+        session_id: The session whose rows should be removed.
+
+    Returns:
+        int: Number of rows deleted. Zero is a valid answer and means the
+        session had nothing stored, not that the delete failed.
+
+    Raises:
+        asyncpg.PostgresError: If the delete fails.
+
+    Note:
+        Separate from the age-based purge on purpose. "Delete everything
+        older than N" and "delete this person's data because they asked" are
+        different operations with different authorisations, and collapsing
+        them into one function invites the wrong one being called.
+    """
+    if not session_id:
+        return 0
+    async with pool.acquire() as conn:
+        result = await conn.execute(
+            "DELETE FROM discharge_history WHERE session_id = $1", session_id)
+    deleted = int(result.split()[-1]) if result else 0
+    logger.info("Deleted %d row(s) for session %s", deleted, session_id)
+    return deleted

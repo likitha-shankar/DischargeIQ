@@ -21,6 +21,7 @@ that wrote the data. Long-term fix: GCS or Redis for PDF/simulator stores.
 
 import logging
 import threading
+import os
 import time
 import uuid
 from collections import OrderedDict
@@ -30,6 +31,20 @@ logger = logging.getLogger(__name__)
 
 # Defaults - match the values previously hard-coded in main.py.
 _PDF_STORE_MAX = 50
+
+#: How long a stored PDF stays fetchable, in seconds (default 2 hours).
+#:
+#: GET /pdf/{session_id} is a CAPABILITY URL - the session id is the only
+#: thing protecting the document, because the Streamlit viewer embeds it in an
+#: <iframe> and a browser iframe cannot send an Authorization header. A UUID4
+#: is unguessable, but without an expiry the capability lives until LRU
+#: pressure evicts it, which on a quiet instance is indefinitely.
+#:
+#: Bounding it turns "forever unless busy" into "two hours", which is longer
+#: than any session a patient actually has and short enough that a leaked URL
+#: stops working. The real fix is a signed short-lived token in the query
+#: string; this is the cheap half of it.
+_PDF_TTL_SECONDS = float(os.environ.get("PDF_TTL_SECONDS", 2 * 60 * 60))
 _PROGRESS_TTL_SECONDS = 600.0
 
 
@@ -83,25 +98,45 @@ class SessionStore:
                 old_sid, _ = self._pdf.popitem(last=False)
                 with self._simulator_lock:
                     self._simulator.pop(old_sid, None)
-            self._pdf[session_id] = pdf_bytes
-        logger.debug(
-            "PDF stored - session: %s, size: %d bytes", session_id, len(pdf_bytes)
-        )
+            self._pdf[session_id] = (pdf_bytes, time.time())
+        # The session id is a capability: anyone holding it can fetch the
+        # document. Logging it puts a live credential into Cloud Logging,
+        # where it can be replayed for as long as the entry survives. Only the
+        # size is recorded.
+        logger.debug("PDF stored - %d bytes", len(pdf_bytes))
         return session_id
 
-    def get_pdf(self, session_id: str) -> Optional[bytes]:
+    def get_pdf(self, session_id: str, now: Optional[float] = None) -> Optional[bytes]:
         """
-        Return stored PDF bytes, or None when unknown or evicted.
+        Return stored PDF bytes, or None when unknown, evicted or expired.
 
         Args:
             session_id: UUID returned by store_pdf().
+            now: Reference timestamp, for tests. Uses time.time() when None.
 
         Returns:
-            bytes: Raw PDF bytes, or None if the session was never stored or
-            has been evicted by LRU eviction.
+            bytes: Raw PDF bytes, or None if the session was never stored,
+            was evicted by LRU pressure, or has passed _PDF_TTL_SECONDS.
+
+        Note:
+            An expired entry is DELETED here rather than merely hidden. The
+            session id is a capability URL - it is the only thing protecting
+            the document - so leaving the bytes in memory after the capability
+            stops working keeps patient data alive for no benefit.
         """
+        current = time.time() if now is None else now
         with self._pdf_lock:
-            return self._pdf.get(session_id)
+            entry = self._pdf.get(session_id)
+            if entry is None:
+                return None
+            pdf_bytes, stored_at = entry
+            if current - stored_at > _PDF_TTL_SECONDS:
+                del self._pdf[session_id]
+                with self._simulator_lock:
+                    self._simulator.pop(session_id, None)
+                logger.info("PDF session expired after %.0fs", current - stored_at)
+                return None
+            return pdf_bytes
 
     # ── Simulator store ───────────────────────────────────────────────────────
 
