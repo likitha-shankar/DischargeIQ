@@ -53,7 +53,16 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 # pytest run that already loaded .env is harmless.
 load_dotenv(_REPO_ROOT / ".env")
 
-_WHITELIST = {"complete", "complete_with_warnings", "partial"}
+# "rejected" was added in July 2026 when the router gate landed: a bill or an
+# invoice is now turned away BEFORE any agent runs. This whitelist predated
+# that and had been failing not_a_discharge_invoice.pdf ever since - the
+# document being correctly rejected read as a broken pipeline.
+_WHITELIST = {"complete", "complete_with_warnings", "partial", "rejected"}
+
+# A rejected run writes no discharge_history row: there is no extraction to
+# store, which is the point of gating before the agents. The aggregate row
+# count therefore has to exclude them rather than expect one per fixture.
+_REJECTED_FIXTURES: set[str] = set()
 _FK_GATE = 6.0
 _AGENT_KEYS = ("agent2", "agent3", "agent4", "agent5")
 _PER_FIXTURE_TIMEOUT_SECONDS = 300.0
@@ -157,7 +166,7 @@ async def _count_invalid_statuses(since: datetime) -> int:
         "SELECT COUNT(*) AS n FROM discharge_history "
         "WHERE created_at >= $1 "
         "AND pipeline_status NOT IN "
-        "('complete', 'complete_with_warnings', 'partial')",
+        "('complete', 'complete_with_warnings', 'partial', 'rejected')",
         since,
     )
     return int(rows[0]["n"])
@@ -294,6 +303,17 @@ def test_corpus_fixture_passes(pdf_path: Path) -> None:
         f"{pdf_path.name}: status={status!r} not in {_WHITELIST}"
     )
 
+    if status == "rejected":
+        # The router turned the document away before any agent ran, so there
+        # is no agent text to score and no DB row to expect. Assert the thing
+        # that DOES matter: the patient is told why.
+        assert (response.rejection_reason or "").strip(), (
+            f"{pdf_path.name}: rejected with no reason for the patient"
+        )
+        _REJECTED_FIXTURES.add(pdf_path.name)
+        print(f"[REJECT] {pdf_path.name}  {response.rejection_reason}")
+        return
+
     grades = _extract_fk_grades(response.fk_scores or {})
 
     if status != "partial":
@@ -339,9 +359,12 @@ def test_corpus_db_invariants(
     except (asyncpg.PostgresError, OSError, KeyError) as exc:
         pytest.fail(f"DB aggregation query failed: {type(exc).__name__}: {exc}")
 
-    assert actual_rows == corpus_size, (
-        f"Expected {corpus_size} rows written since {test_start_ts}, "
-        f"got {actual_rows}"
+    # Rejected documents never reach the DB, so they are not owed a row.
+    expected_rows = corpus_size - len(_REJECTED_FIXTURES)
+    assert actual_rows == expected_rows, (
+        f"Expected {expected_rows} rows written since {test_start_ts} "
+        f"({corpus_size} fixtures less {len(_REJECTED_FIXTURES)} rejected: "
+        f"{sorted(_REJECTED_FIXTURES) or 'none'}), got {actual_rows}"
     )
     assert invalid == 0, (
         f"{invalid} row(s) have a pipeline_status outside the whitelist"
