@@ -36,6 +36,7 @@ from dischargeiq.api.routes.progress import cleanup_progress_after_delay
 from dischargeiq.api.schemas import AnalyzeTextRequest
 from dischargeiq.pipeline.orchestrator import run_pipeline
 from dischargeiq.services.session import session_store
+from dischargeiq.utils.pdf_token import mint_pdf_token
 from dischargeiq.utils.vision_ocr import transcribe_document_images
 
 logger = logging.getLogger(__name__)
@@ -379,7 +380,21 @@ async def _execute_pipeline(
             "Analyze cache hit - '%s', hash: %.12s… (0 LLM calls)",
             doc_label, document_hash,
         )
-        result_dict = {**cached, "pdf_session_id": pdf_session_id}
+        # A cached response carries the token minted for the ORIGINAL
+        # session, and the token is deliberately session-bound - so reusing
+        # it here would hand the caller a credential for someone else's
+        # session id and 404 on their own. Re-mint for THIS session.
+        #
+        # Found by scripts/e2e_journey.py, which re-uploads the same document
+        # and therefore hits the cache. No unit test would have: the bug only
+        # exists in the interaction between two requests.
+        _cache_token, _cache_exp = mint_pdf_token(pdf_session_id)
+        result_dict = {
+            **cached,
+            "pdf_session_id": pdf_session_id,
+            "pdf_token": _cache_token,
+            "pdf_token_exp": _cache_exp,
+        }
         if result_dict.get("patient_simulator") is not None:
             session_store.store_simulator(
                 pdf_session_id, result_dict["patient_simulator"]
@@ -427,6 +442,15 @@ async def _execute_pipeline(
 
         result_dict = result.model_dump()
         result_dict["pdf_session_id"] = pdf_session_id
+
+        # Signed, short-lived access to this session's stored PDF. The
+        # Streamlit viewer embeds the document in an <iframe>, which cannot
+        # send an Authorization header, so the credential has to travel in
+        # the URL - and therefore has to expire. Before this, the session id
+        # alone fetched the document and never stopped working.
+        pdf_token, pdf_token_exp = mint_pdf_token(pdf_session_id)
+        result_dict["pdf_token"] = pdf_token
+        result_dict["pdf_token_exp"] = pdf_token_exp
 
         if result.patient_simulator is not None:
             session_store.store_simulator(

@@ -96,6 +96,11 @@ _MED_BORDER = {
 _S_RESULT = "result"
 _S_PDF_BYTES = "pdf_bytes"
 _S_PDF_SESSION_ID = "pdf_session_id"
+# Signed short-lived access for GET /pdf/{id}. The viewer embeds the document
+# in an <iframe>, which cannot send an Authorization header, so the credential
+# rides in the URL and expires instead.
+_S_PDF_TOKEN = "pdf_token"
+_S_PDF_TOKEN_EXP = "pdf_token_exp"
 _S_FILE_NAME = "file_name"
 _S_ACTIVE_TAB = "active_tab"              # Which tab is currently visible.
 _S_PENDING_CITATION = "pending_citation"  # One-shot trigger to open PDF modal.
@@ -922,6 +927,8 @@ def _reset_session() -> None:
     st.session_state[_S_RESULT] = None
     st.session_state[_S_PDF_BYTES] = None
     st.session_state[_S_PDF_SESSION_ID] = None
+    st.session_state[_S_PDF_TOKEN] = None
+    st.session_state[_S_PDF_TOKEN_EXP] = None
     st.session_state[_S_FILE_NAME] = "document.pdf"
     st.session_state[_S_ACTIVE_TAB] = "diagnosis"
     st.session_state[_S_PENDING_CITATION] = None
@@ -1430,6 +1437,8 @@ def _inject_pdf_modal(
     pdf_session_id: str | None,
     page: int,
     pdf_bytes: bytes | None = None,
+    pdf_token: str | None = None,
+    pdf_token_exp: int | None = None,
 ) -> None:
     """
     Inject a full-screen PDF modal into window.parent.document.body.
@@ -1462,7 +1471,13 @@ def _inject_pdf_modal(
         st.warning("PDF not available for this session. Please re-upload the document.")
         return
 
-    iframe_src = f"{_PUBLIC_API_BASE}/pdf/{pdf_session_id}#page={page}" if pdf_session_id else ""
+    # The token is the credential, not the session id. Without it the backend
+    # returns 404 - deliberately, so a caller guessing ids cannot tell an
+    # existing session from a missing one.
+    _auth = (f"?token={pdf_token}&exp={pdf_token_exp}"
+             if pdf_token and pdf_token_exp else "")
+    iframe_src = (f"{_PUBLIC_API_BASE}/pdf/{pdf_session_id}{_auth}#page={page}"
+                  if pdf_session_id else "")
     iframe_src_attr = "about:blank" if embed_b64 else iframe_src
 
     modal_css = """
@@ -4358,6 +4373,8 @@ def _run_analysis_with_loading() -> None:
         st.session_state[_S_RESULT] = result
         st.session_state[_S_PDF_BYTES] = pdf_bytes
         st.session_state[_S_PDF_SESSION_ID] = result.get("pdf_session_id")
+        st.session_state[_S_PDF_TOKEN] = result.get("pdf_token")
+        st.session_state[_S_PDF_TOKEN_EXP] = result.get("pdf_token_exp")
         st.session_state[_S_FILE_NAME] = pdf_name
         st.session_state[_S_ACTIVE_TAB] = "diagnosis"
         st.session_state[_S_PENDING_CITATION] = None
@@ -4878,6 +4895,8 @@ def _render_summary_screen() -> None:
             pdf_session_id,
             int(pending.get("page", 1) or 1),
             _pdf_for_modal,
+            st.session_state.get(_S_PDF_TOKEN),
+            st.session_state.get(_S_PDF_TOKEN_EXP),
         )
         st.session_state[_S_PENDING_CITATION] = None
 

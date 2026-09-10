@@ -13,17 +13,22 @@ response lean.
 
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 
 from dischargeiq.services.session import session_store
+from dischargeiq.utils.pdf_token import verify_pdf_token
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.get("/pdf/{session_id}")
-async def get_pdf(session_id: str):
+async def get_pdf(
+    session_id: str,
+    token: str | None = Query(None, description="Signed access token"),
+    exp: str | None = Query(None, description="Token expiry, unix seconds"),
+):
     """
     Return raw PDF bytes stored during POST /analyze.
 
@@ -40,11 +45,22 @@ async def get_pdf(session_id: str):
     Raises:
         HTTPException 404: When the session is unknown or has been evicted.
     """
+    # The token, not the session id, is the credential. Verified live on
+    # 9 Sep 2026: before this, the id alone returned 200 and a real patient's
+    # 200 KB document to any caller.
+    if not verify_pdf_token(session_id, token, exp):
+        # 404, not 403. A distinct "forbidden" would confirm that this
+        # session exists to someone guessing ids, and the two cases are the
+        # same to a legitimate caller anyway.
+        logger.warning("GET /pdf - rejected: missing or invalid access token")
+        raise HTTPException(status_code=404, detail="PDF not found or expired.")
+
     pdf_bytes = session_store.get_pdf(session_id)
     if pdf_bytes is None:
-        logger.warning("GET /pdf/%s - not found or evicted", session_id)
+        # The session id is a credential; keep it out of the logs.
+        logger.warning("GET /pdf - not found or evicted")
         raise HTTPException(status_code=404, detail="PDF not found or expired.")
-    logger.debug("GET /pdf/%s - serving %d bytes", session_id, len(pdf_bytes))
+    logger.debug("GET /pdf - serving %d bytes", len(pdf_bytes))
     return Response(content=pdf_bytes, media_type="application/pdf")
 
 

@@ -95,12 +95,29 @@ def journey(doc: str) -> None:
         step(bool(content), f"tab has content: {tab}",
              f"{len(content)} chars" if isinstance(content, str) else f"{len(content)} items")
 
-    # 3. The PDF the viewer embeds must be fetchable with the id just issued.
-    #    This is the seam that a TTL change could quietly break.
-    pdf_response = requests.get(f"{_BASE}/pdf/{session}", timeout=60)
-    step(pdf_response.status_code == 200 and pdf_response.content[:4] == b"%PDF",
-         "stored PDF fetchable by session id",
-         f"HTTP {pdf_response.status_code}, {len(pdf_response.content)} bytes")
+    # 3. The PDF seam, both halves.
+    #
+    #    This assertion used to be "fetchable by session id", and it passed
+    #    because the session id alone WAS enough - which was the
+    #    vulnerability. The test encoded the bug as the expected behaviour,
+    #    and only failed once the bug was fixed. Worth remembering: a test
+    #    written against current behaviour ratifies whatever that behaviour
+    #    is, including the parts nobody meant.
+    token = result.get("pdf_token")
+    exp = result.get("pdf_token_exp")
+    step(bool(token and exp), "analyze issued a signed PDF token",
+         f"expires {exp}")
+
+    signed = requests.get(f"{_BASE}/pdf/{session}",
+                          params={"token": token, "exp": exp}, timeout=60)
+    step(signed.status_code == 200 and signed.content[:4] == b"%PDF",
+         "PDF fetchable WITH the signed token",
+         f"HTTP {signed.status_code}, {len(signed.content)} bytes")
+
+    unsigned = requests.get(f"{_BASE}/pdf/{session}", timeout=60)
+    step(unsigned.status_code == 404,
+         "PDF NOT fetchable without it",
+         f"HTTP {unsigned.status_code}")
 
     # 4. Chat, grounded in THIS document rather than in general knowledge.
     chat = requests.post(
@@ -151,9 +168,20 @@ def journey(doc: str) -> None:
              f"{body.get('percent')}%")
 
     # 6. Audio, both kinds.
+    #
+    #    /media/case is capped at 4 requests per minute per IP by our own
+    #    limiter. A run that trips it reports "audio broken" when the service
+    #    is fine - the same false alarm predemo.sh produced on /analyze. A
+    #    sub-second 429 is ours; wait out the window and try once more.
     audio = requests.post(f"{_BASE}/media/case", headers=JSON_AUTH,
                           json={"session_id": session, "pipeline_payload": result},
                           timeout=180)
+    if audio.status_code == 429:
+        print("      (local rate limit on /media/case, waiting 60s)")
+        time.sleep(60)
+        audio = requests.post(f"{_BASE}/media/case", headers=JSON_AUTH,
+                              json={"session_id": session,
+                                    "pipeline_payload": result}, timeout=180)
     if step(audio.status_code == 200, "per-case audio generated",
             f"{len(audio.content) // 1024} KB"):
         blob = audio.content
