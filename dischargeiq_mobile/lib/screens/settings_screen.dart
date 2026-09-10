@@ -1,6 +1,7 @@
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/screens/intro_screen.dart';
+import 'package:dischargeiq_mobile/screens/licences_screen.dart';
 import 'package:dischargeiq_mobile/providers/theme_provider.dart';
 import 'package:dischargeiq_mobile/services/read_aloud.dart';
 import 'package:flutter/material.dart';
@@ -146,18 +147,20 @@ class SettingsScreen extends StatelessWidget {
             title: const Text('Open source licences'),
             subtitle: const Text('The software this app is built on'),
             trailing: const Icon(Icons.chevron_right),
-            // Flutter's built-in page, which collects Dart and Flutter package
-            // licences automatically. registerBackendLicenses() adds the
-            // Python backend, which the collector cannot see and which does
-            // the actual analysis - a page listing only the mobile half would
-            // look complete while omitting most of the product.
-            onTap: () => showLicensePage(
-              context: context,
-              applicationName: 'DischargeIQ',
-              applicationVersion: '1.0.0',
-              applicationLegalese:
-                  '\u00a9 2026 Likitha Shankar. Released under the Apache '
-                  'License 2.0.\n\nPatient education only. Not medical advice.',
+            // A curated summary first, with Flutter's generated page one tap
+            // further in. Going straight there landed on 100+ alphabetical
+            // rows - every transitive Dart package plus the 18 backend
+            // entries registerBackendLicenses() adds, since the collector
+            // cannot see the Python side that does the actual analysis.
+            //
+            // The full list stays reachable and complete: MIT, BSD and
+            // Apache-2.0 all require the notice to travel with the
+            // distribution, so shortening it is not an option. Only the
+            // ordering changed.
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const LicencesScreen(),
+              ),
             ),
           ),
           ListTile(
