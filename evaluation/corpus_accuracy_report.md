@@ -1,6 +1,6 @@
 # Corpus accuracy run (task 3.4)
 
-Generated 2026-09-09 by `scripts/corpus_accuracy_report.py`
+Generated 2026-09-10 by `scripts/corpus_accuracy_report.py`
 over 106 pipeline outputs in `evaluation/corpus_outputs/`.
 
 The corpus is 106 real de-identified discharge summaries (MTSamples
@@ -26,25 +26,25 @@ Target: Flesch-Kincaid grade <= 6.0 on every patient-facing output.
 | Agent | Section | Mean | Max | At or under target |
 |---|---|---|---|---|
 | agent2 | What happened | 3.31 | 6.40 | 104/106 |
-| agent3 | Medications | 4.03 | 6.14 | 105/106 |
-| agent4 | Recovery | 4.55 | 6.74 | 102/106 |
-| agent5 | Warning signs | 4.64 | 5.95 | 106/106 |
+| agent3 | Medications | 4.06 | 6.14 | 105/106 |
+| agent4 | Recovery | 4.49 | 6.74 | 103/106 |
+| agent5 | Warning signs | 4.65 | 5.95 | 106/106 |
 
-**98% of 424 outputs meet the sixth-grade target**, mean grade 4.13.
+**99% of 424 outputs meet the sixth-grade target**, mean grade 4.13.
 
 ## 2. Grounding (output against source)
 
 Checked 106 of 106 outputs against their source document.
 
 - **Medication names not present in the source: 0**. Agent 1 is contractually forbidden from inventing a field value, so any hit here is a contract violation.
-- **Outputs containing a number absent from the source: 6**. Week numbers and 911 are excluded, so this measures dosages, weights and thresholds.
+- **Outputs containing a number absent from the source: 3**. Week numbers and 911 are excluded, so this measures dosages, weights and thresholds.
 
 These are not random fabrications. They fall into two classes,
 and only one of them is a defect in this system:
 
 **Clinical thresholds the prompts supply** (0 occurrences): fever limits such as "over 101 F" and "100.4 F". These come from the agent prompts, not from the patient's document. They are standard clinical guidance, but they are shown to the patient as if their own paperwork said so.
 
-**Activity targets the model invents** (3 occurrences): "walk for 15 minutes each day", "do not bend your new knee more than 90 degrees". The agent 4 prompt REQUIRES one specific goal per week, so when the source document sets none, the model supplies a number. The requirement causes the invention.
+**Activity targets the model invents** (2 occurrences): "walk for 15 minutes each day", "do not bend your new knee more than 90 degrees". The agent 4 prompt REQUIRES one specific goal per week, so when the source document sets none, the model supplies a number. The requirement causes the invention.
 
 **Everything else**: 3 occurrences.
 
@@ -73,8 +73,8 @@ total omission rates.**
 
 | Content | Extracted | Reached the patient | Recall |
 |---|---|---|---|
-| Medications (agent 3) | 530 | 528 | 99.6% |
-| Warning signs (agent 5) | 97 | 94 | 96.9% |
+| Medications (agent 3) | 534 | 532 | 99.6% |
+| Warning signs (agent 5) | 107 | 102 | 95.3% |
 
 Warning signs are counted separately because Agent 5 is the
 safety-critical output: a red flag the document listed and the guide
@@ -88,6 +88,8 @@ Dropped medications:
 Dropped warning signs:
 
 - `mtsamples_010`: increased bilirubin
+- `mtsamples_034`: hemoptysis
+- `mtsamples_064`: any redness, swelling or foul smelling drainage from her wounds
 - `mtsamples_075`: redness, drainage, or warmth around his incision
 site
 - `mtsamples_087`: continued to be severely hypoxic
@@ -96,7 +98,7 @@ site
 
 | Stratum | Outputs | Readability mean | At or under target |
 |---|---|---|---|
-| dictated | 106 | 4.13 | 417/424 |
+| dictated | 106 | 4.13 | 418/424 |
 
 A single blended accuracy number cannot show one format failing while another passes. That is the whole reason this table exists.
 
@@ -107,11 +109,11 @@ paperwork rather than a failure of this system.
 
 | Field | Documents containing it |
 |---|---|
+| medications | 96/106 (91%) |
 | follow-up appointments | 95/106 (90%) |
-| medications | 95/106 (90%) |
 | activity or diet | 41/106 (39%) |
 | discharge date | 35/106 (33%) |
-| red flag symptoms | 28/106 (26%) |
+| red flag symptoms | 29/106 (27%) |
 
 ## 5. Pipeline status
 
