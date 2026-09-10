@@ -33,6 +33,7 @@ from dischargeiq.utils.llm_client import (
     load_agent_prompt,
 )
 from dischargeiq.utils.scorer import fk_check
+from dischargeiq.utils.script_voice import collective_claims, describe
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +114,27 @@ def build_dialogue_script(pipeline_payload: dict) -> str:
         return text
 
     script = _generate()
+
+    # Frank Naeymi-Rad, 10 Sep 2026: patient-specific over collective language.
+    #
+    # ONE retry, then ship what we have. This runs while a patient waits for
+    # audio, so it cannot refuse the way the offline builder does - no audio is
+    # worse for them than a script that says "most people". But a single
+    # regeneration is cheap and usually enough, and a claim that survives it is
+    # logged with the sentence so it can be found rather than guessed at.
+    claims = collective_claims(script)
+    if claims:
+        logger.warning(
+            "TTS script speaks for people in general, regenerating - %s",
+            describe(claims),
+        )
+        script = _generate()
+        remaining = collective_claims(script)
+        if remaining:
+            logger.warning(
+                "TTS script still collective after one retry - %s",
+                describe(remaining),
+            )
 
     fk = fk_check(script)
     if not fk["passes"]:

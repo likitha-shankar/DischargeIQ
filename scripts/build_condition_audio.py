@@ -58,6 +58,10 @@ from dischargeiq.utils.llm_client import (  # noqa: E402
     load_agent_prompt,
 )
 from dischargeiq.utils.scorer import fk_check  # noqa: E402
+from dischargeiq.utils.script_voice import (  # noqa: E402
+    collective_claims,
+    describe,
+)
 
 _MEDIA = _REPO / "dischargeiq" / "media"
 _SOURCES = _MEDIA / "sources"
@@ -141,6 +145,12 @@ def verify(script: str, name: str) -> list[str]:
     for phrase in ("stop taking", "stop your", "skip a dose", "change your dose"):
         if phrase in lowered:
             problems.append(f'says "{phrase}"')
+    # Frank Naeymi-Rad, 10 Sep 2026: patient-specific over collective language.
+    # Refused rather than logged here, because a per-condition explainer is
+    # rebuilt by a person with one command - the cheap moment to fix wording.
+    claims = collective_claims(script)
+    if claims:
+        problems.append(f"speaks for people in general - {describe(claims)}")
     grade = fk_check(script)["fk_grade"]
     if grade > 6.0:
         problems.append(f"reading grade {grade:.1f} exceeds 6.0")
