@@ -23,6 +23,7 @@ import 'package:dischargeiq_mobile/screens/scan_screen.dart';
 import 'package:dischargeiq_mobile/screens/settings_screen.dart';
 import 'package:dischargeiq_mobile/widgets/ai_disclaimer_dialog.dart';
 import 'package:dischargeiq_mobile/services/discharge_date.dart';
+import 'package:dischargeiq_mobile/services/recovery_activity.dart';
 import 'package:dischargeiq_mobile/services/recovery_notes.dart';
 import 'package:dischargeiq_mobile/widgets/appointment_edit_sheet.dart';
 import 'package:dischargeiq_mobile/widgets/audio_explainer.dart';

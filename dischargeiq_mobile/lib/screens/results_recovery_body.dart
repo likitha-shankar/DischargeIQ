@@ -39,6 +39,9 @@ class _RecoveryBodyState extends State<_RecoveryBody> {
   EffectiveDischargeDate _discharge =
       const EffectiveDischargeDate(source: DischargeDateSource.unknown);
 
+  /// Appointment keys the patient has ticked off, for the activity channel.
+  Set<String> _apptDone = const {};
+
   /// Phase the rail is showing. Null until the first build works out where
   /// today falls, so the patient lands on their own week rather than week 1.
   int? _selected;
@@ -55,6 +58,10 @@ class _RecoveryBodyState extends State<_RecoveryBody> {
     final w = await HealthLog.weights(docId);
     final ch = await HealthLog.overnightChange(docId);
     final edits = await RecoveryNotesStore.load(docId);
+    // Appointments the patient ticked off. Loaded here rather than derived
+    // from dates: whether someone actually attended is theirs to assert, and
+    // a passed date is not evidence of anything.
+    final apptDone = await AppointmentStatusStore.load(docId);
     final ext = widget.extraction is Map ? widget.extraction as Map : {};
     final discharge = await DischargeDateStore.resolve(
       docId: docId,
@@ -66,6 +73,7 @@ class _RecoveryBodyState extends State<_RecoveryBody> {
       _change = ch;
       _edits = edits;
       _discharge = discharge;
+      _apptDone = apptDone;
     });
   }
 
@@ -195,6 +203,21 @@ class _RecoveryBodyState extends State<_RecoveryBody> {
         ? 0
         : (_selected ?? here ?? 0).clamp(0, phases.length - 1);
 
+    // What the patient has actually DONE, per phase - a separate channel from
+    // `here`, which is only elapsed time. Kept separate on purpose: a filled
+    // bar must never be read as "recovering well", and activity must never be
+    // read as time passing. Neither implies the other.
+    final phaseActivity = activityByPhase(
+      phases: phases,
+      discharged: _discharge.date,
+      appointments: ext['follow_up_appointments'] is List
+          ? ext['follow_up_appointments'] as List
+          : const [],
+      doneKeys: _apptDone,
+      weights: _weights,
+      edits: _edits,
+    );
+
     return SectionScroll(
       children: [
         const SectionEyebrow('Recovery'),
@@ -235,6 +258,7 @@ class _RecoveryBodyState extends State<_RecoveryBody> {
                   phases: phases,
                   selected: shown,
                   here: here,
+                  activity: phaseActivity,
                   onSelect: (i) => setState(() => _selected = i),
                 ),
                 const SizedBox(height: 12),
@@ -278,6 +302,33 @@ class _RecoveryBodyState extends State<_RecoveryBody> {
                   ],
                 ),
                 const SizedBox(height: 6),
+                // What the patient actually recorded in THIS phase, in
+                // words. Rendered only when there is something - an empty
+                // phase says nothing at all rather than "0 of 3 done".
+                //
+                // Worded as a record, never as a verdict: "1 appointment
+                // kept" is a fact the patient supplied. "You are on track"
+                // would be a clinical claim this app cannot make, from data
+                // that could not support it if it tried.
+                if (phaseActivity[shown].summary case final String done) ...[
+                  Row(
+                    children: [
+                      Icon(Icons.check_circle_outline, size: 15, color: c.accent),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'You logged: $done',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: c.accent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                ],
                 _Bullets(
                   bullets: phases[shown].bullets,
                   phase: phases[shown].title,
@@ -873,6 +924,7 @@ class _PhaseRail extends StatelessWidget {
     required this.phases,
     required this.selected,
     required this.here,
+    required this.activity,
     required this.onSelect,
   });
 
@@ -888,7 +940,23 @@ class _PhaseRail extends StatelessWidget {
   /// different visual channels: fill says WHEN, outline says WHAT YOU TAPPED.
   final int? here;
 
+  /// What the patient has confirmed doing in each phase, index-aligned with
+  /// [phases]. A THIRD channel, deliberately not mixed into the fill: fill
+  /// says when, outline says what you tapped, and a dot says you did
+  /// something here. Collapsing activity into the fill would let an app that
+  /// only knows the calendar look like it knows how someone is healing.
+  final List<PhaseActivity> activity;
+
   final ValueChanged<int> onSelect;
+
+  /// Activity for phase [i], tolerant of a shorter list.
+  ///
+  /// The rail is rebuilt on every phase change while the activity load is
+  /// still in flight, so the two lists can briefly disagree in length. An
+  /// empty default is right: it renders as no dot, which is also what "we do
+  /// not know yet" should look like.
+  PhaseActivity _activityAt(int i) =>
+      i < activity.length ? activity[i] : const PhaseActivity();
 
   @override
   Widget build(BuildContext context) {
@@ -912,12 +980,18 @@ class _PhaseRail extends StatelessWidget {
                 // Screen readers get the same two facts the colours carry.
                 // "Week 3, this week" is the whole point of the rail, and it
                 // was previously available only to sighted users.
-                label: switch ((i == here, i == selected)) {
-                  (true, true) => '${phases[i].title}, this week',
-                  (true, false) => '${phases[i].title}, this week, not shown',
-                  (false, true) => '${phases[i].title}, showing',
-                  _ => phases[i].title,
-                },
+                label: [
+                  switch ((i == here, i == selected)) {
+                    (true, true) => '${phases[i].title}, this week',
+                    (true, false) => '${phases[i].title}, this week, not shown',
+                    (false, true) => '${phases[i].title}, showing',
+                    _ => phases[i].title,
+                  },
+                  // The dot is the only carrier of the activity channel, and
+                  // a dot is invisible to a screen reader. Spell it out, or
+                  // the third channel exists for sighted users only.
+                  if (_activityAt(i).summary case final String done) done,
+                ].join(', '),
                 child: GestureDetector(
                   onTap: () => onSelect(i),
                   behavior: HitTestBehavior.opaque,
@@ -958,6 +1032,8 @@ class _PhaseRail extends StatelessWidget {
                         const SizedBox(height: 6),
                         Container(
                           height: 14.0 + (30.0 * (i + 1) / phases.length),
+                          alignment: Alignment.topCenter,
+                          padding: const EdgeInsets.only(top: 4),
                           decoration: BoxDecoration(
                             // Fill = time. Weeks already lived are solid but
                             // muted, the current week is the strongest colour
@@ -983,6 +1059,25 @@ class _PhaseRail extends StatelessWidget {
                                 ? Border.all(color: c.accent, width: 2)
                                 : null,
                           ),
+                          // Activity = a dot INSIDE the bar. A third channel
+                          // that reads at a glance without competing with
+                          // fill or outline, and one that stays absent - not
+                          // hollow, not grey, not a zero - when a phase has
+                          // nothing recorded. A week that asked nothing of
+                          // the patient must not look like a week they
+                          // failed.
+                          child: _activityAt(i).any
+                              ? Container(
+                                  width: 5,
+                                  height: 5,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    // Reads on the filled current-week bar
+                                    // and on an empty future one alike.
+                                    color: i == here ? Colors.white : c.accent,
+                                  ),
+                                )
+                              : null,
                         ),
                       ],
                     ),
