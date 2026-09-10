@@ -1,6 +1,5 @@
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
-import 'package:dischargeiq_mobile/screens/intro_screen.dart';
 import 'package:dischargeiq_mobile/screens/licences_screen.dart';
 import 'package:dischargeiq_mobile/providers/theme_provider.dart';
 import 'package:dischargeiq_mobile/services/read_aloud.dart';
@@ -127,20 +126,6 @@ class SettingsScreen extends StatelessWidget {
                 );
               }
             },
-          ),
-          ListTile(
-            leading: const Icon(Icons.play_circle_outline, color: kTeal),
-            title: const Text('Watch the intro again'),
-            subtitle: const Text('The short welcome animation'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.push<void>(
-              context,
-              MaterialPageRoute<void>(
-                builder: (routeCtx) => IntroScreen(
-                  onDone: () => Navigator.of(routeCtx).maybePop(),
-                ),
-              ),
-            ),
           ),
           ListTile(
             leading: const Icon(Icons.balance_outlined, color: kTeal),

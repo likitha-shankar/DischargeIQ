@@ -79,9 +79,18 @@ class _HomeGateState extends State<_HomeGate> {
   //
   // This deliberately no longer persists a flag. It previously read and wrote
   // SharedPreferences('intro_seen') to play only once ever; that key is now
-  // unused and can be ignored on existing installs. Settings still offers
-  // "Watch the intro again", which pushes IntroScreen directly and is
-  // unaffected by this gate.
+  // unused and can be ignored on existing installs.
+  //
+  // The Settings row "Watch the intro again" was REMOVED on 10 Sep 2026:
+  // nobody replays a logo animation, and it sat directly below "Guided tour",
+  // which is the thing a lost patient actually wants. This gate is now the
+  // only path to IntroScreen.
+  //
+  // Still open, and deliberately not changed today: the intro plays on every
+  // cold launch. For a demo audience the cinematic opener is an asset; for a
+  // patient who is unwell and opening the app to check one dose, it is nine
+  // seconds of friction in front of their own medical information, every
+  // time. See docs/ISSUES_AND_IDEAS.md.
   static bool _introDone = false;
 
   @override

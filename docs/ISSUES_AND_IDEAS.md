@@ -67,10 +67,17 @@ See `test/intro_reduced_motion_test.dart`.
 
 **Queued, deliberately held until after the 26 Aug demo:**
 
-1. **Remove "Watch the intro again" from Settings**
-   (`settings_screen.dart:132`). Nobody replays a logo animation. It also
-   invites confusion with "Guided tour" one row up, which is the thing a
-   patient actually wants when they are lost.
+1. ~~**Remove "Watch the intro again" from Settings**~~ **DONE 10 Sep 2026.**
+   Nobody replays a logo animation, and it invited confusion with "Guided
+   tour" one row up, which is the thing a patient actually wants when they
+   are lost. `test/settings_rows_test.dart` now asserts the row is absent and
+   that the guided tour, licences and disclaimer rows survived.
+
+   **Worth recording why this took two weeks.** The hold was for the 26 Aug
+   demo. That demo passed, nothing was watching the queue, and the deferral
+   outlived its reason until the row was noticed again in use. A queued item
+   with a condition attached needs the condition rechecked, not the item
+   remembered.
 
 2. **Return the intro to once per install.** `main.dart` currently plays it on
    every cold launch by product decision, and the comment records that
