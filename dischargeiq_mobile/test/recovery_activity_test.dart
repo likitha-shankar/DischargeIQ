@@ -167,7 +167,7 @@ void main() {
     });
 
     test('notes still count, because they need no date', () {
-      final edits = RecoveryEdits([
+      const edits = RecoveryEdits([
         RecoveryEdit(
             kind: RecoveryEditKind.note, phase: 'Weeks 2-3', text: 'Felt dizzy'),
       ]);

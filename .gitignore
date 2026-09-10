@@ -114,6 +114,14 @@ test-data/mtsamples/
 # text, which has no more business in git than the originals.
 test-data/fax/
 evaluation/corpus_outputs/
+
+# Golden-file detail for scripts/golden_regression.py. Derived from
+# corpus_outputs and therefore carries the same clinical text, so it is
+# gitignored for the same reason. Regenerate with --freeze. The COMMITTED
+# artefact is evaluation/golden_manifest.json, which carries counts,
+# statuses and digests only and is verified free of free text before it
+# is written.
+evaluation/golden/
 # Same data as corpus_outputs/ under an older name. This one WAS committed -
 # 61 files carrying verbatim source quotes in their _source provenance fields
 # ("The patient is a 67-year-old female, was referred to...") - and sat in a

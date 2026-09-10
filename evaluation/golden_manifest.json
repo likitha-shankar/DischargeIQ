@@ -1,0 +1,3888 @@
+{
+  "copd_01": {
+    "counts": {
+      "appointments": 3,
+      "medications": 6,
+      "procedures": 6,
+      "red_flags": 7,
+      "secondary_diagnoses": 4
+    },
+    "digests": {
+      "appointments": "8b21a40f71b51035",
+      "medications": "c35c241f58a63d95",
+      "procedures": "8dbddc7ae6e11e76",
+      "red_flags": "3a91157b3e98eb54",
+      "secondary_diagnoses": "87faf1117bd71a98"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "structured"
+  },
+  "heart_failure_01": {
+    "counts": {
+      "appointments": 3,
+      "medications": 6,
+      "procedures": 6,
+      "red_flags": 7,
+      "secondary_diagnoses": 4
+    },
+    "digests": {
+      "appointments": "087f83aca1a01d47",
+      "medications": "ea6cc38f7d753d57",
+      "procedures": "3e9627dc9b11a644",
+      "red_flags": "5e2b4754099d274f",
+      "secondary_diagnoses": "c1ed19ecbd20ca0f"
+    },
+    "document_type": "heart_failure",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "structured"
+  },
+  "hip_replacement_01": {
+    "counts": {
+      "appointments": 3,
+      "medications": 6,
+      "procedures": 8,
+      "red_flags": 7,
+      "secondary_diagnoses": 5
+    },
+    "digests": {
+      "appointments": "c8dc060040f0d428",
+      "medications": "fe1559e6979a785e",
+      "procedures": "926425eba5d72d5b",
+      "red_flags": "181a7f371ea82932",
+      "secondary_diagnoses": "f13523b8d22a7adb"
+    },
+    "document_type": "hip_replacement",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "structured"
+  },
+  "mtsamples_001": {
+    "counts": {
+      "appointments": 1,
+      "medications": 0,
+      "procedures": 6,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "efa1eab56cd69142",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "6692116a2731d6a4",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "a8eddf8d770f9bbf"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_001_fax": {
+    "counts": {
+      "appointments": 1,
+      "medications": 0,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "efa1eab56cd69142",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "9dc5112d08733aa5",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": null
+  },
+  "mtsamples_002": {
+    "counts": {
+      "appointments": 1,
+      "medications": 4,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "2a707f5c5efd1bbc",
+      "medications": "cd82fb5b82ccf181",
+      "procedures": "08d014ffdb2f18ff",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "a87941833bc8efa5"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_002_fax": {
+    "counts": {
+      "appointments": 1,
+      "medications": 4,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "2a707f5c5efd1bbc",
+      "medications": "4dcfe49eb4e58759",
+      "procedures": "61f656809efff7e9",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "c87ddda0c4de8430"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": null
+  },
+  "mtsamples_003": {
+    "counts": {
+      "appointments": 2,
+      "medications": 1,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "2c24d5ffcb4c8dc7",
+      "medications": "73f86615f3f40542",
+      "procedures": "d4872e5754b79fac",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "341d68410de11580"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_003_fax": {
+    "counts": {
+      "appointments": 2,
+      "medications": 1,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "dafe4f0ba02cd6df",
+      "medications": "73f86615f3f40542",
+      "procedures": "303a646fbb960d99",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "341d68410de11580"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": null
+  },
+  "mtsamples_004": {
+    "counts": {
+      "appointments": 0,
+      "medications": 7,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "e3b0c44298fc1c14",
+      "medications": "492ee340f7410e56",
+      "procedures": "007fdb0d494f6f6a",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "55c3932d4f4a4afb"
+    },
+    "document_type": "heart_failure",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_004_fax": {
+    "counts": {
+      "appointments": 0,
+      "medications": 7,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "e3b0c44298fc1c14",
+      "medications": "492ee340f7410e56",
+      "procedures": "007fdb0d494f6f6a",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "heart_failure",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": null
+  },
+  "mtsamples_005": {
+    "counts": {
+      "appointments": 3,
+      "medications": 1,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "7db13c9bc84140a7",
+      "medications": "d5a630409648044b",
+      "procedures": "c163cdcb033d7ed9",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "f2667541d8f5454d"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_005_fax": {
+    "counts": {
+      "appointments": 3,
+      "medications": 1,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "2207a2e4fcf2d808",
+      "medications": "d5a630409648044b",
+      "procedures": "194fd9fb6823e448",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "9225df7150dd184f"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": null
+  },
+  "mtsamples_006": {
+    "counts": {
+      "appointments": 1,
+      "medications": 3,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "544645e956587660",
+      "medications": "f1313a4b2bc271b8",
+      "procedures": "c5fd387fad5692b3",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "7f0044a746934658"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_006_fax": {
+    "counts": {
+      "appointments": 1,
+      "medications": 3,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "544645e956587660",
+      "medications": "f1313a4b2bc271b8",
+      "procedures": "07cf9ffda6c235b3",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "9f0da016d336c8a1"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": null
+  },
+  "mtsamples_007": {
+    "counts": {
+      "appointments": 0,
+      "medications": 0,
+      "procedures": 7,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "e3b0c44298fc1c14",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "e44550468119220c",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "4d54a1782562c754"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_008": {
+    "counts": {
+      "appointments": 2,
+      "medications": 2,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "8c4a379036b85bbc",
+      "medications": "34f246ebd6f84ac6",
+      "procedures": "b16825a1938b2637",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "e96ee5344ebeb512"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_009": {
+    "counts": {
+      "appointments": 2,
+      "medications": 2,
+      "procedures": 5,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "999fff5637231eb8",
+      "medications": "ee63951979839557",
+      "procedures": "652b306e076dfb28",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "b7d198e81637a371"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_010": {
+    "counts": {
+      "appointments": 3,
+      "medications": 5,
+      "procedures": 2,
+      "red_flags": 3,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "c33e8c07c72c6fc4",
+      "medications": "d91ccad43519acb5",
+      "procedures": "3c2ba60c2b09982b",
+      "red_flags": "16b29d122fb2a481",
+      "secondary_diagnoses": "2e0e172b2cc456d9"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_010_fax": {
+    "counts": {
+      "appointments": 3,
+      "medications": 5,
+      "procedures": 2,
+      "red_flags": 3,
+      "secondary_diagnoses": 5
+    },
+    "digests": {
+      "appointments": "c33e8c07c72c6fc4",
+      "medications": "6423602d6d4acd86",
+      "procedures": "25cf51992003ec38",
+      "red_flags": "16b29d122fb2a481",
+      "secondary_diagnoses": "dd3d61c7dc00892a"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": true,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_011": {
+    "counts": {
+      "appointments": 1,
+      "medications": 7,
+      "procedures": 13,
+      "red_flags": 3,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "35fcbb1c5083eb83",
+      "medications": "03075654abf979d9",
+      "procedures": "f54f24f7e5055644",
+      "red_flags": "dcae4f8615286f71",
+      "secondary_diagnoses": "1e44a1c45388c81c"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_011_fax": {
+    "counts": {
+      "appointments": 1,
+      "medications": 8,
+      "procedures": 5,
+      "red_flags": 2,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "35fcbb1c5083eb83",
+      "medications": "01d2a4195b16f62c",
+      "procedures": "5f37cb0c3a103312",
+      "red_flags": "fc6fb43f5d273ab5",
+      "secondary_diagnoses": "1e44a1c45388c81c"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": true,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_012": {
+    "counts": {
+      "appointments": 1,
+      "medications": 6,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "266cd1bc360d2b32",
+      "medications": "46350b6caeaa5c14",
+      "procedures": "6c03cc1b4d0589f2",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "ce9a61ab73581019"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_013": {
+    "counts": {
+      "appointments": 2,
+      "medications": 16,
+      "procedures": 3,
+      "red_flags": 1,
+      "secondary_diagnoses": 11
+    },
+    "digests": {
+      "appointments": "e80c2064be81f48e",
+      "medications": "a34230377ca52f3a",
+      "procedures": "534ecaa180c40060",
+      "red_flags": "e5fd478130333cea",
+      "secondary_diagnoses": "5879c5e575c5c494"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_014": {
+    "counts": {
+      "appointments": 1,
+      "medications": 1,
+      "procedures": 0,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "171baf823c2bf389",
+      "medications": "472189b26cc536bb",
+      "procedures": "e3b0c44298fc1c14",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "4b5d4e3a0f0acf0f"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_015": {
+    "counts": {
+      "appointments": 2,
+      "medications": 0,
+      "procedures": 6,
+      "red_flags": 0,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "b227a18ca3b93d8a",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "53b208059b739dc4",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_016": {
+    "counts": {
+      "appointments": 2,
+      "medications": 4,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "15b2df46926a5e04",
+      "medications": "63041f638483dbcd",
+      "procedures": "82b27692a3b4d9c3",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "ab2069d07ff26af9"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_017": {
+    "counts": {
+      "appointments": 1,
+      "medications": 2,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "6680b4389314ed69",
+      "medications": "8e89496c7f6ed230",
+      "procedures": "0e2cdc95f2e2d3d6",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_018": {
+    "counts": {
+      "appointments": 2,
+      "medications": 2,
+      "procedures": 0,
+      "red_flags": 0,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "aa5ac217f59f19b2",
+      "medications": "a84beaf19c83eab5",
+      "procedures": "e3b0c44298fc1c14",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "8ae323cd39d6d7a2"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_019": {
+    "counts": {
+      "appointments": 1,
+      "medications": 1,
+      "procedures": 1,
+      "red_flags": 4,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "39a7e181af6615a1",
+      "medications": "2592b423e5626332",
+      "procedures": "ad086e21627365f3",
+      "red_flags": "2fd59bc5783d3796",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_019_fax": {
+    "counts": {
+      "appointments": 1,
+      "medications": 1,
+      "procedures": 1,
+      "red_flags": 4,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "39a7e181af6615a1",
+      "medications": "2592b423e5626332",
+      "procedures": "aacc2f88393db3d2",
+      "red_flags": "2fd59bc5783d3796",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_020": {
+    "counts": {
+      "appointments": 2,
+      "medications": 5,
+      "procedures": 7,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "3f373065754599ab",
+      "medications": "dda84d30d79663b5",
+      "procedures": "ad39f347faa3bd72",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "4ee17ab936ddcfa8"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_021": {
+    "counts": {
+      "appointments": 2,
+      "medications": 4,
+      "procedures": 4,
+      "red_flags": 1,
+      "secondary_diagnoses": 4
+    },
+    "digests": {
+      "appointments": "3a8aa60cfc366863",
+      "medications": "dd95b5fac8c7039b",
+      "procedures": "8ed74d4e05a4f82c",
+      "red_flags": "4595c9cdbaa34b0e",
+      "secondary_diagnoses": "bea5dc91422f564b"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_022": {
+    "counts": {
+      "appointments": 5,
+      "medications": 21,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 5
+    },
+    "digests": {
+      "appointments": "d81d0e80da16c1e9",
+      "medications": "52087bf9874f3730",
+      "procedures": "21619d1b825d3fe3",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "05ad98d70befc74c"
+    },
+    "document_type": "heart_failure",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_023": {
+    "counts": {
+      "appointments": 2,
+      "medications": 0,
+      "procedures": 8,
+      "red_flags": 0,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "ac52172328091c31",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "9e7d075a224af0a7",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_024": {
+    "counts": {
+      "appointments": 1,
+      "medications": 8,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "09f4f9a7e211af2d",
+      "medications": "eaf2418662a8fcb5",
+      "procedures": "70f4875e8f4137a5",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "fb339f34c16dfd47"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_025": {
+    "counts": {
+      "appointments": 1,
+      "medications": 5,
+      "procedures": 5,
+      "red_flags": 0,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "544645e956587660",
+      "medications": "e22b1cab6b3b4af5",
+      "procedures": "136d8f01b4576443",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_026": {
+    "counts": {
+      "appointments": 2,
+      "medications": 13,
+      "procedures": 0,
+      "red_flags": 0,
+      "secondary_diagnoses": 9
+    },
+    "digests": {
+      "appointments": "822abd5bfe1ff853",
+      "medications": "6d82073cb0989da8",
+      "procedures": "e3b0c44298fc1c14",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "0717e3134b376eda"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_027": {
+    "counts": {
+      "appointments": 2,
+      "medications": 3,
+      "procedures": 2,
+      "red_flags": 2,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "dacd0a00faabbc62",
+      "medications": "4cd09d30d261f79f",
+      "procedures": "66c91efb57bc13a9",
+      "red_flags": "4dd4d5578d14d757",
+      "secondary_diagnoses": "bca7ed98e847f801"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_028": {
+    "counts": {
+      "appointments": 2,
+      "medications": 3,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "9559abb8ad4801a6",
+      "medications": "0e8e0e4b725eb377",
+      "procedures": "fb1177e63e68d592",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_029": {
+    "counts": {
+      "appointments": 1,
+      "medications": 14,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 8
+    },
+    "digests": {
+      "appointments": "a61879aafe0ef84b",
+      "medications": "35981ed29cf9946c",
+      "procedures": "9270f7ee1b8bcf1c",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "36043093050e4c85"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_030": {
+    "counts": {
+      "appointments": 1,
+      "medications": 2,
+      "procedures": 1,
+      "red_flags": 4,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "cf82871e59537e43",
+      "medications": "4f42461777660259",
+      "procedures": "9f052f1fcacc77f2",
+      "red_flags": "30fca15139f79a80",
+      "secondary_diagnoses": "aad7c4923a8cc297"
+    },
+    "document_type": "hip_replacement",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_030_fax": {
+    "counts": {
+      "appointments": 1,
+      "medications": 2,
+      "procedures": 3,
+      "red_flags": 5,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "6343efee10c940f1",
+      "medications": "4f42461777660259",
+      "procedures": "5eac895aaeeddff7",
+      "red_flags": "767177b963318116",
+      "secondary_diagnoses": "faf20c8c6ca0942a"
+    },
+    "document_type": "hip_replacement",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": true,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_031": {
+    "counts": {
+      "appointments": 1,
+      "medications": 5,
+      "procedures": 4,
+      "red_flags": 0,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "78cb626f01acb323",
+      "medications": "c22cad04587f437b",
+      "procedures": "07ccd5aba7d6e26a",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_032": {
+    "counts": {
+      "appointments": 1,
+      "medications": 1,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "3c628e03c0969136",
+      "medications": "8ac8ee6fb3a77728",
+      "procedures": "fb1177e63e68d592",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "0e67a2f4a8d7c500"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_033": {
+    "counts": {
+      "appointments": 1,
+      "medications": 1,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "1ea9887324a8b2a7",
+      "medications": "e2c8026dc791fafb",
+      "procedures": "d1cf0f88695c81fe",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "fb29b20a3cf6b55b"
+    },
+    "document_type": "hip_replacement",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_034": {
+    "counts": {
+      "appointments": 2,
+      "medications": 16,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 7
+    },
+    "digests": {
+      "appointments": "1159ffb4a152ae42",
+      "medications": "1d67cccf5111a366",
+      "procedures": "ae8084e6c105e0e3",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "bd6ded286c1a79da"
+    },
+    "document_type": "hip_replacement",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_034_fax": {
+    "counts": {
+      "appointments": 2,
+      "medications": 16,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 7
+    },
+    "digests": {
+      "appointments": "1159ffb4a152ae42",
+      "medications": "c92e37681ee191fa",
+      "procedures": "ba97088368d1b0d8",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "bd6ded286c1a79da"
+    },
+    "document_type": "hip_replacement",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": null
+  },
+  "mtsamples_035": {
+    "counts": {
+      "appointments": 1,
+      "medications": 5,
+      "procedures": 2,
+      "red_flags": 4,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "715cae907351162f",
+      "medications": "e1e70da59afbaf06",
+      "procedures": "3048b47b9c7071d8",
+      "red_flags": "7934f1ddc67ef7af",
+      "secondary_diagnoses": "219e2bd4af85fc39"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_035_fax": {
+    "counts": {
+      "appointments": 1,
+      "medications": 3,
+      "procedures": 6,
+      "red_flags": 4,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "715cae907351162f",
+      "medications": "714141d72fb7300c",
+      "procedures": "60ea2d1703e5f42f",
+      "red_flags": "7934f1ddc67ef7af",
+      "secondary_diagnoses": "7c984c7743387536"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": true,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_036": {
+    "counts": {
+      "appointments": 3,
+      "medications": 11,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 6
+    },
+    "digests": {
+      "appointments": "a5c9bd53d8e73af5",
+      "medications": "4fcf51676aa4284d",
+      "procedures": "1d53bdc8adb8a898",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "74e83187db2f1441"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_037": {
+    "counts": {
+      "appointments": 1,
+      "medications": 0,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "544645e956587660",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "e1f5c449c7c7d1f5",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "98f1184a3026a69c"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_038": {
+    "counts": {
+      "appointments": 1,
+      "medications": 11,
+      "procedures": 8,
+      "red_flags": 0,
+      "secondary_diagnoses": 6
+    },
+    "digests": {
+      "appointments": "4353b62ce43cf151",
+      "medications": "24b0891e9abde81a",
+      "procedures": "315d7b5f84d39d59",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "54147b620657e405"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_039": {
+    "counts": {
+      "appointments": 2,
+      "medications": 2,
+      "procedures": 1,
+      "red_flags": 2,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "9262feedde7040f8",
+      "medications": "2e80db8fb70eb159",
+      "procedures": "ba9231e834a1f602",
+      "red_flags": "5a1ef0634ef860d4",
+      "secondary_diagnoses": "8a6fd96b6a64a9ed"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_040": {
+    "counts": {
+      "appointments": 0,
+      "medications": 10,
+      "procedures": 4,
+      "red_flags": 0,
+      "secondary_diagnoses": 7
+    },
+    "digests": {
+      "appointments": "e3b0c44298fc1c14",
+      "medications": "b78badcce66a9651",
+      "procedures": "eba02396a93045b4",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "78fcde8ac7888b2a"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_041": {
+    "counts": {
+      "appointments": 2,
+      "medications": 2,
+      "procedures": 29,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "449c64a6266c9466",
+      "medications": "3dec5ec26cfe6438",
+      "procedures": "d319ea01178a03f8",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "461c38bebb1f3b88"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_042": {
+    "counts": {
+      "appointments": 1,
+      "medications": 6,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "bcaad7fa287934e9",
+      "medications": "b025922067cf156b",
+      "procedures": "d6c6dc2e640fa395",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "72427485d7389031"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_043": {
+    "counts": {
+      "appointments": 1,
+      "medications": 11,
+      "procedures": 7,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "063fd3da90c20ef8",
+      "medications": "87e4f604ff79e326",
+      "procedures": "2f7ce04edf5bad21",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "762563a950bd71dc"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_044": {
+    "counts": {
+      "appointments": 1,
+      "medications": 20,
+      "procedures": 0,
+      "red_flags": 0,
+      "secondary_diagnoses": 7
+    },
+    "digests": {
+      "appointments": "544645e956587660",
+      "medications": "fff692b43d1b2575",
+      "procedures": "e3b0c44298fc1c14",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "2c5a588b321680ab"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_045": {
+    "counts": {
+      "appointments": 1,
+      "medications": 2,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "249771f9ed3cacd2",
+      "medications": "5da9ec08ab26f75a",
+      "procedures": "392cdb5631161f25",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "06d23bbe3e46b2bc"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_046": {
+    "counts": {
+      "appointments": 3,
+      "medications": 3,
+      "procedures": 4,
+      "red_flags": 2,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "1122d142c0eb2d73",
+      "medications": "594ba4cc947a14af",
+      "procedures": "87e0c22f17493805",
+      "red_flags": "c191fe92696834e2",
+      "secondary_diagnoses": "204582d6226782d9"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_047": {
+    "counts": {
+      "appointments": 1,
+      "medications": 9,
+      "procedures": 4,
+      "red_flags": 0,
+      "secondary_diagnoses": 13
+    },
+    "digests": {
+      "appointments": "91f3520ac21bb16c",
+      "medications": "5b11b3b43eeecf23",
+      "procedures": "41a8f04e1b57ced3",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "a357e34a7222379e"
+    },
+    "document_type": "diabetes",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_048": {
+    "counts": {
+      "appointments": 2,
+      "medications": 4,
+      "procedures": 2,
+      "red_flags": 5,
+      "secondary_diagnoses": 4
+    },
+    "digests": {
+      "appointments": "7cd902beb4504083",
+      "medications": "364b51a632777541",
+      "procedures": "2691f2e5694cc49f",
+      "red_flags": "5199e14ca329cfd1",
+      "secondary_diagnoses": "1d1663c75f3e8cec"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_048_fax": {
+    "counts": {
+      "appointments": 2,
+      "medications": 3,
+      "procedures": 1,
+      "red_flags": 5,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "7cd902beb4504083",
+      "medications": "10772ba3b765dc2e",
+      "procedures": "05383387cd0b70d7",
+      "red_flags": "6c6e48a6a88d7bd4",
+      "secondary_diagnoses": "a424c5c08786de3c"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": null
+  },
+  "mtsamples_049": {
+    "counts": {
+      "appointments": 1,
+      "medications": 4,
+      "procedures": 7,
+      "red_flags": 0,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "10b3879cb262e462",
+      "medications": "80b4fd9fc9d079ac",
+      "procedures": "f5934296e6b7b6e0",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "2b39ef7b4def286f"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_050": {
+    "counts": {
+      "appointments": 1,
+      "medications": 23,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 7
+    },
+    "digests": {
+      "appointments": "782cc21d64a491e0",
+      "medications": "158b6d0746b011be",
+      "procedures": "5c6679f4a73c2967",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "35975e671dff8262"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_051": {
+    "counts": {
+      "appointments": 4,
+      "medications": 8,
+      "procedures": 5,
+      "red_flags": 0,
+      "secondary_diagnoses": 5
+    },
+    "digests": {
+      "appointments": "8d5004493a6d9452",
+      "medications": "23ff87e8eb89b989",
+      "procedures": "82b02af3f859c5be",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "a7e005d7697e2593"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_052": {
+    "counts": {
+      "appointments": 2,
+      "medications": 8,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 17
+    },
+    "digests": {
+      "appointments": "7bd2d3fa8797165d",
+      "medications": "e12fff1dc970ea6a",
+      "procedures": "007fdb0d494f6f6a",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "a6b50629c76c4a87"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_053": {
+    "counts": {
+      "appointments": 1,
+      "medications": 0,
+      "procedures": 1,
+      "red_flags": 4,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "cb3358cfb2321172",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "7d59cf1a44711f10",
+      "red_flags": "1a294d13229ae862",
+      "secondary_diagnoses": "31c0b40c3f7acfc4"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_053_fax": {
+    "counts": {
+      "appointments": 1,
+      "medications": 0,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "b465a78ae2653557",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "bf681e84f9a23b7d",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "31c0b40c3f7acfc4"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": true,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_054": {
+    "counts": {
+      "appointments": 2,
+      "medications": 13,
+      "procedures": 8,
+      "red_flags": 1,
+      "secondary_diagnoses": 9
+    },
+    "digests": {
+      "appointments": "5f6d9812210e66f0",
+      "medications": "9ae879e4bb311dc7",
+      "procedures": "e0ebc4cd0893cf3e",
+      "red_flags": "373533a9b78b590f",
+      "secondary_diagnoses": "e52c6d1262f78283"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_055": {
+    "counts": {
+      "appointments": 0,
+      "medications": 0,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 6
+    },
+    "digests": {
+      "appointments": "e3b0c44298fc1c14",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "f6e6b29b6c1c4345",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "b6a54c3ceaa86112"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_056": {
+    "counts": {
+      "appointments": 3,
+      "medications": 3,
+      "procedures": 3,
+      "red_flags": 4,
+      "secondary_diagnoses": 6
+    },
+    "digests": {
+      "appointments": "f4f81a2a07b23681",
+      "medications": "a804553c791f9ca2",
+      "procedures": "b2d60758a49bdef5",
+      "red_flags": "55be37c9ae4e6731",
+      "secondary_diagnoses": "693c1391a191ceea"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_056_fax": {
+    "counts": {
+      "appointments": 3,
+      "medications": 4,
+      "procedures": 3,
+      "red_flags": 4,
+      "secondary_diagnoses": 6
+    },
+    "digests": {
+      "appointments": "f4f81a2a07b23681",
+      "medications": "f4cafa6a0ef39ff2",
+      "procedures": "b5be7a68f4f13dc3",
+      "red_flags": "55be37c9ae4e6731",
+      "secondary_diagnoses": "2a5df7e7613d4280"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": true,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_057": {
+    "counts": {
+      "appointments": 2,
+      "medications": 1,
+      "procedures": 4,
+      "red_flags": 0,
+      "secondary_diagnoses": 7
+    },
+    "digests": {
+      "appointments": "3f373065754599ab",
+      "medications": "2dcbb9b1ceb61556",
+      "procedures": "92c0f027404e0d63",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "7132ce7d03fac6ea"
+    },
+    "document_type": "heart_failure",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_058": {
+    "counts": {
+      "appointments": 1,
+      "medications": 7,
+      "procedures": 4,
+      "red_flags": 0,
+      "secondary_diagnoses": 4
+    },
+    "digests": {
+      "appointments": "9bea6e481dcf2c88",
+      "medications": "1a66ef819c8a879a",
+      "procedures": "3bafe669f99f701e",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "b207c9f4d8462790"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_059": {
+    "counts": {
+      "appointments": 1,
+      "medications": 0,
+      "procedures": 5,
+      "red_flags": 6,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "e2058bd450507cdb",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "4a8dae68bdf89290",
+      "red_flags": "0f42eedec3ba5121",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_059_fax": {
+    "counts": {
+      "appointments": 1,
+      "medications": 0,
+      "procedures": 5,
+      "red_flags": 6,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "22e6a0437d501fb3",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "fc9972287aed0dfb",
+      "red_flags": "fe436c58bb01d48b",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": true,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_060": {
+    "counts": {
+      "appointments": 1,
+      "medications": 4,
+      "procedures": 1,
+      "red_flags": 8,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "e4244c1a268bfdaf",
+      "medications": "860c850b31f2f109",
+      "procedures": "5b09849f04f93538",
+      "red_flags": "84a862d983eac267",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_060_fax": {
+    "counts": {
+      "appointments": 1,
+      "medications": 4,
+      "procedures": 1,
+      "red_flags": 10,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "e4244c1a268bfdaf",
+      "medications": "40d53cb53ef623bc",
+      "procedures": "52a56d457268b4c7",
+      "red_flags": "b9d8191c397b0f05",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": null
+  },
+  "mtsamples_061": {
+    "counts": {
+      "appointments": 1,
+      "medications": 2,
+      "procedures": 4,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "78cb626f01acb323",
+      "medications": "73a5b3f2c6c318c3",
+      "procedures": "16c4e3610ca27d59",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "7673bb4d57dad014"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_062": {
+    "counts": {
+      "appointments": 1,
+      "medications": 1,
+      "procedures": 1,
+      "red_flags": 5,
+      "secondary_diagnoses": 11
+    },
+    "digests": {
+      "appointments": "4a9f5b2c06e23de8",
+      "medications": "95bd36f56675bfc9",
+      "procedures": "971b38267330bf83",
+      "red_flags": "037135e2fc750354",
+      "secondary_diagnoses": "a2e3955a92331f8c"
+    },
+    "document_type": "hip_replacement",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_062_fax": {
+    "counts": {
+      "appointments": 1,
+      "medications": 1,
+      "procedures": 2,
+      "red_flags": 5,
+      "secondary_diagnoses": 10
+    },
+    "digests": {
+      "appointments": "4a9f5b2c06e23de8",
+      "medications": "95bd36f56675bfc9",
+      "procedures": "368465f12abd93ca",
+      "red_flags": "76befd3b70ef03ff",
+      "secondary_diagnoses": "daa3dfb522c06127"
+    },
+    "document_type": "hip_replacement",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": null
+  },
+  "mtsamples_063": {
+    "counts": {
+      "appointments": 4,
+      "medications": 6,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "d4c50f7cf8443fc2",
+      "medications": "5e5504dcc7a71aa4",
+      "procedures": "574eaeb0efa00cbd",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "73cc330bd7ddedc7"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_064": {
+    "counts": {
+      "appointments": 2,
+      "medications": 4,
+      "procedures": 1,
+      "red_flags": 7,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "596436b9e23152d3",
+      "medications": "bc9a1b6a5bbb4073",
+      "procedures": "d0d82e6b3da20526",
+      "red_flags": "2ce38327a59be723",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_064_fax": {
+    "counts": {
+      "appointments": 1,
+      "medications": 4,
+      "procedures": 2,
+      "red_flags": 7,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "0ca401a299d34250",
+      "medications": "bc9a1b6a5bbb4073",
+      "procedures": "b8a608d945c3bfa1",
+      "red_flags": "6dd1c02844d02a75",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": null
+  },
+  "mtsamples_065": {
+    "counts": {
+      "appointments": 2,
+      "medications": 1,
+      "procedures": 6,
+      "red_flags": 0,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "8dbe9bfdda1ef5fd",
+      "medications": "bd958f863f7ac190",
+      "procedures": "f6778355d0ad6e67",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "cc6733d21dfd2018"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_066": {
+    "counts": {
+      "appointments": 1,
+      "medications": 4,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "544645e956587660",
+      "medications": "4d3bd00b049cce55",
+      "procedures": "6467db0fa42bc0bb",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "406214406e2d74a2"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_067": {
+    "counts": {
+      "appointments": 8,
+      "medications": 10,
+      "procedures": 12,
+      "red_flags": 0,
+      "secondary_diagnoses": 6
+    },
+    "digests": {
+      "appointments": "411e7065e506945e",
+      "medications": "edbe87c63c51e72d",
+      "procedures": "5a72630a187dddd1",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "81c428e2978f8a3f"
+    },
+    "document_type": "heart_failure",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_068": {
+    "counts": {
+      "appointments": 3,
+      "medications": 1,
+      "procedures": 2,
+      "red_flags": 3,
+      "secondary_diagnoses": 8
+    },
+    "digests": {
+      "appointments": "db2a26177238b40f",
+      "medications": "3f507052dd414306",
+      "procedures": "44e7b6ad114a7e86",
+      "red_flags": "a7a7ed522f7f374a",
+      "secondary_diagnoses": "a5053ca6d0235fcd"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_068_fax": {
+    "counts": {
+      "appointments": 3,
+      "medications": 1,
+      "procedures": 3,
+      "red_flags": 3,
+      "secondary_diagnoses": 8
+    },
+    "digests": {
+      "appointments": "b07d2defeee037c1",
+      "medications": "3f507052dd414306",
+      "procedures": "7688ff111a65a9f6",
+      "red_flags": "a7a7ed522f7f374a",
+      "secondary_diagnoses": "a5053ca6d0235fcd"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": true,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_069": {
+    "counts": {
+      "appointments": 2,
+      "medications": 9,
+      "procedures": 13,
+      "red_flags": 0,
+      "secondary_diagnoses": 4
+    },
+    "digests": {
+      "appointments": "825b11cd09223977",
+      "medications": "e8c9cc682dcc1b9f",
+      "procedures": "3f965cbac44c4c17",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "bad811311abf1c79"
+    },
+    "document_type": "diabetes",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_070": {
+    "counts": {
+      "appointments": 0,
+      "medications": 6,
+      "procedures": 0,
+      "red_flags": 0,
+      "secondary_diagnoses": 4
+    },
+    "digests": {
+      "appointments": "e3b0c44298fc1c14",
+      "medications": "972d3d83919dc6e9",
+      "procedures": "e3b0c44298fc1c14",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "a2130c4a15483aba"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_071": {
+    "counts": {
+      "appointments": 2,
+      "medications": 14,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 6
+    },
+    "digests": {
+      "appointments": "7173147ace980a4a",
+      "medications": "1f6ec789e4c3740b",
+      "procedures": "6afe79352c76c65f",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "48e0360002e131a3"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_072": {
+    "counts": {
+      "appointments": 0,
+      "medications": 9,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 8
+    },
+    "digests": {
+      "appointments": "e3b0c44298fc1c14",
+      "medications": "092a91a2508a6bd6",
+      "procedures": "e24a24f6b1c70d07",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "1666c1fc47685300"
+    },
+    "document_type": "hip_replacement",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_073": {
+    "counts": {
+      "appointments": 2,
+      "medications": 2,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 6
+    },
+    "digests": {
+      "appointments": "705c2e77c840d24b",
+      "medications": "8200a26358875952",
+      "procedures": "68a4ff39193d83c8",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "967ec114b99c511d"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_074": {
+    "counts": {
+      "appointments": 0,
+      "medications": 0,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "e3b0c44298fc1c14",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "81ec5662e0c2f722",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "27d96475d11db798"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_075": {
+    "counts": {
+      "appointments": 2,
+      "medications": 5,
+      "procedures": 2,
+      "red_flags": 5,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "c105096632929f33",
+      "medications": "b91a8bd83b593d9c",
+      "procedures": "a692099ec4736e12",
+      "red_flags": "22a09d7c8d56c473",
+      "secondary_diagnoses": "e854059ec21a3914"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_075_fax": {
+    "counts": {
+      "appointments": 2,
+      "medications": 5,
+      "procedures": 2,
+      "red_flags": 6,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "e9c115903354ccb8",
+      "medications": "227249b3c6a81bc3",
+      "procedures": "fae949c833e0f259",
+      "red_flags": "1faf8a8cf1bec075",
+      "secondary_diagnoses": "e854059ec21a3914"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": null
+  },
+  "mtsamples_076": {
+    "counts": {
+      "appointments": 1,
+      "medications": 9,
+      "procedures": 0,
+      "red_flags": 0,
+      "secondary_diagnoses": 9
+    },
+    "digests": {
+      "appointments": "582323a8a965009b",
+      "medications": "ea3e684750cd9a34",
+      "procedures": "e3b0c44298fc1c14",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "370b3f8452c9c97c"
+    },
+    "document_type": "heart_failure",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_077": {
+    "counts": {
+      "appointments": 4,
+      "medications": 3,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "ee0e60a84b039c46",
+      "medications": "240a105cd3165362",
+      "procedures": "7c1f7c1f5b772659",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "b8ea7b7963a0fa7b"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_078": {
+    "counts": {
+      "appointments": 1,
+      "medications": 2,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 5
+    },
+    "digests": {
+      "appointments": "dac18002e5e2a74c",
+      "medications": "699e2e2f2bdbdbb8",
+      "procedures": "020ec1d4a06c7c28",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "98934445d85d3de6"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_079": {
+    "counts": {
+      "appointments": 1,
+      "medications": 12,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 5
+    },
+    "digests": {
+      "appointments": "c90296a649908490",
+      "medications": "cb15380a26462a6c",
+      "procedures": "748babf3f503a7e6",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "485bcaaa3f3c82f8"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_080": {
+    "counts": {
+      "appointments": 0,
+      "medications": 3,
+      "procedures": 6,
+      "red_flags": 0,
+      "secondary_diagnoses": 4
+    },
+    "digests": {
+      "appointments": "e3b0c44298fc1c14",
+      "medications": "3ebbedf35cfb11ee",
+      "procedures": "562d80fbb9ecea68",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "806d34d32cc22dfa"
+    },
+    "document_type": "heart_failure",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_081": {
+    "counts": {
+      "appointments": 1,
+      "medications": 1,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "9af5f64f59664d38",
+      "medications": "acb3cacb21c3f5c0",
+      "procedures": "22b971b5b96b126b",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "4c2389a9d08192ab"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_082": {
+    "counts": {
+      "appointments": 0,
+      "medications": 0,
+      "procedures": 10,
+      "red_flags": 2,
+      "secondary_diagnoses": 8
+    },
+    "digests": {
+      "appointments": "e3b0c44298fc1c14",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "422932e526f1289e",
+      "red_flags": "94b416ac885459f3",
+      "secondary_diagnoses": "cfa663c55a179fa0"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_083": {
+    "counts": {
+      "appointments": 2,
+      "medications": 4,
+      "procedures": 7,
+      "red_flags": 3,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "51552cd18671e0bf",
+      "medications": "06c5ca1366cbaf87",
+      "procedures": "658039f63685be2f",
+      "red_flags": "a7051c8ce96df119",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_083_fax": {
+    "counts": {
+      "appointments": 2,
+      "medications": 4,
+      "procedures": 6,
+      "red_flags": 2,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "51552cd18671e0bf",
+      "medications": "06c5ca1366cbaf87",
+      "procedures": "3f7c6fec331d69a8",
+      "red_flags": "b0b0cacce405d11a",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": true,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_084": {
+    "counts": {
+      "appointments": 1,
+      "medications": 1,
+      "procedures": 1,
+      "red_flags": 4,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "64330c0f3057a9c2",
+      "medications": "4a62e3bc64aff03a",
+      "procedures": "33564b1e72f198da",
+      "red_flags": "565d929fb92b1ccf",
+      "secondary_diagnoses": "7d72c5208b56a3d9"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_084_fax": {
+    "counts": {
+      "appointments": 5,
+      "medications": 0,
+      "procedures": 1,
+      "red_flags": 4,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "72befa14cce61315",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "33564b1e72f198da",
+      "red_flags": "565d929fb92b1ccf",
+      "secondary_diagnoses": "7a9f4835702b86c6"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": true,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_085": {
+    "counts": {
+      "appointments": 3,
+      "medications": 5,
+      "procedures": 8,
+      "red_flags": 1,
+      "secondary_diagnoses": 5
+    },
+    "digests": {
+      "appointments": "1b5260c936848eee",
+      "medications": "37ada04f11fbac52",
+      "procedures": "be04493fa27cd4cd",
+      "red_flags": "a91a022cf3840a5b",
+      "secondary_diagnoses": "5323f77f00c68b71"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_086": {
+    "counts": {
+      "appointments": 2,
+      "medications": 5,
+      "procedures": 8,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "cf8c7fc2ba9a9a93",
+      "medications": "cdc06bccade2f4b6",
+      "procedures": "66645a5ae854a2a6",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "0ff4978e1580854f"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_087": {
+    "counts": {
+      "appointments": 0,
+      "medications": 2,
+      "procedures": 8,
+      "red_flags": 4,
+      "secondary_diagnoses": 7
+    },
+    "digests": {
+      "appointments": "e3b0c44298fc1c14",
+      "medications": "a7240a326c98fa2e",
+      "procedures": "e9212c52cad2c7a2",
+      "red_flags": "44863c81a524c315",
+      "secondary_diagnoses": "19c9a7dfd9710463"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_088": {
+    "counts": {
+      "appointments": 1,
+      "medications": 0,
+      "procedures": 5,
+      "red_flags": 0,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "afc97909b1500460",
+      "medications": "e3b0c44298fc1c14",
+      "procedures": "40b202f904df6a50",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "unknown",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_089": {
+    "counts": {
+      "appointments": 2,
+      "medications": 4,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 9
+    },
+    "digests": {
+      "appointments": "9a94181e53539b59",
+      "medications": "abaea88d39cf144b",
+      "procedures": "6f81e41994d511e9",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "32541d67a22ab3b0"
+    },
+    "document_type": "heart_failure",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_090": {
+    "counts": {
+      "appointments": 1,
+      "medications": 4,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "59605cb098262584",
+      "medications": "ed0d39e15c1db408",
+      "procedures": "c56c1149d78d2020",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "13ecd1937191b97c"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_091": {
+    "counts": {
+      "appointments": 1,
+      "medications": 2,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 4
+    },
+    "digests": {
+      "appointments": "a6c3bff51735d2f7",
+      "medications": "e74e3bd2293b26e3",
+      "procedures": "178230ddbe5a4ec5",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "56a98071d6c2a04a"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_092": {
+    "counts": {
+      "appointments": 1,
+      "medications": 3,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "d5901c381e8a34da",
+      "medications": "b216d20e501c89d4",
+      "procedures": "96b2035464e20a8b",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "249514d482c3f15f"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_093": {
+    "counts": {
+      "appointments": 1,
+      "medications": 3,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 2
+    },
+    "digests": {
+      "appointments": "d00074262cf9c0c1",
+      "medications": "178c410969830866",
+      "procedures": "89ac6f4b50f31b9f",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "ef3ced77f9f88448"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_094": {
+    "counts": {
+      "appointments": 1,
+      "medications": 11,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 6
+    },
+    "digests": {
+      "appointments": "8df659d1da083ce7",
+      "medications": "e00fb5eb24b56440",
+      "procedures": "83de92a1a5997338",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "e02b956209d33105"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_095": {
+    "counts": {
+      "appointments": 1,
+      "medications": 6,
+      "procedures": 3,
+      "red_flags": 2,
+      "secondary_diagnoses": 4
+    },
+    "digests": {
+      "appointments": "71ec136c2dd58b9d",
+      "medications": "3491098fae5d6ce1",
+      "procedures": "e28f45d3e7d432a0",
+      "red_flags": "1ebdc3d328122dab",
+      "secondary_diagnoses": "fd3cb99f7a9d25a1"
+    },
+    "document_type": "heart_failure",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_096": {
+    "counts": {
+      "appointments": 2,
+      "medications": 2,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "e5e87039039f0ca9",
+      "medications": "1553c4f4e6a8e339",
+      "procedures": "baa10efa21088290",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "ea0ec5e7ab196989"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_097": {
+    "counts": {
+      "appointments": 1,
+      "medications": 10,
+      "procedures": 7,
+      "red_flags": 0,
+      "secondary_diagnoses": 4
+    },
+    "digests": {
+      "appointments": "0ec5f5eff44ead77",
+      "medications": "6c1296a29aab1b5d",
+      "procedures": "cc4f0107e7147ddb",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "90ccb5613a896a8c"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_098": {
+    "counts": {
+      "appointments": 1,
+      "medications": 3,
+      "procedures": 0,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "f5b97a876f7e0b85",
+      "medications": "6a2e69b4790c47c6",
+      "procedures": "e3b0c44298fc1c14",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "c79550f3d562fadb"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_099": {
+    "counts": {
+      "appointments": 1,
+      "medications": 2,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "178ddfeefd5121b5",
+      "medications": "179721e8435d1243",
+      "procedures": "9c404a0140e4b92f",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "84016ea4bac93692"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_100": {
+    "counts": {
+      "appointments": 1,
+      "medications": 10,
+      "procedures": 2,
+      "red_flags": 0,
+      "secondary_diagnoses": 3
+    },
+    "digests": {
+      "appointments": "1309a4b3500edfcb",
+      "medications": "2b4aa0fa62e2f249",
+      "procedures": "a28e0019ff76ac47",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "92504f2cf28e1281"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_101": {
+    "counts": {
+      "appointments": 0,
+      "medications": 1,
+      "procedures": 1,
+      "red_flags": 3,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "e3b0c44298fc1c14",
+      "medications": "1757dbdb5eb8b359",
+      "procedures": "3fa98eebe0c0d5fe",
+      "red_flags": "39478be88863ded8",
+      "secondary_diagnoses": "83ab4d812c119473"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_101_fax": {
+    "counts": {
+      "appointments": 0,
+      "medications": 1,
+      "procedures": 1,
+      "red_flags": 3,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "e3b0c44298fc1c14",
+      "medications": "1757dbdb5eb8b359",
+      "procedures": "3fa98eebe0c0d5fe",
+      "red_flags": "39478be88863ded8",
+      "secondary_diagnoses": "9a8c0be4195e8865"
+    },
+    "document_type": "copd",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": true,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_102": {
+    "counts": {
+      "appointments": 1,
+      "medications": 1,
+      "procedures": 1,
+      "red_flags": 4,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "3c628e03c0969136",
+      "medications": "2592b423e5626332",
+      "procedures": "8cd77d97d324d681",
+      "red_flags": "2fd59bc5783d3796",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_102_fax": {
+    "counts": {
+      "appointments": 1,
+      "medications": 1,
+      "procedures": 1,
+      "red_flags": 4,
+      "secondary_diagnoses": 0
+    },
+    "digests": {
+      "appointments": "b0863cccdf32d6e6",
+      "medications": "d90fd4e79d8277e3",
+      "procedures": "e67cb3127c42e7f2",
+      "red_flags": "bbc648b10b08774d",
+      "secondary_diagnoses": "e3b0c44298fc1c14"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": true,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_103": {
+    "counts": {
+      "appointments": 4,
+      "medications": 5,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 8
+    },
+    "digests": {
+      "appointments": "90a059e4f9745533",
+      "medications": "0654449e050f88cc",
+      "procedures": "e5f1f6db1b4a540e",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "672a7e928bb9c507"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_104": {
+    "counts": {
+      "appointments": 1,
+      "medications": 6,
+      "procedures": 3,
+      "red_flags": 0,
+      "secondary_diagnoses": 6
+    },
+    "digests": {
+      "appointments": "544645e956587660",
+      "medications": "91155aebf3b4436b",
+      "procedures": "0dbd6fe69ff0382b",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "4544d601851bf80b"
+    },
+    "document_type": "heart_failure",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_105": {
+    "counts": {
+      "appointments": 2,
+      "medications": 2,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "5e356d6d4fc5b170",
+      "medications": "4f8c2e89c6469dea",
+      "procedures": "37d8f8416c2f484e",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "089b48711f45bef2"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  },
+  "mtsamples_106": {
+    "counts": {
+      "appointments": 2,
+      "medications": 2,
+      "procedures": 1,
+      "red_flags": 0,
+      "secondary_diagnoses": 1
+    },
+    "digests": {
+      "appointments": "17453c8c604ff242",
+      "medications": "79522c477a304db5",
+      "procedures": "4ac2009129bd5cca",
+      "red_flags": "e3b0c44298fc1c14",
+      "secondary_diagnoses": "312d1fdd8a76f22d"
+    },
+    "document_type": "surgical",
+    "escalation_routes_to_911": true,
+    "escalation_tiers": 3,
+    "fk": {},
+    "pipeline_status": "complete_with_warnings",
+    "sections_present": {
+      "diagnosis_explanation": true,
+      "escalation_guide": true,
+      "medication_rationale": true,
+      "recovery_trajectory": true
+    },
+    "source_degraded": false,
+    "source_stratum": "dictated"
+  }
+}
