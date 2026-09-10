@@ -141,6 +141,16 @@ once. This is not boilerplate risk language.
 drafted by an AI assistant.** `LIEBOVITZ_CLINICAL_QUESTIONS.md` already
 proposed routing liability questions to them; this confirms it.
 
+**Engineering input delivered 10 Sep 2026: `docs/FDA_CDS_FACT_BASE.md`.** Not
+the memo and not analysis - the accurate description of the system that
+counsel cannot obtain anywhere else. It maps each of the seven outputs against
+directive / time-critical / source-traceable, describes Agent 5 precisely
+(imperative by design under hard rule 3; all three tiers emitted even though
+only 26% of documents carry a warning-signs section; invented thresholds 80% →
+0%; 0 of 6 templates signed), states that no clinician is in the loop at
+runtime, and lists what engineering can change if the analysis calls for it.
+It stops where the judgement begins.
+
 ### ◑ 2.4 Source the 40-80% statistic to Kessels (2003) - CITATION FOUND
 
 **Reference confirmed and recorded in `docs/CITATIONS.md`:**
