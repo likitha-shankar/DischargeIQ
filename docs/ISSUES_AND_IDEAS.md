@@ -61,33 +61,30 @@ gets cited.**
 
 Regenerating twelve documents to verify an unrelated fix, `mtsamples_026`
 returned 11 medications where the 9 Sep run returned 13. The two missing ones
-were **Lovenox** and **Niacin**, both plainly named in the document. Lovenox is
-an anticoagulant. Nothing on our side had changed: same prompt version, same
-model name, same provider, no commits touching the agent or its prompt.
+were both plainly named in the document, one of them an anticoagulant.
+Nothing on our side had changed: same prompt version, same model name, same
+provider, no commits touching the agent or its prompt.
 
 ### Why the first reading was wrong
 
 I searched the document for the medication list, found one, and stopped.
 
-`mtsamples_026` has **two**:
+`mtsamples_026` has **two**, and the drug names are deliberately not
+reproduced here - see the note at the end of this entry.
 
-    medications:
-    on transfer, celebrex, coumadin, colace, synthroid, lovenox, percocet,
-    toprol xl, niacin, and trazodone.
+The first sits under a bare `medications:` heading, prefixed **"on transfer"**,
+and names nine drugs. It is what she was taking when she TRANSFERRED to rehab.
 
-and, much later:
+The second appears much later, introduced by **"the patient is advised to
+continue taking the following medications"**, and names eleven with doses and
+durations. It is what she goes home on.
 
-    the patient is advised to continue taking the following medications:
-    celebrex ... colace ... protonix ... synthroid ... diprosone cream ...
-    oxycodone sr ... percocet ... trazodone ... ativan ... toprol-xl ...
-    and coumadin
+A discharge summary's medication list is the second one.
 
-The first is what she was on when she TRANSFERRED to rehab. The second is what
-she goes home on. A discharge summary's medication list is the second one.
-
-**Lovenox and Niacin appear only in the transfer list.** Lovenox is DVT
-prophylaxis given in hospital and not continued at home. The discharge list
-holds exactly 11 drugs, and the 10 Sep extraction returns exactly those 11.
+**Two drugs appear only in the transfer list**, one of them an anticoagulant
+used as DVT prophylaxis in hospital and not continued at home. The discharge
+list holds exactly 11 drugs, and the 10 Sep extraction returns exactly those
+11.
 
 So the 9 Sep run was wrong: it merged the transfer list into the discharge
 list. The 10 Sep run is correct.
@@ -157,3 +154,16 @@ The tension is real and worth stating rather than resolving silently: the
 demo audience and the patient want opposite things here. The proposal is to
 keep the cinematic for a first launch, which is what a demo shows anyway, and
 stop charging returning patients for it.
+
+### A note on what is quoted above
+
+The first draft of this entry pasted both medication lists verbatim, and named
+the two drugs throughout. That is corpus text in a tracked file - the same
+thing `evaluation/golden_manifest.json` is carefully designed to avoid, three
+directories away.
+
+MTSamples is de-identified third-party material and this repo is private, so
+it was not a breach. It would have become one the moment the repository moved
+to the LOF-controlled org, which is pending. Structure is described instead of
+reproduced; the finding does not need the drug names to be understood.
+
