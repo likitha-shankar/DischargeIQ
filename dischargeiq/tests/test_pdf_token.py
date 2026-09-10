@@ -58,8 +58,36 @@ class TestWhatMustBeRejected:
         assert not pt.verify_pdf_token("session-a", token, exp, now=exp + 1)
 
     def test_a_tampered_signature(self):
+        """
+        The tampered character must actually differ from the original.
+
+        This was `token[:-1] + "0"`, which produces the UNCHANGED token
+        whenever the signature already ends in "0" - measured at 6.1% of
+        mints. The test then failed for the correct reason (an untampered
+        token verifies) while appearing to report a broken signature check.
+        It was the intermittent failure seen on 10 Sep and not reproduced in
+        eight subsequent runs.
+        """
         token, exp = pt.mint_pdf_token("session-a")
-        assert not pt.verify_pdf_token("session-a", token[:-1] + "0", exp)
+        flipped = "1" if token[-1] == "0" else "0"
+        tampered = token[:-1] + flipped
+        assert tampered != token, "the test did not actually tamper with anything"
+        assert not pt.verify_pdf_token("session-a", tampered, exp)
+
+    def test_every_single_character_matters(self):
+        """
+        Stronger than one flipped character, and not order-dependent: changing
+        ANY position must invalidate the token. A signature check that only
+        notices some positions is not a signature check.
+        """
+        token, exp = pt.mint_pdf_token("session-a")
+        for index in range(len(token)):
+            original = token[index]
+            flipped = "1" if original == "0" else "0"
+            tampered = token[:index] + flipped + token[index + 1:]
+            assert not pt.verify_pdf_token("session-a", tampered, exp), (
+                f"tampering at position {index} was not detected"
+            )
 
     def test_extending_the_expiry_invalidates_the_token(self):
         """

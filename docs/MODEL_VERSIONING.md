@@ -69,3 +69,43 @@ environment and production, which is a real trade-off and the opposite of the
 decision to make rather than made unilaterally, because that earlier decision
 was taken for a good reason: a Vertex-only model-name bug survived precisely
 because local and production diverged.
+
+## The gap this document had, closed 10 Sep 2026
+
+Two things were wrong, found while investigating an extraction regression.
+
+**The stamp recorded no model.** `run_corpus_for_review.py` wrote
+`os.environ.get("LLM_MODEL")`, which is unset in every normal deployment, so
+every corpus output carried `"llm_model": "<provider default>"`. The comment
+beside that line correctly warned that a provider-side change to a floating
+alias silently invalidates every number in the report - and the code recorded
+nothing that could detect it. It now resolves the name the pipeline actually
+sends.
+
+**There is no served version to stamp.** Probed on 10 Sep: Vertex returns an
+empty `system_fingerprint` and echoes the requested name back as
+`response.model`. Which checkpoint answered is not observable. So the
+re-evaluation trigger below had nothing to fire on.
+
+`scripts/model_canary.py` substitutes behaviour for a version string. Three
+fixed probes at temperature 0, hashed against a committed baseline. Measured
+before building it: five runs of one probe produced a single distinct output,
+so a changed digest means something rather than being noise.
+
+A changed digest does not prove the model changed. It proves BEHAVIOUR
+changed, which is the thing worth knowing - a smoke alarm, not a version
+number. The stored replies make a change readable rather than merely counted.
+
+```bash
+python scripts/model_canary.py            # compare against the baseline
+python scripts/model_canary.py --freeze   # after a deliberate model change
+```
+
+**Run it before quoting any accuracy figure.** A number measured last week
+describes the model that answered last week.
+
+**The probes are synthetic and must stay that way.** The first draft used a
+medication line copied verbatim from a corpus document, which would have put
+de-identified clinical text in the repository. `test_model_canary.py` fails if
+corpus drug names appear in a probe or in the baseline.
+

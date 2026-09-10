@@ -1,0 +1,18 @@
+{
+  "model": "google/gemini-2.5-flash-lite",
+  "probes": {
+    "absent_field": {
+      "digest": "c36dfb872dd24c94",
+      "reply": "Discharge weight is not mentioned in this line."
+    },
+    "format_adherence": {
+      "digest": "9d84505c105ff84f",
+      "reply": "Red, blue, green."
+    },
+    "list_extraction": {
+      "digest": "a2b340d4d7535559",
+      "reply": "```json\n[\n  \"ibuprofen\",\n  \"ranitidine\",\n  \"allopurinol\",\n  \"cetirizine\",\n  \"spironolactone\",\n  \"gabapentin\"\n]\n```"
+    }
+  },
+  "provider": "vertex"
+}

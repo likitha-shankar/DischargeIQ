@@ -36,6 +36,7 @@ Requires: LLM provider keys in .env (same as the API). DATABASE_URL optional -
 """
 
 import argparse
+from functools import lru_cache
 import asyncio
 import hashlib
 import json
@@ -52,6 +53,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from dischargeiq.utils.llm_client import get_llm_client
 from dischargeiq.pipeline.orchestrator import run_pipeline
 from dischargeiq.utils.strata import stratum_of_file
 
@@ -135,6 +137,34 @@ def count_stale(corpus_dir: Path = _DEFAULT_CORPUS_DIR) -> tuple[int, int]:
         or is_stale(_OUTPUT_DIR / f"{pdf.stem}.json")
     )
     return todo, len(pdfs)
+
+
+@lru_cache(maxsize=1)
+def _resolved_model() -> str:
+    """
+    The model name the pipeline will actually send, not the env var.
+
+    This used to read LLM_MODEL directly, which is unset in every normal
+    deployment - so every output in the corpus was stamped "<provider
+    default>". The comment beside that line correctly warned that a
+    provider-side change to a floating alias silently invalidates every
+    number in the report; the code then recorded nothing that could detect it.
+
+    get_llm_client() resolves the provider's default, so the stamp finally
+    names the alias. Note what it still cannot capture: WHICH checkpoint
+    answered. Vertex returns an empty system_fingerprint and echoes the
+    requested name, so the served version is not observable at all - that gap
+    is what scripts/model_canary.py exists to cover.
+
+    Cached: the answer cannot change within a run, and building a client per
+    document to read one string would be wasteful.
+    """
+    try:
+        _, model = get_llm_client()
+        return model or "<unresolved>"
+    except Exception as err:  # noqa: BLE001 - a stamp must never fail a run
+        logger.warning("could not resolve the model name for the stamp: %s", err)
+        return "<unresolved>"
 
 
 async def generate_outputs(
@@ -278,7 +308,7 @@ async def generate_outputs(
             # every number in it while the file still looks current. Raised as
             # item 3.7 of the Liebovitz review.
             "llm_provider": os.environ.get("LLM_PROVIDER", "gemini"),
-            "llm_model": os.environ.get("LLM_MODEL", "") or "<provider default>",
+            "llm_model": _resolved_model(),
             # Which PROMPTS produced it. The model stamp above is not enough:
             # on 25 Aug 2026 three agent prompts changed within an hour and
             # nothing in an output distinguished before from after, so a
