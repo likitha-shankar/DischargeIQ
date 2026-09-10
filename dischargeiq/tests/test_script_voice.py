@@ -22,7 +22,11 @@ of these tests assert silence.
 
 import pytest
 
-from dischargeiq.utils.script_voice import collective_claims, describe
+from dischargeiq.utils.script_voice import (
+    collective_claims,
+    describe,
+    strip_collective_adverbs,
+)
 
 
 class TestTheRealCase:
@@ -122,3 +126,102 @@ class TestTheHeartFailureScriptIsClean:
             "Alex: Take your water pill exactly as written.\n"
         )
         assert collective_claims(script) == []
+
+
+class TestBareAdverbs:
+    """
+    Found by READING the regenerated surgical script, an hour after this check
+    shipped clean on it. "Full healing usually takes two to four weeks" is a
+    claim about a population with no subject at all, and the pattern required
+    the word "people" next to the adverb.
+
+    A detector that only catches the phrasing you already thought of is a
+    detector that reports zero and means nothing.
+    """
+
+    @pytest.mark.parametrize("sentence", [
+        "Full healing usually takes two to four weeks.",
+        "Recovery typically takes a few weeks.",
+        "The swelling normally settles down.",
+        "Healing generally goes well.",
+    ])
+    def test_a_bare_adverb_claim_is_flagged(self, sentence):
+        assert collective_claims(f"Sam: {sentence}"), sentence
+
+    @pytest.mark.parametrize("sentence", [
+        "Your doctor will usually call you first.",
+        "Your care team normally checks in after a week.",
+        "Your plan says healing usually takes a while.",
+    ])
+    def test_the_patient_voice_exemption_carries_the_weight(self, sentence):
+        """
+        Broadening to bare adverbs only works because these stay silent. The
+        exemption is load-bearing, not a convenience - without it the check
+        fires on correct output and gets switched off.
+        """
+        assert not collective_claims(f"Sam: {sentence}"), sentence
+
+
+class TestStrippingAddedAdverbs:
+    """
+    Two prompt revisions failed to stop the model writing "Full healing USUALLY
+    takes two to four weeks" from a source that says only "Full healing takes
+    two to four weeks". That matches the four revisions that failed on invented
+    thresholds, and the answer is the same: fix it after generation.
+
+    The justification for doing this automatically is narrow and load-bearing.
+    It DELETES A WORD the model added; it does not rewrite a claim or decide
+    anything clinical. Restoring the source's own wording is safe. Rewriting
+    the numeric timeline in that same sentence would not be, and is left alone.
+    """
+
+    def test_the_adverb_goes_and_the_sentence_survives(self):
+        out, changed = strip_collective_adverbs(
+            "Sam: Full healing usually takes two to four weeks.")
+        assert out == "Sam: Full healing takes two to four weeks."
+        assert len(changed) == 1
+
+    def test_the_clinical_content_is_untouched(self):
+        """Only the adverb. The timeline is a clinician's call, not a regex's."""
+        out, _ = strip_collective_adverbs(
+            "Sam: Full healing usually takes two to four weeks.")
+        assert "two to four weeks" in out
+
+    @pytest.mark.parametrize("adverb", ["usually", "typically", "generally", "normally"])
+    def test_all_four_adverbs_are_stripped(self, adverb):
+        out, changed = strip_collective_adverbs(f"Sam: Healing {adverb} goes well.")
+        assert adverb not in out.lower()
+        assert changed
+
+    def test_patient_voice_keeps_its_adverb(self):
+        """
+        "Your doctor will usually call you first" is correct, and the adverb is
+        doing real work. Stripping it would change what the sentence means.
+        """
+        text = "Alex: Your doctor will usually call you first."
+        out, changed = strip_collective_adverbs(text)
+        assert out == text
+        assert changed == []
+
+    def test_it_cannot_launder_a_real_collective_claim(self):
+        """
+        The important limit. Stripping must not turn something this check
+        would refuse into something it accepts - "most people" is a claim
+        about a population and no word deletion makes it patient-specific.
+        """
+        out, _ = strip_collective_adverbs("Sam: Most people feel better soon.")
+        assert collective_claims(out), "a refusable claim was laundered into a pass"
+
+    def test_speaker_labels_and_blank_lines_survive(self):
+        script = "Sam: Healing usually goes well.\n\nAlex: Rest when you can."
+        out, _ = strip_collective_adverbs(script)
+        assert out.splitlines()[0].startswith("Sam:")
+        assert "Alex: Rest when you can." in out
+
+    def test_a_clean_script_is_returned_unchanged(self):
+        script = "Sam: Take your water pill each morning."
+        out, changed = strip_collective_adverbs(script)
+        assert out == script and changed == []
+
+    def test_empty_input_is_safe(self):
+        assert strip_collective_adverbs("") == ("", [])

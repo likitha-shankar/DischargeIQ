@@ -55,6 +55,14 @@ from dataclasses import dataclass
 #:
 #: The apostrophe class covers straight and curly: models emit both, and the
 #: chat grounding detector already carries the same fix for the same reason.
+#:
+#: A BARE "usually" counts, not only "people usually". Found by reading the
+#: regenerated surgical script an hour after this check shipped: "Full healing
+#: usually takes two to four weeks" is a claim about a population with no
+#: subject at all, and it walked straight past a pattern that required the
+#: word "people" next to it. The _PATIENT_VOICE exemption below is what keeps
+#: this from firing on "your doctor will usually call you first", which is
+#: correct output - so the exemption is load-bearing, not a convenience.
 _COLLECTIVE = re.compile(
     r"\b("
     r"most people|many people|some people|other people|"
@@ -64,7 +72,7 @@ _COLLECTIVE = re.compile(
     r"it(?:\s+is|['’]s)\s+(?:common|normal|usual|typical)"
     r")\b"
     r"|"
-    r"\b(?:usually|typically|generally|normally),",
+    r"\b(?:usually|typically|generally|normally)\b",
     re.IGNORECASE,
 )
 
@@ -130,6 +138,63 @@ def collective_claims(script: str) -> list[CollectiveClaim]:
             found.append(CollectiveClaim(
                 phrase=hit.group(0), sentence=sentence, speaker=speaker))
     return found
+
+
+#: Bare adverbs the model inserts of its own accord. Narrow on purpose - only
+#: these four words, only as whole words, and never inside a patient-voice
+#: sentence.
+_BARE_ADVERB = re.compile(
+    r"\s+\b(usually|typically|generally|normally)\b", re.IGNORECASE)
+
+
+def strip_collective_adverbs(script: str) -> tuple[str, list[str]]:
+    """
+    Remove bare generalising adverbs the model added on its own.
+
+    Args:
+        script: Generated dialogue.
+
+    Returns:
+        tuple[str, list[str]]: The cleaned script, and the sentences changed.
+
+    Note:
+        This REMOVES a word rather than rewriting a claim, and that is the
+        whole justification for doing it automatically. The surgical source
+        says "Full healing takes two to four weeks"; the model reliably emits
+        "Full healing USUALLY takes two to four weeks". Deleting the adverb
+        restores the source's own wording, so nothing clinical is invented or
+        decided here - which is emphatically not true of the numeric timeline
+        in that sentence, and that stays a question for a clinician.
+
+        Two prompt revisions failed to stop the insertion, matching the four
+        that failed on invented thresholds. Behaviour that a prompt cannot fix
+        gets fixed after generation, where it can be verified.
+
+        A sentence already in the patient's voice is untouched: "your doctor
+        will usually call you first" is correct, and the adverb is doing real
+        work in it.
+    """
+    if not script:
+        return script, []
+    changed: list[str] = []
+    out_lines: list[str] = []
+    for raw_line in script.splitlines():
+        speaker, body = "", raw_line
+        match = re.match(r"^(\s*\w+\s*:\s*)(.*)$", raw_line)
+        if match:
+            speaker, body = match.group(1), match.group(2)
+        pieces = re.split(r"(?<=[.!?])\s+", body)
+        rebuilt = []
+        for sentence in pieces:
+            if (_BARE_ADVERB.search(sentence)
+                    and not _PATIENT_VOICE.search(sentence)):
+                cleaned = _BARE_ADVERB.sub("", sentence)
+                changed.append(sentence.strip())
+                rebuilt.append(cleaned)
+            else:
+                rebuilt.append(sentence)
+        out_lines.append(speaker + " ".join(p for p in rebuilt if p))
+    return "\n".join(out_lines), changed
 
 
 def describe(claims: list[CollectiveClaim]) -> str:
