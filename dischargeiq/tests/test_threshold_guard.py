@@ -172,3 +172,141 @@ class TestOnRealCorpusOutput:
         result = strip_ungrounded_thresholds(text, source)
         assert not result.changed
         assert "101.5" in result.text
+
+
+class TestDownwardThresholds:
+    """
+    Found 10 Sep 2026 by reviewing the six cases the grounding verifier still
+    flagged on the corpus. The clause pattern matched only UPWARD comparators,
+    so `mtsamples_038` shipped "Call your doctor if your temperature drops
+    below 97 degrees Fahrenheit" - a fabricated hypothermia cutoff, past a
+    guard built to catch exactly this.
+    """
+
+    def test_a_downward_threshold_is_rewritten(self):
+        result = strip_ungrounded_thresholds(
+            "Call your doctor if your temperature drops below 97 degrees Fahrenheit",
+            "Patient afebrile throughout.")
+        assert result.changed
+        assert "97" not in result.text
+
+    @pytest.mark.parametrize("clause", [
+        "your temperature drops below 97 degrees Fahrenheit",
+        "your temperature is below 95 degrees",
+        "temperature falls below 96",
+        "a temperature under 95 F",
+        "temperature less than 95",
+    ])
+    def test_every_downward_phrasing_is_caught(self, clause):
+        result = strip_ungrounded_thresholds(f"Call us if {clause}.", "No fever.")
+        assert result.changed, f"missed: {clause}"
+
+    def test_a_low_reading_is_not_described_as_a_fever(self):
+        """
+        The substantive risk in fixing this carelessly. One replacement for
+        both directions would tell a hypothermic patient to watch for the
+        opposite of their problem.
+        """
+        result = strip_ungrounded_thresholds(
+            "Call if your temperature drops below 97 degrees", "No fever noted.")
+        assert "fever" not in result.text.lower()
+        assert "lower than normal" in result.text
+
+    @pytest.mark.parametrize("sentence,expected", [
+        ("Call if your temperature drops below 97 degrees",
+         "Call if your temperature is lower than normal"),
+        ("Call if you have a temperature below 95 degrees",
+         "Call if you have a temperature that is lower than normal"),
+    ])
+    def test_the_result_is_still_a_readable_sentence(self, sentence, expected):
+        """
+        "over" is a preposition and "drops below" is a verb, so a single
+        replacement produced "if your a temperature that is lower than
+        normal". Correct in substance, unreadable on the page - and
+        unreadable patient-facing text is its own defect.
+        """
+        assert strip_ungrounded_thresholds(sentence, "No fever.").text == expected
+
+    def test_a_downward_threshold_the_document_gave_is_kept(self):
+        """The patient's own doctor set it; it outranks us, in both directions."""
+        source = "Call the clinic if your temperature drops below 96 F."
+        result = strip_ungrounded_thresholds(
+            "Call if your temperature drops below 96 degrees", source)
+        assert not result.changed
+        assert "96" in result.text
+
+
+class TestTheDegreeSignParenthetical:
+    """
+    The module comment already claimed this case: "stripping only the
+    Fahrenheit value would leave the Celsius one behind, which is the same
+    defect in a different unit." The regex allowed `F` and `C` in the
+    parenthetical but not `°`, so `(38 C)` was absorbed and `(38°C)` was not -
+    and `mtsamples_032` shipped "a fever that will not come down (38°C)": the
+    guard's own replacement text with a fabricated number still attached.
+    """
+
+    @pytest.mark.parametrize("clause", [
+        "a fever over 100.4 F (38°C)",
+        "a fever over 100.4 F (38 C)",
+        "a fever over 100.4 F (38 degrees C)",
+        "a fever over 100.4 F (38°)",
+    ])
+    def test_the_parenthetical_goes_with_the_clause(self, clause):
+        result = strip_ungrounded_thresholds(clause, "Patient afebrile.")
+        assert result.changed
+        assert "38" not in result.text, f"left behind in: {result.text}"
+        assert "100.4" not in result.text
+
+
+class TestOrphanedUnitParentheticals:
+    """
+    mtsamples_032 shipped "a fever that will not come down (38°C)" - the
+    guard's own replacement wording with a fabricated number still attached.
+    The clause pass cannot catch it: by then there is no comparator left to
+    match, and the model can also emit the phrase with a bare parenthetical
+    and no comparator in the first place.
+    """
+
+    def test_an_orphan_after_our_own_phrase_is_removed(self):
+        result = strip_ungrounded_thresholds(
+            "Call your doctor if you have a fever that will not come down (38°C)",
+            "Patient afebrile.")
+        assert result.changed
+        assert "38" not in result.text
+        assert "a fever that will not come down" in result.text
+
+    def test_it_fires_after_the_low_temperature_phrasings_too(self):
+        for phrase in ("a temperature that is lower than normal",
+                       "temperature is lower than normal"):
+            result = strip_ungrounded_thresholds(f"Call if {phrase} (95 F).",
+                                                 "No fever.")
+            assert result.changed, phrase
+            assert "95" not in result.text
+
+    def test_a_grounded_parenthetical_is_left_alone(self):
+        source = "Chart notes a reading of 38 C on admission."
+        result = strip_ungrounded_thresholds(
+            "a fever that will not come down (38 C)", source)
+        assert not result.changed
+        assert "38" in result.text
+
+    @pytest.mark.parametrize("text", [
+        "Rest for a while (2 weeks).",
+        "Take your inhaler (the blue one).",
+        "Walk each day (start slowly).",
+        "Your dose is unchanged (see your list).",
+    ])
+    def test_ordinary_parentheticals_are_never_touched(self, text):
+        """
+        The rule only fires directly after a phrase this module inserted, on a
+        parenthetical containing nothing but a number and a temperature unit.
+        A guard that eats ordinary asides would be a worse defect than the one
+        it fixes.
+        """
+        assert strip_ungrounded_thresholds(text, "No fever.").text == text
+
+    def test_a_bare_parenthetical_elsewhere_is_not_touched(self):
+        """Only ours. A number in parentheses after other prose is not our call."""
+        text = "Your target weight (75 kg) is on your sheet."
+        assert strip_ungrounded_thresholds(text, "No fever.").text == text

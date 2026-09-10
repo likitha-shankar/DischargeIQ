@@ -100,22 +100,72 @@ _TEMP_CLAUSE = re.compile(
         (?:fever|temperature|temp)
         [^.\n]{0,40}?
     )
-    (?:
+    (?P<direction>
         (?:over|above|greater\ than|more\ than|exceeds?|of|reaches?|hits?|>=?)
-        \s*
+        |
+        (?:below|under|less\ than|lower\ than|drops?\ below|falls?\ below|<=?)
     )
+    \s*
     (?P<value>\d{2,3}(?:\.\d)?)
     \s*
     (?:degrees?\s*)?
     (?:F(?:ahrenheit)?|C(?:elsius)?|°\s*[FC]?|)
-    (?P<paren>\s*\(\s*\d{2,3}(?:\.\d)?\s*(?:degrees?\s*)?[FC]?\s*\))?
+    (?P<paren>\s*\(\s*\d{2,3}(?:\.\d)?\s*(?:degrees?\s*)?(?:°\s*)?[FC]?\s*\))?
     """,
     re.IGNORECASE | re.VERBOSE,
+)
+
+#: Comparators that point DOWNWARD. A low temperature is not a fever, so the
+#: fever replacement wording would be clinically wrong for these - it would
+#: tell a hypothermic patient to watch for a fever.
+_DOWNWARD = re.compile(
+    r"\b(?:below|under|less\ than|lower\ than|drops?\ below|falls?\ below)\b|<=?",
+    re.IGNORECASE,
 )
 
 #: Replacement wording. Taken from the agent prompts' own GOOD examples, so a
 #: patient reads language a clinician already signed off on.
 _TEMP_REPLACEMENT = "a fever that will not come down"
+
+#: The downward equivalent. A low reading is hypothermia, not fever, so it
+#: needs its own wording - substituting the fever phrase here would tell a
+#: cold patient to watch for the opposite of their problem.
+#:
+#: Unlike the fever phrase this is NOT lifted from a prompt's signed example,
+#: because no prompt carries a low-temperature example. It removes a
+#: fabricated cutoff while keeping the symptom, which is the same operation;
+#: but it should be reviewed alongside the escalation templates rather than
+#: treated as already-approved wording.
+#:
+#: Two forms, because the replaced clause appears in two grammatical shapes
+#: and one form cannot serve both. "over" is a preposition ("a fever over
+#: 101"); "drops below" is a verb ("your temperature drops below 97"). A
+#: single replacement produced "if your a temperature that is lower than
+#: normal" - correct in substance, unreadable on the page, and unreadable
+#: patient-facing text is its own defect.
+_LOW_TEMP_WITH_ARTICLE = "a temperature that is lower than normal"
+_LOW_TEMP_BARE = "temperature is lower than normal"
+
+#: An orphaned unit parenthetical left sitting after one of our replacements.
+#:
+#: Evidence this really happens: mtsamples_032 shipped "a fever that will not
+#: come down (38°C)" - our own replacement wording with a fabricated number
+#: still attached. Two ways to arrive there. The clause rewrite can leave a
+#: parenthetical it did not absorb, and the model can emit the phrase with a
+#: bare parenthetical and no comparator at all, which the clause pattern
+#: cannot match by construction.
+#:
+#: Deliberately narrow: it only fires directly after a phrase WE inserted, and
+#: only on a parenthetical that is nothing but a number and a temperature
+#: unit. "(2 weeks)" and "(your blue inhaler)" are untouched.
+_ORPHAN_PAREN = re.compile(
+    r"(?P<phrase>a fever that will not come down"
+    r"|a temperature that is lower than normal"
+    r"|temperature is lower than normal)"
+    r"\s*\(\s*(?P<value>\d{2,3}(?:\.\d)?)\s*"
+    r"(?:degrees?\s*)?(?:°\s*)?[FC]?\s*\)",
+    re.IGNORECASE,
+)
 
 
 def _source_numbers(source_text: str) -> set[str]:
@@ -178,16 +228,49 @@ def strip_ungrounded_thresholds(text: str, source_text: str) -> GuardResult:
             return match.group(0)
         # A parenthetical equivalent is grounded only if IT is in the source
         # too; otherwise the whole clause goes.
+        #
+        # Direction decides the wording. "Temperature drops below 97" and
+        # "fever over 101" are both fabricated cutoffs, but they describe
+        # opposite problems, and one replacement for both would tell a
+        # hypothermic patient to watch for a fever.
+        if _DOWNWARD.search(match.group("direction") or ""):
+            # Keep whatever article the original had, so the sentence still
+            # reads: "a temperature below 95" and "your temperature drops
+            # below 95" need different replacements.
+            lead = (match.group("lead") or "").lstrip()
+            replacement = (_LOW_TEMP_WITH_ARTICLE
+                           if lead.lower().startswith("a ")
+                           else _LOW_TEMP_BARE)
+        else:
+            replacement = _TEMP_REPLACEMENT
         rewrites.append(
             ThresholdRewrite(
                 original=match.group(0).strip(),
-                replacement=_TEMP_REPLACEMENT,
+                replacement=replacement,
                 value=value,
             )
         )
-        return _TEMP_REPLACEMENT
+        return replacement
 
     guarded = _TEMP_CLAUSE.sub(replace, text)
+
+    # Second pass: drop a unit parenthetical stranded after one of our own
+    # replacements. Runs after the clause pass so it can also catch the case
+    # that pass created.
+    def drop_orphan(match: re.Match) -> str:
+        value = match.group("value")
+        if value in grounded or value in _NEVER_STRIP:
+            return match.group(0)
+        rewrites.append(
+            ThresholdRewrite(
+                original=match.group(0).strip(),
+                replacement=match.group("phrase"),
+                value=value,
+            )
+        )
+        return match.group("phrase")
+
+    guarded = _ORPHAN_PAREN.sub(drop_orphan, guarded)
 
     if rewrites:
         logger.info(
