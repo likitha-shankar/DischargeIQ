@@ -50,61 +50,71 @@ Newest entries first within each section.
 | P-7 | On-device AI exploration (fall). Note on the "use Siri's Gemini" idea: the Apple-Google deal gives SIRI a custom Gemini on Apple's Private Cloud Compute - third-party apps get NO access to it. What apps DO get free is Apple's on-device Foundation Models framework (iOS 26, ~3B model). Realistic first step: move the grounded CHAT on-device via that framework; extraction/rewriting stays on the big-model pipeline. Device coverage rule: on-device AI needs recent chips (A17+/M-series) - the CLOUD pipeline stays the universal path, so old iPhones and phones without Siri/Apple Intelligence lose nothing; on-device is an upgrade, never a requirement. |
 | P-6 | Caregiver profiles (multi-patient support on one phone): per-profile documents, quiz history, and garden; extraction patient_name consistency check across scan pages. TheraCareAI's dependent-profile model is the reference. Requires a data-model rethink - not before the fall. |
 
-## Extraction regression on an unchanged pipeline (10 Sep 2026)
+## The "extraction regression" of 10 Sep 2026 was not one - CORRECTED
 
-**Found by the golden-file regression on its first real use.** Not by a test
-that was looking for it - by re-running twelve documents to verify an
-unrelated threshold-guard fix, and comparing counts.
+**Recorded first as a regression, then investigated properly and found to be
+the opposite. The original entry is replaced rather than amended, because
+leaving a wrong diagnosis visible next to a right one is how the wrong one
+gets cited.**
 
-`mtsamples_026` carries an explicit list:
+### What was observed
 
-> MEDICATIONS: on transfer, celebrex, coumadin, colace, synthroid, lovenox,
-> percocet, toprol xl, niacin, and trazodone.
+Regenerating twelve documents to verify an unrelated fix, `mtsamples_026`
+returned 11 medications where the 9 Sep run returned 13. The two missing ones
+were **Lovenox** and **Niacin**, both plainly named in the document. Lovenox is
+an anticoagulant. Nothing on our side had changed: same prompt version, same
+model name, same provider, no commits touching the agent or its prompt.
 
-On 9 Sep the extraction returned all nine, plus four named elsewhere: 13.
-On 10 Sep it returns **7 of the 9**, dropping **Lovenox and Niacin**: 11.
-Lovenox is an anticoagulant.
+### Why the first reading was wrong
 
-**Nothing on our side changed.** Same prompt version, same model name, same
-provider, and `git log` shows no commit touching `extraction_agent.py` or
-`agent1_system_prompt.txt` in between.
+I searched the document for the medication list, found one, and stopped.
 
-**It is not per-call sampling noise.** Three fresh extractions today all
-returned 11, at the provider default AND at temperature 0. The behaviour is
-stable - it has stabilised on the WRONG answer.
+`mtsamples_026` has **two**:
 
-**It is not truncation.** Extraction allows 4096 max_tokens; this document's
-extraction JSON is about 2020.
+    medications:
+    on transfer, celebrex, coumadin, colace, synthroid, lovenox, percocet,
+    toprol xl, niacin, and trazodone.
 
-**It is not a principled transfer-versus-discharge distinction.** That reading
-is tempting, since the list says "on transfer" - but the extraction keeps
-seven drugs from that same line and drops two. A rule applied to 7 of 9 items
-on one line is not a rule.
+and, much later:
 
-The remaining explanation is that the served model behind the pinned name
-`gemini-2.5-flash-lite` changed. Vertex can update a checkpoint without the
-name moving, and `docs/MODEL_VERSIONING.md` stamps the name, not the served
-version. That is precisely the risk its re-evaluation trigger exists for, and
-this is the trigger firing in the wild.
+    the patient is advised to continue taking the following medications:
+    celebrex ... colace ... protonix ... synthroid ... diprosone cream ...
+    oxycodone sr ... percocet ... trazodone ... ativan ... toprol-xl ...
+    and coumadin
 
-### What this changes
+The first is what she was on when she TRANSFERRED to rehab. The second is what
+she goes home on. A discharge summary's medication list is the second one.
 
-- **The golden manifest must NOT be re-frozen for `mtsamples_026` yet.**
-  Re-freezing would adopt the regression as the expected baseline, which is
-  how a silent quality loss becomes permanent.
-- The reported 99.6% medication recall is measured against ONE extraction run.
-  This is direct evidence that a single run is not a stable reference, which
-  is the strongest argument yet for the clinician gold standard
-  (`docs/ANNOTATION_SCHEMA.md`) rather than more self-comparison.
-- The staleness check in `run_corpus_for_review.py` compares prompt and model
-  stamps, so it reports 0 of 106 stale while this is happening. It cannot see
-  a served-model change any more than it can see a code change.
+**Lovenox and Niacin appear only in the transfer list.** Lovenox is DVT
+prophylaxis given in hospital and not continued at home. The discharge list
+holds exactly 11 drugs, and the 10 Sep extraction returns exactly those 11.
 
-### Open
+So the 9 Sep run was wrong: it merged the transfer list into the discharge
+list. The 10 Sep run is correct.
 
-Whether to pin a dated model, add a served-version probe to the stamp, or
-schedule a periodic canary re-run over a fixed subset. Needs a decision, not
-just a fix.
+### What this actually means
+
+- **There is no regression to chase.** Extraction on this document improved.
+- **The golden baseline for `mtsamples_026` is re-frozen** to the correct
+  output. Preserving the old one would pin a defect as the expected result.
+- **The other ten acknowledged documents are NOT re-frozen.** Drift went both
+  ways - `mtsamples_054` GAINED methotrexate, leucovorin and bicarbonate,
+  which look like an inpatient chemotherapy regimen rather than discharge
+  medicines, so that change may be wrong in the other direction. Each needs
+  the same reading this one got, and assuming they are all improvements would
+  repeat the error that produced this entry.
+
+### The lesson worth keeping
+
+The evidence was identical under both readings: two runs, a difference of two
+drugs, no change on our side. What decided it was reading the whole source
+document instead of the first matching line.
+
+A second thing nearly hid it: the canary probe showed the model reading all
+nine drugs from the transfer line correctly, which looked like proof that the
+model was capable and the agent was failing. It was answering a question
+nobody should have been asking - whether the model can read a list it should
+not have been using.
 
 ## Landing intro: two queued changes (25 Aug 2026)
 

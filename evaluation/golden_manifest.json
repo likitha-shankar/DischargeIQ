@@ -1075,19 +1075,19 @@
   "mtsamples_026": {
     "counts": {
       "appointments": 2,
-      "medications": 13,
+      "medications": 11,
       "procedures": 0,
       "red_flags": 0,
       "secondary_diagnoses": 9
     },
     "digests": {
-      "appointments": "822abd5bfe1ff853",
-      "medications": "6d82073cb0989da8",
+      "appointments": "26798bcc5c1f94d5",
+      "medications": "ed0b64824bedc519",
       "procedures": "e3b0c44298fc1c14",
       "red_flags": "e3b0c44298fc1c14",
       "secondary_diagnoses": "0717e3134b376eda"
     },
-    "document_type": "surgical",
+    "document_type": "hip_replacement",
     "escalation_routes_to_911": true,
     "escalation_tiers": 3,
     "fk": {},
