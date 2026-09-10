@@ -29,6 +29,7 @@ import 'package:provider/provider.dart';
 import 'package:dischargeiq_mobile/services/api_service.dart';
 import 'package:dischargeiq_mobile/screens/puzzle_screen.dart';
 import 'package:dischargeiq_mobile/services/game_store.dart';
+import 'package:dischargeiq_mobile/services/learning_card.dart';
 import 'package:dischargeiq_mobile/services/learning_goals.dart';
 import 'package:dischargeiq_mobile/widgets/quiz_review.dart';
 import 'package:dischargeiq_mobile/widgets/game_widgets.dart';
@@ -349,7 +350,10 @@ class _QuizBodyState extends State<QuizBody> {
 
   // ── Learning card content, derived from the pipeline result ─────────────
 
-  List<(String domain, String content)> get _learnCards {
+  /// Facts and prose kept apart so the card can always show the facts -
+  /// they are what the question asked about - and fold only the
+  /// explanation. See services/learning_card.dart.
+  List<(String domain, String facts, String prose)> get _learnCards {
     final r = widget.result;
     final ex = r['extraction'] as Map<String, dynamic>? ?? {};
     String joinList(dynamic v) =>
@@ -365,30 +369,27 @@ class _QuizBodyState extends State<QuizBody> {
             '${a['date'] != null ? ' - ${a['date']}' : ''}'
     ].join('\n');
 
-    final all = <(String, String)>[
-      ('diagnosis', '${r['diagnosis_explanation'] ?? ''}'),
-      ('medications',
-          [meds, '${r['medication_rationale'] ?? ''}'].where((s) => s.isNotEmpty).join('\n\n')),
-      ('follow_up', appts),
+    final all = <(String, String, String)>[
+      ('diagnosis', '', '${r['diagnosis_explanation'] ?? ''}'),
+      ('medications', meds, '${r['medication_rationale'] ?? ''}'),
+      ('follow_up', appts, ''),
       ('activity',
-          [
-            joinList(ex['activity_restrictions']),
-            joinList(ex['dietary_restrictions']),
-            '${r['recovery_trajectory'] ?? ''}'
-          ].where((s) => s.isNotEmpty).join('\n\n')),
-      ('red_flags',
-          [joinList(ex['red_flag_symptoms']), '${r['escalation_guide'] ?? ''}']
-              .where((s) => s.isNotEmpty)
-              .join('\n\n')),
+          [joinList(ex['activity_restrictions']), joinList(ex['dietary_restrictions'])]
+              .where((s) => s.isNotEmpty).join('\n'),
+          '${r['recovery_trajectory'] ?? ''}'),
+      ('red_flags', joinList(ex['red_flag_symptoms']),
+          '${r['escalation_guide'] ?? ''}'),
     ];
+    bool hasContent((String, String, String) c) =>
+        c.$2.trim().isNotEmpty || c.$3.trim().isNotEmpty;
     final cards = [
       for (final c in all)
-        if (c.$2.trim().isNotEmpty &&
+        if (hasContent(c) &&
             (_reviewDomains.isEmpty || _reviewDomains.contains(c.$1)))
           c
     ];
     // A failed domain with no card content must not brick the mastery loop.
-    return cards.isNotEmpty ? cards : [for (final c in all) if (c.$2.trim().isNotEmpty) c];
+    return cards.isNotEmpty ? cards : [for (final c in all) if (hasContent(c)) c];
   }
 
   // ── UI ───────────────────────────────────────────────────────────────────
@@ -723,10 +724,19 @@ class _QuizBodyState extends State<QuizBody> {
     }
   }
 
+  /// Whether the current card's folded remainder is open. Reset on every card
+  /// change: carrying it over would open the next card at its tail.
+  bool _cardExpanded = false;
+
+  void _goToCard(int index) =>
+      setState(() { _learnIndex = index; _cardExpanded = false; });
+
   Widget _learn() {
     final cards = _learnCards;
     final isReview = _reviewDomains.isNotEmpty;
     final card = cards[_learnIndex.clamp(0, cards.length - 1)];
+    final built = buildLearningCard(
+        domain: card.$1, facts: card.$2, prose: card.$3);
     final last = _learnIndex >= cards.length - 1;
     return ListView(
       children: [
@@ -762,11 +772,32 @@ class _QuizBodyState extends State<QuizBody> {
                   ),
                 ]),
                 const Divider(height: 20),
-                Text(card.$2,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge
-                        ?.copyWith(height: 1.5)),
+                Text(
+                  _cardExpanded ? built.full : built.summary,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.copyWith(height: 1.5),
+                ),
+                // Only offered when something is actually folded away. The
+                // warning-signs card never folds, so it never shows this.
+                if (built.hasMore) ...[
+                  const SizedBox(height: 6),
+                  TextButton.icon(
+                    onPressed: () =>
+                        setState(() => _cardExpanded = !_cardExpanded),
+                    icon: Icon(
+                      _cardExpanded ? Icons.expand_less : Icons.expand_more,
+                      size: 19,
+                    ),
+                    label: Text(_cardExpanded ? 'Show less' : 'Read more'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: kTealMid,
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -776,7 +807,7 @@ class _QuizBodyState extends State<QuizBody> {
           children: [
             if (_learnIndex > 0)
               OutlinedButton(
-                onPressed: () => setState(() => _learnIndex--),
+                onPressed: () => _goToCard(_learnIndex - 1),
                 child: const Text('Back'),
               ),
             const Spacer(),
@@ -784,7 +815,7 @@ class _QuizBodyState extends State<QuizBody> {
               style: FilledButton.styleFrom(backgroundColor: kTealMid),
               onPressed: () {
                 if (!last) {
-                  setState(() => _learnIndex++);
+                  _goToCard(_learnIndex + 1);
                 } else {
                   _startPost();
                 }
@@ -808,6 +839,7 @@ class _QuizBodyState extends State<QuizBody> {
     final index = cards.indexWhere((c) => c.$1 == question.domain);
     setState(() {
       _learnIndex = index >= 0 ? index : 0;
+      _cardExpanded = false;
       _phase = _Phase.learn;
     });
   }
