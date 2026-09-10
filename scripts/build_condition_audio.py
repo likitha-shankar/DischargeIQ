@@ -61,6 +61,7 @@ from dischargeiq.utils.scorer import fk_check  # noqa: E402
 from dischargeiq.utils.script_voice import (  # noqa: E402
     collective_claims,
     describe,
+    strip_collective_adverbs,
 )
 
 _MEDIA = _REPO / "dischargeiq" / "media"
@@ -165,6 +166,15 @@ def regenerate(name: str) -> bool:
         return False
 
     script = build_script(source)
+    # Delete generalising adverbs the model inserted of its own accord, then
+    # verify. Two prompt revisions failed to stop "Full healing USUALLY takes
+    # two to four weeks", where the source says only "Full healing takes two
+    # to four weeks" - so the adverb is removed after generation and the
+    # source's own wording is restored. Anything the strip cannot fix, such as
+    # "most people", still reaches verify() and still refuses.
+    script, stripped = strip_collective_adverbs(script)
+    for sentence in stripped:
+        print(f"    removed a generalising adverb from: {sentence!r}")
     problems = verify(script, name)
     if problems:
         # Refuse rather than ship. Audio is optional; wrong audio is not.
