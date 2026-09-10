@@ -29,6 +29,20 @@ pacing; the three precautions must be read slowly and separately.
 - These rules keep the new joint from slipping out.
 
 ## What to expect
-- Most people can walk with help the day after surgery.
+- Your care team will say when you can walk with help.
 - Light activity is okay after six weeks.
 - Full healing takes three to six months.
+
+<!--
+Collective phrasing removed 10 Sep 2026 (Frank Naeymi-Rad): speak
+about this patient, not about people in general.
+
+Was: "Most people can walk with help the day after surgery."
+
+This is a GENERAL explainer with no patient document behind it, so
+there is no "your plan" to attribute a timeline to - and a claim
+about a population, heard by someone whose recovery is slower, tells
+them they are behind. The fix is the one heart_failure.md already
+records for its fever threshold: stop competing with the listener's
+own paperwork and point at it instead.
+-->

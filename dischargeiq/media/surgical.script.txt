@@ -1,15 +1,16 @@
-Sam: Hello! We are going to talk about your discharge plan.
-Alex: Your doctor did a surgery using small cuts.
-Sam: They used a tiny camera and small tools.
-Alex: This helps you heal faster with less pain.
-Sam: You might feel some shoulder or chest pain.
-Alex: This is from gas used in the surgery.
-Sam: It should go away on its own soon.
-Alex: Your papers will say how much you can lift.
-Sam: Or for how long you should not lift.
-Alex: Please follow those instructions closely.
-Sam: Do not drive while taking pain pills.
-Alex: Start walking a little each day at home.
-Sam: Most people feel better in one to two weeks.
-Alex: Full healing may take two to four weeks.
-Sam: Please call your doctor if you have concerns.
+Sam: Hello! We're here to go over your discharge plan.
+Alex: We want to help you feel confident about your recovery at home.
+Sam: Your doctor made small cuts in your belly for the surgery.
+Alex: A tiny camera and tools went in through these cuts.
+Sam: Small cuts heal faster and hurt less than one big cut.
+Alex: You might feel some shoulder or chest pain for a day or two.
+Sam: This is from gas used during your surgery. It will go away.
+Alex: Your discharge papers will say how much you can safely lift.
+Sam: The app on your Recovery page shows this too. Follow that one.
+Alex: If your papers don't say, ask your surgeon before lifting anything.
+Sam: Do not drive while you are taking pain pills.
+Alex: Start walking the day you get home.
+Sam: Try to walk a little more each day.
+Alex: Your summary says when you should start feeling better.
+Sam: Full healing usually takes two to four weeks.
+Alex: We hope you have a smooth and speedy recovery!

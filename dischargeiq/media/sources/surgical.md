@@ -39,5 +39,19 @@ their own summary. A lifting limit differs between surgeons and procedures.
 - Start walking the day you get home. Do a little more each day.
 
 ## What to expect
-- Most people feel better in one to two weeks.
+- Your summary says when you should start feeling better.
 - Full healing takes two to four weeks.
+
+<!--
+Collective phrasing removed 10 Sep 2026 (Frank Naeymi-Rad): speak
+about this patient, not about people in general.
+
+Was: "Most people feel better in one to two weeks."
+
+This is a GENERAL explainer with no patient document behind it, so
+there is no "your plan" to attribute a timeline to - and a claim
+about a population, heard by someone whose recovery is slower, tells
+them they are behind. The fix is the one heart_failure.md already
+records for its fever threshold: stop competing with the listener's
+own paperwork and point at it instead.
+-->
