@@ -73,10 +73,61 @@ void main() {
     });
   });
 
+  group('the flow reads as a sequence', () {
+    testWidgets('all six steps are present and numbered in order',
+        (tester) async {
+      await _pump(tester);
+      for (var n = 1; n <= 6; n++) {
+        expect(find.text('$n'), findsOneWidget, reason: 'step $n missing');
+      }
+    });
+
+    testWidgets('the journey starts with the patient and ends with the team',
+        (tester) async {
+      // The order carries the meaning: the app is a step in the middle of
+      // something that begins and ends with people, not the destination.
+      await _pump(tester);
+      expect(find.text('You add your paper'), findsOneWidget);
+      expect(find.text('You talk to your care team'), findsOneWidget);
+
+      final first = tester.getTopLeft(find.text('You add your paper')).dy;
+      final last = tester.getTopLeft(find.text('You talk to your care team')).dy;
+      expect(first, lessThan(last));
+    });
+
+    testWidgets('the checking step is between reading and showing',
+        (tester) async {
+      await _pump(tester);
+      final writes = tester.getTopLeft(find.text('It writes it in plain words')).dy;
+      final checks = tester.getTopLeft(find.text('We check the writing')).dy;
+      final reads = tester.getTopLeft(find.text('You read it in six parts')).dy;
+      expect(writes, lessThan(checks));
+      expect(checks, lessThan(reads));
+    });
+  });
+
+  group('layout holds up', () {
+    testWidgets('no overflow at double text size', (tester) async {
+      // The connector line spans the real text height rather than a fixed
+      // box, so that the flow still reads as a sequence for the readers most
+      // likely to need larger type.
+      tester.view.physicalSize = const Size(1000, 9000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(const MediaQuery(
+        data: MediaQueryData(textScaler: TextScaler.linear(2.0)),
+        child: MaterialApp(home: HowItWorksScreen()),
+      ));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('You add your paper'), findsOneWidget);
+    });
+  });
+
   group('readability', () {
     testWidgets('sentences stay short', (tester) async {
       // A proxy for the Flesch-Kincaid gate, which needs textstat and so
-      // lives on the Python side. Measured there at 1.8 for this copy; this
+      // lives on the Python side. Measured there at 1.4 for this copy; this
       // catches the drift that would push it back up.
       await _pump(tester);
       final long = <String>[];

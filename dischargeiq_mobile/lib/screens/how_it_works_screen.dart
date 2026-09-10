@@ -1,87 +1,97 @@
 /// screens/how_it_works_screen.dart
 ///
-/// What the app does, answered in the patient's terms.
+/// What the app does, as a picture of the journey plus the promises that a
+/// picture cannot make.
 ///
-/// WHAT WAS WRONG WITH THE OLD VERSION
-/// -----------------------------------
-/// A bottom sheet of six lines, one per agent, named after the agents:
-/// "Extraction", "Diagnosis", "Quality check". Three problems, in order of
-/// how much they matter.
+/// WHY A FLOW AND NOT PROSE
+/// ------------------------
+/// The reader is a patient who has just left hospital, not a technical user.
+/// Six paragraphs asked them to hold the whole process in their head and
+/// assemble the order themselves. A numbered flow shows the order directly,
+/// and each step is short enough to take in at a glance.
 ///
-/// It measured Flesch-Kincaid 6.9. Hard rule 4 sets a target of 6.0 on
-/// patient-facing text, and this was the one screen whose entire job is
-/// explaining the product to a patient. Every agent output was held to the
-/// line while the explanation of them was not. This version measures 1.8,
-/// with no section above 3.3.
+/// The flow stops where a flow stops being honest. "It will never tell you to
+/// stop a medicine", "your notes stay on this phone" and "this can be wrong"
+/// are not steps in a process - they are commitments and limits, and drawing
+/// them as boxes in a pipeline would misrepresent what they are. They stay as
+/// cards underneath.
 ///
-/// It was organised around the system's internals rather than the reader's
-/// questions. "Quality check: simulates a confused patient to find gaps"
-/// describes an implementation, and describes the reader as the confused
-/// patient being simulated.
+/// HISTORY
+/// -------
+/// The first version was a bottom sheet of six lines named after the agents
+/// ("Extraction", "Diagnosis", "Quality check") at Flesch-Kincaid 6.9 - above
+/// the 6.0 that hard rule 4 enforces on every agent output, on the one screen
+/// whose job is explaining the product to a patient. Nothing was measuring
+/// it. This version measures 1.4, with no element above 3.3.
 ///
-/// And it omitted the two things a patient most needs to know: that this is
-/// a computer program that can be wrong, and where their document goes.
-/// Neither appeared anywhere.
-///
-/// EVERY CLAIM HERE IS CHECKED AGAINST BEHAVIOUR
-/// ---------------------------------------------
-/// "It will take a number out if it is not in your paper" is threshold_guard
-/// (measured 80% of documents carrying an invented threshold, now 0%). "Your
-/// notes stay on this phone" is the ten docId-keyed local stores. "See where
-/// this comes from" is the exact label on the SourceQuote chip, so the
-/// instruction names something the reader can actually find. A help screen
-/// that describes intentions rather than behaviour is a liability.
+/// EVERY CLAIM IS CHECKED AGAINST BEHAVIOUR
+/// ----------------------------------------
+/// "Numbers must come from your paper" is threshold_guard, measured at 80% of
+/// documents carrying an invented threshold before and 0% after. "Your notes
+/// stay on this phone" is the ten docId-keyed local stores. The quoted
+/// instruction uses the exact SourceQuote chip label, so it names a control
+/// the reader can actually find rather than one that sounds plausible.
 library;
 
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:flutter/material.dart';
 
-typedef _Section = ({IconData icon, String title, String body});
+typedef _Step = ({IconData icon, String title, String detail});
+typedef _Card = ({IconData icon, String title, String body});
 
-const List<_Section> _sections = [
+/// The journey, in the order it happens to the patient.
+const List<_Step> _flow = [
   (
-    icon: Icons.description_outlined,
-    title: 'Where the words come from',
-    body: 'Your discharge paper is the only source. The app reads it and puts '
-        'it in plain words. It does not add advice from anywhere else. If '
-        'your paper does not say a thing, the app will tell you so. It will '
-        'not guess.',
+    icon: Icons.upload_file_outlined,
+    title: 'You add your paper',
+    detail: 'Take a photo of it, or pick a PDF.',
   ),
   (
-    icon: Icons.view_list_outlined,
-    title: 'What you get',
-    body: 'Six parts. What happened to you. Your medicines and why you take '
-        'them. A week by week plan. Warning signs, split into three levels of '
-        'urgency. Your follow up visits. And a check that lists what your '
-        'paper left out.',
+    icon: Icons.search,
+    title: 'The app reads it',
+    detail: 'It finds your medicines, dates and warning signs.',
   ),
+  (
+    icon: Icons.edit_note_outlined,
+    title: 'It writes it in plain words',
+    detail: 'Your paper is the only source. Nothing new is added.',
+  ),
+  (
+    icon: Icons.fact_check_outlined,
+    title: 'We check the writing',
+    detail: 'Easy words. Numbers must come from your paper.',
+  ),
+  (
+    icon: Icons.menu_book_outlined,
+    title: 'You read it in six parts',
+    detail: 'Tap "See where this comes from" next to any fact.',
+  ),
+  (
+    icon: Icons.people_outline,
+    title: 'You talk to your care team',
+    detail: 'They are still in charge of your care.',
+  ),
+];
+
+/// Commitments and limits. Not steps, and deliberately not drawn as steps.
+const List<_Card> _cards = [
   (
     icon: Icons.block_outlined,
     title: 'What it will never do',
     body: 'It will never tell you to stop or change a medicine. It will never '
-        'give you a new diagnosis. It is not advice from a doctor. Your care '
-        'team is still in charge of your care.',
-  ),
-  (
-    icon: Icons.fact_check_outlined,
-    title: 'What we check before you see it',
-    body: 'We check that the text is easy to read. We check that numbers, '
-        'like a weight or a fever limit, came from your own paper. If a '
-        'number is not in your paper, we take it out.',
+        'give you a new diagnosis.',
   ),
   (
     icon: Icons.phone_iphone_outlined,
     title: 'Where your information goes',
     body: 'Your paper is sent to our service to be read, then it is not kept. '
-        'Your notes, your ticks and your quiz scores stay on this phone. They '
-        'are never sent anywhere.',
+        'Your notes and quiz scores stay on this phone.',
   ),
   (
     icon: Icons.error_outline,
     title: 'When it gets things wrong',
     body: 'This is a computer program and it can be wrong. It may miss a '
-        'thing your paper says. Always tap "See where this comes from" next '
-        'to a fact. And bring your questions to your care team.',
+        'thing your paper says.',
   ),
 ];
 
@@ -99,21 +109,45 @@ class HowItWorksScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('How it works')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 32),
         children: [
           Text(
-            'DischargeIQ turns your hospital discharge paper into something '
-            'easier to read.',
+            'DischargeIQ turns your hospital paper into something easier to '
+            'read. Here is what happens.',
             style: TextStyle(fontSize: 16, height: 1.45, color: text),
           ),
-          const SizedBox(height: 22),
-          for (final section in _sections) ...[
+          const SizedBox(height: 24),
+          for (var i = 0; i < _flow.length; i++)
+            _FlowStep(
+              step: _flow[i],
+              number: i + 1,
+              // The connector is drawn by the step ABOVE it, so the last one
+              // ends the line rather than trailing into blank space.
+              isLast: i == _flow.length - 1,
+              accent: accent,
+              text: text,
+              muted: muted,
+            ),
+          const SizedBox(height: 10),
+          Divider(color: dark ? kBorderDark : kBorderLight),
+          const SizedBox(height: 18),
+          Text(
+            'Good to know',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
+              color: accent,
+            ),
+          ),
+          const SizedBox(height: 14),
+          for (final card in _cards) ...[
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
-                  child: Icon(section.icon, size: 19, color: accent),
+                  child: Icon(card.icon, size: 19, color: accent),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -121,29 +155,126 @@ class HowItWorksScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        section.title,
+                        card.title,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: text,
                         ),
                       ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 4),
                       Text(
-                        section.body,
-                        style: TextStyle(
-                          fontSize: 14,
-                          height: 1.5,
-                          color: muted,
-                        ),
+                        card.body,
+                        style: TextStyle(fontSize: 14, height: 1.5, color: muted),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// One numbered step, with the line connecting it to the next.
+///
+/// Built from an IntrinsicHeight row rather than a fixed-height box so the
+/// connector always spans the actual text. At large text sizes a fixed height
+/// would leave a gap between the line and the next circle, and the flow would
+/// stop reading as a sequence exactly for the readers most likely to need
+/// the sequence.
+class _FlowStep extends StatelessWidget {
+  const _FlowStep({
+    required this.step,
+    required this.number,
+    required this.isLast,
+    required this.accent,
+    required this.text,
+    required this.muted,
+  });
+
+  final _Step step;
+  final int number;
+  final bool isLast;
+  final Color accent;
+  final Color text;
+  final Color muted;
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Column(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: accent.withValues(alpha: 0.12),
+                  border: Border.all(color: accent.withValues(alpha: 0.45)),
+                ),
+                child: Icon(step.icon, size: 17, color: accent),
+              ),
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    color: accent.withValues(alpha: 0.25),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(top: 4, bottom: isLast ? 0 : 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      // The number is what makes it a sequence rather than a
+                      // list of features. Screen readers get it too, since it
+                      // is real text and not a decoration.
+                      Text(
+                        '$number',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: accent,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          step.title,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            height: 1.25,
+                            color: text,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    step.detail,
+                    style: TextStyle(fontSize: 13.5, height: 1.45, color: muted),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
