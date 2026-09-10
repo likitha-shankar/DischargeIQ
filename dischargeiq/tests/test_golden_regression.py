@@ -38,6 +38,17 @@ from golden_regression import (  # noqa: E402
 
 _MANIFEST = _REPO / "evaluation" / "golden_manifest.json"
 _OUTPUTS = _REPO / "evaluation" / "corpus_outputs"
+_ACKNOWLEDGED = _REPO / "evaluation" / "golden_acknowledged.json"
+
+
+def _acknowledged() -> dict:
+    """Documents whose drift is known, tracked, and deliberately not re-frozen."""
+    if not _ACKNOWLEDGED.exists():
+        return {}
+    try:
+        return json.loads(_ACKNOWLEDGED.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
 
 
 @pytest.fixture(scope="module")
@@ -101,10 +112,15 @@ class TestTheManifestIsSafeToCommit:
 
 class TestTheCorpusHasNotDrifted:
     def test_every_frozen_document_still_matches(self, manifest, outputs):
+        known = _acknowledged()
         drifted = {}
         for doc_id, expected in manifest.items():
             if doc_id not in outputs:
                 continue  # covered separately below
+            if doc_id in known:
+                # Known, written down, and still frozen at the old baseline.
+                # See TestAcknowledgedDriftIsTrackedNotSuppressed below.
+                continue
             drift = _compare(doc_id, expected, summarise(outputs[doc_id]))
             if drift:
                 drifted[doc_id] = drift
@@ -237,3 +253,61 @@ class TestTheDigestItself:
 
     def test_empty_and_blank_entries_do_not_count(self):
         assert _digest(["a", "", "   "]) == _digest(["a"])
+
+
+class TestAcknowledgedDriftIsTrackedNotSuppressed:
+    """
+    The escape hatch needs its own guard, because an escape hatch is how a
+    regression check dies. Two failure modes, opposite directions:
+
+      - leave known drift red forever, and everyone learns to ignore the
+        check; it stops working the day it is ignored
+      - re-freeze, and the new output becomes the expected baseline, which is
+        exactly how a silent quality loss becomes permanent
+
+    Acknowledging keeps the baseline in place, keeps the check green on what
+    is already known, and still goes red on anything NEW. These tests make
+    sure it cannot drift into being a plain mute button.
+    """
+
+    def test_every_acknowledgement_carries_a_written_reason(self):
+        path = _REPO / "evaluation" / "golden_acknowledged.json"
+        if not path.exists():
+            pytest.skip("nothing acknowledged")
+        entries = json.loads(path.read_text())
+        empty = [doc for doc, reason in entries.items()
+                 if not str(reason or "").strip()]
+        assert not empty, f"acknowledged with no reason: {empty}"
+
+    def test_a_reason_points_somewhere_a_reader_can_follow(self):
+        """
+        "known issue" is not a reason. An acknowledgement a reader cannot
+        chase is indistinguishable from a suppression.
+        """
+        path = _REPO / "evaluation" / "golden_acknowledged.json"
+        if not path.exists():
+            pytest.skip("nothing acknowledged")
+        vague = [doc for doc, reason in json.loads(path.read_text()).items()
+                 if len(str(reason)) < 40]
+        assert not vague, f"reason too thin to act on: {vague}"
+
+    def test_acknowledged_documents_are_still_in_the_manifest(self, manifest):
+        """
+        The baseline must stay put. Acknowledging drift and ALSO dropping the
+        frozen entry would lose the evidence, which is the whole reason the
+        10 Sep extraction regression was visible at all.
+        """
+        path = _REPO / "evaluation" / "golden_acknowledged.json"
+        if not path.exists():
+            pytest.skip("nothing acknowledged")
+        orphaned = [doc for doc in json.loads(path.read_text())
+                    if doc not in manifest]
+        assert not orphaned, f"acknowledged but no longer frozen: {orphaned}"
+
+    def test_new_drift_still_fails_even_while_others_are_acknowledged(self):
+        """The property that matters: acknowledging some does not mute all."""
+        expected = {"pipeline_status": "complete", "counts": {"medications": 3},
+                    "digests": {}, "sections_present": {}, "fk": {}}
+        actual = {"pipeline_status": "complete", "counts": {"medications": 1},
+                  "digests": {}, "sections_present": {}, "fk": {}}
+        assert _compare("some_other_doc", expected, actual)

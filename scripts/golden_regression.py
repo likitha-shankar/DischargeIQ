@@ -59,6 +59,21 @@ _OUTPUTS = _REPO / "evaluation" / "corpus_outputs"
 _GOLDEN_DIR = _REPO / "evaluation" / "golden"
 _MANIFEST = _REPO / "evaluation" / "golden_manifest.json"
 
+#: Documents whose drift is KNOWN and under investigation, each with a reason.
+#:
+#: This exists because the alternative was worse in both directions. Leaving a
+#: real regression red forever trains everyone to ignore the check, and the
+#: check stops working the day it is ignored. Re-freezing adopts the new
+#: output as the baseline, which is exactly how a silent quality loss becomes
+#: permanent - and it would have erased the evidence that found the 10 Sep
+#: extraction regression in the first place.
+#:
+#: So drift is acknowledged rather than accepted: the baseline stays put, the
+#: check stays green on what is already known, and it goes red the moment
+#: something NEW moves. Every entry needs a written reason, and the report
+#: prints them on every run so they cannot quietly become permanent.
+_ACKNOWLEDGED = _REPO / "evaluation" / "golden_acknowledged.json"
+
 #: Prose sections whose WORDING is allowed to drift but whose properties are
 #: not. Hashing these would guarantee a failing run on every regeneration.
 _PROSE = [
@@ -244,6 +259,8 @@ def check() -> int:
     if not outputs:
         print("no corpus outputs found - nothing to check against")
         return 1
+    acknowledged = (json.loads(_ACKNOWLEDGED.read_text())
+                    if _ACKNOWLEDGED.exists() else {})
 
     drifted, missing, added = {}, [], []
 
@@ -252,13 +269,21 @@ def check() -> int:
             missing.append(doc_id)
             continue
         drift = _compare(doc_id, expected, summarise(outputs[doc_id]))
-        if drift:
+        if drift and doc_id not in acknowledged:
             drifted[doc_id] = drift
 
     added = [d for d in outputs if d not in manifest]
 
     print(f"checked {len(manifest)} frozen documents against "
           f"{len(outputs)} current outputs\n")
+    if acknowledged:
+        # Printed every run, never folded away. An acknowledgement that stops
+        # being visible is just a suppression.
+        print(f"  {len(acknowledged)} document(s) with KNOWN drift, baseline "
+              f"deliberately not re-frozen:")
+        for doc_id, reason in sorted(acknowledged.items()):
+            print(f"    {doc_id}: {reason}")
+        print()
     for doc_id, lines in sorted(drifted.items()):
         print(f"  DRIFT  {doc_id}")
         for line in lines:
