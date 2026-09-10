@@ -24,6 +24,11 @@ class _AppointmentsBodyState extends State<_AppointmentsBody> {
   /// detach either one - see appointment_edits.dart.
   Map<String, AppointmentEdit> _edits = const {};
 
+  /// Appointments the patient added, which the document never named. Kept
+  /// separate from the extraction so a patient's own entry can never be
+  /// mistaken for something the hospital wrote - see added_appointments.dart.
+  List<Map<String, dynamic>> _added = const [];
+
   dynamic get extraction => widget.extraction;
   dynamic get simulator => widget.simulator;
 
@@ -38,12 +43,46 @@ class _AppointmentsBodyState extends State<_AppointmentsBody> {
     if (docId == null) return;
     final done = await AppointmentStatusStore.load(docId);
     final edits = await AppointmentEditsStore.load(docId);
+    final added = await AddedAppointmentsStore.load(docId);
     if (mounted) {
       setState(() {
         _done = done;
         _edits = edits;
+        _added = added;
       });
     }
+  }
+
+  /// Ask for an appointment the document never listed.
+  ///
+  /// Only 90% of corpus documents name any follow-up at all, and a discharge
+  /// summary is written before the clinic rings back with a date - so the
+  /// visit a patient is actually attending was invisible to the app.
+  Future<void> _addAppointment() async {
+    final docId = context.read<DischargeProvider>().activeDocId;
+    if (docId == null) return;
+    final result = await showModalBottomSheet<Map<String, String>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const _AddAppointmentSheet(),
+    );
+    if (result == null) return;
+    final updated = await AddedAppointmentsStore.add(
+      docId: docId,
+      provider: result['provider'] ?? '',
+      specialty: result['specialty'] ?? '',
+      date: result['date'] ?? '',
+      reason: result['reason'] ?? '',
+    );
+    if (mounted) setState(() => _added = updated);
+  }
+
+  Future<void> _removeAdded(Map appointment) async {
+    final docId = context.read<DischargeProvider>().activeDocId;
+    if (docId == null) return;
+    final updated = await AddedAppointmentsStore.remove(
+        docId, '${appointment[kAddedId] ?? ''}');
+    if (mounted) setState(() => _added = updated);
   }
 
   /// Correct one appointment. [original] is the document's version - the
@@ -161,14 +200,20 @@ class _AppointmentsBodyState extends State<_AppointmentsBody> {
 
   @override
   Widget build(BuildContext context) {
-    final list = (extraction is Map) ? extraction['follow_up_appointments'] as List? : null;
+    final fromDoc = (extraction is Map)
+        ? (extraction['follow_up_appointments'] as List? ?? const [])
+        : const [];
+    // Document first, then the patient's own. Deliberately not interleaved by
+    // date: what the hospital wrote and what the patient added are different
+    // kinds of fact, and the order says so before any badge does.
+    final list = [...fromDoc, ..._added];
     final questions = _visitQuestions;
     const hero = _SectionHero(
       icon: Icons.event_available_outlined,
       title: 'Your appointments',
       subtitle: 'Follow-ups from your paperwork, soonest first',
     );
-    if (list == null || list.isEmpty) {
+    if (list.isEmpty) {
       final dark0 = Theme.of(context).brightness == Brightness.dark;
       return ListView(padding: const EdgeInsets.fromLTRB(16, 16, 16, 110), children: [
         hero,
@@ -180,17 +225,25 @@ class _AppointmentsBodyState extends State<_AppointmentsBody> {
               'need one. Call your doctor to ask whether you should book a '
               'check-up, and how soon.',
         ),
+        const SizedBox(height: 12),
+        // The empty state is exactly where this matters most: the patient
+        // rings the clinic, gets a date, and until now had nowhere to put it.
+        _AddAppointmentButton(onPressed: _addAppointment),
         if (questions.isNotEmpty) _VisitPrepCard(questions: questions, dark: dark0),
       ]);
     }
     final dark = Theme.of(context).brightness == Brightness.dark;
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
-      itemCount: 1 + list.length + (questions.isEmpty ? 0 : 1),
+      // +1 hero, +1 add button, +1 visit-prep card when there is one.
+      itemCount: 2 + list.length + (questions.isEmpty ? 0 : 1),
       itemBuilder: (context, i) {
         if (i == 0) return hero;
-        // Visit-prep card renders after the appointment list.
         if (i == list.length + 1) {
+          return _AddAppointmentButton(onPressed: _addAppointment);
+        }
+        // Visit-prep card renders after the appointment list.
+        if (i == list.length + 2) {
           return _VisitPrepCard(questions: questions, dark: dark);
         }
         final a = list[i - 1];
@@ -210,6 +263,8 @@ class _AppointmentsBodyState extends State<_AppointmentsBody> {
           isDone: key.isNotEmpty && _done.contains(key),
           canMark: key.isNotEmpty,
           edit: edit,
+          isAdded: isPatientAdded(a),
+          onRemoveAdded: isPatientAdded(a) ? () => _removeAdded(a) : null,
           onAddToCalendar: () => _addToCalendar(context, shown),
           onToggleDone: (v) => _toggleDone(a, v),
           onEdit: key.isEmpty ? null : () => _editAppointment(a),
@@ -238,10 +293,21 @@ class _AppointmentCard extends StatelessWidget {
     this.edit,
     this.onEdit,
     this.onRevert,
+    this.isAdded = false,
+    this.onRemoveAdded,
   });
 
   final Map appointment;
   final bool dark;
+
+  /// The patient added this one; the document never named it. Shown, not
+  /// merely stored - a fact the patient supplied must never be presented as
+  /// something the hospital wrote.
+  final bool isAdded;
+
+  /// Remove it again. Null for extracted appointments, which are not the
+  /// patient's to delete.
+  final VoidCallback? onRemoveAdded;
 
   /// The date has elapsed. Unparseable and missing dates are never past.
   final bool isPast;
@@ -389,7 +455,30 @@ class _AppointmentCard extends StatelessWidget {
                 ),
               ),
             ],
-            SourceQuote(source: appointment['source']),
+            // An extracted appointment carries its source quote. An added one
+            // has no source to cite, and the honest thing to show in that
+            // place is who it came from - not nothing, which would read as an
+            // appointment whose provenance simply was not checked.
+            if (isAdded)
+              Padding(
+                padding: const EdgeInsets.only(top: 6, bottom: 2),
+                child: Row(
+                  children: [
+                    Icon(Icons.person_outline, size: 14, color: accent),
+                    const SizedBox(width: 5),
+                    Text(
+                      'You added this. It is not in your document.',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: accent,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              SourceQuote(source: appointment['source']),
             // Actions. A past appointment led with "Add to calendar", which is
             // the one action that no longer makes sense for it - raised at the
             // LOF review on 26 Aug 2026. Past visits now lead with the tick,
@@ -429,6 +518,20 @@ class _AppointmentCard extends StatelessWidget {
                     // what the clinic told them, not correcting a typo.
                     label: const Text('Update'),
                     style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                  ),
+                // Only offered on appointments the patient added. An extracted
+                // one is what the hospital wrote and is not theirs to delete -
+                // it can be corrected or ticked off, never removed from the
+                // record.
+                if (onRemoveAdded != null)
+                  TextButton.icon(
+                    onPressed: onRemoveAdded,
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: const Text('Remove'),
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      foregroundColor: kMedDiscontinued,
+                    ),
                   ),
               ],
             ),
@@ -542,6 +645,157 @@ class _AppointmentCard extends StatelessWidget {
               size: 24,
               color: dark ? kTextHintDark : kTextHintLight,
             ),
+    );
+  }
+}
+
+/// Full-width control for adding an appointment the document never named.
+///
+/// Rendered after the list AND in the empty state. The empty state is where it
+/// matters most: 10% of corpus documents name no follow-up at all, and until
+/// now a patient who rang the clinic and got a date had nowhere to put it.
+class _AddAppointmentButton extends StatelessWidget {
+  const _AddAppointmentButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final accent = dark ? kTealGlow : kTeal;
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 8),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: onPressed,
+          icon: const Icon(Icons.add, size: 19),
+          label: const Text('Add an appointment'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: accent,
+            side: BorderSide(color: accent.withValues(alpha: 0.5)),
+            padding: const EdgeInsets.symmetric(vertical: 13),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Sheet for entering one appointment.
+///
+/// Four fields, matching the ones a patient may already correct on an
+/// extracted appointment, so adding and editing ask for the same things.
+///
+/// The date is a free text field rather than a picker, on purpose. Agent 1 is
+/// forbidden from resolving relative dates, so "in 2 weeks" survives from a
+/// document all the way to the screen - and a picker would force the patient
+/// to invent a precision the clinic never gave them.
+class _AddAppointmentSheet extends StatefulWidget {
+  const _AddAppointmentSheet();
+
+  @override
+  State<_AddAppointmentSheet> createState() => _AddAppointmentSheetState();
+}
+
+class _AddAppointmentSheetState extends State<_AddAppointmentSheet> {
+  final _provider = TextEditingController();
+  final _specialty = TextEditingController();
+  final _date = TextEditingController();
+  final _reason = TextEditingController();
+
+  @override
+  void dispose() {
+    for (final c in [_provider, _specialty, _date, _reason]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  /// Something identifying is required, matching the store's own rule.
+  bool get _canSave =>
+      _provider.text.trim().isNotEmpty || _specialty.text.trim().isNotEmpty;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Add an appointment',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          const Text(
+            'For a visit your document did not list. It will be marked as '
+            'added by you.',
+            style: TextStyle(fontSize: 12.5, height: 1.4),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _specialty,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(
+                labelText: 'Department', hintText: 'Cardiology'),
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _provider,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(
+                labelText: 'Who', hintText: 'Dr. Chen'),
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _date,
+            decoration: const InputDecoration(
+                labelText: 'When',
+                hintText: '2 May, or "in 2 weeks"'),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _reason,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(
+                labelText: 'What for', hintText: 'Optional'),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              const Spacer(),
+              FilledButton(
+                onPressed: _canSave
+                    ? () => Navigator.pop(context, {
+                          'provider': _provider.text,
+                          'specialty': _specialty.text,
+                          'date': _date.text,
+                          'reason': _reason.text,
+                        })
+                    : null,
+                child: const Text('Add'),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

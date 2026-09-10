@@ -31,6 +31,13 @@ import 'calendar_link.dart';
 /// callers treat that as unmarkable rather than lumping every blank
 /// appointment under one shared key.
 String appointmentKey(Map appointment) {
+  // A patient-added appointment carries a stable id, and must use it. The
+  // content-derived key below works for extracted appointments because their
+  // values come from a fixed document; an added one is edited by the person
+  // who created it, so a content key would move on the first correction and
+  // detach the done-tick from the appointment it belongs to.
+  final addedId = '${appointment['_added_id'] ?? ''}'.trim();
+  if (addedId.isNotEmpty) return 'added:$addedId';
   final parts = [
     '${appointment['provider'] ?? ''}'.trim().toLowerCase(),
     '${appointment['specialty'] ?? ''}'.trim().toLowerCase(),

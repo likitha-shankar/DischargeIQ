@@ -5,6 +5,7 @@ import 'package:dischargeiq_mobile/section_design.dart';
 import 'package:dischargeiq_mobile/theme.dart' show kRadiusCard, kRadiusField;
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
 import 'package:dischargeiq_mobile/services/appointment_edits.dart';
+import 'package:dischargeiq_mobile/services/added_appointments.dart';
 import 'package:dischargeiq_mobile/services/appointment_status.dart';
 import 'package:dischargeiq_mobile/services/calendar_link.dart';
 import 'package:dischargeiq_mobile/services/document_store.dart' show isUnusableRun;
