@@ -143,6 +143,7 @@ async def generate_outputs(
     corpus_dir: Path = _DEFAULT_CORPUS_DIR,
     delay_seconds: float = 0.0,
     stale_only: bool = False,
+    only: set[str] | None = None,
 ) -> tuple[int, int, int]:
     """
     Run the pipeline over corpus PDFs and persist one JSON per document.
@@ -158,6 +159,12 @@ async def generate_outputs(
         stale_only: When True, also regenerate outputs whose prompt stamp no
             longer matches the prompts on disk. Unlike force, current outputs
             are still skipped, so repeated runs converge instead of looping.
+        only: Document stems to process, or None for the whole corpus. Added
+            because the staleness check compares PROMPT and MODEL stamps, so a
+            change to post-generation code - the threshold guard, for instance
+            - leaves every document looking current. The alternative was
+            regenerating all 106 to exercise two, which burns quota and churns
+            every golden baseline at once, hiding real drift in the noise.
 
     Returns:
         (generated, skipped, failed) counts for the run summary.
@@ -166,6 +173,16 @@ async def generate_outputs(
         FileNotFoundError: If the corpus directory does not exist.
     """
     pdfs = sorted(corpus_dir.glob("*.pdf"))
+    if only:
+        wanted = sorted(p for p in pdfs if p.stem in only)
+        missing = only - {p.stem for p in wanted}
+        if missing:
+            # Loudly, not silently: a typo in a document id would otherwise
+            # produce a short clean run that looks like a pass.
+            raise FileNotFoundError(
+                f"--docs named {len(missing)} document(s) not in {corpus_dir}: "
+                f"{sorted(missing)}")
+        pdfs = wanted
     if not pdfs:
         raise FileNotFoundError(
             f"No PDFs in {corpus_dir}. The real corpus is gitignored and is "
@@ -290,6 +307,9 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=None, help="Process at most N documents")
     parser.add_argument("--force", action="store_true", help="Regenerate existing outputs")
     parser.add_argument(
+        "--docs", nargs="*", metavar="STEM",
+        help="Regenerate only these document stems (implies --force for them)")
+    parser.add_argument(
         "--stale", action="store_true",
         help="Regenerate only outputs whose prompt stamp differs from the "
              "prompts on disk (and anything missing). Unlike --force this does "
@@ -322,8 +342,10 @@ def main() -> None:
         return
 
     generated, skipped, failed = asyncio.run(
-        generate_outputs(args.limit, args.force, args.corpus, args.delay,
-                         stale_only=args.stale)
+        generate_outputs(args.limit, args.force or bool(args.docs),
+                         args.corpus, args.delay,
+                         stale_only=args.stale,
+                         only=set(args.docs) if args.docs else None)
     )
     logger.info(
         "Done. generated=%d skipped(existing)=%d failed=%d -> %s",

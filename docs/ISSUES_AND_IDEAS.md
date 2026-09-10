@@ -50,6 +50,62 @@ Newest entries first within each section.
 | P-7 | On-device AI exploration (fall). Note on the "use Siri's Gemini" idea: the Apple-Google deal gives SIRI a custom Gemini on Apple's Private Cloud Compute - third-party apps get NO access to it. What apps DO get free is Apple's on-device Foundation Models framework (iOS 26, ~3B model). Realistic first step: move the grounded CHAT on-device via that framework; extraction/rewriting stays on the big-model pipeline. Device coverage rule: on-device AI needs recent chips (A17+/M-series) - the CLOUD pipeline stays the universal path, so old iPhones and phones without Siri/Apple Intelligence lose nothing; on-device is an upgrade, never a requirement. |
 | P-6 | Caregiver profiles (multi-patient support on one phone): per-profile documents, quiz history, and garden; extraction patient_name consistency check across scan pages. TheraCareAI's dependent-profile model is the reference. Requires a data-model rethink - not before the fall. |
 
+## Extraction regression on an unchanged pipeline (10 Sep 2026)
+
+**Found by the golden-file regression on its first real use.** Not by a test
+that was looking for it - by re-running twelve documents to verify an
+unrelated threshold-guard fix, and comparing counts.
+
+`mtsamples_026` carries an explicit list:
+
+> MEDICATIONS: on transfer, celebrex, coumadin, colace, synthroid, lovenox,
+> percocet, toprol xl, niacin, and trazodone.
+
+On 9 Sep the extraction returned all nine, plus four named elsewhere: 13.
+On 10 Sep it returns **7 of the 9**, dropping **Lovenox and Niacin**: 11.
+Lovenox is an anticoagulant.
+
+**Nothing on our side changed.** Same prompt version, same model name, same
+provider, and `git log` shows no commit touching `extraction_agent.py` or
+`agent1_system_prompt.txt` in between.
+
+**It is not per-call sampling noise.** Three fresh extractions today all
+returned 11, at the provider default AND at temperature 0. The behaviour is
+stable - it has stabilised on the WRONG answer.
+
+**It is not truncation.** Extraction allows 4096 max_tokens; this document's
+extraction JSON is about 2020.
+
+**It is not a principled transfer-versus-discharge distinction.** That reading
+is tempting, since the list says "on transfer" - but the extraction keeps
+seven drugs from that same line and drops two. A rule applied to 7 of 9 items
+on one line is not a rule.
+
+The remaining explanation is that the served model behind the pinned name
+`gemini-2.5-flash-lite` changed. Vertex can update a checkpoint without the
+name moving, and `docs/MODEL_VERSIONING.md` stamps the name, not the served
+version. That is precisely the risk its re-evaluation trigger exists for, and
+this is the trigger firing in the wild.
+
+### What this changes
+
+- **The golden manifest must NOT be re-frozen for `mtsamples_026` yet.**
+  Re-freezing would adopt the regression as the expected baseline, which is
+  how a silent quality loss becomes permanent.
+- The reported 99.6% medication recall is measured against ONE extraction run.
+  This is direct evidence that a single run is not a stable reference, which
+  is the strongest argument yet for the clinician gold standard
+  (`docs/ANNOTATION_SCHEMA.md`) rather than more self-comparison.
+- The staleness check in `run_corpus_for_review.py` compares prompt and model
+  stamps, so it reports 0 of 106 stale while this is happening. It cannot see
+  a served-model change any more than it can see a code change.
+
+### Open
+
+Whether to pin a dated model, add a served-version probe to the stamp, or
+schedule a periodic canary re-run over a fixed subset. Needs a decision, not
+just a fix.
+
 ## Landing intro: two queued changes (25 Aug 2026)
 
 Raised by Likitha: "why is there a button called 'watch intro again'? who
