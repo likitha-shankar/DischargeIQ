@@ -317,12 +317,20 @@ class _MedicationsBody extends StatelessWidget {
                 'told you otherwise, and ask them to confirm your list.',
           )
         else
-          // Long medication lists are the densest thing in the app (up to 16
-          // drugs on a real document). Show the first five, keep the rest one
-          // tap away - never truncated, since these are the patient's actual
-          // prescriptions.
-          CappedList(
-            itemNoun: 'medicines',
+          // Every medicine, always on screen.
+          //
+          // This list used to collapse after five behind a "Show all" toggle,
+          // on CDC plain-language guidance that readers with limited health
+          // literacy may not comfortably process more than five items at
+          // once. That guidance is about absorbing comparable items in one
+          // pass, not about a reference list a patient scrolls and returns
+          // to - and the collapse created the worse failure: 30% of corpus
+          // documents carry more than five medications (worst case 23), so
+          // roughly a third of patients could close the app never knowing
+          // the later ones existed. Density is a cosmetic problem; a
+          // prescription nobody saw is a safety one.
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: medList.asMap().entries.map((e) {
             final med = e.value;
             final name = '${med['name'] ?? 'Unknown'}';

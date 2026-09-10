@@ -32,7 +32,6 @@ import 'package:dischargeiq_mobile/widgets/guided_tour.dart';
 import 'package:dischargeiq_mobile/widgets/learning_goal_sheet.dart';
 import 'package:dischargeiq_mobile/widgets/run_state_screens.dart';
 import 'package:dischargeiq_mobile/widgets/source_quote.dart';
-import 'package:dischargeiq_mobile/widgets/capped_list.dart';
 import 'package:dischargeiq_mobile/widgets/empty_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show MissingPluginException, PlatformException;
