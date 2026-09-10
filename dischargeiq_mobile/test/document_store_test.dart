@@ -57,6 +57,90 @@ void main() {
     expect(docs.first.hasPdf, isFalse); // no bytes were passed
   });
 
+  group('re-uploading the same document', () {
+    /// A result carrying the server's document_hash.
+    Map<String, dynamic> hashed(String diagnosis, String hash) => {
+          ...result(diagnosis),
+          'document_hash': hash,
+        };
+
+    test('updates the existing entry instead of adding a second', () async {
+      final first = await DocumentStore.save(
+          result: hashed('Heart failure', 'abc123'), fileName: 'hf.pdf');
+      final second = await DocumentStore.save(
+          result: hashed('Heart failure', 'abc123'), fileName: 'hf.pdf');
+
+      expect(second, first, reason: 'the same document keeps its id');
+      expect((await DocumentStore.list()).length, 1);
+    });
+
+    test('the returned id is what keeps the patient\'s own work attached',
+        () async {
+      // The whole point. Ten stores key off this id - appointment ticks,
+      // notes, weights, the corrected discharge date. A new id on re-upload
+      // orphans every one of them, silently, with nothing throwing.
+      final first = await DocumentStore.save(
+          result: hashed('Heart failure', 'abc123'), fileName: 'hf.pdf');
+      final again = await DocumentStore.save(
+          result: hashed('Heart failure', 'abc123'), fileName: 'hf.pdf');
+      expect(again, isNotNull);
+      expect(again, first);
+    });
+
+    test('a different document still gets its own entry', () async {
+      await DocumentStore.save(
+          result: hashed('Heart failure', 'abc123'), fileName: 'hf.pdf');
+      await DocumentStore.save(
+          result: hashed('COPD', 'def456'), fileName: 'copd.pdf');
+      expect((await DocumentStore.list()).length, 2);
+    });
+
+    test('a revised summary hashes differently and lands as a new document',
+        () async {
+      // Same filename, same diagnosis, new content. This must NOT collapse
+      // onto the old entry - it is genuinely new paperwork.
+      await DocumentStore.save(
+          result: hashed('Heart failure', 'abc123'), fileName: 'hf.pdf');
+      await DocumentStore.save(
+          result: hashed('Heart failure', 'zzz999'), fileName: 'hf.pdf');
+      expect((await DocumentStore.list()).length, 2);
+    });
+
+    test('the refreshed result is what loads back', () async {
+      await DocumentStore.save(
+          result: hashed('Heart failure', 'abc123'), fileName: 'hf.pdf');
+      final id = await DocumentStore.save(
+        result: {...hashed('Heart failure', 'abc123'), 'diagnosis_explanation': 'updated'},
+        fileName: 'hf.pdf',
+      );
+      final loaded = await DocumentStore.load(id!);
+      expect(loaded!.$1['diagnosis_explanation'], 'updated');
+    });
+
+    test('re-uploading does not unfile a document from its person', () async {
+      final id = await DocumentStore.save(
+          result: hashed('Heart failure', 'abc123'),
+          fileName: 'hf.pdf',
+          personId: 'person-1');
+      // No profiles active on the second upload - personId comes through
+      // null, and writing that over the assignment would move a filed
+      // document into Unassigned for no visible reason.
+      await DocumentStore.save(
+          result: hashed('Heart failure', 'abc123'), fileName: 'hf.pdf');
+      final docs = await DocumentStore.list();
+      expect(docs.single.id, id);
+      expect(docs.single.personId, 'person-1');
+    });
+
+    test('a result with no hash falls back to a new entry', () async {
+      // Documents saved before the server sent a hash, and any client
+      // running ahead of the deploy. Wrong, but no worse than before.
+      await DocumentStore.save(result: result('Heart failure'), fileName: 'hf.pdf');
+      await DocumentStore.save(result: result('Heart failure'), fileName: 'hf.pdf');
+      expect((await DocumentStore.list()).length, 2);
+    });
+  });
+
   test('rejected documents are never saved', () async {
     await DocumentStore.save(
       result: result('Not a discharge document', status: 'rejected'),

@@ -394,6 +394,13 @@ async def _execute_pipeline(
             "pdf_session_id": pdf_session_id,
             "pdf_token": _cache_token,
             "pdf_token_exp": _cache_exp,
+            # Set here rather than inherited from `cached`. An entry cached by
+            # a revision that predates this field has no hash, so during a
+            # rolling deploy a cache hit would answer without one - and the
+            # mobile client would create the duplicate library entry this
+            # field exists to prevent. It is also simply the hash we just
+            # looked the entry up by, so stating it cannot be wrong.
+            "document_hash": document_hash,
         }
         if result_dict.get("patient_simulator") is not None:
             session_store.store_simulator(
@@ -442,6 +449,22 @@ async def _execute_pipeline(
 
         result_dict = result.model_dump()
         result_dict["pdf_session_id"] = pdf_session_id
+
+        # The identity of the DOCUMENT, as distinct from the session. Clients
+        # need it to recognise a re-upload of a summary they already hold: the
+        # mobile library keys ten stores off its own document id, so saving a
+        # duplicate entry orphans the patient's appointment ticks, notes,
+        # weights and corrected discharge date under the old id. Nothing
+        # errors; it simply looks as though they never entered any of it.
+        #
+        # Deliberately the same hash this route already caches by, rather than
+        # one the client computes for itself, so client and server can never
+        # disagree about what "the same document" means.
+        #
+        # Set BEFORE store_result_for_hash below, so the cached copy carries
+        # it too and a cache HIT returns the hash as well - the cache-hit path
+        # builds its response from **cached.
+        result_dict["document_hash"] = document_hash
 
         # Signed, short-lived access to this session's stored PDF. The
         # Streamlit viewer embeds the document in an <iframe>, which cannot

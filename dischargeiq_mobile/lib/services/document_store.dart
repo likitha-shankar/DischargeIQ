@@ -108,10 +108,67 @@ class DocumentStore {
     return DateTime.now().microsecondsSinceEpoch.toString();
   }
 
+  /// The id of a saved document with this `document_hash`, or null.
+  ///
+  /// Returns the OLDEST match, so repeated re-uploads keep converging on one
+  /// entry rather than hopping between duplicates created before this
+  /// existed.
+  static Future<String?> _existingIdForHash(Directory dir, String hash) async {
+    if (hash.isEmpty) return null;
+    final matches = <String>[];
+    await for (final entry in dir.list()) {
+      if (entry is! File || !entry.path.endsWith('.json')) continue;
+      try {
+        final meta =
+            jsonDecode(await entry.readAsString()) as Map<String, dynamic>;
+        if ('${meta['document_hash'] ?? ''}' == hash) {
+          matches.add(entry.uri.pathSegments.last.replaceAll('.json', ''));
+        }
+      } catch (_) {
+        continue; // one unreadable entry must not block the match
+      }
+    }
+    if (matches.isEmpty) return null;
+    matches.sort();
+    return matches.first;
+  }
+
+  /// The person a saved document is filed under, or null.
+  ///
+  /// Null covers three cases that behave the same way here: no such entry,
+  /// an unreadable one, and one that was never filed.
+  static Future<String?> _personIdOf(Directory dir, String id) async {
+    try {
+      final file = File('${dir.path}/$id.json');
+      if (!await file.exists()) return null;
+      final meta = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      return meta['person_id'] is String ? meta['person_id'] as String : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Persist one successful analysis. Rejected documents are not saved -
   /// there is nothing for the patient to come back to.
   ///
-  /// Returns the new document id (callers use it to scope per-document
+  /// Re-uploading a document already in the library UPDATES that entry in
+  /// place and returns its existing id, rather than adding a second copy.
+  ///
+  /// That is not tidiness. Ten stores key off the document id - appointment
+  /// ticks and edits, weights, doses, recovery notes, the corrected discharge
+  /// date, learning goals, section stars, quiz bests. A duplicate entry gets
+  /// a new id, so every one of those reads back empty: the patient's own
+  /// work is orphaned under the old id, still on disk and unreachable.
+  /// Nothing throws and nothing looks broken. It simply appears as though
+  /// they never did any of it, and the recovery activity dots - which read
+  /// those same ticks - quietly empty out with it.
+  ///
+  /// Matching is on the server's `document_hash`, the same SHA-256 the
+  /// /analyze cache keys on, so client and server cannot disagree about what
+  /// counts as the same document. A genuinely revised summary hashes
+  /// differently and correctly lands as a new entry.
+  ///
+  /// Returns the document id (callers use it to scope per-document
   /// engagement state, e.g. SectionStarStore), or null when nothing was
   /// saved (rejected run or write failure).
   static Future<String?> save({
@@ -123,7 +180,12 @@ class DocumentStore {
     try {
       if ('${result['pipeline_status']}' == 'rejected') return null;
       final dir = await _dir();
-      final id = await _nextId(dir);
+      final hash = '${result['document_hash'] ?? ''}';
+      // Absent on documents saved before the server sent a hash, and on a
+      // client running ahead of the deploy. Both fall back to the old
+      // behaviour - a new entry - which is wrong but no worse than before.
+      final existing = await _existingIdForHash(dir, hash);
+      final id = existing ?? await _nextId(dir);
       final extraction = result['extraction'];
       final diagnosis = (extraction is Map)
           ? '${extraction['primary_diagnosis'] ?? 'Discharge summary'}'
@@ -131,11 +193,20 @@ class DocumentStore {
       if (pdfBytes != null) {
         await File('${dir.path}/$id.pdf').writeAsBytes(pdfBytes);
       }
+      // Updating an entry must not silently unfile it. A re-upload made
+      // before any profiles exist carries a null personId, and writing that
+      // over an existing assignment would move a filed document into the
+      // Unassigned bucket for no reason the patient could see.
+      final owner = personId ?? await _personIdOf(dir, id);
       await File('${dir.path}/$id.json').writeAsString(jsonEncode({
         'file_name': fileName,
         'diagnosis': diagnosis,
+        // Refreshed on an update: the entry genuinely was just re-analysed,
+        // and the library sorts newest-first, so it surfaces where the
+        // patient has just been looking.
         'saved_at': DateTime.now().toIso8601String(),
-        if (personId != null) 'person_id': personId,
+        if (owner != null) 'person_id': owner,
+        if (hash.isNotEmpty) 'document_hash': hash,
         'result': result,
       }));
       return id;
