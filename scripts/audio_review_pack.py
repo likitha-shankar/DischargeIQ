@@ -27,7 +27,7 @@ evaluation/audio_review_pack.md, containing:
 
   - the per-diagnosis NotebookLM source documents, which are what the five
     shipped WAVs were generated from;
-  - a freshly generated per-case dialogue script for a real corpus document,
+  - a freshly generated per-case dialogue script for a tracked demo fixture,
     which is what a patient hears from POST /media/case;
   - a checklist per item, and a sign-off block that names a reviewer and a
     date - the same shape the escalation templates use, so an unsigned pack
@@ -88,21 +88,41 @@ def _per_diagnosis_sections() -> list[str]:
     return out
 
 
+#: Document the per-case sample is generated from.
+#:
+#: A TRACKED demo fixture, not a corpus document. This used to read
+#: evaluation/corpus_outputs/mtsamples_034.json, which put a full generated
+#: script - with that patient's real medication list - into a committed file.
+#: MTSamples is de-identified and the repo is private, so it was not a breach;
+#: it would become one when the repo moves to the LOF-controlled org, and
+#: CLAUDE.md is explicit that DERIVED clinical text is what gets committed by
+#: accident.
+#:
+#: Nothing is lost. This part of the review is of the SHAPE the generator
+#: produces, as the pack says itself - a fixture exercises the same path, and
+#: the reviewer reads the same structure.
+_CASE_SAMPLE = "heart_failure_01"
+
+
 def _case_script(generate: bool) -> str:
     """
     A per-case dialogue script, generated live or explained if skipped.
 
-    One real corpus output is used rather than a toy payload, so the reviewer
-    reads what a patient would actually hear.
+    Generated from a tracked demo fixture rather than a corpus document, so
+    the pack can be committed without carrying a patient's medication list.
     """
     if not generate:
         return (
             "_Not generated. Re-run with `--generate` to make one live "
             "(costs a single script LLM call, no TTS)._\n"
         )
-    sample = _REPO / "evaluation" / "corpus_outputs" / "mtsamples_034.json"
+    sample = _REPO / "evaluation" / "corpus_outputs" / f"{_CASE_SAMPLE}.json"
     if not sample.exists():
-        return "_No corpus output available to generate from._\n"
+        return (
+            f"_No output for `{_CASE_SAMPLE}` yet. Run "
+            f"`python scripts/run_corpus_for_review.py --docs {_CASE_SAMPLE}` "
+            f"first._\n"
+        )
     from dischargeiq.utils.case_audio import build_dialogue_script
 
     payload = json.loads(sample.read_text())
@@ -112,7 +132,8 @@ def _case_script(generate: bool) -> str:
         return f"_Generation FAILED: {type(exc).__name__}: {exc}_\n"
     dx = (payload.get("extraction") or {}).get("primary_diagnosis", "unknown")
     return (
-        f"Generated from `mtsamples_034` (primary diagnosis: {dx}).\n\n"
+        f"Generated from the tracked demo fixture `{_CASE_SAMPLE}` "
+        f"(primary diagnosis: {dx}).\n\n"
         f"```\n{script.strip()}\n```\n"
     )
 
@@ -221,7 +242,7 @@ def build(generate: bool) -> str:
         "",
         "### Part 2 - the per-case explainer",
         "",
-        "Checks 1-5 run against `mtsamples_034`. These do NOT substitute for "
+        "Checks 1-5 run against `" + _CASE_SAMPLE + "`. These do NOT substitute for "
         "the human sign-off below - they are what a reader found first, so "
         "the reviewer starts from findings rather than a blank page.",
         "",
@@ -273,14 +294,20 @@ def build(generate: bool) -> str:
         "agent 4\'s own BAD example. The agent 4 prompt was de-numeralled on "
         "9 Sep; this corpus output predates that fix and should be "
         "regenerated before it is used as evidence.",
-        "3. **More than three items still appear in one sentence** (\"Paxil, "
-        "MOBIC, Klonopin, Celebrex, and Protonix\"). The cap is in the "
-        "prompt and is not being honoured.",
-        "4. **\"MOBIC\" is capitalised**, which some TTS voices spell out "
-        "letter by letter. Confirm on playback.",
-        "5. **The extraction contains \"Paxil\" twice.** The script says it "
-        "once, so this is an Agent 1 de-duplication bug rather than an audio "
-        "one - but it surfaces here.",
+        "3. **More than three medicines still appear in one sentence.** The "
+        "prompt caps a spoken list at three items and the cap is not being "
+        "honoured. A reader can re-scan a list; a listener cannot hold one.",
+        "4. **An all-capitals drug name reached the script.** Some TTS voices "
+        "spell those out letter by letter. Confirm on playback.",
+        "5. **One medicine appeared twice in the extraction** and once in the "
+        "script - an Agent 1 de-duplication bug rather than an audio one, but "
+        "it surfaces here.",
+        "",
+        "_Findings 2-5 were observed on 9 Sep against a corpus document that "
+        "is no longer the sample in this pack, and the drug names have been "
+        "removed - see _CASE_SAMPLE in scripts/audio_review_pack.py. They "
+        "describe defect classes worth checking against whatever sample is "
+        "current, not a specific run._",
         "",
         "---",
         "",

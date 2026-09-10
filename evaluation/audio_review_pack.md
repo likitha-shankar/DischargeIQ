@@ -162,7 +162,7 @@ competing with the patient's own paperwork and point at it instead.
 -->
 ```
 
-### hip_replacement  (hip_replacement.wav, 3.9 MB)
+### hip_replacement  (hip_replacement.wav, 1.6 MB)
 
 ```
 # NotebookLM source - Hip Replacement explainer
@@ -196,12 +196,26 @@ pacing; the three precautions must be read slowly and separately.
 - These rules keep the new joint from slipping out.
 
 ## What to expect
-- Most people can walk with help the day after surgery.
+- Your care team will say when you can walk with help.
 - Light activity is okay after six weeks.
 - Full healing takes three to six months.
+
+<!--
+Collective phrasing removed 10 Sep 2026 (Frank Naeymi-Rad): speak
+about this patient, not about people in general.
+
+Was: "Most people can walk with help the day after surgery."
+
+This is a GENERAL explainer with no patient document behind it, so
+there is no "your plan" to attribute a timeline to - and a claim
+about a population, heard by someone whose recovery is slower, tells
+them they are behind. The fix is the one heart_failure.md already
+records for its fever threshold: stop competing with the listener's
+own paperwork and point at it instead.
+-->
 ```
 
-### surgical  (surgical.wav, 1.9 MB)
+### surgical  (surgical.wav, 2.0 MB)
 
 ```
 # NotebookLM source - Surgical / Laparoscopic explainer
@@ -245,8 +259,22 @@ their own summary. A lifting limit differs between surgeons and procedures.
 - Start walking the day you get home. Do a little more each day.
 
 ## What to expect
-- Most people feel better in one to two weeks.
+- Your summary says when you should start feeling better.
 - Full healing takes two to four weeks.
+
+<!--
+Collective phrasing removed 10 Sep 2026 (Frank Naeymi-Rad): speak
+about this patient, not about people in general.
+
+Was: "Most people feel better in one to two weeks."
+
+This is a GENERAL explainer with no patient document behind it, so
+there is no "your plan" to attribute a timeline to - and a claim
+about a population, heard by someone whose recovery is slower, tells
+them they are behind. The fix is the one heart_failure.md already
+records for its fever threshold: stop competing with the listener's
+own paperwork and point at it instead.
+-->
 ```
 
 ---
@@ -255,22 +283,31 @@ their own summary. A lifting limit differs between surgeons and procedures.
 
 Served by `POST /media/case`. Unlike Part 1 this is different for every patient, so the review is of the SHAPE the generator produces, not of one fixed file.
 
-Generated from `mtsamples_034` (primary diagnosis: Status post right total hip replacement).
+Generated from the tracked demo fixture `heart_failure_01` (primary diagnosis: Acute Decompensated Heart Failure (HFrEF)).
 
 ```
-Sam: Hi there. We're here to go over your discharge plan.
-Alex: We want to help you feel confident about your recovery at home.
-Sam: You recently had a right total hip replacement. This was to help with your arthritis.
-Alex: We'll discuss your medicines and what to watch for.
-Sam: You have several new medications and some you will continue.
-Alex: Protonix helps your stomach. Feosol gives you iron for your blood.
-Sam: Arixtra and Coumadin help prevent blood clots. Please take them as prescribed.
-Alex: Oxycodone is for pain. Use it only when you need it for extra relief.
-Sam: It is very important to call your doctor if you have sudden face drooping. Arm weakness or trouble speaking also need immediate medical help.
-Alex: Also call your doctor right away if you bleed too much. This means bleeding that won't stop.
-Sam: If you have calf pain or swelling, go to the ER today. This could be a blood clot.
-Alex: Call 911 if you have difficulty breathing or chest pain.
-Sam: We're here to support you. You've got this.
+Sam: Hi William, we're so glad you're home.
+Alex: We're here to go over your discharge plan. It will help you get better.
+
+Sam: Your heart failure means your heart isn't pumping blood as well.
+Alex: This can cause extra fluid to build up.
+
+Sam: You have a new medicine called fur-OH-suh-mide. It helps remove extra fluid.
+Alex: You will take lisinopril, car-VED-i-lol, spironolactone, and me-TOP-ro-lol.
+Sam: These medicines help your heart pump better and lower blood pressure.
+Alex: You also take me-TFOR-min for your blood sugar.
+
+Sam: Your plan says to walk for 5 minutes twice a day.
+Alex: Slowly increase how long you walk each day.
+
+Sam: Please call your doctor if you gain 3 pounds in one day.
+Alex: Also call if you gain 5 pounds in a week.
+Sam: Call if your legs, ankles, or belly swell more.
+Alex: Seek care if you have trouble breathing while resting.
+Sam: Call if you wake up gasping for air.
+Alex: Go to the ER if your lips or nails turn blue.
+Sam: Also go to the ER if you feel very confused or faint.
+Alex: We're here to help you get back on your feet.
 ```
 
 ---
@@ -302,7 +339,7 @@ Defensible as a design choice - the escalation guide is its own tab. Worth a sec
 
 ### Part 2 - the per-case explainer
 
-Checks 1-5 run against `mtsamples_034`. These do NOT substitute for the human sign-off below - they are what a reader found first, so the reviewer starts from findings rather than a blank page.
+Checks 1-5 run against `heart_failure_01`. These do NOT substitute for the human sign-off below - they are what a reader found first, so the reviewer starts from findings rather than a blank page.
 
 **What was verified correct:**
 
@@ -322,9 +359,11 @@ Checks 1-5 run against `mtsamples_034`. These do NOT substitute for the human si
 
 1. ~~The script invents "leg spasms".~~ **RETRACTED 9 Sep 2026 - this was a false alarm and the script was correct.** The phrase is "leg muscle spasms" and it appears both in the escalation guide and in the source document. The check searched for the two-word "leg spasm", which does not substring-match, and read a failed match as an invention. A grounding check on TTS output was built anyway (`utils/script_grounding.py`) because the risk is real and was unguarded - agent text has the threshold guard and the extraction contract, the script had nothing - but no fabrication has actually been observed in a script.
 2. **"Do not bend your hip past 90 degrees"** is in the script and in the pipeline output, and is NOT in the source document - `activity_restrictions` is empty. That phrasing is verbatim from agent 4's own BAD example. The agent 4 prompt was de-numeralled on 9 Sep; this corpus output predates that fix and should be regenerated before it is used as evidence.
-3. **More than three items still appear in one sentence** ("Paxil, MOBIC, Klonopin, Celebrex, and Protonix"). The cap is in the prompt and is not being honoured.
-4. **"MOBIC" is capitalised**, which some TTS voices spell out letter by letter. Confirm on playback.
-5. **The extraction contains "Paxil" twice.** The script says it once, so this is an Agent 1 de-duplication bug rather than an audio one - but it surfaces here.
+3. **More than three medicines still appear in one sentence.** The prompt caps a spoken list at three items and the cap is not being honoured. A reader can re-scan a list; a listener cannot hold one.
+4. **An all-capitals drug name reached the script.** Some TTS voices spell those out letter by letter. Confirm on playback.
+5. **One medicine appeared twice in the extraction** and once in the script - an Agent 1 de-duplication bug rather than an audio one, but it surfaces here.
+
+_Findings 2-5 were observed on 9 Sep against a corpus document that is no longer the sample in this pack, and the drug names have been removed - see _CASE_SAMPLE in scripts/audio_review_pack.py. They describe defect classes worth checking against whatever sample is current, not a specific run._
 
 ---
 
