@@ -141,6 +141,81 @@ void main() {
     });
   });
 
+  group('renaming a document', () {
+    test('the library shows the name the patient gave it', () async {
+      final id = await DocumentStore.save(
+          result: result('Heart failure'), fileName: 'hf.pdf');
+      await DocumentStore.rename(id!, "Mum's February stay");
+      final doc = (await DocumentStore.list()).single;
+      expect(doc.displayTitle, "Mum's February stay");
+      expect(doc.isRenamed, isTrue);
+    });
+
+    test('the clinical record underneath is untouched', () async {
+      // The generated title comes from primary_diagnosis, which the rest of
+      // the app reads as clinical content. A display preference must never
+      // edit the record it is displaying.
+      final id = await DocumentStore.save(
+          result: result('Heart failure'), fileName: 'hf.pdf');
+      await DocumentStore.rename(id!, 'Whatever I like');
+      final loaded = await DocumentStore.load(id);
+      expect(loaded!.$1['extraction']['primary_diagnosis'], 'Heart failure');
+      expect((await DocumentStore.list()).single.diagnosis, 'Heart failure');
+    });
+
+    test('clearing the name brings the generated one back', () async {
+      // Renaming must never be a one-way door: the clinical name has to be
+      // recoverable without re-uploading the document.
+      final id = await DocumentStore.save(
+          result: result('Heart failure'), fileName: 'hf.pdf');
+      await DocumentStore.rename(id!, 'Temporary');
+      await DocumentStore.rename(id, '');
+      final doc = (await DocumentStore.list()).single;
+      expect(doc.displayTitle, 'Heart failure');
+      expect(doc.isRenamed, isFalse);
+    });
+
+    test('whitespace only counts as clearing it', () async {
+      final id = await DocumentStore.save(
+          result: result('Heart failure'), fileName: 'hf.pdf');
+      await DocumentStore.rename(id!, '   ');
+      expect((await DocumentStore.list()).single.isRenamed, isFalse);
+    });
+
+    test('a very long name is truncated rather than breaking the row', () async {
+      final id = await DocumentStore.save(
+          result: result('Heart failure'), fileName: 'hf.pdf');
+      await DocumentStore.rename(id!, 'x' * 500);
+      expect((await DocumentStore.list()).single.displayTitle.length, 80);
+    });
+
+    test('re-uploading the same document keeps the name', () async {
+      // Same reasoning as the person assignment: a fresh analysis of the same
+      // paperwork does not withdraw the patient's choice of name.
+      final hashed = {...result('Heart failure'), 'document_hash': 'abc123'};
+      final id = await DocumentStore.save(result: hashed, fileName: 'hf.pdf');
+      await DocumentStore.rename(id!, 'My summary');
+      await DocumentStore.save(result: hashed, fileName: 'hf.pdf');
+      final docs = await DocumentStore.list();
+      expect(docs.length, 1);
+      expect(docs.single.displayTitle, 'My summary');
+    });
+
+    test('renaming a document that does not exist fails quietly', () async {
+      expect(await DocumentStore.rename('no-such-id', 'x'), isFalse);
+    });
+
+    test('an unnamed document falls back to diagnosis then file name', () async {
+      await DocumentStore.save(
+          result: {'pipeline_status': 'complete', 'extraction': {}},
+          fileName: 'scan.pdf');
+      final doc = (await DocumentStore.list()).single;
+      // 'Discharge summary' is the store's own fallback for a missing
+      // diagnosis; the point is that displayTitle is never empty.
+      expect(doc.displayTitle.isNotEmpty, isTrue);
+    });
+  });
+
   test('rejected documents are never saved', () async {
     await DocumentStore.save(
       result: result('Not a discharge document', status: 'rejected'),

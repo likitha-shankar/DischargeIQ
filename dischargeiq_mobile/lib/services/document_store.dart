@@ -48,6 +48,7 @@ class SavedDocument {
     required this.savedAt,
     required this.hasPdf,
     this.personId,
+    this.customTitle,
   });
 
   final String id;
@@ -55,6 +56,35 @@ class SavedDocument {
   final String diagnosis;
   final DateTime savedAt;
   final bool hasPdf;
+
+  /// A name the patient typed, or null to use the generated one.
+  ///
+  /// Stored ALONGSIDE the extracted diagnosis rather than replacing it. The
+  /// generated title comes from `primary_diagnosis`, which is clinical
+  /// content the rest of the app reads; overwriting it to change a label
+  /// would edit the extraction record to fix a display string.
+  ///
+  /// It also has to be reversible. A patient who renames a document and later
+  /// wants the clinical name back would otherwise have no way to recover it
+  /// short of re-uploading.
+  final String? customTitle;
+
+  /// What the library should show: the patient's name for it, else the
+  /// diagnosis, else the file name.
+  ///
+  /// One getter so every surface agrees. The row, the delete confirmation and
+  /// any future share sheet must not disagree about what a document is
+  /// called - a dialog saying `"camera-scan-3p" will be removed` about a
+  /// document the patient renamed "Mum's heart summary" reads as a different
+  /// document, which is a bad moment for a destructive action.
+  String get displayTitle {
+    final custom = (customTitle ?? '').trim();
+    if (custom.isNotEmpty) return custom;
+    return diagnosis.isNotEmpty ? diagnosis : fileName;
+  }
+
+  /// True when the patient has given this document their own name.
+  bool get isRenamed => (customTitle ?? '').trim().isNotEmpty;
 
   /// Person this document belongs to, or null for documents saved before
   /// people existed. Those stay readable and can be filed later - an
@@ -148,6 +178,19 @@ class DocumentStore {
     }
   }
 
+  /// The patient's own name for a saved document, or null.
+  static Future<String?> _customTitleOf(Directory dir, String id) async {
+    try {
+      final file = File('${dir.path}/$id.json');
+      if (!await file.exists()) return null;
+      final meta = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final title = meta['custom_title'];
+      return title is String && title.trim().isNotEmpty ? title : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Persist one successful analysis. Rejected documents are not saved -
   /// there is nothing for the patient to come back to.
   ///
@@ -198,6 +241,10 @@ class DocumentStore {
       // over an existing assignment would move a filed document into the
       // Unassigned bucket for no reason the patient could see.
       final owner = personId ?? await _personIdOf(dir, id);
+      // A re-upload must not silently rename the document back. The patient
+      // named it; a fresh analysis of the same paperwork does not withdraw
+      // that. Same reasoning as the person assignment above.
+      final title = await _customTitleOf(dir, id);
       await File('${dir.path}/$id.json').writeAsString(jsonEncode({
         'file_name': fileName,
         'diagnosis': diagnosis,
@@ -206,6 +253,7 @@ class DocumentStore {
         // patient has just been looking.
         'saved_at': DateTime.now().toIso8601String(),
         if (owner != null) 'person_id': owner,
+        if (title != null) 'custom_title': title,
         if (hash.isNotEmpty) 'document_hash': hash,
         'result': result,
       }));
@@ -213,6 +261,45 @@ class DocumentStore {
     } catch (_) {
       // Best-effort: a full disk or sandbox hiccup must not fail the analysis.
       return null;
+    }
+  }
+
+  /// Give a document the patient's own name, or clear it back to generated.
+  ///
+  /// Args:
+  ///   id: Document to rename.
+  ///   title: The new name. Null, empty or whitespace CLEARS the override, so
+  ///     the generated diagnosis title comes back - renaming is reversible
+  ///     without re-uploading.
+  ///
+  /// Returns:
+  ///   bool: True when the change was written.
+  ///
+  /// Note:
+  ///   Only the label is touched. `result`, and the extracted
+  ///   `primary_diagnosis` inside it, are rewritten byte-for-byte as they
+  ///   were - a display preference must never edit the clinical record it is
+  ///   displaying.
+  static Future<bool> rename(String id, String? title) async {
+    try {
+      final dir = await _dir();
+      final file = File('${dir.path}/$id.json');
+      if (!await file.exists()) return false;
+      final meta = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final cleaned = (title ?? '').trim();
+      if (cleaned.isEmpty) {
+        meta.remove('custom_title');
+      } else {
+        // Bounded so one pasted paragraph cannot make every library row
+        // unreadable. Truncation is silent because the field is also
+        // length-limited in the dialog; this is the backstop.
+        meta['custom_title'] =
+            cleaned.length > 80 ? cleaned.substring(0, 80) : cleaned;
+      }
+      await file.writeAsString(jsonEncode(meta));
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -234,6 +321,9 @@ class DocumentStore {
             hasPdf: await File('${dir.path}/$id.pdf').exists(),
             personId: meta['person_id'] is String
                 ? meta['person_id'] as String
+                : null,
+            customTitle: meta['custom_title'] is String
+                ? meta['custom_title'] as String
                 : null,
           ));
         } catch (_) {

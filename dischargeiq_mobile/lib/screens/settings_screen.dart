@@ -1,5 +1,6 @@
 import 'package:dischargeiq_mobile/config.dart';
 import 'package:dischargeiq_mobile/providers/discharge_provider.dart';
+import 'package:dischargeiq_mobile/screens/how_it_works_screen.dart';
 import 'package:dischargeiq_mobile/screens/licences_screen.dart';
 import 'package:dischargeiq_mobile/providers/theme_provider.dart';
 import 'package:dischargeiq_mobile/services/read_aloud.dart';
@@ -11,14 +12,6 @@ const _kDisclaimerBody =
     'DischargeIQ provides patient education only. It is not medical advice, '
     'not a diagnosis, and not a substitute for your care team. Always follow '
     'your clinician’s instructions and seek urgent care when appropriate.';
-
-const _kAgentHelp =
-    'Extraction: reads your PDF and pulls out structured facts.\n\n'
-    'Diagnosis: explains in plain language what happened in the hospital.\n\n'
-    'Medications: explains each drug and why it was prescribed.\n\n'
-    'Recovery: outlines a simple timeline for getting back to normal.\n\n'
-    'Warning signs: three-tier guide for when to call 911, go to the ER, or call your doctor.\n\n'
-    'Quality check: simulates a confused patient to find gaps in the discharge document.';
 
 /// Read-aloud toggle (accessibility): shows/hides the speaker button on the
 /// results screen. Default on - the patients who need it most are the least
@@ -151,28 +144,18 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.info_outline, color: kTeal),
             title: const Text('How it works'),
-            subtitle: const Text('About the AI agents and what they do'),
-            onTap: () {
-              showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                builder: (ctx) => Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: SingleChildScrollView(
-                    child: Text(
-                      _kAgentHelp,
-                      style: TextStyle(
-                        fontSize: 14,
-                        height: 1.5,
-                        color: Theme.of(ctx).brightness == Brightness.dark
-                            ? kTextSecondaryDark
-                            : kTextSecondaryLight,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
+            subtitle: const Text('What the app does, and what it will not do'),
+            trailing: const Icon(Icons.chevron_right),
+            // Was a bottom sheet of six lines named after the agents, at
+            // reading grade 6.9 - above the 6.0 the agents' own output is
+            // held to, on the one screen whose job is explaining the product
+            // to a patient. Rewritten around the reader's questions and
+            // measured at 1.8.
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const HowItWorksScreen(),
+              ),
+            ),
           ),
           _sectionHeader(context, 'About'),
           const ListTile(

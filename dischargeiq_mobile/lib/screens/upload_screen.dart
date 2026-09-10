@@ -869,12 +869,65 @@ class _RecentDocumentsState extends State<_RecentDocuments> {
         );
   }
 
+  /// Let the patient name a document themselves.
+  ///
+  /// The generated title is the extracted primary diagnosis, which is
+  /// accurate and often not what someone recognises their own paperwork by -
+  /// "Acute Decompensated Heart Failure (HFrEF)" is the hospital's words, not
+  /// "Mum's February stay". Clearing the field restores the generated title,
+  /// so this is never a one-way door.
+  Future<void> _renameDoc(SavedDocument doc) async {
+    final controller = TextEditingController(text: doc.customTitle ?? '');
+    final chosen = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Rename document'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: controller,
+              autofocus: true,
+              maxLength: 80,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                // The generated name as the hint, so the patient can see what
+                // they are replacing and what clearing the box gives back.
+                hintText: doc.diagnosis.isEmpty ? doc.fileName : doc.diagnosis,
+                labelText: 'Your name for this document',
+              ),
+              onSubmitted: (v) => Navigator.pop(ctx, v),
+            ),
+            const Text(
+              'Leave it empty to go back to the name from your document.',
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, controller.text),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (chosen == null) return; // cancelled - distinct from cleared
+    await DocumentStore.rename(doc.id, chosen);
+    await _refresh();
+  }
+
   Future<void> _confirmDelete(SavedDocument doc) async {
     final yes = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete this document?'),
-        content: Text('"${doc.fileName}" will be removed from this phone.'),
+        content: Text('"${doc.displayTitle}" will be removed from this phone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -1016,7 +1069,7 @@ class _RecentDocumentsState extends State<_RecentDocuments> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              doc.diagnosis.isEmpty ? doc.fileName : doc.diagnosis,
+                              doc.displayTitle,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -1064,6 +1117,7 @@ class _RecentDocumentsState extends State<_RecentDocuments> {
                             color: dark ? kTextSecondaryDark : kTextSecondaryLight),
                         onSelected: (choice) {
                           if (choice == 'open') _open(doc);
+                          if (choice == 'rename') _renameDoc(doc);
                           if (choice == 'move') _moveDoc(doc);
                           if (choice == 'delete') _confirmDelete(doc);
                         },
@@ -1075,6 +1129,15 @@ class _RecentDocumentsState extends State<_RecentDocuments> {
                               contentPadding: EdgeInsets.zero,
                               leading: Icon(Icons.open_in_new, size: 20),
                               title: Text('Open'),
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'rename',
+                            child: ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.edit_outlined, size: 20),
+                              title: Text('Rename'),
                             ),
                           ),
                           const PopupMenuItem(
