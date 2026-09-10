@@ -122,6 +122,10 @@ evaluation/corpus_outputs/
 # statuses and digests only and is verified free of free text before it
 # is written.
 evaluation/golden/
+
+# Clinician gold-standard annotations (docs/ANNOTATION_SCHEMA.md). Verbatim
+# spans from patient documents, so the same rule as the corpus applies.
+evaluation/annotations/
 # Same data as corpus_outputs/ under an older name. This one WAS committed -
 # 61 files carrying verbatim source quotes in their _source provenance fields
 # ("The patient is a 67-year-old female, was referred to...") - and sat in a

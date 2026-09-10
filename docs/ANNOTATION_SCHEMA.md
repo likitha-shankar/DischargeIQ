@@ -68,7 +68,12 @@ documents, roughly **6-7 clinician hours**, splittable across sessions.
 
 ## Record format
 
-One JSON file per document, `evaluation/gold/{document_id}.json`.
+One JSON file per document, `evaluation/annotations/{document_id}.json`.
+
+Not `evaluation/gold/`: `evaluation/golden/` already exists for the
+golden-file regression, and two directories one letter apart holding
+different things is a trap for whoever comes next. The annotations are
+clinical text and are gitignored for the same reason the corpus is.
 
 ```json
 {
@@ -186,7 +191,7 @@ and they need a site relationship, not developer time.**
 ## Adjudication and agreement
 
 1. **Pass 1** - clinician annotates blind.
-2. **Pass 2** - `scripts/score_against_gold.py` (to be written) matches the
+2. **Pass 2** - `scripts/score_against_gold.py` matches the
    annotation against Agent 1's extraction and emits three lists: matched,
    missed by the system, and present in the system but absent from the
    annotation.
